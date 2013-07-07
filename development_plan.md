@@ -90,7 +90,7 @@ DBdeployer is a tool that deploys MySQL database servers easily.
 * A CLI interface will expose all API in such a way that the library can be called from any programming language
 
 ## Special features (require some more thought):
-* Easy integration with Percona Toolkit, OpenArk, CommonSchema, xtrabackup
+* Easy integration with Percona Toolkit, OpenArk, CommonSchema, xtrabackup, ps_helper
 * Easy integration with major testing frameworks (e.g. sysbench)
 * Install MySQL Cluster
 * Install Tungsten Replicator
