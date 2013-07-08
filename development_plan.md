@@ -94,6 +94,7 @@ DBdeployer is a tool that deploys MySQL database servers easily.
 * Easy integration with major testing frameworks (e.g. sysbench)
 * Install MySQL Cluster
 * Install Tungsten Replicator
+* Install Galera
 
 ## Graphical interface:
 A simple web-based GUI will allow the choice of
