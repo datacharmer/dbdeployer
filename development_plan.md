@@ -36,7 +36,9 @@ DBdeployer is a tool that deploys MySQL database servers easily.
 
 ## Production instances:
 * install a single instance in recommended location (/usr/local/mysql, /var/lib/mysql)
-* install a single instance in custom location 
+* install a single instance in custom location
+* store an instance for further usage (will save and eventually compress binaries, data, and configuration)
+* resume an instance from storage (we call it "go live")
 * install remote single instance
 * install remote single instances with replication
 
