@@ -1,3 +1,6 @@
 0.1.00	24-Jan-2018
 	- Initial commit with basic features migrated from MySQL-Sandbox
-	
+0.1.01	25-Jan-2018
+	- Fixed inclusion of options in my.sandbox.cnf (--my-cnf-options)
+	- Added command 'multiple'
+	- Enhanced documentation

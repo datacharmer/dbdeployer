@@ -68,6 +68,9 @@ func init() {
 	set_pflag("bind-address", "", "127.0.0.1", "defines the database bind-address ")
 	set_pflag("init-options", "INIT_OPTIONS", "", "mysqld options to run during initialization")
 	set_pflag("my-cnf-options", "MY_CNF_OPTIONS", "", "mysqld options to add to my.sandbox.cnf")
+	// This option will allow to merge the template with an external my.cnf
+	// The options that are essential for the sandbox will be preserved
+	//set_pflag("my-cnf-file", "MY_CNF_file", "", "Alternate source file for my.sandbox.cnf")
 	set_pflag("db-user", "", "msandbox", "database user")
 	set_pflag("rpl-user", "", "rsandbox", "replication user")
 	set_pflag("db-password", "", "msandbox", "database password")

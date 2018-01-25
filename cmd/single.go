@@ -20,11 +20,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func SingleSandbox(cmd *cobra.Command, args []string) {
+func FillSdef (cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	var sd sandbox.SandboxDef
-	// fmt.Println("SINGLE")
-	// fmt.Printf("Cmd: %#v\n", cmd)
-	// fmt.Printf("\nArgs: %#v\n", args)
 	flags := cmd.Flags()
 	sd.Port = sandbox.VersionToPort(args[0])
 	sd.Version = args[0]
@@ -47,15 +44,33 @@ func SingleSandbox(cmd *cobra.Command, args []string) {
 		sd.ReplOptions = sandbox.ReplOptions
 		sd.ServerId = sd.Port
 	}
+	return sd
+}
+
+func SingleSandbox(cmd *cobra.Command, args []string) {
+	var sd sandbox.SandboxDef
+	// fmt.Println("SINGLE")
+	// fmt.Printf("Cmd: %#v\n", cmd)
+	// fmt.Printf("\nArgs: %#v\n", args)
+	sd = FillSdef(cmd, args)
 	sandbox.CreateSingleSandbox(sd, args[0])
 }
 
 // singleCmd represents the single command
 var singleCmd = &cobra.Command{
-	Use:   "single",
-	Args:  cobra.MinimumNArgs(1),
+	Use:   "single MySQL-Version",
+	Args:  cobra.ExactArgs(1),
 	Short: "deploys a single sandbox",
-	Long:  `Installs a sandbox and creates useful scripts for its use.`,
+	Long:  `single installs a sandbox and creates useful scripts for its use.
+MySQL-Version is in the format x.x.xx, and it refers to a directory named after the version
+containing an unpacked tarball. The place where these directories are found is defined by 
+--sandbox-binary (default: $HOME/opt/mysql.)
+For example:
+	dbdeployer single 5.7.21
+
+For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing 
+the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
+`,
 	Run:   SingleSandbox,
 }
 

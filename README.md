@@ -1,13 +1,13 @@
 # dbdeployer
 
-DBdeployer is a tool that deploys MySQL database servers easily.
+[DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 
 
 ## Operations
 
-With dbdeployer, you can deploy a single sandbox, or many sandboxes with replication.
+With dbdeployer, you can deploy a single sandbox, or many sandboxes  at once, with or without replication.
 
-The main commands are **single** and **replication**, which work with MySQL tarball that have been unpacked into the _sandbox-binary_ directory (by default, $HOME/opt/mysql.)
+The main commands are **single**, **replication**, and **multiple**, which work with MySQL tarball that have been unpacked into the _sandbox-binary_ directory (by default, $HOME/opt/mysql.)
 
 To use a tarball, you must first run the **unpack** command, which will unpack the tarball into the right directory.
 
@@ -22,6 +22,8 @@ For example:
     . sandbox server started
 
 
+The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with '--help' will show the main help screen.
+
     $ dbdeployer -h
     Makes MySQL server installation an easy task.
         Runs single, multiple, and replicated sandboxes.
@@ -31,6 +33,7 @@ For example:
 
     Available Commands:
       help        Help about any command
+      multiple    create multiple sandbox
       replication create replication sandbox
       sandboxes   List installed sandboxes
       single      deploys a single sandbox
@@ -53,50 +56,65 @@ For example:
           --sandbox-home string     Sandbox deployment direcory (default "/Users/gmax/sandboxes")
           --version                 version for dbdeployer
 
+    Use "dbdeployer [command] --help" for more information about a command.
 
-    $ dbdeployer single -h
-    Installs a sandbox and creates useful scripts for its use.
+The flags listed in the main screen can be used with any commands.
 
-    Usage:
-      dbdeployer single [flags] version
+If you don't have any tarballs installed in your system, you should first *unpack* it (see an example above).
 
+	$ dbdeployer unpack -h
+	unpack a tarball into the binary directory
 
-    $ dbdeployer replication -h
-    create replication sandbox
+	Usage:
+	  dbdeployer unpack MySQL-tarball [flags]
 
-    Usage:
-      dbdeployer replication [flags] version
+	Flags:
+	  -h, --help                    help for unpack
+		  --prefix string           Prefix for the final expanded directory
+		  --unpack-version string   which version is contained in the tarball
 
+The main command is *single*, which installs a single sandbox.
 
-    $ dbdeployer versions -h
-    List available versions
+	$ dbdeployer single -h
+	single installs a sandbox and creates useful scripts for its use.
+	MySQL-Version is in the format x.x.xx, and it refers to a directory named after the version
+	containing an unpacked tarball. The place where these directories are found is defined by
+	--sandbox-binary (default: $HOME/opt/mysql.)
+	For example:
+		dbdeployer single 5.7.21
 
-    Usage:
-      dbdeployer versions [flags] 
+	For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
+	the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
 
-    Aliases:
-      versions, available
+	Usage:
+	  dbdeployer single MySQL-Version [flags]
 
-    $ dbdeployer sandboxes -h
-    List installed sandboxes
+	Flags:
+	  -h, --help   help for single
 
-    Usage:
-      dbdeployer sandboxes
+If you want more than one sandbox of the same version, without any replication relationship, use the *multiple* command with an optional "--node" flag (default: 3).
 
-    Aliases:
-      sandboxes, installed, deployed
+	$ dbdeployer multiple -h
+	create multiple sandbox
 
-    $ dbdeployer unpack -h
-    unpack a tarball into the binary directory
+	Usage:
+	  dbdeployer multiple MySQL-Version [flags]
 
-    Usage:
-      dbdeployer unpack [flags] tarball
+	Flags:
+	  -h, --help        help for multiple
+		  --nodes int   How many nodes will be installed (default 3)
 
-    Flags:
-      -h, --help                    help for unpack
-          --prefix string           Prefix for the final expanded directory
-          --unpack-version string   which version is contained in the tarball
+The *replication* command will install a master and two or more slaves, with replication started.
 
-    Global Flags:
-          --sandbox-binary string   Binary repository (default "/Users/gmax/opt/mysql")
+	$ dbdeployer replication -h
+	create replication sandbox
 
+	Usage:
+	  dbdeployer replication MySQL-Version [flags]
+
+	Flags:
+	  -h, --help              help for replication
+		  --nodes int         How many nodes will be installed (default 3)
+		  --topology string   Which topology will be installed (default "master-slave")
+
+The only topology currently supported is "master-slave". Others, such as group-replication and multi-source. will follow.

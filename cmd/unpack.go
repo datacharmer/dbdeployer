@@ -68,8 +68,8 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 
 // unpackCmd represents the unpack command
 var unpackCmd = &cobra.Command{
-	Use:   "unpack",
-	Args:  cobra.MinimumNArgs(1),
+	Use:   "unpack MySQL-tarball",
+	Args:  cobra.ExactArgs(1),
 	Short: "unpack a tarball into the binary directory",
 	Long:  ``,
 	Run:   UnpackTarball,
