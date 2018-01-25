@@ -28,6 +28,12 @@ import (
 func UnpackTarball(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	Basedir, _ := flags.GetString("sandbox-binary")
+	if ! common.DirExists(Basedir) {
+		fmt.Printf("Directory %s does not exist.\n", Basedir)
+		fmt.Println("You should create it or provide an alternate base directory using --sandbox-binary")
+		os.Exit(1)
+	}
+
 	Version, _ := flags.GetString("unpack-version")
 	if Version == "" {
 		fmt.Println("flag --unpack-version is mandatory")

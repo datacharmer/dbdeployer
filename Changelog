@@ -4,3 +4,5 @@
 	- Fixed inclusion of options in my.sandbox.cnf (--my-cnf-options)
 	- Added command 'multiple'
 	- Enhanced documentation
+0.1.02	25-Jan-2018
+	- Fixed bug in unpack when basedir was not created.
