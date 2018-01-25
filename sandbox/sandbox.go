@@ -214,7 +214,8 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	}
 	if GreaterOrEqualVersion(sdef.Version, []int{8, 0, 4}) {
 		sdef.InitOptions = "--default_authentication_plugin=mysql_native_password"
-		sdef.MyCnfOptions += ` default_authentication_plugin=mysql_native_password
+		sdef.MyCnfOptions += `
+		default_authentication_plugin=mysql_native_password
 		`
 	}
 	//fmt.Printf("%#v\n", sdef)
