@@ -10,7 +10,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	_ "strings"
 )
 
 type SandboxDef struct {
@@ -30,8 +29,8 @@ type SandboxDef struct {
 	ServerId     int
 	ReplOptions  string
 	GtidOptions  string
-	InitOptions  string
-	MyCnfOptions  string
+	InitOptions  []string
+	MyCnfOptions []string
 }
 
 type TypeOfOrigin int
@@ -180,6 +179,19 @@ func GreaterOrEqualVersion(version string, compared_to []int) bool {
 	return sversion >= scompare
 }
 
+func slice_to_text(s_array []string) string {
+	var text string = ""
+	for _, v := range s_array {
+		options_list := strings.Split(v, " ")
+		for _, op := range (options_list) {
+			if len(op) > 0 {
+				text += fmt.Sprintf("%s\n",op)
+			}
+		}
+	}
+	return text
+}
+
 func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	// var port int
 	var sandbox_dir string
@@ -213,10 +225,8 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		os.Exit(1)
 	}
 	if GreaterOrEqualVersion(sdef.Version, []int{8, 0, 4}) {
-		sdef.InitOptions = "--default_authentication_plugin=mysql_native_password"
-		sdef.MyCnfOptions += `
-		default_authentication_plugin=mysql_native_password
-		`
+		sdef.InitOptions = append(sdef.InitOptions, "--default_authentication_plugin=mysql_native_password")
+		sdef.MyCnfOptions = append(sdef.MyCnfOptions, "default_authentication_plugin=mysql_native_password")
 	}
 	//fmt.Printf("%#v\n", sdef)
 	var data common.Smap = common.Smap{"Basedir": sdef.Basedir,
@@ -236,7 +246,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		"OsUser":       os.Getenv("USER"),
 		"ReplOptions":  sdef.ReplOptions,
 		"GtidOptions":  sdef.GtidOptions,
-		"ExtraOptions":  sdef.MyCnfOptions,
+		"ExtraOptions":  slice_to_text(sdef.MyCnfOptions),
 	}
 	if sdef.ServerId > 0 {
 		data["ServerId"] = fmt.Sprintf("server-id=%d", sdef.ServerId)
@@ -281,9 +291,8 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		fmt.Printf("Script '%s' not found\n", script)
 		os.Exit(1)
 	}
-	if sdef.InitOptions != "" {
-		options_list := strings.Split(sdef.InitOptions, " ")
-		for _, op := range options_list {
+	if len(sdef.InitOptions) > 0 {
+		for _, op := range sdef.InitOptions {
 			cmd_list = append(cmd_list, op)
 		}
 	}

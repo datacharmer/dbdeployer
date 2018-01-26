@@ -1,8 +1,11 @@
-0.1.00	24-Jan-2018
-	- Initial commit with basic features migrated from MySQL-Sandbox
+0.1.03	26-Jan-2018
+	- Modified --my-cnf-options and --init-options to be accepted multiple
+	times
+0.1.02	25-Jan-2018
+	- Fixed bug in unpack when basedir was not created.
 0.1.01	25-Jan-2018
 	- Fixed inclusion of options in my.sandbox.cnf (--my-cnf-options)
 	- Added command 'multiple'
 	- Enhanced documentation
-0.1.02	25-Jan-2018
-	- Fixed bug in unpack when basedir was not created.
+0.1.00	24-Jan-2018
+	- Initial commit with basic features migrated from MySQL-Sandbox

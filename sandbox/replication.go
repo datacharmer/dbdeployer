@@ -95,6 +95,12 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 }
 
 func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, nodes int) {
+
+	Basedir := sdef.Basedir + "/" + sdef.Version
+	if !common.DirExists(Basedir) {
+		fmt.Printf("Base directory %s does not exist\n", Basedir)
+		os.Exit(1)
+	}
 	sdef.SandboxDir += "/rsandbox_" + VersionToName(origin)
 	if common.DirExists(sdef.SandboxDir) {
 		fmt.Printf("Directory %s already exists\n", sdef.SandboxDir)

@@ -19,6 +19,12 @@ const (
 
 func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 
+	Basedir := sdef.Basedir + "/" + sdef.Version
+	if !common.DirExists(Basedir) {
+		fmt.Printf("Base directory %s does not exist\n", Basedir)
+		os.Exit(1)
+	}
+
 	sdef.SandboxDir += "/multi_msb_" + VersionToName(origin)
 
 	err := os.Mkdir(sdef.SandboxDir, 0755)

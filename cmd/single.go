@@ -15,7 +15,6 @@
 package cmd
 
 import (
-	// "fmt"
 	"dbdeployer/sandbox"
 	"github.com/spf13/cobra"
 )
@@ -34,8 +33,8 @@ func FillSdef (cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.RplPassword, _ = flags.GetString("rpl-password")
 	sd.RemoteAccess, _ = flags.GetString("remote-access")
 	sd.BindAddress, _ = flags.GetString("bind-address")
-	sd.InitOptions, _ = flags.GetString("init-options")
-	sd.MyCnfOptions, _ = flags.GetString("my-cnf-options")
+	sd.InitOptions, _ = flags.GetStringSlice("init-options")
+	sd.MyCnfOptions, _ = flags.GetStringSlice("my-cnf-options")
 
 	var gtid bool
 	gtid, _ = flags.GetBool("gtid")

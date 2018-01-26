@@ -47,8 +47,8 @@ The program doesn't have any dependencies. Everything is included in the binary.
           --db-user string          database user (default "msandbox")
           --gtid                    enables GTID
       -h, --help                    help for dbdeployer
-          --init-options string     mysqld options to run during initialization
-          --my-cnf-options string   mysqld options to add to my.sandbox.cnf
+          --init-options strings    mysqld options to run during initialization
+          --my-cnf-options strings  mysqld options to add to my.sandbox.cnf
           --remote-access string    defines the database access  (default "127.%")
           --rpl-password string     replication password (default "rsandbox")
           --rpl-user string         replication user (default "rsandbox")
@@ -59,6 +59,7 @@ The program doesn't have any dependencies. Everything is included in the binary.
     Use "dbdeployer [command] --help" for more information about a command.
 
 The flags listed in the main screen can be used with any commands.
+The flags _--my-cnf-options_ and _--init-options_ can be used several times.
 
 If you don't have any tarballs installed in your system, you should first *unpack* it (see an example above).
 
