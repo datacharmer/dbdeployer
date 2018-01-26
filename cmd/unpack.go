@@ -36,7 +36,7 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 
 	Version, _ := flags.GetString("unpack-version")
 	if Version == "" {
-		fmt.Println("flag --unpack-version is mandatory")
+		fmt.Println("unpack: flag --unpack-version is mandatory")
 		os.Exit(1)
 	}
 	Prefix, _ := flags.GetString("prefix")
@@ -77,22 +77,21 @@ var unpackCmd = &cobra.Command{
 	Use:   "unpack MySQL-tarball",
 	Args:  cobra.ExactArgs(1),
 	Short: "unpack a tarball into the binary directory",
-	Long:  ``,
+	Long:  `If you want to create a sandbox from a tarball, you first need to unpack it
+into the sandbox-binary directory. This command carries out that task, so that afterwards 
+you can call 'single', 'multiple', and 'replication' commands with only the MySQL version
+for that tarball.`,
 	Run:   UnpackTarball,
+	Example: `
+    $ dbdeployer --unpack-version=8.0.4 unpack mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz
+    Unpacking tarball mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz to /home/gmax/opt/mysql/8.0.4
+    .........100.........200.........292
+	`,
 }
 
 func init() {
 	rootCmd.AddCommand(unpackCmd)
 
-	unpackCmd.PersistentFlags().String("unpack-version", "", "which version is contained in the tarball")
+	unpackCmd.PersistentFlags().String("unpack-version", "", "which version is contained in the tarball (mandatory)")
 	unpackCmd.PersistentFlags().String("prefix", "", "Prefix for the final expanded directory")
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// unpackCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// unpackCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

@@ -31,6 +31,7 @@ type SandboxDef struct {
 	GtidOptions  string
 	InitOptions  []string
 	MyCnfOptions []string
+	KeepAuthPlugin bool
 }
 
 type TypeOfOrigin int
@@ -67,47 +68,6 @@ func getmatch(key string, names []string, matches []string) string {
 	return ""
 }
 
-func WhichOrigin(origin string) (SandboxDef, TypeOfOrigin) {
-	/*
-		Check origin:
-		1) is it bareVersion?
-			1a) Does it exist?
-		2) is it an existing directory?
-		3) Is it an existing file?
-			3a) does the file name start with a number?
-			3b) Supported variant?
-			3c) Does it have a version?
-			3d) Is it already exported to $SANDBOX_BINARY?
-
-	*/
-
-	var too TypeOfOrigin = NoSuchOrigin
-	var sd SandboxDef
-	dbVariants := `(?P<dbvariant>mysql|mariadb|Percona-Server)-`
-	version := `(?P<version>\d+\.\d+\.\d+)`
-	reBareVersion := regexp.MustCompile(`^` + version + `$`)
-	names := reBareVersion.SubexpNames()
-	allmatches := reBareVersion.FindAllStringSubmatch(origin, -1)
-	if allmatches != nil {
-		matches := allmatches[0]
-		sd.Version = getmatch("version", names, matches)
-		return sd, BareVersion
-	}
-	//fmt.Println("before ", allmatches)
-	reTarball := regexp.MustCompile(`^` + dbVariants + version + `.+\.tar\.gz$`)
-	names = reTarball.SubexpNames()
-	allmatches = reTarball.FindAllStringSubmatch(origin, -1)
-	if allmatches != nil {
-		matches := allmatches[0]
-		sd.Version = getmatch("version", names, matches)
-		sd.Variant = getmatch("dbvariant", names, matches)
-		sd.Port = VersionToPort(sd.Version)
-		return sd, Tarball
-	}
-	//reNumberedTarball 	:= regexp.MustCompile(`^\d+\.` + dbVariants + version + `.+\.tar\.gz$`)
-	//reFullDir 			:= regexp.MustCompile(`^(?P<fulldir>.+)` + version + `$`)
-	return sd, too
-}
 
 func VersionToList(version string) []int {
 	// A valid version must be made of 3 integers
@@ -193,22 +153,23 @@ func slice_to_text(s_array []string) string {
 }
 
 func CreateSingleSandbox(sdef SandboxDef, origin string) {
-	// var port int
+
+	if common.FileExists(origin) && strings.HasSuffix(origin, ".tar.gz") {
+		fmt.Println("If you want to use a tarball to create a sandbox,\n")
+		fmt.Println("you should first use the 'unpack' command\n")
+		os.Exit(1)
+	}
+
 	var sandbox_dir string
-	// sd, which_origin  := WhichOrigin(origin)
 	sdef.Basedir = sdef.Basedir + "/" + sdef.Version
 	if !common.DirExists(sdef.Basedir) {
 		fmt.Printf("Base directory %s does not exist\n", sdef.Basedir)
 		os.Exit(1)
 	}
 
-	// fmt.Printf("origin type: %s\n", which_origin)
-	//fmt.Printf("sd : %#v\n", sd)
-
 	//fmt.Printf("origin: %s\n", origin)
 	//fmt.Printf("def: %#v\n", sdef)
 	// port = VersionToPort(sdef.Version)
-	//fmt.Printf("port: %d\n", port)
 	version_fname := VersionToName(sdef.Version)
 	if sdef.DirName == "" {
 		sdef.DirName = "msb_" + version_fname
@@ -225,8 +186,10 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		os.Exit(1)
 	}
 	if GreaterOrEqualVersion(sdef.Version, []int{8, 0, 4}) {
-		sdef.InitOptions = append(sdef.InitOptions, "--default_authentication_plugin=mysql_native_password")
-		sdef.MyCnfOptions = append(sdef.MyCnfOptions, "default_authentication_plugin=mysql_native_password")
+		if sdef.KeepAuthPlugin == false {
+			sdef.InitOptions = append(sdef.InitOptions, "--default_authentication_plugin=mysql_native_password")
+			sdef.MyCnfOptions = append(sdef.MyCnfOptions, "default_authentication_plugin=mysql_native_password")
+		}
 	}
 	//fmt.Printf("%#v\n", sdef)
 	var data common.Smap = common.Smap{"Basedir": sdef.Basedir,

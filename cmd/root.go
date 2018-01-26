@@ -46,7 +46,7 @@ func Execute() {
 	}
 }
 
-func set_pflag(key string, env_var string, default_var string, help_str string, is_slice bool) {
+func set_pflag(key string, abbr string, env_var string, default_var string, help_str string, is_slice bool) {
 	var default_value string
 	if env_var != "" {
 		default_value = os.Getenv(env_var)
@@ -55,31 +55,32 @@ func set_pflag(key string, env_var string, default_var string, help_str string, 
 		default_value = default_var
 	}
 	if is_slice {
-		rootCmd.PersistentFlags().StringSlice(key, []string{default_value,}, help_str)
+		rootCmd.PersistentFlags().StringSliceP(key, abbr,  []string{default_value,}, help_str)
 	} else {
-		rootCmd.PersistentFlags().String(key, default_value, help_str)
+		rootCmd.PersistentFlags().StringP(key, abbr, default_value, help_str)
 	}
 }
 
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "./sandbox.json", "config file")
-	set_pflag("sandbox-home", "SANDBOX_HOME", os.Getenv("HOME")+"/sandboxes", "Sandbox deployment direcory", false)
-	set_pflag("sandbox-binary", "SANDBOX_BINARY", os.Getenv("HOME")+"/opt/mysql", "Binary repository",false)
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "./dbdeployer.json", "config file")
+	set_pflag("sandbox-home", "", "SANDBOX_HOME", os.Getenv("HOME")+"/sandboxes", "Sandbox deployment direcory", false)
+	set_pflag("sandbox-binary", "", "SANDBOX_BINARY", os.Getenv("HOME")+"/opt/mysql", "Binary repository",false)
 
-	set_pflag("remote-access", "", "127.%", "defines the database access ", false)
-	set_pflag("bind-address", "", "127.0.0.1", "defines the database bind-address ", false)
-	set_pflag("init-options", "INIT_OPTIONS", "", "mysqld options to run during initialization", true)
-	set_pflag("my-cnf-options", "MY_CNF_OPTIONS", "", "mysqld options to add to my.sandbox.cnf", true)
+	set_pflag("remote-access", "", "", "127.%", "defines the database access ", false)
+	set_pflag("bind-address", "", "", "127.0.0.1", "defines the database bind-address ", false)
+	set_pflag("init-options", "i", "INIT_OPTIONS", "", "mysqld options to run during initialization", true)
+	set_pflag("my-cnf-options", "c", "MY_CNF_OPTIONS", "", "mysqld options to add to my.sandbox.cnf", true)
 	// This option will allow to merge the template with an external my.cnf
 	// The options that are essential for the sandbox will be preserved
 	//set_pflag("my-cnf-file", "MY_CNF_file", "", "Alternate source file for my.sandbox.cnf")
-	set_pflag("db-user", "", "msandbox", "database user", false)
-	set_pflag("rpl-user", "", "rsandbox", "replication user", false)
-	set_pflag("db-password", "", "msandbox", "database password", false)
-	set_pflag("rpl-password", "", "rsandbox", "replication password", false)
+	set_pflag("db-user", "u", "", "msandbox", "database user", false)
+	set_pflag("rpl-user", "", "", "rsandbox", "replication user", false)
+	set_pflag("db-password", "p", "", "msandbox", "database password", false)
+	set_pflag("rpl-password", "", "", "rsandbox", "replication password", false)
 	rootCmd.PersistentFlags().Bool("gtid", false, "enables GTID")
+	rootCmd.PersistentFlags().Bool("keep-auth-plugin", false, "in 8.0.4+, does not change the auth plugin")
 
 	rootCmd.InitDefaultVersionFlag()
 }

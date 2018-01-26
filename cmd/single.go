@@ -35,6 +35,7 @@ func FillSdef (cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.BindAddress, _ = flags.GetString("bind-address")
 	sd.InitOptions, _ = flags.GetStringSlice("init-options")
 	sd.MyCnfOptions, _ = flags.GetStringSlice("my-cnf-options")
+	sd.KeepAuthPlugin, _ = flags.GetBool("keep-auth-plugin")
 
 	var gtid bool
 	gtid, _ = flags.GetBool("gtid")
@@ -76,15 +77,6 @@ the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
 func init() {
 	rootCmd.AddCommand(singleCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// singleCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// singleCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 /*

@@ -36,9 +36,22 @@ var multipleCmd = &cobra.Command{
 	Short: "create multiple sandbox",
 	Long:  ``,
 	Run:   MultipleSandbox,
+	Example: `
+	$ dbdeployer multiple 5.7.21
+	Installing and starting node 1
+	Database installed in /Users/gmax/sandboxes/multi_msb_5_7_21/node1
+	. sandbox server started
+	Installing and starting node 2
+	Database installed in /Users/gmax/sandboxes/multi_msb_5_7_21/node2
+	. sandbox server started
+	Installing and starting node 3
+	Database installed in /Users/gmax/sandboxes/multi_msb_5_7_21/node3
+	. sandbox server started
+	Multiple directory installed in /Users/gmax/sandboxes/multi_msb_5_7_21
+	`,
 }
 
 func init() {
 	rootCmd.AddCommand(multipleCmd)
-	multipleCmd.PersistentFlags().Int("nodes", 3, "How many nodes will be installed")
+	multipleCmd.PersistentFlags().IntP("nodes", "n", 3, "How many nodes will be installed")
 }

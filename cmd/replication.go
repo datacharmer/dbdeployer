@@ -38,11 +38,26 @@ var replicationCmd = &cobra.Command{
 	Short: "create replication sandbox",
 	Long:  ``,
 	Run:   ReplicationSandbox,
+	Example: `
+	$ dbdeployer replication 5.7.21
+	Installing and starting master
+	Database installed in /Users/gmax/sandboxes/rsandbox_5_7_21/master
+	. sandbox server started
+	Installing and starting slave 1
+	Database installed in /Users/gmax/sandboxes/rsandbox_5_7_21/node1
+	. sandbox server started
+	Installing and starting slave 2
+	Database installed in /Users/gmax/sandboxes/rsandbox_5_7_21/node2
+	. sandbox server started
+	initializing slave 1
+	initializing slave 2
+	Replication directory installed in /Users/gmax/sandboxes/rsandbox_5_7_21
+	`,
 }
 
 func init() {
 	rootCmd.AddCommand(replicationCmd)
-	replicationCmd.PersistentFlags().String("topology", "master-slave", "Which topology will be installed")
-	replicationCmd.PersistentFlags().Int("nodes", 3, "How many nodes will be installed")
+	replicationCmd.PersistentFlags().StringP("topology", "t", "master-slave", "Which topology will be installed")
+	replicationCmd.PersistentFlags().IntP("nodes", "n", 3, "How many nodes will be installed")
 	//replicationCmd.PersistentFlags().Int("slaves",  2, "How many slaves will be installed")
 }

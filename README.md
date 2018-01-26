@@ -43,12 +43,12 @@ The program doesn't have any dependencies. Everything is included in the binary.
     Flags:
           --bind-address string     defines the database bind-address  (default "127.0.0.1")
           --config string           config file (default "./sandbox.json")
-          --db-password string      database password (default "msandbox")
-          --db-user string          database user (default "msandbox")
+      -p, --db-password string      database password (default "msandbox")
+      -p, --db-user string          database user (default "msandbox")
           --gtid                    enables GTID
       -h, --help                    help for dbdeployer
-          --init-options strings    mysqld options to run during initialization
-          --my-cnf-options strings  mysqld options to add to my.sandbox.cnf
+      -i, --init-options strings    mysqld options to run during initialization
+      -c, --my-cnf-options strings  mysqld options to add to my.sandbox.cnf
           --remote-access string    defines the database access  (default "127.%")
           --rpl-password string     replication password (default "rsandbox")
           --rpl-user string         replication user (default "rsandbox")
@@ -103,7 +103,7 @@ If you want more than one sandbox of the same version, without any replication r
 
 	Flags:
 	  -h, --help        help for multiple
-		  --nodes int   How many nodes will be installed (default 3)
+	  -n, --nodes int   How many nodes will be installed (default 3)
 
 The *replication* command will install a master and two or more slaves, with replication started.
 
@@ -115,7 +115,7 @@ The *replication* command will install a master and two or more slaves, with rep
 
 	Flags:
 	  -h, --help              help for replication
-		  --nodes int         How many nodes will be installed (default 3)
-		  --topology string   Which topology will be installed (default "master-slave")
+	  -n, --nodes int         How many nodes will be installed (default 3)
+	  -t, --topology string   Which topology will be installed (default "master-slave")
 
 The only topology currently supported is "master-slave". Others, such as group-replication and multi-source. will follow.

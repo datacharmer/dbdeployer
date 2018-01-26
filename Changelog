@@ -1,3 +1,6 @@
+0.1.04	26-Jan-2018
+	- Added short names for some flags.
+	- Improved commands usage text
 0.1.03	26-Jan-2018
 	- Modified --my-cnf-options and --init-options to be accepted multiple
 	times
