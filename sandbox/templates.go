@@ -425,4 +425,200 @@ grant SELECT,EXECUTE on *.* to msandbox_ro@'localhost';
 grant REPLICATION SLAVE on *.* to {{.RplUser}}@'{{.RemoteAccess}}';
 create schema if not exists test;
 `
+	add_option_template string = `#!/bin/bash
+{{.Copyright}}
+
+curdir="{{.SandboxDir}}"
+cd $curdir
+
+if [ -z "$*" ]
+then
+    echo "# Syntax $0 options-for-my.cnf [more options] "
+    exit
+fi
+
+CHANGED=''
+for OPTION in $@
+do
+    option_exists=$(grep $OPTION ./my.sandbox.cnf)
+    if [ -z "$option_exists" ]
+    then
+        echo "$OPTION" >> my.sandbox.cnf
+        echo "# option '$OPTION' added to configuration file"
+        CHANGED=1
+    else
+        echo "# option '$OPTION' already exists configuration file"
+    fi
+done
+
+if [ -n "$CHANGED" ]
+then
+    ./restart
+fi
+`
+	show_binlog_template string = `#!/bin/bash
+{{.Copyright}}
+
+curdir="{{.SandboxDir}}"
+cd $curdir
+
+if [ ! -d ./data ]
+then
+    echo "$curdir/data not found"
+    exit 1
+fi
+
+pattern=$1
+[ -z "$pattern" ] && pattern='[0-9]*'
+if [ "$pattern" == "-h" -o "$pattern" == "--help" -o "$pattern" == "-help" -o "$pattern" == "help" ]
+then
+    echo "# Usage: $0 [BINLOG_PATTERN] "
+    echo "# Where BINLOG_PATTERN is a number, or part of a number used after 'mysql-bin'"
+    echo "# (The default is '[0-9]*]')"
+    echo "# examples:" 
+    echo "#          ./show_binlog 000001 | less "
+    echo "#          ./show_binlog 000012 | vim - "
+    echo "#          ./show_binlog  | grep -i 'CREATE TABLE'"
+    exit 0
+fi
+# set -x
+last_binlog=$(ls -lotr data/mysql-bin.$pattern | tail -n 1 | awk '{print $NF}')
+
+if [ -z "$last_binlog" ]
+then
+    echo "No binlog found in $curdir/data"
+    exit 1
+fi
+
+# Checks if the output is a terminal or a pipe
+if [  -t 1 ]
+then
+    echo "###################### WARNING ####################################"
+    echo "# You are not using a pager."
+    echo "# The output of this script can be quite large."
+    echo "# Please pipe this script with a pager, such as 'less' or 'vim -'"
+    echo "# ENTER 'q' to exit or simply RETURN to continue without a pager"
+    read answer
+    if [ "$answer" == "q" ]
+    then
+        exit
+    fi
+fi
+
+(printf "#\n# Showing $last_binlog\n#\n" ; ./my sqlbinlog --verbose $last_binlog ) 
+`
+	my_template string = `#!/bin/bash
+{{.Copyright}}
+
+
+if [ "$1" = "" ]
+then
+    echo "syntax my sql{dump|binlog|admin} arguments"
+    exit
+fi
+
+SBDIR="{{.SandboxDir}}"
+source $SBDIR/sb_include
+BASEDIR={{.Basedir}}
+export LD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$LD_LIBRARY_PATH
+export DYLD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$DYLD_LIBRARY_PATH
+MYSQL=$BASEDIR/bin/mysql
+
+SUFFIX=$1
+shift
+
+MYSQLCMD="$BASEDIR/bin/my$SUFFIX"
+
+NODEFAULT=(myisam_ftdump
+myisamlog
+mysql_config
+mysql_convert_table_format
+mysql_find_rows
+mysql_fix_extensions
+mysql_fix_privilege_tables
+mysql_secure_installation
+mysql_setpermission
+mysql_tzinfo_to_sql
+mysql_config_editor
+mysql_waitpid
+mysql_zap
+mysqlaccess
+mysqlbinlog
+mysqlbug
+mysqldumpslow
+mysqlhotcopy
+mysqltest
+mysqltest_embedded)
+
+DEFAULTSFILE="--defaults-file=$SBDIR/my.sandbox.cnf"
+
+for NAME in ${NODEFAULT[@]}
+do
+    if [ "my$SUFFIX" = "$NAME" ]
+    then
+        DEFAULTSFILE=""
+        break
+    fi
+done
+
+if [ -f $MYSQLCMD ]
+then
+    $MYSQLCMD $DEFAULTSFILE "$@"
+else
+    echo "$MYSQLCMD not found "
+fi
+`
+	show_relaylog_template string=`#!/bin/bash
+{{.Copyright}}
+curdir="{{.SandboxDir}}"
+cd $curdir
+
+if [ ! -d ./data ]
+then
+    echo "$curdir/data not found"
+    exit 1
+fi
+relay_basename=$1
+[ -z "$relay_basename" ] && relay_basename='mysql-relay'
+pattern=$2
+[ -z "$pattern" ] && pattern='[0-9]*'
+if [ "$pattern" == "-h" -o "$pattern" == "--help" -o "$pattern" == "-help" -o "$pattern" == "help" ]
+then
+    echo "# Usage: $0 [ relay-base-name [BINLOG_PATTERN]] "
+    echo "# Where relay-basename is the initial part of the relay ('$relay_basename')"
+    echo "# and BINLOG_PATTERN is a number, or part of a number used after '$relay_basename'"
+    echo "# (The default is '[0-9]*]')"
+    echo "# examples:" 
+    echo "#          ./show_relaylog relay-log-alpha 000001 | less "
+    echo "#          ./show_relaylog relay-log 000012 | vim - "
+    echo "#          ./show_relaylog  | grep -i 'CREATE TABLE'"
+    exit 0
+fi
+# set -x
+last_relaylog=$(ls -lotr data/$relay_basename.$pattern | tail -n 1 | awk '{print $NF}')
+
+if [ -z "$last_relaylog" ]
+then
+    echo "No relay log found in $curdir/data"
+    exit 1
+fi
+
+# Checks if the output is a terminal or a pipe
+if [  -t 1 ]
+then
+    echo "###################### WARNING ####################################"
+    echo "# You are not using a pager."
+    echo "# The output of this script can be quite large."
+    echo "# Please pipe this script with a pager, such as 'less' or 'vim -'"
+    echo "# ENTER 'q' to exit or simply RETURN to continue without a pager"
+    read answer
+    if [ "$answer" == "q" ]
+    then
+        exit
+    fi
+fi
+
+(printf "#\n# Showing $last_relaylog\n#\n" ; ./my sqlbinlog --verbose $last_relaylog ) 
+`
+
 )

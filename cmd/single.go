@@ -38,7 +38,13 @@ func FillSdef (cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.KeepAuthPlugin, _ = flags.GetBool("keep-auth-plugin")
 
 	var gtid bool
+	var master bool
+	master, _ = flags.GetBool("master")
 	gtid, _ = flags.GetBool("gtid")
+	if master {
+		sd.ReplOptions = sandbox.ReplOptions
+		sd.ServerId = sd.Port
+	}
 	if gtid {
 		sd.GtidOptions = sandbox.GtidOptions
 		sd.ReplOptions = sandbox.ReplOptions
@@ -76,6 +82,7 @@ the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
 
 func init() {
 	rootCmd.AddCommand(singleCmd)
+	singleCmd.PersistentFlags().Bool("master",  false, "Make the server replication ready")
 
 }
 

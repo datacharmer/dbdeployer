@@ -34,14 +34,28 @@ type SandboxDef struct {
 	KeepAuthPlugin bool
 }
 
-type TypeOfOrigin int
-
 const (
-	Tarball TypeOfOrigin = 1 + iota
-	NumberedTarball
-	BareVersion
-	FullDir
-	NoSuchOrigin
+	MasterSlaveBasePort      int    = 10000
+	GroupReplicationBasePort int    = 12000
+	CircReplicationBasePort  int    = 14000
+	MultipleBasePort      	 int    = 16000
+	SandboxPrefix		 	 string = "msb_"
+	MasterSlavePrefix		 string = "rsandbox_"
+	GroupPrefix		 		 string = "group_msb_"
+	MultiplePrefix		 	 string = "multi_msb_"
+	ReplOptions              string = `
+relay-log-index=mysql-relay
+relay-log=mysql-relay
+log-bin=mysql-bin
+log-error=msandbox.err
+`
+	GtidOptions string = `
+master-info-repository=table
+relay-log-info-repository=table
+gtid_mode=ON
+log-slave-updates
+enforce-gtid-consistency
+`
 )
 
 var Origins = [...]string{
@@ -50,10 +64,6 @@ var Origins = [...]string{
 	"BareVersion",
 	"FullDir",
 	"NoSuchOrigin",
-}
-
-func (o TypeOfOrigin) String() string {
-	return Origins[o-1]
 }
 
 func getmatch(key string, names []string, matches []string) string {
@@ -172,7 +182,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	// port = VersionToPort(sdef.Version)
 	version_fname := VersionToName(sdef.Version)
 	if sdef.DirName == "" {
-		sdef.DirName = "msb_" + version_fname
+		sdef.DirName = SandboxPrefix + version_fname
 	}
 	sandbox_dir = sdef.SandboxDir + "/" + sdef.DirName
 	datadir := sandbox_dir + "/data"
@@ -284,6 +294,10 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	write_script("send_kill", send_kill_template, sandbox_dir, data, true)
 	write_script("restart", restart_template, sandbox_dir, data, true)
 	write_script("load_grants", load_grants_template, sandbox_dir, data, true)
+	write_script("add_option", add_option_template, sandbox_dir, data, true)
+	write_script("my", my_template, sandbox_dir, data, true)
+	write_script("show_binlog", show_binlog_template, sandbox_dir, data, true)
+	write_script("show_relaylog", show_relaylog_template, sandbox_dir, data, true)
 
 	write_script("my.sandbox.cnf", my_cnf_template, sandbox_dir, data, false)
 	if GreaterOrEqualVersion(sdef.Version, []int{5, 7, 6}) {

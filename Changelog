@@ -1,3 +1,7 @@
+0.1.05	27-Jan-2018
+	- Added option --master to 'single' command
+	- Added new commands to each sandbox: add_option, show_binlog,
+	show_relaylog, my.
 0.1.04	26-Jan-2018
 	- Added short names for some flags.
 	- Improved commands usage text

@@ -14,24 +14,6 @@ type Slave struct {
 	MasterPort int
 }
 
-const (
-	MasterSlaveBasePort      int    = 10000
-	GroupReplicationBasePort int    = 12000
-	CircReplicationBasePort  int    = 14000
-	ReplOptions              string = `
-relay-log-index=mysql-relay
-relay-log=mysql-relay
-log-bin=mysql-bin
-log-error=msandbox.err
-`
-	GtidOptions string = `
-master-info-repository=table
-relay-log-info-repository=table
-gtid_mode=ON
-log-slave-updates
-enforce-gtid-consistency
-`
-)
 
 func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 
@@ -101,7 +83,7 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 		fmt.Printf("Base directory %s does not exist\n", Basedir)
 		os.Exit(1)
 	}
-	sdef.SandboxDir += "/rsandbox_" + VersionToName(origin)
+	sdef.SandboxDir += "/" + MasterSlavePrefix + VersionToName(origin)
 	if common.DirExists(sdef.SandboxDir) {
 		fmt.Printf("Directory %s already exists\n", sdef.SandboxDir)
 		os.Exit(1)

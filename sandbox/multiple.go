@@ -13,10 +13,6 @@ type Node struct {
 	Name       string
 }
 
-const (
-	MultipleBasePort      	 int    = 16000
-)
-
 func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 
 	Basedir := sdef.Basedir + "/" + sdef.Version
@@ -25,7 +21,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 		os.Exit(1)
 	}
 
-	sdef.SandboxDir += "/multi_msb_" + VersionToName(origin)
+	sdef.SandboxDir += "/" + MultiplePrefix + VersionToName(origin)
 
 	err := os.Mkdir(sdef.SandboxDir, 0755)
 	if err != nil {
