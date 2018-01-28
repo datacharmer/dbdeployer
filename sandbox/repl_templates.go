@@ -102,7 +102,7 @@ echo "REPLICATION  {{.SandboxDir}}"
 {{.Copyright}}
 echo "master"
 {{.SandboxDir}}/master/use -BN -e "select CONCAT('port: ', @@port) AS port"
-{{.SandboxDir}}/master/use -BN -e 'show master status\G' | grep "File\|Position\|Executed"
+{{.SandboxDir}}/master/use -e 'show master status\G' | grep "File\|Position\|Executed"
 {{ range .Slaves }}
 echo "Slave{{.Node}}"
 {{.SandboxDir}}/node{{.Node}}/use -BN -e "select CONCAT('port: ', @@port) AS port"

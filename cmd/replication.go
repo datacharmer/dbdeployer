@@ -36,22 +36,18 @@ var replicationCmd = &cobra.Command{
 	Use:   "replication MySQL-Version",
 	Args:  cobra.ExactArgs(1),
 	Short: "create replication sandbox",
-	Long:  ``,
+	Long:  ` The replication command allows you to deploy two or more nodes in replication.
+	Allowed topologies are "master-slave" and "group"
+	`,
 	Run:   ReplicationSandbox,
 	Example: `
-	$ dbdeployer replication 5.7.21
-	Installing and starting master
-	Database installed in /Users/gmax/sandboxes/rsandbox_5_7_21/master
-	. sandbox server started
-	Installing and starting slave 1
-	Database installed in /Users/gmax/sandboxes/rsandbox_5_7_21/node1
-	. sandbox server started
-	Installing and starting slave 2
-	Database installed in /Users/gmax/sandboxes/rsandbox_5_7_21/node2
-	. sandbox server started
-	initializing slave 1
-	initializing slave 2
-	Replication directory installed in /Users/gmax/sandboxes/rsandbox_5_7_21
+		$ dbdeployer replication 5.7.21
+		# (implies topology = master-slave)
+
+		$ dbdeployer --topology=master-slave replication 5.7.21
+		# (explicitly setting topology)
+
+		$ dbdeployer --topology=group replication 5.7.21
 	`,
 }
 

@@ -2,40 +2,6 @@ package sandbox
 
 import "testing"
 
-func compareOrigin(t *testing.T, origin string, sd, esd SandboxDef, typeOfOrigin, eTypeOfOrigin TypeOfOrigin) {
-	t.Logf("%s\n", origin)
-	if typeOfOrigin == eTypeOfOrigin && esd == sd {
-		t.Logf("ok: %+v", sd)
-	} else {
-		t.Logf("NOT OK %+v\n", sd)
-		t.Fail()
-	}
-}
-
-func TestOrigin(t *testing.T) {
-	t.Parallel()
-	origin := "mysql-8.0.3-rc-macos10.12-x86_64.tar.gz"
-	var expected_sd SandboxDef = SandboxDef{
-		Variant: "mysql",
-		Version: "8.0.3",
-		Port:    8003,
-	}
-	var expected_typeOfOrigin TypeOfOrigin = Tarball
-	sd, typeOfOrigin := WhichOrigin(origin)
-	compareOrigin(t, origin, sd, expected_sd, typeOfOrigin, expected_typeOfOrigin)
-
-	origin = "Percona-Server-8.0.3-rc-macos10.12-x86_64.tar.gz"
-	sd, typeOfOrigin = WhichOrigin(origin)
-	expected_sd.Variant = "Percona-Server"
-	compareOrigin(t, origin, sd, expected_sd, typeOfOrigin, expected_typeOfOrigin)
-
-	origin = "8.0.3"
-	expected_typeOfOrigin = BareVersion
-	expected_sd.Variant = ""
-	expected_sd.Port = 0
-	sd, typeOfOrigin = WhichOrigin(origin)
-	compareOrigin(t, origin, sd, expected_sd, typeOfOrigin, expected_typeOfOrigin)
-}
 
 type version_port struct {
 	version string

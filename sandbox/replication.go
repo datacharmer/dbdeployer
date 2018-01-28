@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+
 type Slave struct {
 	Node       int
 	Port       int
@@ -13,6 +14,7 @@ type Slave struct {
 	Name       string
 	MasterPort int
 }
+
 
 
 func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
@@ -72,6 +74,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 	write_script("check_slaves", check_slaves_template, sdef.SandboxDir, data, true)
 	write_script("m", master_template, sdef.SandboxDir, data, true)
 	write_script("n1", master_template, sdef.SandboxDir, data, true)
+	fmt.Println(sdef.SandboxDir + "/initialize_slaves")
 	run_cmd(sdef.SandboxDir + "/initialize_slaves")
 	fmt.Printf("Replication directory installed in %s\n", sdef.SandboxDir)
 }
@@ -83,7 +86,17 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 		fmt.Printf("Base directory %s does not exist\n", Basedir)
 		os.Exit(1)
 	}
-	sdef.SandboxDir += "/" + MasterSlavePrefix + VersionToName(origin)
+
+	switch topology {
+	case "master-slave":
+		sdef.SandboxDir += "/" + MasterSlavePrefix + VersionToName(origin)
+	case "group":
+		sdef.SandboxDir += "/" + GroupPrefix + VersionToName(origin)
+	default:
+		fmt.Println("Unrecognized topology. Accepted: 'master-slave', 'group'")
+		os.Exit(1)
+	}
+
 	if common.DirExists(sdef.SandboxDir) {
 		fmt.Printf("Directory %s already exists\n", sdef.SandboxDir)
 		os.Exit(1)
@@ -99,9 +112,6 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 	case "master-slave":
 		CreateMasterSlaveReplication(sdef, origin, nodes)
 	case "group":
-		fmt.Println("Group replication not implemented yet")
-	default:
-		fmt.Println("Unrecognized topology. Accepted: 'master-slave', 'group'")
-		os.Exit(1)
+		CreateGroupReplication(sdef, origin, nodes)
 	}
 }
