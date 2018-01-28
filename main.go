@@ -14,7 +14,7 @@
 
 package main
 
-import "dbdeployer/cmd"
+import "github.com/datacharmer/dbdeployer/cmd"
 
 func main() {
 	cmd.Execute()

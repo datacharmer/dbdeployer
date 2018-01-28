@@ -1,7 +1,7 @@
 package sandbox
 
 import (
-	"dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/common"
 	"fmt"
 	"os"
 )

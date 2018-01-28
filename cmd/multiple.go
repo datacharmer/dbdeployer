@@ -17,7 +17,7 @@ package cmd
 import (
 	//"fmt"
 
-	"dbdeployer/sandbox"
+	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
 )
 

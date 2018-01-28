@@ -2,9 +2,9 @@ package sandbox
 
 import (
 	"bytes"
-	"dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/common"
 	"fmt"
-	_ "github.com/spf13/cobra"
+	//_ "github.com/spf13/cobra"
 	"os"
 	"os/exec"
 	"regexp"

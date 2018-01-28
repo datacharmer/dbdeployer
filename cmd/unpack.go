@@ -20,8 +20,8 @@ import (
 	"path"
 	"strings"
 
-	"dbdeployer/common"
-	"dbdeployer/unpack"
+	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/unpack"
 	"github.com/spf13/cobra"
 )
 
