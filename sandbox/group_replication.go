@@ -82,5 +82,6 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 	fmt.Println(sdef.SandboxDir + "/initialize_nodes")
 	run_cmd(sdef.SandboxDir + "/initialize_nodes")
 	fmt.Printf("Replication directory installed in %s\n", sdef.SandboxDir)
+	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
 }
 

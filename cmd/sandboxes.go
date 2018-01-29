@@ -38,8 +38,20 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 		if fmode.IsDir() {
 			start := SandboxHome + "/" + fname + "/start"
 			start_all := SandboxHome + "/" + fname + "/start_all"
+			initialize_slaves := SandboxHome + "/" + fname + "/initialize_slaves"
+			initialize_nodes := SandboxHome + "/" + fname + "/initialize_nodes"
+			description := "single"
+			if common.FileExists(start_all) {
+				description = "multiple sandbox"
+			}
+			if common.FileExists(initialize_slaves) {
+				description = "master-slave replication"
+			}
+			if common.FileExists(initialize_nodes) {
+				description = "group replication"
+			}
 			if common.FileExists(start) || common.FileExists(start_all) {
-				dirs = append(dirs, fname)
+				dirs = append(dirs, fmt.Sprintf("%-20s : %s", fname, description))
 			}
 		}
 	}

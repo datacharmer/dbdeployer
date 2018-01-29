@@ -20,6 +20,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/unpack"
 	"github.com/spf13/cobra"
@@ -39,6 +40,8 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 		fmt.Println("unpack: flag --unpack-version is mandatory")
 		os.Exit(1)
 	}
+	// This call used to ensure that the port provided is in the right format
+	sandbox.VersionToPort(Version)
 	Prefix, _ := flags.GetString("prefix")
 	tarball := args[0]
 
@@ -84,7 +87,7 @@ for that tarball.`,
 	Run:   UnpackTarball,
 	Example: `
     $ dbdeployer --unpack-version=8.0.4 unpack mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz
-    Unpacking tarball mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz to /home/gmax/opt/mysql/8.0.4
+    Unpacking tarball mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz to $HOME/opt/mysql/8.0.4
     .........100.........200.........292
 	`,
 }

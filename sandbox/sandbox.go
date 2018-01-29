@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"github.com/datacharmer/dbdeployer/common"
 	"fmt"
-	//_ "github.com/spf13/cobra"
 	"os"
 	"os/exec"
 	"regexp"
@@ -92,7 +91,8 @@ func VersionToList(version string) []int {
 		verList = verList2
 	}
 	if verList == nil {
-		return []int{-1}
+		fmt.Println("Required version format: x.x.xx")
+		os.Exit(1)
 	}
 
 	major, err1 := strconv.Atoi(verList[0][1])
@@ -165,8 +165,8 @@ func slice_to_text(s_array []string) string {
 func CreateSingleSandbox(sdef SandboxDef, origin string) {
 
 	if common.FileExists(origin) && strings.HasSuffix(origin, ".tar.gz") {
-		fmt.Println("If you want to use a tarball to create a sandbox,\n")
-		fmt.Println("you should first use the 'unpack' command\n")
+		fmt.Println("If you want to use a tarball to create a sandbox,")
+		fmt.Println("you should first use the 'unpack' command")
 		os.Exit(1)
 	}
 
@@ -279,6 +279,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	err = cmd.Run()
 	if err == nil {
 		fmt.Printf("Database installed in %s\n", sandbox_dir)
+		fmt.Printf("run 'dbdeployer usage single' for basic instructions'\n")
 	} else {
 		fmt.Printf("err: %s\n", err)
 		fmt.Printf("cmd: %#v\n", cmd)

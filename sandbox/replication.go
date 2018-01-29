@@ -77,6 +77,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 	fmt.Println(sdef.SandboxDir + "/initialize_slaves")
 	run_cmd(sdef.SandboxDir + "/initialize_slaves")
 	fmt.Printf("Replication directory installed in %s\n", sdef.SandboxDir)
+	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
 }
 
 func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, nodes int) {

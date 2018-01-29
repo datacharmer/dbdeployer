@@ -38,16 +38,6 @@ var multipleCmd = &cobra.Command{
 	Run:   MultipleSandbox,
 	Example: `
 	$ dbdeployer multiple 5.7.21
-	Installing and starting node 1
-	Database installed in /Users/gmax/sandboxes/multi_msb_5_7_21/node1
-	. sandbox server started
-	Installing and starting node 2
-	Database installed in /Users/gmax/sandboxes/multi_msb_5_7_21/node2
-	. sandbox server started
-	Installing and starting node 3
-	Database installed in /Users/gmax/sandboxes/multi_msb_5_7_21/node3
-	. sandbox server started
-	Multiple directory installed in /Users/gmax/sandboxes/multi_msb_5_7_21
 	`,
 }
 

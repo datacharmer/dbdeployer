@@ -18,6 +18,7 @@ import (
 	//"fmt"
 
 	"github.com/datacharmer/dbdeployer/sandbox"
+	"github.com/datacharmer/dbdeployer/common"
 	"github.com/spf13/cobra"
 )
 
@@ -28,13 +29,14 @@ func ReplicationSandbox(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	nodes, _ := flags.GetInt("nodes")
 	topology, _ := flags.GetString("topology")
+	common.CheckOrigin(args)
 	sandbox.CreateReplicationSandbox(sd, args[0], topology, nodes)
 }
 
 // replicationCmd represents the replication command
 var replicationCmd = &cobra.Command{
 	Use:   "replication MySQL-Version",
-	Args:  cobra.ExactArgs(1),
+	//Args:  cobra.ExactArgs(1),
 	Short: "create replication sandbox",
 	Long:  ` The replication command allows you to deploy two or more nodes in replication.
 	Allowed topologies are "master-slave" and "group"

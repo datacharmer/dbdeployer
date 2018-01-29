@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
 )
@@ -26,6 +27,7 @@ func FillSdef (cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.Version = args[0]
 	sd.Basedir, _ = flags.GetString("sandbox-binary")
 	sd.SandboxDir, _ = flags.GetString("sandbox-home")
+	common.CheckSandboxDir(sd.SandboxDir)
 	sd.LoadGrants = true
 	sd.DbUser, _ = flags.GetString("db-user")
 	sd.DbPassword, _ = flags.GetString("db-password")
@@ -58,6 +60,7 @@ func SingleSandbox(cmd *cobra.Command, args []string) {
 	// fmt.Println("SINGLE")
 	// fmt.Printf("Cmd: %#v\n", cmd)
 	// fmt.Printf("\nArgs: %#v\n", args)
+	common.CheckOrigin(args)
 	sd = FillSdef(cmd, args)
 	sandbox.CreateSingleSandbox(sd, args[0])
 }
@@ -65,7 +68,7 @@ func SingleSandbox(cmd *cobra.Command, args []string) {
 // singleCmd represents the single command
 var singleCmd = &cobra.Command{
 	Use:   "single MySQL-Version",
-	Args:  cobra.ExactArgs(1),
+	// Args:  cobra.ExactArgs(1),
 	Short: "deploys a single sandbox",
 	Long:  `single installs a sandbox and creates useful scripts for its use.
 MySQL-Version is in the format x.x.xx, and it refers to a directory named after the version
@@ -76,6 +79,7 @@ For example:
 
 For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing 
 the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
+Use the "unpack" command to get the tarball into the right directory.
 `,
 	Run:   SingleSandbox,
 }

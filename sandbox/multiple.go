@@ -69,5 +69,6 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 	write_script("send_kill_all", send_kill_multi_template, sdef.SandboxDir, data, true)
 	write_script("use_all", use_multi_template, sdef.SandboxDir, data, true)
 	fmt.Printf("Multiple directory installed in %s\n", sdef.SandboxDir)
+	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
 }
 

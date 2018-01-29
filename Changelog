@@ -1,3 +1,10 @@
+0.1.07	29-Jan-2018
+	- improved documentation
+	- Added "usage" command
+	- Added description to "sandboxes" output
+	- Added check for version format
+	- Changed message for missing argument
+	- Added check for sandbox-home existence
 0.1.06	28-Jan-2018
 	- Added group replication topology.
 0.1.05	27-Jan-2018
