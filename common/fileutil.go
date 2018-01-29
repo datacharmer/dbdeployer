@@ -16,11 +16,43 @@ package common
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"encoding/json"
 )
+
+type SandboxDescription struct {
+	Basedir string `json:"basedir"`
+	SBType string  `json:"type"`  // single multi master-slave group
+	Port int       `json:"port"`
+	Nodes int	   `json:"nodes"`
+}
+
+func WriteSandboxDescription (destination string, sd SandboxDescription) {
+	b, err := json.MarshalIndent(sd, " ", "\t")
+	if err != nil {
+		fmt.Println("error encoding sandbox description: ", err)
+		os.Exit(1)
+	}
+	json_string := fmt.Sprintf("%s", b)
+	filename := destination + "/sbdescription.json"
+	WriteString(json_string, filename)
+}
+
+func ReadSandboxDescription (sandbox_directory string) (sd SandboxDescription) {
+	filename := sandbox_directory + "/sbdescription.json"
+	sb_blob := SlurpAsBytes(filename)
+
+	err := json.Unmarshal(sb_blob, &sd)
+	if err != nil {
+		fmt.Println("error decoding sandbox description: ", err)
+		os.Exit(1)
+	}
+	return
+}
 
 func SlurpAsLines(filename string) []string {
 	f, err := os.Open(filename)
@@ -101,5 +133,44 @@ func Which(filename string) string {
 func ExecExists(filename string) bool {
 	_ , err := exec.LookPath(filename)
 	return err == nil
+}
+
+func Run_cmd_with_args(c string, args []string) error {
+	cmd := exec.Command(c, args...)
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if err != nil {
+		fmt.Printf("err: %s\n", err)
+		fmt.Printf("cmd: %#v\n", cmd)
+		fmt.Printf("stdout: %s\n", out.String())
+		fmt.Printf("stderr: %s\n", stderr.String())
+		// os.Exit(1)
+	} else {
+		fmt.Printf("%s", out.String())
+	}
+	return err
+}
+
+func Run_cmd(c string) error {
+	//cmd := exec.Command(c, args...)
+	cmd := exec.Command(c, "")
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if err != nil {
+		fmt.Printf("err: %s\n", err)
+		fmt.Printf("cmd: %#v\n", cmd)
+		fmt.Printf("stdout: %s\n", out.String())
+		fmt.Printf("stderr: %s\n", stderr.String())
+		// os.Exit(1)
+	} else {
+		fmt.Printf("%s", out.String())
+	}
+	return err
 }
 

@@ -1,3 +1,7 @@
+0.1.08	29-Jan-2018
+	- Added sandbox description file
+	- 'sandboxes' command uses above file for sandbox listing
+	- Added 'delete' command
 0.1.07	29-Jan-2018
 	- improved documentation
 	- Added "usage" command

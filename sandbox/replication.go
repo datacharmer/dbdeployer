@@ -42,6 +42,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 
 	fmt.Println("Installing and starting master")
 	sdef.LoadGrants = true
+	sdef.Multi = true
 	CreateSingleSandbox(sdef, origin)
 	for i := 1; i <= slaves; i++ {
 		data["Slaves"] = append(data["Slaves"].([]common.Smap), common.Smap{
@@ -64,6 +65,14 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 		write_script(fmt.Sprintf("s%d",i), slave_template, sdef.SandboxDir, data_slave, true)
 		write_script(fmt.Sprintf("n%d",i+1), slave_template, sdef.SandboxDir, data_slave, true)
 	}
+	sb_desc := common.SandboxDescription{
+		Basedir : sdef.Basedir + "/" + sdef.Version,
+		SBType	: "master-slave",
+		Port	: 0,
+		Nodes 	: slaves,
+	}
+	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)
+
 	write_script("start_all", start_all_template, sdef.SandboxDir, data, true)
 	write_script("restart_all", restart_all_template, sdef.SandboxDir, data, true)
 	write_script("status_all", status_all_template, sdef.SandboxDir, data, true)
@@ -75,7 +84,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 	write_script("m", master_template, sdef.SandboxDir, data, true)
 	write_script("n1", master_template, sdef.SandboxDir, data, true)
 	fmt.Println(sdef.SandboxDir + "/initialize_slaves")
-	run_cmd(sdef.SandboxDir + "/initialize_slaves")
+	common.Run_cmd(sdef.SandboxDir + "/initialize_slaves")
 	fmt.Printf("Replication directory installed in %s\n", sdef.SandboxDir)
 	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
 }

@@ -45,7 +45,7 @@ Example:
 	./use -u root
 
 clear
-"./clear" stops the server and removes everything from the data directory, letting you ready to start from scratch. (Warning! It's unrecoverable!)
+"./clear" stops the server and removes everything from the data directory, letting you ready to start from scratch. (Warning! It's irreversible!)
 `
 	const multiple_usage string =`
 	USING MULTIPLE SERVER SANDBOX

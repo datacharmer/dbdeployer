@@ -36,22 +36,47 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 		fname := f.Name()
 		fmode := f.Mode()
 		if fmode.IsDir() {
-			start := SandboxHome + "/" + fname + "/start"
-			start_all := SandboxHome + "/" + fname + "/start_all"
-			initialize_slaves := SandboxHome + "/" + fname + "/initialize_slaves"
-			initialize_nodes := SandboxHome + "/" + fname + "/initialize_nodes"
 			description := "single"
-			if common.FileExists(start_all) {
-				description = "multiple sandbox"
-			}
-			if common.FileExists(initialize_slaves) {
-				description = "master-slave replication"
-			}
-			if common.FileExists(initialize_nodes) {
-				description = "group replication"
-			}
-			if common.FileExists(start) || common.FileExists(start_all) {
+			sbdesc := SandboxHome + "/" + fname + "/sbdescription.json"
+			if common.FileExists(sbdesc) {
+				sbd := common.ReadSandboxDescription(SandboxHome + "/" + fname)
+				if sbd.Nodes == 0 {
+					description = fmt.Sprintf("%-15s %5d", sbd.SBType, sbd.Port)
+				} else {
+					var node_descr []common.SandboxDescription
+					if common.DirExists(SandboxHome + "/" + fname + "/master") {
+						sd_master := common.ReadSandboxDescription(SandboxHome + "/" + fname + "/master")
+						node_descr = append(node_descr, sd_master)
+					}
+					for node := 1; node <= sbd.Nodes; node++ {
+						sd_node := common.ReadSandboxDescription(fmt.Sprintf("%s/%s/node%d", SandboxHome, fname, node))
+						node_descr = append(node_descr, sd_node)
+					}
+					ports := "["
+					for _,nd := range node_descr {
+						ports += fmt.Sprintf(" %d", nd.Port)
+					}
+					ports += " ]"
+					description = fmt.Sprintf("%-15s %s", sbd.SBType, ports)
+				}
 				dirs = append(dirs, fmt.Sprintf("%-20s : %s", fname, description))
+			} else {
+				start := SandboxHome + "/" + fname + "/start"
+				start_all := SandboxHome + "/" + fname + "/start_all"
+				initialize_slaves := SandboxHome + "/" + fname + "/initialize_slaves"
+				initialize_nodes := SandboxHome + "/" + fname + "/initialize_nodes"
+				if common.FileExists(start_all) {
+					description = "multiple sandbox"
+				}
+				if common.FileExists(initialize_slaves) {
+					description = "master-slave replication"
+				}
+				if common.FileExists(initialize_nodes) {
+					description = "group replication"
+				}
+				if common.FileExists(start) || common.FileExists(start_all) {
+					dirs = append(dirs, fmt.Sprintf("%-20s : %s", fname, description))
+				}
 			}
 		}
 	}

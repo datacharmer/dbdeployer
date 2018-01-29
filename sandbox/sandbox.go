@@ -13,7 +13,7 @@ import (
 
 type SandboxDef struct {
 	DirName      string
-	Variant      string
+	Multi		 bool
 	Version      string
 	Basedir      string
 	SandboxDir   string
@@ -279,7 +279,9 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	err = cmd.Run()
 	if err == nil {
 		fmt.Printf("Database installed in %s\n", sandbox_dir)
-		fmt.Printf("run 'dbdeployer usage single' for basic instructions'\n")
+		if ! sdef.Multi {
+			fmt.Printf("run 'dbdeployer usage single' for basic instructions'\n")
+		}
 	} else {
 		fmt.Printf("err: %s\n", err)
 		fmt.Printf("cmd: %#v\n", cmd)
@@ -287,6 +289,13 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		fmt.Printf("stderr: %s\n", stderr.String())
 	}
 
+	sb_desc := common.SandboxDescription{
+		Basedir : sdef.Basedir,
+		SBType	: "single",
+		Port	: sdef.Port,
+		Nodes 	: 0,
+	}
+	common.WriteSandboxDescription(sandbox_dir, sb_desc)
 	write_script("start", start_template, sandbox_dir, data, true)
 	write_script("status", status_template, sandbox_dir, data, true)
 	write_script("stop", stop_template, sandbox_dir, data, true)
@@ -308,32 +317,13 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	}
 	write_script("sb_include", "", sandbox_dir, data, false)
 
-	//run_cmd(sandbox_dir + "/start", []string{})
-	run_cmd(sandbox_dir + "/start")
+	//common.Run_cmd(sandbox_dir + "/start", []string{})
+	common.Run_cmd(sandbox_dir + "/start")
 	if sdef.LoadGrants {
-		run_cmd(sandbox_dir + "/load_grants")
+		common.Run_cmd(sandbox_dir + "/load_grants")
 	}
 }
 
-//func run_cmd( c string, args []string) {
-func run_cmd(c string) {
-	//cmd := exec.Command(c, args...)
-	cmd := exec.Command(c, "")
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	if err != nil {
-		fmt.Printf("err: %s\n", err)
-		fmt.Printf("cmd: %#v\n", cmd)
-		fmt.Printf("stdout: %s\n", out.String())
-		fmt.Printf("stderr: %s\n", stderr.String())
-		os.Exit(1)
-	} else {
-		fmt.Printf("%s", out.String())
-	}
-}
 
 func write_script(name, template, directory string, data common.Smap, make_executable bool) {
 	template = common.TrimmedLines(template)

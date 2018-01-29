@@ -30,7 +30,7 @@ var rootCmd = &cobra.Command{
 	Use:   "dbdeployer",
 	Short: "Installs multiple MySQL servers on the same host",
 	Long: `Makes MySQL server installation an easy task.
-	Runs single, multiple, and replicated sandboxes.`,
+Runs single, multiple, and replicated sandboxes.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	//	Run: func(cmd *cobra.Command, args []string) { },
@@ -63,7 +63,6 @@ func set_pflag(key string, abbr string, env_var string, default_var string, help
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "./dbdeployer.json", "config file")
 	set_pflag("sandbox-home", "", "SANDBOX_HOME", os.Getenv("HOME")+"/sandboxes", "Sandbox deployment direcory", false)
 	set_pflag("sandbox-binary", "", "SANDBOX_BINARY", os.Getenv("HOME")+"/opt/mysql", "Binary repository",false)
