@@ -38,8 +38,8 @@ var replicationCmd = &cobra.Command{
 	Use:   "replication MySQL-Version",
 	//Args:  cobra.ExactArgs(1),
 	Short: "create replication sandbox",
-	Long:  ` The replication command allows you to deploy two or more nodes in replication.
-	Allowed topologies are "master-slave" and "group"
+	Long:  ` The replication command allows you to deploy several nodes in replication.
+	Allowed topologies are "master-slave" and "group" (requires 5.7.17+)
 	`,
 	Run:   ReplicationSandbox,
 	Example: `

@@ -23,10 +23,6 @@ loose-group-replication-single-primary-mode=off
 
 func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 	// fmt.Println("Group replication not implemented yet")
-	if ! GreaterOrEqualVersion(sdef.Version, []int{5, 7, 12}) {
-		fmt.Println("Group replication requires MySQL 5.7.12 or greater")
-		os.Exit(1)
-	}
 	vList := VersionToList(sdef.Version)
 	rev := vList[2]
 	base_port := sdef.Port + GroupReplicationBasePort + (rev * 100)

@@ -23,35 +23,38 @@ func ShowUsage(cmd *cobra.Command, args []string) {
 	const basic_usage string = `
 	USING A SANDBOX
 
-Change directory to the newly created one (default: $SANDBOX_HOME/msb_VERSION for single sandboxes)
+Change directory to the newly created one (default: $SANDBOX_HOME/msb_VERSION 
+for single sandboxes)
 [ $SANDBOX_HOME = $HOME/sandboxes unless modified with flag --sandbox-home ]
 
-The sandbox directory of the instance you just created contains some handy scripts to manage your server easily and in isolation.
+The sandbox directory of the instance you just created contains some handy 
+scripts to manage your server easily and in isolation.
 
-start
-status
-restart
-stop
-"./start", "./restart", and "./stop" do what their name suggests. start and restart accept parameters that are eventually passed to the server. e.g.:
+"./start", "./status", "./restart", and "./stop" do what their name suggests. 
+start and restart accept parameters that are eventually passed to the server. 
+e.g.:
 
   ./start --server-id=1001
 
   ./restart --event-scheduler=disabled
-use
+
 "./use" calls the command line client with the appropriate parameters,
 Example:
 
     ./use -BN -e "select @@server_id"
 	./use -u root
 
-clear
-"./clear" stops the server and removes everything from the data directory, letting you ready to start from scratch. (Warning! It's irreversible!)
+"./clear" stops the server and removes everything from the data directory, 
+letting you ready to start from scratch. (Warning! It's irreversible!)
 `
-	const multiple_usage string =`
-	USING MULTIPLE SERVER SANDBOX
-On a replication sandbox, you have the same commands (run "dbdeployer usage single"), with an "_all" suffix, meaning that you propagate the command to all the members. Then you have "./m" as a shortcut to use the master, "./s1" and "./s2" to access the slaves (and "s3", "s4" ... if you define more).
+	const multiple_usage string =` USING MULTIPLE SERVER SANDBOX
+On a replication sandbox, you have the same commands (run "dbdeployer usage single"), 
+with an "_all" suffix, meaning that you propagate the command to all the members. 
+Then you have "./m" as a shortcut to use the master, "./s1" and "./s2" to access 
+the slaves (and "s3", "s4" ... if you define more).
 
-In group sandboxes without a master slave relationship (group replication and multiple sandboxes) the nodes can be accessed by ./n1, ./n2, ./n3, and so on.
+In group sandboxes without a master slave relationship (group replication and 
+multiple sandboxes) the nodes can be accessed by ./n1, ./n2, ./n3, and so on.
 
 start_all
 status_all
@@ -60,7 +63,7 @@ stop_all
 use_all
 clear_all
 m
-s1,s2
+s1, s2, n1, n2
 
 The scripts "check_slaves" or "check_nodes" give the status of replication in the sandbox.
 `

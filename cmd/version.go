@@ -14,5 +14,5 @@
 
 package cmd
 
-var versionDef string = "0.1.08"
+var versionDef string = "0.1.09"
 
