@@ -292,6 +292,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	sb_desc := common.SandboxDescription{
 		Basedir : sdef.Basedir,
 		SBType	: "single",
+		Version : sdef.Version,
 		Port	: sdef.Port,
 		Nodes 	: 0,
 	}

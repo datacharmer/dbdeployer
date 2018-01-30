@@ -41,7 +41,7 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 			if common.FileExists(sbdesc) {
 				sbd := common.ReadSandboxDescription(SandboxHome + "/" + fname)
 				if sbd.Nodes == 0 {
-					description = fmt.Sprintf("%-15s %5d", sbd.SBType, sbd.Port)
+					description = fmt.Sprintf("%-15s %10s [%5d ]", sbd.SBType, sbd.Version, sbd.Port)
 				} else {
 					var node_descr []common.SandboxDescription
 					if common.DirExists(SandboxHome + "/" + fname + "/master") {
@@ -57,7 +57,7 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 						ports += fmt.Sprintf(" %d", nd.Port)
 					}
 					ports += " ]"
-					description = fmt.Sprintf("%-15s %s", sbd.SBType, ports)
+					description = fmt.Sprintf("%-15s %10s %s", sbd.SBType, sbd.Version, ports)
 				}
 				dirs = append(dirs, fmt.Sprintf("%-20s : %s", fname, description))
 			} else {

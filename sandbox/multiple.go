@@ -66,6 +66,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 	sb_desc := common.SandboxDescription{
 		Basedir : Basedir,
 		SBType	: "multiple",
+		Version : sdef.Version,
 		Port	: 0,
 		Nodes 	: nodes,
 	}

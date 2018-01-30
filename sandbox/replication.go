@@ -68,6 +68,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 	sb_desc := common.SandboxDescription{
 		Basedir : sdef.Basedir + "/" + sdef.Version,
 		SBType	: "master-slave",
+		Version : sdef.Version,
 		Port	: 0,
 		Nodes 	: slaves,
 	}

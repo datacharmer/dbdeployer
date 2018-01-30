@@ -27,6 +27,7 @@ import (
 type SandboxDescription struct {
 	Basedir string `json:"basedir"`
 	SBType string  `json:"type"`  // single multi master-slave group
+	Version string  `json:"version"`
 	Port int       `json:"port"`
 	Nodes int	   `json:"nodes"`
 }

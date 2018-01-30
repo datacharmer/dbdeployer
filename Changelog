@@ -2,6 +2,7 @@
 	- Updated README.md
 	- Changed formatting for "usage" command
 	- Run detection of invalid group replication earlier.
+	- Added version to sandbox description file
 0.1.08	29-Jan-2018
 	- Added sandbox description file
 	- 'sandboxes' command uses above file for sandbox listing

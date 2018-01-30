@@ -75,6 +75,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 	sb_desc := common.SandboxDescription{
 		Basedir : sdef.Basedir + "/" + sdef.Version,
 		SBType	: "group",
+		Version : sdef.Version,
 		Port	: 0,
 		Nodes 	: nodes,
 	}
