@@ -68,10 +68,12 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 	final_name := Basedir + "/" + barename
-	err = os.Rename(final_name, destination)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	if final_name != destination {
+		err = os.Rename(final_name, destination)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	}
 }
 

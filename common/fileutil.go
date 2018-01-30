@@ -155,7 +155,7 @@ func Run_cmd_with_args(c string, args []string) error {
 	return err
 }
 
-func Run_cmd(c string) error {
+func Run_cmd_ctrl(c string, silent bool) error {
 	//cmd := exec.Command(c, args...)
 	cmd := exec.Command(c, "")
 	var out bytes.Buffer
@@ -170,8 +170,14 @@ func Run_cmd(c string) error {
 		fmt.Printf("stderr: %s\n", stderr.String())
 		// os.Exit(1)
 	} else {
-		fmt.Printf("%s", out.String())
+		if ! silent {
+			fmt.Printf("%s", out.String())
+		}
 	}
 	return err
+}
+
+func Run_cmd(c string) error {
+	return Run_cmd_ctrl(c, false)
 }
 

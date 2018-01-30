@@ -1,11 +1,11 @@
 package sandbox
 
 import (
-	"bytes"
+	// "bytes"
 	"github.com/datacharmer/dbdeployer/common"
 	"fmt"
 	"os"
-	"os/exec"
+	// "os/exec"
 	"regexp"
 	"strconv"
 	"strings"
@@ -269,14 +269,21 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 			cmd_list = append(cmd_list, op)
 		}
 	}
+	script_text := script
+	for _, item := range cmd_list {
+		script_text += " \\\n\t" + item
+	}
 	// fmt.Printf("using basedir: %s\n", sdef.Basedir)
 	// fmt.Printf("%v\n", cmd_list)
-	cmd := exec.Command(script, cmd_list...)
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-	err = cmd.Run()
+	data["InitScript"] = script_text
+	write_script("init_db", init_db_template, sandbox_dir, data, true)
+	//cmd := exec.Command(script, cmd_list...)
+	//var out bytes.Buffer
+	//var stderr bytes.Buffer
+	//cmd.Stdout = &out
+	//cmd.Stderr = &stderr
+	//err = cmd.Run()
+	err = common.Run_cmd_ctrl( sandbox_dir + "/init_db", true)
 	if err == nil {
 		fmt.Printf("Database installed in %s\n", sandbox_dir)
 		if ! sdef.Multi {
@@ -284,9 +291,9 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		}
 	} else {
 		fmt.Printf("err: %s\n", err)
-		fmt.Printf("cmd: %#v\n", cmd)
-		fmt.Printf("stdout: %s\n", out.String())
-		fmt.Printf("stderr: %s\n", stderr.String())
+		// fmt.Printf("cmd: %#v\n", cmd)
+		// fmt.Printf("stdout: %s\n", out.String())
+		// fmt.Printf("stderr: %s\n", stderr.String())
 	}
 
 	sb_desc := common.SandboxDescription{
