@@ -73,13 +73,15 @@ func init() {
 	set_pflag("my-cnf-options", "c", "MY_CNF_OPTIONS", "", "mysqld options to add to my.sandbox.cnf", true)
 	// This option will allow to merge the template with an external my.cnf
 	// The options that are essential for the sandbox will be preserved
-	//set_pflag("my-cnf-file", "MY_CNF_file", "", "Alternate source file for my.sandbox.cnf")
+	//set_pflag("my-cnf-file", "MY_CNF_file", "", "Alternative source file for my.sandbox.cnf")
 	set_pflag("db-user", "u", "", "msandbox", "database user", false)
 	set_pflag("rpl-user", "", "", "rsandbox", "replication user", false)
 	set_pflag("db-password", "p", "", "msandbox", "database password", false)
 	set_pflag("rpl-password", "", "", "rsandbox", "replication password", false)
 	rootCmd.PersistentFlags().Bool("gtid", false, "enables GTID")
 	rootCmd.PersistentFlags().Bool("keep-auth-plugin", false, "in 8.0.4+, does not change the auth plugin")
+	// rootCmd.PersistentFlags().Bool("force", false, "If a destination sandbox already exists, it will be overwritten")
+	// rootCmd.PersistentFlags().Bool("check-port", false, "Check if the port is already in use, and find a free one")
 
 	rootCmd.InitDefaultVersionFlag()
 }

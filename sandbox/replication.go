@@ -43,6 +43,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 	fmt.Println("Installing and starting master")
 	sdef.LoadGrants = true
 	sdef.Multi = true
+	sdef.Prompt = "master"
 	CreateSingleSandbox(sdef, origin)
 	for i := 1; i <= slaves; i++ {
 		data["Slaves"] = append(data["Slaves"].([]common.Smap), common.Smap{
@@ -52,6 +53,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 			"RplUser":     sdef.RplUser,
 			"RplPassword": sdef.RplPassword})
 		sdef.LoadGrants = false
+		sdef.Prompt = fmt.Sprintf("slave%d", i)
 		sdef.DirName = fmt.Sprintf("node%d", i)
 		sdef.Port = base_port + i + 1
 		sdef.ServerId = (base_server_id + i + 1) * 100

@@ -1,3 +1,8 @@
+0.1.11	31-Jan-2018
+	- Improved check for tarball as an argument to single, replication,
+	multiple.
+	- Improved help for single, multiple, and replication
+	- Added customized prompt for configuration file
 0.1.10	30-Jan-2018
 	- Changed initialization method to use tarball libraries
 	- Fixed glitch in "unpack" when original tarball has clashing name

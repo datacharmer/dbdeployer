@@ -19,6 +19,7 @@ type SandboxDef struct {
 	SandboxDir   string
 	LoadGrants   bool
 	Port         int
+	Prompt       string
 	DbUser       string
 	RplUser      string
 	DbPassword   string
@@ -164,12 +165,6 @@ func slice_to_text(s_array []string) string {
 
 func CreateSingleSandbox(sdef SandboxDef, origin string) {
 
-	if common.FileExists(origin) && strings.HasSuffix(origin, ".tar.gz") {
-		fmt.Println("If you want to use a tarball to create a sandbox,")
-		fmt.Println("you should first use the 'unpack' command")
-		os.Exit(1)
-	}
-
 	var sandbox_dir string
 	sdef.Basedir = sdef.Basedir + "/" + sdef.Version
 	if !common.DirExists(sdef.Basedir) {
@@ -181,6 +176,9 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	//fmt.Printf("def: %#v\n", sdef)
 	// port = VersionToPort(sdef.Version)
 	version_fname := VersionToName(sdef.Version)
+	if sdef.Prompt == "" {
+		sdef.Prompt = "mysql"
+	}
 	if sdef.DirName == "" {
 		sdef.DirName = SandboxPrefix + version_fname
 	}
@@ -206,6 +204,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		"Copyright":    Copyright,
 		"SandboxDir":   sandbox_dir,
 		"Port":         sdef.Port,
+		"Prompt":       sdef.Prompt,
 		"Version":      sdef.Version,
 		"Datadir":      datadir,
 		"Tmpdir":       tmpdir,

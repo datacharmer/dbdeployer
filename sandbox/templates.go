@@ -145,6 +145,8 @@ const (
 		if [ -f $PIDFILE ]
 		then
 			$MYSQL_EDITOR --defaults-file=$MY_CNF $MYCLIENT_OPTIONS "$@"
+		else
+			exit 1
 		fi
 `
 	stop_template string = `#!/bin/bash
@@ -264,7 +266,7 @@ const (
 	my_cnf_template string = `
 		{{.Copyright}}
 [mysql]
-prompt='mysql [\h] {\u} (\d) > '
+prompt='{{.Prompt}} [\h] {\u} (\d) > '
 #
 
 [client]

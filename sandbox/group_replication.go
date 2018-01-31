@@ -63,6 +63,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		sdef.ReplOptions += fmt.Sprintf("\nloose-group-replication-local-address=127.0.0.1:%d\n", group_port)
 		sdef.ReplOptions += fmt.Sprintf("\nloose-group-replication-group-seeds=%s\n", connection_string)
 		sdef.Multi = true
+		sdef.Prompt = fmt.Sprintf("node%d", i)
 		CreateSingleSandbox(sdef, origin)
 		var data_node  common.Smap = common.Smap{
 			"Node" : i,

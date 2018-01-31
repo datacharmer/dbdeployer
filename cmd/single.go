@@ -77,7 +77,7 @@ containing an unpacked tarball. The place where these directories are found is d
 For example:
 	dbdeployer single 5.7.21
 
-For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing 
+For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
 the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
 Use the "unpack" command to get the tarball into the right directory.
 `,
