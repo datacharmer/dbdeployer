@@ -2,6 +2,7 @@
 
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 
+[![asciicast](https://asciinema.org/a/160541.png)](https://asciinema.org/a/160541)
 
 ## Main operations
 
