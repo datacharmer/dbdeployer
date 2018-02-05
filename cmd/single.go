@@ -18,11 +18,54 @@ import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
+	"fmt"
+	"os"
+	"regexp"
 )
+
+func replace_template(template_name string, file_name string) {
+	group, contents := FindTemplate(template_name)
+	if ! common.FileExists(file_name) {
+		fmt.Printf("File %s not found\n", file_name)
+		os.Exit(1)
+	}
+	fmt.Printf("Replacing template %s.%s [%d chars] with contents of file %s\n", group, template_name, len(contents), file_name)
+	new_contents := common.SlurpAsString(file_name)
+	if len(new_contents) == 0 {
+		fmt.Printf("File %s is empty\n", file_name)
+		os.Exit(1)
+	}
+	var new_rec sandbox.TemplateDesc = sandbox.TemplateDesc{
+		Description : sandbox.AllTemplates[group][template_name].Description,
+		Notes : sandbox.AllTemplates[group][template_name].Notes,
+		Contents : new_contents,
+	}
+	sandbox.AllTemplates[group][template_name] = new_rec
+}
+
+func check_template_change_request(request string) (template_name, file_name string) {
+	re := regexp.MustCompile(`(\w+):(\S+)`)
+	reqList := re.FindAllStringSubmatch(request, -1)
+	if len(reqList) == 0 {
+		//fmt.Printf("%v\n", reqList)
+		fmt.Printf("request '%s' invalid. Required format is 'template_name:file_name'\n", request)
+		os.Exit(1)
+	}
+	template_name = reqList[0][1]
+	file_name = reqList[0][2]
+	return
+}
 
 func FillSdef (cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	var sd sandbox.SandboxDef
+
 	flags := cmd.Flags()
+
+	template_requests, _ := flags.GetStringSlice("use-template")
+	for _, request := range template_requests {
+		tname, fname := check_template_change_request(request)
+		replace_template(tname, fname)
+	}
 	sd.Port = sandbox.VersionToPort(args[0])
 	sd.Version = args[0]
 	sd.Basedir, _ = flags.GetString("sandbox-binary")
@@ -48,9 +91,14 @@ func FillSdef (cmd *cobra.Command, args []string) sandbox.SandboxDef {
 		sd.ServerId = sd.Port
 	}
 	if gtid {
-		sd.GtidOptions = sandbox.GtidOptions
-		sd.ReplOptions = sandbox.ReplOptions
-		sd.ServerId = sd.Port
+		if sandbox.GreaterOrEqualVersion(sd.Version, []int{5, 6, 9}) {
+			sd.GtidOptions = sandbox.GtidOptions
+			sd.ReplOptions = sandbox.ReplOptions
+			sd.ServerId = sd.Port
+		} else {
+			fmt.Println("--gtid requires version 5.6.9+")
+			os.Exit(1)
+		}
 	}
 	return sd
 }

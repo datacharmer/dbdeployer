@@ -1,4 +1,4 @@
-// Copyright © 2017-2018 Giuseppe Maxia
+// Copyright © 2018 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,5 +14,23 @@
 
 package cmd
 
-var versionDef string = "0.1.12" // February 02, 2018
+import (
+	//"fmt"
 
+	"github.com/spf13/cobra"
+)
+
+// templatesCmd represents the templates command
+var templatesCmd = &cobra.Command{
+	Use:   "templates",
+	Short: "Admin operations on templates",
+	Long: `The commands in this section show the templates used 
+to create and manipulate sandboxes.
+More commands (and flags) will follow to allow changing templates
+either temporarily or permanently.`,
+}
+
+func init() {
+	rootCmd.AddCommand(templatesCmd)
+
+}

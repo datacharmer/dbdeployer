@@ -64,8 +64,8 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 			"SandboxDir" : sdef.SandboxDir,
 			"Copyright" : Copyright,
 		}
-		write_script(fmt.Sprintf("s%d",i), slave_template, sdef.SandboxDir, data_slave, true)
-		write_script(fmt.Sprintf("n%d",i+1), slave_template, sdef.SandboxDir, data_slave, true)
+		write_script(ReplicationTemplates, fmt.Sprintf("s%d",i), "slave_template", sdef.SandboxDir, data_slave, true)
+		write_script(ReplicationTemplates, fmt.Sprintf("n%d",i+1), "slave_template", sdef.SandboxDir, data_slave, true)
 	}
 	sb_desc := common.SandboxDescription{
 		Basedir : sdef.Basedir + "/" + sdef.Version,
@@ -76,16 +76,16 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 	}
 	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)
 
-	write_script("start_all", start_all_template, sdef.SandboxDir, data, true)
-	write_script("restart_all", restart_all_template, sdef.SandboxDir, data, true)
-	write_script("status_all", status_all_template, sdef.SandboxDir, data, true)
-	write_script("stop_all", stop_all_template, sdef.SandboxDir, data, true)
-	write_script("send_kill_all", send_kill_all_template, sdef.SandboxDir, data, true)
-	write_script("use_all", use_all_template, sdef.SandboxDir, data, true)
-	write_script("initialize_slaves", init_slaves_template, sdef.SandboxDir, data, true)
-	write_script("check_slaves", check_slaves_template, sdef.SandboxDir, data, true)
-	write_script("m", master_template, sdef.SandboxDir, data, true)
-	write_script("n1", master_template, sdef.SandboxDir, data, true)
+	write_script(ReplicationTemplates, "start_all", "start_all_template", sdef.SandboxDir, data, true)
+	write_script(ReplicationTemplates, "restart_all", "restart_all_template", sdef.SandboxDir, data, true)
+	write_script(ReplicationTemplates, "status_all", "status_all_template", sdef.SandboxDir, data, true)
+	write_script(ReplicationTemplates, "stop_all", "stop_all_template", sdef.SandboxDir, data, true)
+	write_script(ReplicationTemplates, "send_kill_all", "send_kill_all_template", sdef.SandboxDir, data, true)
+	write_script(ReplicationTemplates, "use_all", "use_all_template", sdef.SandboxDir, data, true)
+	write_script(ReplicationTemplates, "initialize_slaves", "init_slaves_template", sdef.SandboxDir, data, true)
+	write_script(ReplicationTemplates, "check_slaves", "check_slaves_template", sdef.SandboxDir, data, true)
+	write_script(ReplicationTemplates, "m", "master_template", sdef.SandboxDir, data, true)
+	write_script(ReplicationTemplates, "n1", "master_template", sdef.SandboxDir, data, true)
 	fmt.Println(sdef.SandboxDir + "/initialize_slaves")
 	common.Run_cmd(sdef.SandboxDir + "/initialize_slaves")
 	fmt.Printf("Replication directory installed in %s\n", sdef.SandboxDir)

@@ -62,7 +62,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 			"SandboxDir" : sdef.SandboxDir,
 			"Copyright" : Copyright,
 		}
-		write_script(fmt.Sprintf("n%d",i), node_template, sdef.SandboxDir, data_node, true)
+		write_script(MultipleTemplates,fmt.Sprintf("n%d",i), "node_template", sdef.SandboxDir, data_node, true)
 	}
 	sb_desc := common.SandboxDescription{
 		Basedir : Basedir,
@@ -73,12 +73,12 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 	}
 	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)
 
-	write_script("start_all", start_multi_template, sdef.SandboxDir, data, true)
-	write_script("restart_all", restart_multi_template, sdef.SandboxDir, data, true)
-	write_script("status_all", status_multi_template, sdef.SandboxDir, data, true)
-	write_script("stop_all", stop_multi_template, sdef.SandboxDir, data, true)
-	write_script("send_kill_all", send_kill_multi_template, sdef.SandboxDir, data, true)
-	write_script("use_all", use_multi_template, sdef.SandboxDir, data, true)
+	write_script(MultipleTemplates,"start_all", "start_multi_template", sdef.SandboxDir, data, true)
+	write_script(MultipleTemplates,"restart_all", "restart_multi_template", sdef.SandboxDir, data, true)
+	write_script(MultipleTemplates,"status_all", "status_multi_template", sdef.SandboxDir, data, true)
+	write_script(MultipleTemplates,"stop_all", "stop_multi_template", sdef.SandboxDir, data, true)
+	write_script(MultipleTemplates,"send_kill_all", "send_kill_multi_template", sdef.SandboxDir, data, true)
+	write_script(MultipleTemplates,"use_all", "use_multi_template", sdef.SandboxDir, data, true)
 	fmt.Printf("Multiple directory installed in %s\n", sdef.SandboxDir)
 	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
 }

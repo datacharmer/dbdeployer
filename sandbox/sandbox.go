@@ -275,7 +275,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	// fmt.Printf("using basedir: %s\n", sdef.Basedir)
 	// fmt.Printf("%v\n", cmd_list)
 	data["InitScript"] = script_text
-	write_script("init_db", init_db_template, sandbox_dir, data, true)
+	write_script(SingleTemplates,"init_db", "init_db_template", sandbox_dir, data, true)
 	//cmd := exec.Command(script, cmd_list...)
 	//var out bytes.Buffer
 	//var stderr bytes.Buffer
@@ -303,26 +303,26 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		Nodes 	: 0,
 	}
 	common.WriteSandboxDescription(sandbox_dir, sb_desc)
-	write_script("start", start_template, sandbox_dir, data, true)
-	write_script("status", status_template, sandbox_dir, data, true)
-	write_script("stop", stop_template, sandbox_dir, data, true)
-	write_script("clear", clear_template, sandbox_dir, data, true)
-	write_script("use", use_template, sandbox_dir, data, true)
-	write_script("send_kill", send_kill_template, sandbox_dir, data, true)
-	write_script("restart", restart_template, sandbox_dir, data, true)
-	write_script("load_grants", load_grants_template, sandbox_dir, data, true)
-	write_script("add_option", add_option_template, sandbox_dir, data, true)
-	write_script("my", my_template, sandbox_dir, data, true)
-	write_script("show_binlog", show_binlog_template, sandbox_dir, data, true)
-	write_script("show_relaylog", show_relaylog_template, sandbox_dir, data, true)
+	write_script(SingleTemplates,"start", "start_template", sandbox_dir, data, true)
+	write_script(SingleTemplates,"status", "status_template", sandbox_dir, data, true)
+	write_script(SingleTemplates,"stop", "stop_template", sandbox_dir, data, true)
+	write_script(SingleTemplates,"clear", "clear_template", sandbox_dir, data, true)
+	write_script(SingleTemplates,"use", "use_template", sandbox_dir, data, true)
+	write_script(SingleTemplates,"send_kill", "send_kill_template", sandbox_dir, data, true)
+	write_script(SingleTemplates,"restart", "restart_template", sandbox_dir, data, true)
+	write_script(SingleTemplates,"load_grants", "load_grants_template", sandbox_dir, data, true)
+	write_script(SingleTemplates,"add_option", "add_option_template", sandbox_dir, data, true)
+	write_script(SingleTemplates,"my", "my_template", sandbox_dir, data, true)
+	write_script(SingleTemplates,"show_binlog", "show_binlog_template", sandbox_dir, data, true)
+	write_script(SingleTemplates,"show_relaylog", "show_relaylog_template", sandbox_dir, data, true)
 
-	write_script("my.sandbox.cnf", my_cnf_template, sandbox_dir, data, false)
+	write_script(SingleTemplates,"my.sandbox.cnf", "my_cnf_template", sandbox_dir, data, false)
 	if GreaterOrEqualVersion(sdef.Version, []int{5, 7, 6}) {
-		write_script("grants.mysql", grants_template57, sandbox_dir, data, false)
+		write_script(SingleTemplates,"grants.mysql", "grants_template57", sandbox_dir, data, false)
 	} else {
-		write_script("grants.mysql", grants_template5x, sandbox_dir, data, false)
+		write_script(SingleTemplates,"grants.mysql", "grants_template5x", sandbox_dir, data, false)
 	}
-	write_script("sb_include", "", sandbox_dir, data, false)
+	write_script(SingleTemplates,"sb_include", "sb_include_template", sandbox_dir, data, false)
 
 	//common.Run_cmd(sandbox_dir + "/start", []string{})
 	common.Run_cmd(sandbox_dir + "/start")
@@ -332,8 +332,10 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 }
 
 
-func write_script(name, template, directory string, data common.Smap, make_executable bool) {
+func write_script(temp_var TemplateCollection, name, template_name, directory string, data common.Smap, make_executable bool) {
+	template := temp_var[template_name].Contents
 	template = common.TrimmedLines(template)
+	data["TemplateName"] = template_name
 	text := common.Tprintf(template, data)
 	if make_executable {
 		write_exec(name, text, directory)

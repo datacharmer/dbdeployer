@@ -1,8 +1,17 @@
 package sandbox
 
+type TemplateDesc struct {
+	Description string
+	Notes string
+	Contents string
+}
+
+type TemplateCollection  map[string]TemplateDesc
+type AllTemplateCollection  map[string]TemplateCollection
+
 // templates for single sandbox
 
-const (
+var (
 	Copyright string = `
 #    DBDeployer - The MySQL Sandbox 
 #    Copyright (C) 2006-2018 Giuseppe Maxia
@@ -24,6 +33,7 @@ const (
 `
 	init_db_template string = `#!/bin/bash
 		{{.Copyright}}
+		# Template : {{.TemplateName}}
 		BASEDIR={{.Basedir}}
 		export LD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$LD_LIBRARY_PATH
 		export DYLD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$DYLD_LIBRARY_PATH
@@ -40,6 +50,7 @@ const (
 
 	start_template string = `#!/bin/bash
 		{{.Copyright}}
+		# Template : {{.TemplateName}}
 		BASEDIR={{.Basedir}}
 		export LD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$LD_LIBRARY_PATH
 		export DYLD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$DYLD_LIBRARY_PATH
@@ -115,6 +126,7 @@ const (
 `
 	use_template string = `#!/bin/bash
 		{{.Copyright}}
+		# Template : {{.TemplateName}}
 		BASEDIR={{.Basedir}}
 		export LD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$LD_LIBRARY_PATH
 		export DYLD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$DYLD_LIBRARY_PATH
@@ -151,6 +163,7 @@ const (
 `
 	stop_template string = `#!/bin/bash
 		{{.Copyright}}
+		# Template : {{.TemplateName}}
 		BASEDIR={{.Basedir}}
 		export LD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$LD_LIBRARY_PATH
 		export DYLD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$DYLD_LIBRARY_PATH
@@ -193,6 +206,7 @@ const (
 `
 	clear_template string = `#!/bin/bash
 		{{.Copyright}}
+		# Template : {{.TemplateName}}
 
 		BASEDIR={{.Basedir}}
 		export LD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$LD_LIBRARY_PATH
@@ -265,6 +279,7 @@ const (
 
 	my_cnf_template string = `
 		{{.Copyright}}
+		# Template : {{.TemplateName}}
 [mysql]
 prompt='{{.Prompt}} [\h] {\u} (\d) > '
 #
@@ -293,6 +308,7 @@ log-error=msandbox.err
 `
 	send_kill_template string = `#!/bin/bash
 		{{.Copyright}}
+		# Template : {{.TemplateName}}
 
 		BASEDIR={{.Basedir}}
 		export LD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$LD_LIBRARY_PATH
@@ -343,6 +359,7 @@ log-error=msandbox.err
 `
 	status_template string = `#!/bin/bash
 		{{.Copyright}}
+		# Template : {{.TemplateName}}
 
 		BASEDIR={{.Basedir}}
 		export LD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$LD_LIBRARY_PATH
@@ -369,6 +386,7 @@ log-error=msandbox.err
 `
 	restart_template string = `#!/bin/bash
 		{{.Copyright}}
+		# Template : {{.TemplateName}}
 
 		SBDIR={{.SandboxDir}}
 		$SBDIR/stop
@@ -376,6 +394,7 @@ log-error=msandbox.err
 `
 	load_grants_template string = `#!/bin/bash
 		{{.Copyright}}
+		# Template : {{.TemplateName}}
 
 		BASEDIR={{.Basedir}}
 		export LD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$LD_LIBRARY_PATH
@@ -390,6 +409,7 @@ log-error=msandbox.err
 		$MYSQL -u root $VERBOSE_SQL < $SBDIR/grants.mysql
 `
 	grants_template5x string = `
+		# Template : {{.TemplateName}}
 use mysql;
 set password=password('{{.DbPassword}}');
 grant all on *.* to {{.DbUser}}@'{{.RemoteAccess}}' identified by '{{.DbPassword}}';
@@ -410,6 +430,7 @@ create database if not exists test;
 `
 	grants_template57 string = `
 
+		# Template : {{.TemplateName}}
 use mysql;
 set password='{{.DbPassword}}';
 -- delete from tables_priv;
@@ -444,6 +465,7 @@ create schema if not exists test;
 `
 	add_option_template string = `#!/bin/bash
 {{.Copyright}}
+# Template : {{.TemplateName}}
 
 curdir="{{.SandboxDir}}"
 cd $curdir
@@ -475,6 +497,7 @@ fi
 `
 	show_binlog_template string = `#!/bin/bash
 {{.Copyright}}
+# Template : {{.TemplateName}}
 
 curdir="{{.SandboxDir}}"
 cd $curdir
@@ -526,6 +549,7 @@ fi
 `
 	my_template string = `#!/bin/bash
 {{.Copyright}}
+# Template : {{.TemplateName}}
 
 
 if [ "$1" = "" ]
@@ -587,6 +611,7 @@ fi
 `
 	show_relaylog_template string=`#!/bin/bash
 {{.Copyright}}
+# Template : {{.TemplateName}}
 curdir="{{.SandboxDir}}"
 cd $curdir
 
@@ -637,5 +662,106 @@ fi
 
 (printf "#\n# Showing $last_relaylog\n#\n" ; ./my sqlbinlog --verbose $last_relaylog ) 
 `
+	sb_include_template string = ""
 
+SingleTemplates  = TemplateCollection{
+	"Copyright" : TemplateDesc{
+			Description: "Copyright for every sandbox script",
+			Notes: "",
+			Contents : Copyright,
+		},
+		"init_db_template" : TemplateDesc{
+			Description : "Initialization template for the database",
+			Notes : "This should normally run only once",
+			Contents : init_db_template,
+		},
+		"start_template" : TemplateDesc{
+			Description : "starts the database in a single sandbox (with optional mysqld arguments)",
+			Notes : "",
+			Contents : start_template,
+		},
+		"use_template" : TemplateDesc{
+			Description : "Invokes the MySQL client with the appropriate options",
+			Notes : "",
+			Contents : use_template,
+		},
+		"stop_template" : TemplateDesc{
+			Description : "Stops a database in a single sandbox",
+			Notes : "",
+			Contents : stop_template,
+		},
+		"clear_template" : TemplateDesc{
+			Description : "Remove all data from a single sandbox",
+			Notes : "",
+			Contents : clear_template,
+		},
+		"my_cnf_template" : TemplateDesc{
+			Description : "Default options file for a sandbox",
+			Notes : "",
+			Contents : my_cnf_template,
+		},
+		"status_template" : TemplateDesc{
+			Description : "Shows the status of a single sandbox",
+			Notes : "",
+			Contents : status_template,
+		},
+		"restart_template" : TemplateDesc{
+			Description : "Restarts the database (with optional mysqld arguments)",
+			Notes : "",
+			Contents : restart_template,
+		},
+		"send_kill_template" : TemplateDesc{
+			Description : "Sends a kill signal to the database",
+			Notes : "",
+			Contents : send_kill_template,
+		},
+		"load_grants_template" : TemplateDesc{
+			Description : "Loads the grants defined for the sandbox",
+			Notes : "",
+			Contents : load_grants_template,
+		},
+		"grants_template5x" : TemplateDesc{
+			Description : "Grants for sandboxes up to 5.6",
+			Notes : "",
+			Contents : grants_template5x,
+		},
+		"grants_template57" : TemplateDesc{
+			Description : "Grants for sandboxes from 5.7+",
+			Notes : "",
+			Contents : grants_template57,
+		},
+		"my_template" : TemplateDesc{
+			Description : "Prefix script to run every my* command line tool",
+			Notes : "",
+			Contents : my_template,
+		},
+		"add_option_template" : TemplateDesc{
+			Description : "Adds options to the my.sandbox.cnf file and restarts",
+			Notes : "",
+			Contents : add_option_template,
+		},
+		"show_binlog_template" : TemplateDesc{
+			Description : "Shows a binlog for a single sandbox",
+			Notes : "",
+			Contents : show_binlog_template,
+		},
+		"show_relaylog_template" : TemplateDesc{
+			Description : "Show the relaylog for a single sandbox",
+			Notes : "",
+			Contents : show_relaylog_template,
+		},
+		"sb_include_template" : TemplateDesc{
+			Description : "TBD",
+			Notes : "",
+			Contents : sb_include_template,
+		},
+	}
+	AllTemplates = AllTemplateCollection{
+		"single" : SingleTemplates,
+		"multiple" : MultipleTemplates,
+		"replication" : ReplicationTemplates,
+		"group" : GroupTemplates,
+	}
 )
+
+

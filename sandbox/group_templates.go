@@ -2,9 +2,10 @@ package sandbox
 
 // Templates for group replication
 
-const (
+var (
 	init_nodes_template string = `#!/bin/sh
 {{.Copyright}}
+# Template : {{.TemplateName}}
 multi_sb={{.SandboxDir}}
 {{range .Nodes}}
     user_cmd='reset master;'
@@ -30,6 +31,7 @@ $multi_sb/check_nodes
 `
 	check_nodes_template string = `#!/bin/sh
 {{.Copyright}}
+# Template : {{.TemplateName}}
 multi_sb={{.SandboxDir}}
 
 CHECK_NODE="select * from performance_schema.replication_group_members"
@@ -39,5 +41,17 @@ CHECK_NODE="select * from performance_schema.replication_group_members"
 	sleep 1
 {{end}}
 `
+GroupTemplates  = TemplateCollection{
+	"init_nodes_template" : TemplateDesc{
+			Description: "Initialize group replication after deployment",
+			Notes: "",
+			Contents : init_nodes_template,
+		},
+	"check_nodes_template" : TemplateDesc{
+			Description: "Checks the status of group replication",
+			Notes: "",
+			Contents : check_nodes_template,
+		},
+}
 )
 

@@ -78,6 +78,7 @@ func init() {
 	set_pflag("rpl-user", "", "", "rsandbox", "replication user", false)
 	set_pflag("db-password", "p", "", "msandbox", "database password", false)
 	set_pflag("rpl-password", "", "", "rsandbox", "replication password", false)
+	set_pflag("use-template", "", "", "", "[template_name:file_name] Replace existing template with one from file", true)
 	rootCmd.PersistentFlags().Bool("gtid", false, "enables GTID")
 	rootCmd.PersistentFlags().Bool("keep-auth-plugin", false, "in 8.0.4+, does not change the auth plugin")
 	// rootCmd.PersistentFlags().Bool("force", false, "If a destination sandbox already exists, it will be overwritten")

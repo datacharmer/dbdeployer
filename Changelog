@@ -1,3 +1,7 @@
+0.1.12	04-Feb-2018
+	- Added a check for version before applying gtid.
+	- Added commands templates list/show/describe
+	- Added --use-template=template_name:file_name flag
 0.1.11	31-Jan-2018
 	- Improved check for tarball as an argument to single, replication,
 	multiple.
