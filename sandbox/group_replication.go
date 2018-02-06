@@ -17,6 +17,11 @@ group_replication_bootstrap_group=OFF
 transaction_write_set_extraction=XXHASH64
 report-host=127.0.0.1
 loose-group_replication_group_name="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+`
+GroupReplSinglePrimary string =`
+loose-group-replication-single-primary-mode=on
+`
+GroupReplMultiPrimary string =`
 loose-group-replication-single-primary-mode=off
 `
 )
@@ -26,9 +31,22 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 	vList := VersionToList(sdef.Version)
 	rev := vList[2]
 	base_port := sdef.Port + GroupReplicationBasePort + (rev * 100)
+	if sdef.BasePort > 0 {
+		base_port = sdef.BasePort
+	}
+
 	base_server_id := 0
 	if nodes < 3 {
 		fmt.Println("Can't run group replication with less than 3 nodes")
+		os.Exit(1)
+	}
+	for check_port := base_port +1 ; check_port < base_port + nodes +1 ; check_port++ {
+		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
+		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port + 100)
+	}
+	err := os.Mkdir(sdef.SandboxDir, 0755)
+	if err != nil {
+		fmt.Println(err)
 		os.Exit(1)
 	}
 	var data common.Smap = common.Smap{
@@ -45,6 +63,13 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		}
 		connection_string += fmt.Sprintf("127.0.0.1:%d", group_port)
 	}
+	
+	sb_type := "group-multi-primary"
+	single_multi_primary := GroupReplMultiPrimary
+	if sdef.SinglePrimary {
+		sb_type = "group-single-primary"
+		single_multi_primary = GroupReplSinglePrimary
+	}
 	for i := 1; i <= nodes; i++ {
 		group_port := base_group_port + i
 		data["Nodes"] = append(data["Nodes"].([]common.Smap), common.Smap{
@@ -55,15 +80,17 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 
 		sdef.DirName = fmt.Sprintf("node%d", i)
 		sdef.Port = base_port + i
+		sdef.MorePorts = []int{group_port}
 		sdef.ServerId = (base_server_id + i) * 100
 
 		fmt.Printf("Installing and starting node %d\n", i)
-		sdef.ReplOptions = ReplOptions + fmt.Sprintf("\n%s\n", GroupReplOptions)
+		sdef.ReplOptions = ReplOptions + fmt.Sprintf("\n%s\n%s\n", GroupReplOptions, single_multi_primary)
 		sdef.ReplOptions += fmt.Sprintf("\n%s\n", GtidOptions)
 		sdef.ReplOptions += fmt.Sprintf("\nloose-group-replication-local-address=127.0.0.1:%d\n", group_port)
 		sdef.ReplOptions += fmt.Sprintf("\nloose-group-replication-group-seeds=%s\n", connection_string)
 		sdef.Multi = true
 		sdef.Prompt = fmt.Sprintf("node%d", i)
+		sdef.SBType = "group-node"
 		CreateSingleSandbox(sdef, origin)
 		var data_node  common.Smap = common.Smap{
 			"Node" : i,
@@ -75,9 +102,9 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 
 	sb_desc := common.SandboxDescription{
 		Basedir : sdef.Basedir + "/" + sdef.Version,
-		SBType	: "group",
+		SBType	: sb_type,
 		Version : sdef.Version,
-		Port	: 0,
+		Port	: []int{0},
 		Nodes 	: nodes,
 	}
 	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)

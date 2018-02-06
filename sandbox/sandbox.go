@@ -13,12 +13,17 @@ import (
 
 type SandboxDef struct {
 	DirName      string
+	SBType		 string
 	Multi		 bool
 	Version      string
 	Basedir      string
 	SandboxDir   string
 	LoadGrants   bool
+	InstalledPorts []int
 	Port         int
+	UserPort     int
+	BasePort     int
+	MorePorts	 []int
 	Prompt       string
 	DbUser       string
 	RplUser      string
@@ -32,6 +37,7 @@ type SandboxDef struct {
 	InitOptions  []string
 	MyCnfOptions []string
 	KeepAuthPlugin bool
+	SinglePrimary bool
 }
 
 const (
@@ -64,6 +70,24 @@ var Origins = [...]string{
 	"BareVersion",
 	"FullDir",
 	"NoSuchOrigin",
+}
+
+func CheckPort (sandbox_type string, installed_ports []int, port int ) {
+	conflict := 0
+	for _, p := range installed_ports {
+		if p == port {
+			conflict = p
+		}
+		if sandbox_type == "group-node" {
+			if p == (port + 100) {
+				conflict = p
+			}
+		}
+	}
+	if conflict > 0 {
+		fmt.Printf("Port conflict detected. Port %d is already used\n", conflict)
+		os.Exit(1)
+	}
 }
 
 func getmatch(key string, names []string, matches []string) string {
@@ -204,6 +228,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		"Copyright":    Copyright,
 		"SandboxDir":   sandbox_dir,
 		"Port":         sdef.Port,
+		"BasePort":     sdef.BasePort,
 		"Prompt":       sdef.Prompt,
 		"Version":      sdef.Version,
 		"Datadir":      datadir,
@@ -229,6 +254,8 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		fmt.Printf("Directory %s already exists\n", sandbox_dir)
 		os.Exit(1)
 	}
+	CheckPort(sdef.SBType, sdef.InstalledPorts, sdef.Port)
+
 	//fmt.Printf("creating: %s\n", sandbox_dir)
 	err := os.Mkdir(sandbox_dir, 0755)
 	if err != nil {
@@ -295,12 +322,20 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		// fmt.Printf("stderr: %s\n", stderr.String())
 	}
 
+	if sdef.SBType == "" {
+		sdef.SBType = "single"
+	}
 	sb_desc := common.SandboxDescription{
 		Basedir : sdef.Basedir,
-		SBType	: "single",
+		SBType	: sdef.SBType,
 		Version : sdef.Version,
-		Port	: sdef.Port,
+		Port	: []int{sdef.Port},
 		Nodes 	: 0,
+	}
+	if len(sdef.MorePorts) > 0 {
+		for _, port := range sdef.MorePorts {
+			sb_desc.Port = append(sb_desc.Port, port)
+		}
 	}
 	common.WriteSandboxDescription(sandbox_dir, sb_desc)
 	write_script(SingleTemplates,"start", "start_template", sandbox_dir, data, true)

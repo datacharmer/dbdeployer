@@ -23,8 +23,20 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 	vList := VersionToList(sdef.Version)
 	rev := vList[2]
 	base_port := sdef.Port + MasterSlaveBasePort + (rev * 100)
+	if sdef.BasePort > 0 {
+		base_port = sdef.BasePort
+	}
 	base_server_id := 0
 	sdef.DirName = "master"
+	for check_port := base_port +1 ; check_port < base_port + nodes +1 ; check_port++ {
+		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
+	}
+
+	err := os.Mkdir(sdef.SandboxDir, 0755)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	sdef.Port = base_port + 1
 	sdef.ServerId = (base_server_id + 1) * 100
 	sdef.LoadGrants = false
@@ -67,11 +79,12 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 		write_script(ReplicationTemplates, fmt.Sprintf("s%d",i), "slave_template", sdef.SandboxDir, data_slave, true)
 		write_script(ReplicationTemplates, fmt.Sprintf("n%d",i+1), "slave_template", sdef.SandboxDir, data_slave, true)
 	}
+	sdef.SBType = "replication-node"
 	sb_desc := common.SandboxDescription{
 		Basedir : sdef.Basedir + "/" + sdef.Version,
 		SBType	: "master-slave",
 		Version : sdef.Version,
-		Port	: 0,
+		Port	: []int{0},
 		Nodes 	: slaves,
 	}
 	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)
@@ -100,6 +113,7 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 		os.Exit(1)
 	}
 
+	sandbox_dir := sdef.SandboxDir
 	switch topology {
 	case "master-slave":
 		sdef.SandboxDir += "/" + MasterSlavePrefix + VersionToName(origin)
@@ -113,17 +127,22 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 		fmt.Println("Unrecognized topology. Accepted: 'master-slave', 'group'")
 		os.Exit(1)
 	}
+	if sdef.DirName != "" {
+		sdef.SandboxDir = sandbox_dir + "/" + sdef.DirName
+	}
 
 	if common.DirExists(sdef.SandboxDir) {
 		fmt.Printf("Directory %s already exists\n", sdef.SandboxDir)
 		os.Exit(1)
 	}
 
+	/*
 	err := os.Mkdir(sdef.SandboxDir, 0755)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	*/
 
 	switch topology {
 	case "master-slave":

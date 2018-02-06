@@ -56,6 +56,7 @@ func check_template_change_request(request string) (template_name, file_name str
 	return
 }
 
+
 func FillSdef (cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	var sd sandbox.SandboxDef
 
@@ -67,9 +68,19 @@ func FillSdef (cmd *cobra.Command, args []string) sandbox.SandboxDef {
 		replace_template(tname, fname)
 	}
 	sd.Port = sandbox.VersionToPort(args[0])
+
+	sd.UserPort, _ = flags.GetInt("port")
+	sd.BasePort, _ = flags.GetInt("base-port")
+	sd.DirName, _ = flags.GetString("sandbox-directory")
+	if sd.UserPort > 0 {
+		sd.Port = sd.UserPort
+	}
+
 	sd.Version = args[0]
 	sd.Basedir, _ = flags.GetString("sandbox-binary")
 	sd.SandboxDir, _ = flags.GetString("sandbox-home")
+	sd.InstalledPorts = GetInstalledPorts(sd.SandboxDir)
+	// fmt.Printf("%v\n", installed_ports)
 	common.CheckSandboxDir(sd.SandboxDir)
 	sd.LoadGrants = true
 	sd.DbUser, _ = flags.GetString("db-user")

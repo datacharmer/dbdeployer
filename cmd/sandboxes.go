@@ -23,6 +23,45 @@ import (
 	"io/ioutil"
 )
 
+func GetInstalledPorts(sandbox_home string) []int {
+	files, err := ioutil.ReadDir(sandbox_home)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var port_collection []int
+	for _, f := range files {
+		fname := f.Name()
+		fmode := f.Mode()
+		if fmode.IsDir() {
+			sbdesc := sandbox_home + "/" + fname + "/sbdescription.json"
+			if common.FileExists(sbdesc) {
+				sbd := common.ReadSandboxDescription(sandbox_home + "/" + fname)
+				if sbd.Nodes == 0 {
+					for _, p := range sbd.Port {
+						port_collection = append(port_collection, p)
+					}
+				} else {
+					var node_descr []common.SandboxDescription
+					if common.DirExists(sandbox_home + "/" + fname + "/master") {
+						sd_master := common.ReadSandboxDescription(sandbox_home + "/" + fname + "/master")
+						node_descr = append(node_descr, sd_master)
+					}
+					for node := 1; node <= sbd.Nodes; node++ {
+						sd_node := common.ReadSandboxDescription(fmt.Sprintf("%s/%s/node%d", sandbox_home, fname, node))
+						node_descr = append(node_descr, sd_node)
+					}
+					for _,nd := range node_descr {
+						for _, p := range nd.Port {
+							port_collection = append(port_collection, p)
+						}
+					}
+				}
+			} 
+		}
+	}
+	return port_collection
+}
+
 // Shows installed sandboxes
 func ShowSandboxes(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
@@ -41,7 +80,14 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 			if common.FileExists(sbdesc) {
 				sbd := common.ReadSandboxDescription(SandboxHome + "/" + fname)
 				if sbd.Nodes == 0 {
-					description = fmt.Sprintf("%-15s %10s [%5d ]", sbd.SBType, sbd.Version, sbd.Port)
+					port_text := ""
+					for _, p := range sbd.Port {
+						if port_text != "" {
+							port_text += " "
+						}
+						port_text += fmt.Sprintf("%d", p)
+					}
+					description = fmt.Sprintf("%-20s %10s [%s]", sbd.SBType, sbd.Version, port_text)
 				} else {
 					var node_descr []common.SandboxDescription
 					if common.DirExists(SandboxHome + "/" + fname + "/master") {
@@ -52,12 +98,17 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 						sd_node := common.ReadSandboxDescription(fmt.Sprintf("%s/%s/node%d", SandboxHome, fname, node))
 						node_descr = append(node_descr, sd_node)
 					}
-					ports := "["
+					ports := ""
 					for _,nd := range node_descr {
-						ports += fmt.Sprintf(" %d", nd.Port)
+						for _, p := range nd.Port {
+							if ports != "" {
+								ports += " "
+							}
+							ports += fmt.Sprintf("%d", p)
+						}
 					}
-					ports += " ]"
-					description = fmt.Sprintf("%-15s %10s %s", sbd.SBType, sbd.Version, ports)
+					//ports += " ]"
+					description = fmt.Sprintf("%-20s %10s [%s]", sbd.SBType, sbd.Version, ports)
 				}
 				dirs = append(dirs, fmt.Sprintf("%-20s : %s", fname, description))
 			} else {

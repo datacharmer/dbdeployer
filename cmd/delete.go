@@ -85,9 +85,12 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 
 // deleteCmd represents the delete command
 var deleteCmd = &cobra.Command{
-	Use:   "delete",
+	Use:   "delete sandbox_name",
 	Short: "delete an installed sandbox",
 	Aliases: []string{"remove", "destroy"},
+	Example: `
+	$ dbdeployer delete msb_8_0_4
+	$ dbdeployer delete rsandbox_5_7_21`,
 	Long: `Stops the sandbox (and its depending sandboxes, if any), and removes it.
 Warning: this command is irreversible!`,
 	Run: DeleteSandbox,

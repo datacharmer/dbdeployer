@@ -21,32 +21,55 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func ListTemplates (cmd *cobra.Command, args []string) {
-	wanted := ""
-	if len(args) > 0 {
-		wanted = args[0]
-	}
+type TemplateInfo struct {
+	Group string
+	Name string
+	Description string
+}
 
+func GetTemplatesList (wanted string) (tlist []TemplateInfo) {		
 	found := false
-	for name, tvar := range sandbox.AllTemplates {
-		will_print := true
+	for group_name, tvar := range sandbox.AllTemplates {
+		will_include := true
+		//fmt.Printf("[%s]\n", group_name)
 		if wanted != "" {
-			if wanted != name {
-				will_print = false
+			if wanted != group_name {
+				will_include = false
 			}
 		}
-		if will_print {
-			fmt.Printf("# %s\n", name)
+		var td TemplateInfo
+		if will_include {
 			for k, v := range tvar {
-				fmt.Printf("%-25s : %s\n", k, v.Description)
+				td.Description = v.Description
+				td.Group = group_name
+				td.Name = k
+				tlist = append(tlist, td)
+				found = true
 			}
-			fmt.Println("")
-			found = true
 		}
 	}
 	if ! found {
 		fmt.Printf("group %s not found\n", wanted)
 		os.Exit(1)
+	}
+	return
+}
+
+func ListTemplates (cmd *cobra.Command, args []string) {
+	wanted := ""
+	if len(args) > 0 {
+		wanted = args[0]
+	}
+	flags := cmd.Flags()
+	simple_list, _ := flags.GetBool("simple")
+	
+	templates := GetTemplatesList(wanted)
+	for _, template := range templates {
+		if simple_list {
+			fmt.Printf("%-13s %-25s\n", "[" + template.Group + "]", template.Name)
+		} else {
+			fmt.Printf("%-13s %-25s : %s\n", "[" + template.Group + "]", template.Name, template.Description)
+		}
 	}
 }
 
@@ -61,13 +84,10 @@ var listCmd = &cobra.Command{
 func init() {
 	templatesCmd.AddCommand(listCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// listCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// listCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	listCmd.Flags().BoolP("simple", "s", false, "Shows only the template names, without description")
 }

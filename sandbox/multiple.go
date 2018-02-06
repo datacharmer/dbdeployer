@@ -20,9 +20,11 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 		fmt.Printf("Base directory %s does not exist\n", Basedir)
 		os.Exit(1)
 	}
-
-	sdef.SandboxDir += "/" + MultiplePrefix + VersionToName(origin)
-
+	if sdef.DirName == "" {
+		sdef.SandboxDir += "/" + MultiplePrefix + VersionToName(origin)
+	} else {
+		sdef.SandboxDir += "/" + sdef.DirName
+	}
 	err := os.Mkdir(sdef.SandboxDir, 0755)
 	if err != nil {
 		fmt.Println(err)
@@ -33,6 +35,9 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 	vList := VersionToList(sdef.Version)
 	rev := vList[2]
 	base_port := sdef.Port + MultipleBasePort + (rev * 100)
+	if sdef.BasePort > 0 {
+		base_port = sdef.BasePort
+	}
 	base_server_id := 0
 	if nodes < 2 {
 		fmt.Println("For single sandbox deployment, use the 'single' command")
@@ -64,11 +69,12 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 		}
 		write_script(MultipleTemplates,fmt.Sprintf("n%d",i), "node_template", sdef.SandboxDir, data_node, true)
 	}
+	sdef.SBType = "multiple-node"
 	sb_desc := common.SandboxDescription{
 		Basedir : Basedir,
 		SBType	: "multiple",
 		Version : sdef.Version,
-		Port	: 0,
+		Port	: []int{0},
 		Nodes 	: nodes,
 	}
 	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)

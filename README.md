@@ -39,26 +39,31 @@ The program doesn't have any dependencies. Everything is included in the binary.
       replication create replication sandbox
       sandboxes   List installed sandboxes
       single      deploys a single sandbox
+      templates   Admin operations on templates
       unpack      unpack a tarball into the binary directory
       usage       Shows usage of installed sandboxes
       versions    List available versions
     
     Flags:
-          --bind-address string      defines the database bind-address  (default "127.0.0.1")
-          --config string            config file (default "./dbdeployer.json")
-      -p, --db-password string       database password (default "msandbox")
-      -u, --db-user string           database user (default "msandbox")
-          --gtid                     enables GTID
-      -h, --help                     help for dbdeployer
-      -i, --init-options strings     mysqld options to run during initialization
-          --keep-auth-plugin         in 8.0.4+, does not change the auth plugin
-      -c, --my-cnf-options strings   mysqld options to add to my.sandbox.cnf
-          --remote-access string     defines the database access  (default "127.%")
-          --rpl-password string      replication password (default "rsandbox")
-          --rpl-user string          replication user (default "rsandbox")
-          --sandbox-binary string    Binary repository (default "$HOME/opt/mysql")
-          --sandbox-home string      Sandbox deployment direcory (default "$HOME/sandboxes")
-          --version                  version for dbdeployer
+          --base-port int              Overrides default base-port (for multiple sandboxes)
+          --bind-address string        defines the database bind-address  (default "127.0.0.1")
+          --config string              config file (default "./dbdeployer.json")
+      -p, --db-password string         database password (default "msandbox")
+      -u, --db-user string             database user (default "msandbox")
+          --gtid                       enables GTID
+      -h, --help                       help for dbdeployer
+      -i, --init-options strings       mysqld options to run during initialization
+          --keep-auth-plugin           in 8.0.4+, does not change the auth plugin
+      -c, --my-cnf-options strings     mysqld options to add to my.sandbox.cnf
+          --port int                   Overrides default port
+          --remote-access string       defines the database access  (default "127.%")
+          --rpl-password string        replication password (default "rsandbox")
+          --rpl-user string            replication user (default "rsandbox")
+          --sandbox-binary string      Binary repository (default "$HOME/opt/mysql")
+          --sandbox-directory string   Changes the default sandbox directory
+          --sandbox-home string        Sandbox deployment direcory (default "$HOME/sandboxes")
+          --use-template strings       [template_name:file_name] Replace existing template with one from file
+          --version                    version for dbdeployer
     
     Use "dbdeployer [command] --help" for more information about a command.
 
@@ -88,20 +93,6 @@ If you don't have any tarballs installed in your system, you should first *unpac
           --prefix string           Prefix for the final expanded directory
           --unpack-version string   which version is contained in the tarball (mandatory)
     
-    Global Flags:
-          --bind-address string      defines the database bind-address  (default "127.0.0.1")
-          --config string            config file (default "./dbdeployer.json")
-      -p, --db-password string       database password (default "msandbox")
-      -u, --db-user string           database user (default "msandbox")
-          --gtid                     enables GTID
-      -i, --init-options strings     mysqld options to run during initialization
-          --keep-auth-plugin         in 8.0.4+, does not change the auth plugin
-      -c, --my-cnf-options strings   mysqld options to add to my.sandbox.cnf
-          --remote-access string     defines the database access  (default "127.%")
-          --rpl-password string      replication password (default "rsandbox")
-          --rpl-user string          replication user (default "rsandbox")
-          --sandbox-binary string    Binary repository (default "$HOME/opt/mysql")
-          --sandbox-home string      Sandbox deployment direcory (default "$HOME/sandboxes")
 
 The main command is *single*, which installs a single sandbox.
 
@@ -113,7 +104,7 @@ The main command is *single*, which installs a single sandbox.
     For example:
     	dbdeployer single 5.7.21
     
-    For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing 
+    For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
     the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
     Use the "unpack" command to get the tarball into the right directory.
     
@@ -124,25 +115,15 @@ The main command is *single*, which installs a single sandbox.
       -h, --help     help for single
           --master   Make the server replication ready
     
-    Global Flags:
-          --bind-address string      defines the database bind-address  (default "127.0.0.1")
-          --config string            config file (default "./dbdeployer.json")
-      -p, --db-password string       database password (default "msandbox")
-      -u, --db-user string           database user (default "msandbox")
-          --gtid                     enables GTID
-      -i, --init-options strings     mysqld options to run during initialization
-          --keep-auth-plugin         in 8.0.4+, does not change the auth plugin
-      -c, --my-cnf-options strings   mysqld options to add to my.sandbox.cnf
-          --remote-access string     defines the database access  (default "127.%")
-          --rpl-password string      replication password (default "rsandbox")
-          --rpl-user string          replication user (default "rsandbox")
-          --sandbox-binary string    Binary repository (default "$HOME/opt/mysql")
-          --sandbox-home string      Sandbox deployment direcory (default "$HOME/sandboxes")
 
 If you want more than one sandbox of the same version, without any replication relationship, use the *multiple* command with an optional "--node" flag (default: 3).
 
     $ dbdeployer multiple -h
-    create multiple sandbox
+    Creates several sandboxes of the same version,
+    without any replication relationship.
+    For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
+    the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
+    Use the "unpack" command to get the tarball into the right directory.
     
     Usage:
       dbdeployer multiple MySQL-Version [flags]
@@ -156,26 +137,15 @@ If you want more than one sandbox of the same version, without any replication r
       -h, --help        help for multiple
       -n, --nodes int   How many nodes will be installed (default 3)
     
-    Global Flags:
-          --bind-address string      defines the database bind-address  (default "127.0.0.1")
-          --config string            config file (default "./dbdeployer.json")
-      -p, --db-password string       database password (default "msandbox")
-      -u, --db-user string           database user (default "msandbox")
-          --gtid                     enables GTID
-      -i, --init-options strings     mysqld options to run during initialization
-          --keep-auth-plugin         in 8.0.4+, does not change the auth plugin
-      -c, --my-cnf-options strings   mysqld options to add to my.sandbox.cnf
-          --remote-access string     defines the database access  (default "127.%")
-          --rpl-password string      replication password (default "rsandbox")
-          --rpl-user string          replication user (default "rsandbox")
-          --sandbox-binary string    Binary repository (default "$HOME/opt/mysql")
-          --sandbox-home string      Sandbox deployment direcory (default "$HOME/sandboxes")
 
 The *replication* command will install a master and two or more slaves, with replication started. You can change the topology to "group" and get three nodes in peer replication.
 
     $ dbdeployer replication -h
-     The replication command allows you to deploy several nodes in replication.
-    	Allowed topologies are "master-slave" and "group" (requires 5.7.17+)
+    The replication command allows you to deploy several nodes in replication.
+    Allowed topologies are "master-slave" and "group" (requires 5.7.17+)
+    For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
+    the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
+    Use the "unpack" command to get the tarball into the right directory.
     
     Usage:
       dbdeployer replication MySQL-Version [flags]
@@ -189,27 +159,25 @@ The *replication* command will install a master and two or more slaves, with rep
     		# (explicitly setting topology)
     
     		$ dbdeployer --topology=group replication 5.7.21
+    		$ dbdeployer --topology=group replication 8.0.4 --single-primary
     	
     
     Flags:
       -h, --help              help for replication
       -n, --nodes int         How many nodes will be installed (default 3)
+          --single-primary    Using single primary for group replication
       -t, --topology string   Which topology will be installed (default "master-slave")
     
-    Global Flags:
-          --bind-address string      defines the database bind-address  (default "127.0.0.1")
-          --config string            config file (default "./dbdeployer.json")
-      -p, --db-password string       database password (default "msandbox")
-      -u, --db-user string           database user (default "msandbox")
-          --gtid                     enables GTID
-      -i, --init-options strings     mysqld options to run during initialization
-          --keep-auth-plugin         in 8.0.4+, does not change the auth plugin
-      -c, --my-cnf-options strings   mysqld options to add to my.sandbox.cnf
-          --remote-access string     defines the database access  (default "127.%")
-          --rpl-password string      replication password (default "rsandbox")
-          --rpl-user string          replication user (default "rsandbox")
-          --sandbox-binary string    Binary repository (default "$HOME/opt/mysql")
-          --sandbox-home string      Sandbox deployment direcory (default "$HOME/sandboxes")
+
+## Multiple sandboxes, same version and type
+
+If you want to deploy several instances of the same version and the same type (for example two single sandboxes of 8.0.4, or two group replication instances with different single-primary setting) you can specify the data directory name and the ports manually.
+
+    $ dbdeployer single 8.0.4  
+    # will deploy in msb_8_0_4 using port 8004
+
+    $ dbdeployer single 8.0.4 --sandbox-name=msb2_8_0_4 --port=8005  
+    # will deploy in msb2_8_0_4 using port 8005
 
 ## Sandbox management
 

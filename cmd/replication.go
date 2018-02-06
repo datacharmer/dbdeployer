@@ -15,7 +15,8 @@
 package cmd
 
 import (
-	//"fmt"
+	"fmt"
+	"os"
 
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/datacharmer/dbdeployer/common"
@@ -30,6 +31,11 @@ func ReplicationSandbox(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	nodes, _ := flags.GetInt("nodes")
 	topology, _ := flags.GetString("topology")
+	sd.SinglePrimary, _ = flags.GetBool("single-primary")
+	if sd.SinglePrimary && topology != "group" {
+		fmt.Println("Option 'single-primary' can only be used with 'group' topology ")
+		os.Exit(1)
+	}
 	sandbox.CreateReplicationSandbox(sd, args[0], topology, nodes)
 }
 
@@ -53,6 +59,7 @@ Use the "unpack" command to get the tarball into the right directory.
 		# (explicitly setting topology)
 
 		$ dbdeployer --topology=group replication 5.7.21
+		$ dbdeployer --topology=group replication 8.0.4 --single-primary
 	`,
 }
 
@@ -60,5 +67,6 @@ func init() {
 	rootCmd.AddCommand(replicationCmd)
 	replicationCmd.PersistentFlags().StringP("topology", "t", "master-slave", "Which topology will be installed")
 	replicationCmd.PersistentFlags().IntP("nodes", "n", 3, "How many nodes will be installed")
+	replicationCmd.PersistentFlags().BoolP("single-primary", "", false, "Using single primary for group replication")
 	//replicationCmd.PersistentFlags().Int("slaves",  2, "How many slaves will be installed")
 }
