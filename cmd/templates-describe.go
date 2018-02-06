@@ -22,29 +22,48 @@ import (
 	"github.com/datacharmer/dbdeployer/sandbox"
 )
 
-func DescribeTemplate (cmd *cobra.Command, args []string) {
+func RunDescribeTemplate (cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
 		fmt.Println("Argument required: template name")
 		os.Exit(1)
 	}
 	requested := args[0]
-	name, contents := FindTemplate(requested)
-	fmt.Printf("# Collection    : %s\n", name)
-	fmt.Printf("# Name          : %s\n", requested)
-	fmt.Printf("# Description 	: %s\n", sandbox.AllTemplates[name][requested].Description)
-	fmt.Printf("# Notes     	: %s\n", sandbox.AllTemplates[name][requested].Notes)
-	fmt.Printf("# Length     	: %d\n", len(contents))
+	flags := cmd.Flags()
+	complete_listing, _ := flags.GetBool("with-contents")
+	DescribeTemplate(requested, complete_listing)
+}
+
+func GetTemplatesDescription (requested string, complete_listing bool) string {
+	group, contents := FindTemplate(requested)
+	out := ""
+	out += fmt.Sprintf("# Collection    : %s\n", group)
+	out += fmt.Sprintf("# Name          : %s\n", requested)
+	out += fmt.Sprintf("# Description 	: %s\n", sandbox.AllTemplates[group][requested].Description)
+	out += fmt.Sprintf("# Notes     	: %s\n", sandbox.AllTemplates[group][requested].Notes)
+	out += fmt.Sprintf("# Length     	: %d\n", len(contents))
+	if complete_listing {
+		out += fmt.Sprintf("##START\n")
+		out += fmt.Sprintf("%s\n", contents)
+		out += fmt.Sprintf("##END\n\n")
+	}
+	return out
+}
+
+func DescribeTemplate (requested string, complete_listing bool) {
+	fmt.Printf("%s", GetTemplatesDescription(requested, complete_listing))
 }
 
 // describeCmd represents the describe command
 var describeCmd = &cobra.Command{
 	Use:   "describe",
+	Aliases: []string{"descr", "structure", "struct"},
 	Short: "Describe a given template",
 	Long: ``,
-	Run: DescribeTemplate,
+	Run: RunDescribeTemplate,
 }
 
 func init() {
 	templatesCmd.AddCommand(describeCmd)
 
+	describeCmd.Flags().BoolP("with-contents", "", false, "Shows complete structure and contents")
 }
