@@ -173,15 +173,18 @@ The *replication* command will install a master and two or more slaves, with rep
 
 If you want to deploy several instances of the same version and the same type (for example two single sandboxes of 8.0.4, or two group replication instances with different single-primary setting) you can specify the data directory name and the ports manually.
 
-    $ dbdeployer single 8.0.4  
+    $ dbdeployer single 8.0.4
     # will deploy in msb_8_0_4 using port 8004
 
-    $ dbdeployer single 8.0.4 --sandbox-name=msb2_8_0_4 --port=8005  
+    $ dbdeployer single 8.0.4 --sandbox-directory=msb2_8_0_4 --port=8005
     # will deploy in msb2_8_0_4 using port 8005
+
+    $ dbdeployer replication 8.0.4 --sandbox-directory=rsandbox22_8_0_4 --base-port=18600
+    # will deploy replication in rsandbox22_8_0_4 using ports 18601, 18602, 18603
 
 ## Sandbox management
 
-You can list the available MySQL versions with 
+You can list the available MySQL versions with
 
     $ dbdeployer versions
 
@@ -189,7 +192,7 @@ Also "available" is a recognized alias for this command.
 
 And you can list which sandboxes were already installed
 
-    $ dbdeployer installed 
+    $ dbdeployer installed  # Aliases: sandboxes, deployed
 
 The command "usage" shows how to use the scripts that were installed with each sandbox.
 
