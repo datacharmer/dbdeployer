@@ -1,5 +1,4 @@
 0.1.13	06-Feb-2018
-	- The templates command is now hidden
 	- Added command "templates export"
 	- Added flag --single-primary for group replication
 	- Added flags --sandbox-directory, --port, and base-port
