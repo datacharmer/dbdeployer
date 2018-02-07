@@ -1,3 +1,8 @@
+0.1.14	07-Feb-2018
+	- Added script test_sb to every single sandbox
+	- Added script test_sb_all to all multiple/group/replication sandbox
+	- Added script test_replication to replication sandboxes
+	- Added test/test.sh, which runs a comprehensive test of most dbdeployer features
 0.1.13	06-Feb-2018
 	- Added command "templates export"
 	- Added flag --single-primary for group replication

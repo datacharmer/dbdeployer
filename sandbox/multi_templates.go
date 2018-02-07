@@ -68,6 +68,19 @@ echo "MULTIPLE  {{.SandboxDir}}"
 {{.SandboxDir}}/node{{.Node}}/use -BN -e "select CONCAT('port: ', @@port) AS port"
 {{end}}
 `
+	test_sb_multi_template string = `#!/bin/sh
+{{.Copyright}}
+# Template : {{.TemplateName}}
+echo '# executing "test_sb"' on {{.SandboxDir}}
+{{ range .Nodes }}
+echo 'executing "test_sb" on node {{.Node}}'
+{{.SandboxDir}}/node{{.Node}}/test_sb "$@"
+exit_code=$?
+if [ "$exit_code" != "0" ] ; then exit $exit_code ; fi
+{{end}}
+`
+
+
 	node_template string = `#!/bin/sh
 {{.Copyright}}
 # Template : {{.TemplateName}}
@@ -110,6 +123,11 @@ MultipleTemplates  = TemplateCollection{
 			Description: "Shows status for all nodes",
 			Notes: "",
 			Contents : status_multi_template,
+		},
+	"test_sb_multi_template" : TemplateDesc{
+			Description: "Run sb test on all nodes",
+			Notes: "",
+			Contents : test_sb_multi_template,
 		},
 	"node_template" : TemplateDesc{
 			Description: "Runs the MySQL client for a given node",

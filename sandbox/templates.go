@@ -662,6 +662,78 @@ fi
 
 (printf "#\n# Showing $last_relaylog\n#\n" ; ./my sqlbinlog --verbose $last_relaylog ) 
 `
+	test_sb_template string=`#!/bin/bash
+{{.Copyright}}
+# Template : {{.TemplateName}}
+SBDIR="{{.SandboxDir}}"
+cd $SBDIR
+
+PIDFILE=$SBDIR/data/mysql_sandbox{{.Port}}.pid
+
+function is_running
+{
+	if [ -f $PIDFILE ]
+	then
+		MYPID=$(cat $PIDFILE)
+		ps -p $MYPID | grep $MYPID
+	fi
+}
+
+fail=0
+pass=0
+TIMEOUT=180
+expected_port={{.Port}}
+expected_version={{.Version}}
+if [ -z "$(is_running)" ]
+then
+	echo "not ok - server stopped"
+    fail=$(($fail+1))
+else
+    version=$(./use -BN -e "select version()")
+    port=$(./use -BN -e "show variables like 'port'" | awk '{print $2}')
+    if [ -n "$version" ]
+    then
+        echo "ok - version '$version'"
+        pass=$(($pass+1))
+    else
+        echo "not ok - no version detected"
+        fail=$(($fail+1))
+    fi
+    if [ -n "$port" ]
+    then
+        echo "ok - port detected: $port"
+        pass=$(($pass+1))
+    else
+        echo "not ok - no port detected"
+        fail=$(($fail+1))
+    fi
+    
+    if [ -n "$( echo $version| grep $expected_version)" ]
+    then
+        echo "ok - version is $version as expected"
+        pass=$(($pass+1))
+    else
+        echo "not ok - version detected ($version) but expected was $expected_version"
+        fail=$(($fail+1))
+    fi
+    if [ "$port" == "$expected_port" ]
+    then
+        echo "ok - port is $port as expected"
+        pass=$(($pass+1))
+    else
+        echo "not ok - port detected ($port) but expected was $expected_port"
+        fail=$(($fail+1))
+    fi
+fi
+echo "# PASS: $pass"
+echo "# FAIL: $fail"
+if [ "$fail" != "0" ]
+then
+	exit 1
+fi
+exit 0
+`
+
 	sb_include_template string = ""
 
 SingleTemplates  = TemplateCollection{
@@ -749,6 +821,11 @@ SingleTemplates  = TemplateCollection{
 			Description : "Show the relaylog for a single sandbox",
 			Notes : "",
 			Contents : show_relaylog_template,
+		},
+		"test_sb_template" : TemplateDesc{
+			Description : "Tests basic sandbox functionality",
+			Notes : "",
+			Contents : test_sb_template,
 		},
 		"sb_include_template" : TemplateDesc{
 			Description : "TBD",

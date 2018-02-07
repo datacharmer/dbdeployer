@@ -350,6 +350,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	write_script(SingleTemplates,"my", "my_template", sandbox_dir, data, true)
 	write_script(SingleTemplates,"show_binlog", "show_binlog_template", sandbox_dir, data, true)
 	write_script(SingleTemplates,"show_relaylog", "show_relaylog_template", sandbox_dir, data, true)
+	write_script(SingleTemplates,"test_sb", "test_sb_template", sandbox_dir, data, true)
 
 	write_script(SingleTemplates,"my.sandbox.cnf", "my_cnf_template", sandbox_dir, data, false)
 	if GreaterOrEqualVersion(sdef.Version, []int{5, 7, 6}) {
