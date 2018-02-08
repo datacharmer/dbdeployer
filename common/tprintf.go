@@ -36,9 +36,9 @@ func TrimmedLines(s string) string {
 	return s
 	/*
 
-	// matches the start of every line, followed by any spaces
-	re = regexp.MustCompile(`(?m)^\s*`)
-	return re.ReplaceAllString(s, "")
+		// matches the start of every line, followed by any spaces
+		re = regexp.MustCompile(`(?m)^\s*`)
+		return re.ReplaceAllString(s, "")
 	*/
 }
 

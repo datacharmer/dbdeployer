@@ -1,11 +1,10 @@
 package sandbox
 
 import (
-	"github.com/datacharmer/dbdeployer/common"
 	"fmt"
+	"github.com/datacharmer/dbdeployer/common"
 	"os"
 )
-
 
 type Slave struct {
 	Node       int
@@ -14,8 +13,6 @@ type Slave struct {
 	Name       string
 	MasterPort int
 }
-
-
 
 func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 
@@ -28,7 +25,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 	}
 	base_server_id := 0
 	sdef.DirName = "master"
-	for check_port := base_port +1 ; check_port < base_port + nodes +1 ; check_port++ {
+	for check_port := base_port + 1; check_port < base_port+nodes+1; check_port++ {
 		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
 	}
 
@@ -59,7 +56,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 	CreateSingleSandbox(sdef, origin)
 	for i := 1; i <= slaves; i++ {
 		data["Slaves"] = append(data["Slaves"].([]common.Smap), common.Smap{
-			"Node": i,
+			"Node":        i,
 			"SandboxDir":  sdef.SandboxDir,
 			"MasterPort":  master_port,
 			"RplUser":     sdef.RplUser,
@@ -71,21 +68,21 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 		sdef.ServerId = (base_server_id + i + 1) * 100
 		fmt.Printf("Installing and starting slave %d\n", i)
 		CreateSingleSandbox(sdef, origin)
-		var data_slave  common.Smap = common.Smap{
-			"Node" : i,
-			"SandboxDir" : sdef.SandboxDir,
-			"Copyright" : Copyright,
+		var data_slave common.Smap = common.Smap{
+			"Node":       i,
+			"SandboxDir": sdef.SandboxDir,
+			"Copyright":  Copyright,
 		}
-		write_script(ReplicationTemplates, fmt.Sprintf("s%d",i), "slave_template", sdef.SandboxDir, data_slave, true)
-		write_script(ReplicationTemplates, fmt.Sprintf("n%d",i+1), "slave_template", sdef.SandboxDir, data_slave, true)
+		write_script(ReplicationTemplates, fmt.Sprintf("s%d", i), "slave_template", sdef.SandboxDir, data_slave, true)
+		write_script(ReplicationTemplates, fmt.Sprintf("n%d", i+1), "slave_template", sdef.SandboxDir, data_slave, true)
 	}
 	sdef.SBType = "replication-node"
 	sb_desc := common.SandboxDescription{
-		Basedir : sdef.Basedir + "/" + sdef.Version,
-		SBType	: "master-slave",
-		Version : sdef.Version,
-		Port	: []int{0},
-		Nodes 	: slaves,
+		Basedir: sdef.Basedir + "/" + sdef.Version,
+		SBType:  "master-slave",
+		Version: sdef.Version,
+		Port:    []int{0},
+		Nodes:   slaves,
 	}
 	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)
 
@@ -121,7 +118,7 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 		sdef.SandboxDir += "/" + MasterSlavePrefix + VersionToName(origin)
 	case "group":
 		sdef.SandboxDir += "/" + GroupPrefix + VersionToName(origin)
-		if ! GreaterOrEqualVersion(sdef.Version, []int{5, 7, 17}) {
+		if !GreaterOrEqualVersion(sdef.Version, []int{5, 7, 17}) {
 			fmt.Println("Group replication requires MySQL 5.7.17 or greater")
 			os.Exit(1)
 		}
@@ -139,11 +136,11 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 	}
 
 	/*
-	err := os.Mkdir(sdef.SandboxDir, 0755)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+		err := os.Mkdir(sdef.SandboxDir, 0755)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	*/
 
 	switch topology {

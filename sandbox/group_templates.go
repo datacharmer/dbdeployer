@@ -41,17 +41,16 @@ CHECK_NODE="select * from performance_schema.replication_group_members"
 	sleep 1
 {{end}}
 `
-GroupTemplates  = TemplateCollection{
-	"init_nodes_template" : TemplateDesc{
+	GroupTemplates = TemplateCollection{
+		"init_nodes_template": TemplateDesc{
 			Description: "Initialize group replication after deployment",
-			Notes: "",
-			Contents : init_nodes_template,
+			Notes:       "",
+			Contents:    init_nodes_template,
 		},
-	"check_nodes_template" : TemplateDesc{
+		"check_nodes_template": TemplateDesc{
 			Description: "Checks the status of group replication",
-			Notes: "",
-			Contents : check_nodes_template,
+			Notes:       "",
+			Contents:    check_nodes_template,
 		},
-}
+	}
 )
-

@@ -15,4 +15,3 @@
 package cmd
 
 var versionDef string = "0.1.14" // 2018-02-07
-

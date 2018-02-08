@@ -17,22 +17,22 @@ package common
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"encoding/json"
 )
 
 type SandboxDescription struct {
 	Basedir string `json:"basedir"`
-	SBType string  `json:"type"`  // single multi master-slave group
-	Version string  `json:"version"`
-	Port []int      `json:"port"`
-	Nodes int	   `json:"nodes"`
+	SBType  string `json:"type"` // single multi master-slave group
+	Version string `json:"version"`
+	Port    []int  `json:"port"`
+	Nodes   int    `json:"nodes"`
 }
 
-func WriteSandboxDescription (destination string, sd SandboxDescription) {
+func WriteSandboxDescription(destination string, sd SandboxDescription) {
 	b, err := json.MarshalIndent(sd, " ", "\t")
 	if err != nil {
 		fmt.Println("error encoding sandbox description: ", err)
@@ -43,7 +43,7 @@ func WriteSandboxDescription (destination string, sd SandboxDescription) {
 	WriteString(json_string, filename)
 }
 
-func ReadSandboxDescription (sandbox_directory string) (sd SandboxDescription) {
+func ReadSandboxDescription(sandbox_directory string) (sd SandboxDescription) {
 	filename := sandbox_directory + "/sbdescription.json"
 	sb_blob := SlurpAsBytes(filename)
 
@@ -106,7 +106,7 @@ func WriteString(line string, filename string) error {
 	return WriteStrings([]string{line}, filename)
 }
 
-func FileExists (filename string) bool {
+func FileExists(filename string) bool {
 	_, err := os.Stat(filename)
 	if os.IsNotExist(err) {
 		return false
@@ -114,7 +114,7 @@ func FileExists (filename string) bool {
 	return true
 }
 
-func DirExists (filename string) bool {
+func DirExists(filename string) bool {
 	f, err := os.Stat(filename)
 	if os.IsNotExist(err) {
 		return false
@@ -124,7 +124,7 @@ func DirExists (filename string) bool {
 }
 
 func Which(filename string) string {
-	path , err := exec.LookPath(filename)
+	path, err := exec.LookPath(filename)
 	if err == nil {
 		return path
 	}
@@ -132,7 +132,7 @@ func Which(filename string) string {
 }
 
 func ExecExists(filename string) bool {
-	_ , err := exec.LookPath(filename)
+	_, err := exec.LookPath(filename)
 	return err == nil
 }
 
@@ -170,7 +170,7 @@ func Run_cmd_ctrl(c string, silent bool) error {
 		fmt.Printf("stderr: %s\n", stderr.String())
 		// os.Exit(1)
 	} else {
-		if ! silent {
+		if !silent {
 			fmt.Printf("%s", out.String())
 		}
 	}
@@ -180,4 +180,3 @@ func Run_cmd_ctrl(c string, silent bool) error {
 func Run_cmd(c string) error {
 	return Run_cmd_ctrl(c, false)
 }
-

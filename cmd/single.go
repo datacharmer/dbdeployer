@@ -15,17 +15,17 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
-	"fmt"
 	"os"
 	"regexp"
 )
 
 func replace_template(template_name string, file_name string) {
 	group, contents := FindTemplate(template_name)
-	if ! common.FileExists(file_name) {
+	if !common.FileExists(file_name) {
 		fmt.Printf("File %s not found\n", file_name)
 		os.Exit(1)
 	}
@@ -36,9 +36,9 @@ func replace_template(template_name string, file_name string) {
 		os.Exit(1)
 	}
 	var new_rec sandbox.TemplateDesc = sandbox.TemplateDesc{
-		Description : sandbox.AllTemplates[group][template_name].Description,
-		Notes : sandbox.AllTemplates[group][template_name].Notes,
-		Contents : new_contents,
+		Description: sandbox.AllTemplates[group][template_name].Description,
+		Notes:       sandbox.AllTemplates[group][template_name].Notes,
+		Contents:    new_contents,
 	}
 	sandbox.AllTemplates[group][template_name] = new_rec
 }
@@ -56,8 +56,7 @@ func check_template_change_request(request string) (template_name, file_name str
 	return
 }
 
-
-func FillSdef (cmd *cobra.Command, args []string) sandbox.SandboxDef {
+func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	var sd sandbox.SandboxDef
 
 	flags := cmd.Flags()
@@ -126,10 +125,10 @@ func SingleSandbox(cmd *cobra.Command, args []string) {
 
 // singleCmd represents the single command
 var singleCmd = &cobra.Command{
-	Use:   "single MySQL-Version",
+	Use: "single MySQL-Version",
 	// Args:  cobra.ExactArgs(1),
 	Short: "deploys a single sandbox",
-	Long:  `single installs a sandbox and creates useful scripts for its use.
+	Long: `single installs a sandbox and creates useful scripts for its use.
 MySQL-Version is in the format x.x.xx, and it refers to a directory named after the version
 containing an unpacked tarball. The place where these directories are found is defined by 
 --sandbox-binary (default: $HOME/opt/mysql.)
@@ -140,12 +139,12 @@ For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, cont
 the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
 Use the "unpack" command to get the tarball into the right directory.
 `,
-	Run:   SingleSandbox,
+	Run: SingleSandbox,
 }
 
 func init() {
 	rootCmd.AddCommand(singleCmd)
-	singleCmd.PersistentFlags().Bool("master",  false, "Make the server replication ready")
+	singleCmd.PersistentFlags().Bool("master", false, "Make the server replication ready")
 
 }
 

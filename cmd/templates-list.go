@@ -16,18 +16,18 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 type TemplateInfo struct {
-	Group string
-	Name string
+	Group       string
+	Name        string
 	Description string
 }
 
-func GetTemplatesList (wanted string) (tlist []TemplateInfo) {		
+func GetTemplatesList(wanted string) (tlist []TemplateInfo) {
 	found := false
 	for group_name, tvar := range sandbox.AllTemplates {
 		will_include := true
@@ -48,27 +48,27 @@ func GetTemplatesList (wanted string) (tlist []TemplateInfo) {
 			}
 		}
 	}
-	if ! found {
+	if !found {
 		fmt.Printf("group %s not found\n", wanted)
 		os.Exit(1)
 	}
 	return
 }
 
-func ListTemplates (cmd *cobra.Command, args []string) {
+func ListTemplates(cmd *cobra.Command, args []string) {
 	wanted := ""
 	if len(args) > 0 {
 		wanted = args[0]
 	}
 	flags := cmd.Flags()
 	simple_list, _ := flags.GetBool("simple")
-	
+
 	templates := GetTemplatesList(wanted)
 	for _, template := range templates {
 		if simple_list {
-			fmt.Printf("%-13s %-25s\n", "[" + template.Group + "]", template.Name)
+			fmt.Printf("%-13s %-25s\n", "["+template.Group+"]", template.Name)
 		} else {
-			fmt.Printf("%-13s %-25s : %s\n", "[" + template.Group + "]", template.Name, template.Description)
+			fmt.Printf("%-13s %-25s : %s\n", "["+template.Group+"]", template.Name, template.Description)
 		}
 	}
 }
@@ -77,17 +77,12 @@ func ListTemplates (cmd *cobra.Command, args []string) {
 var listCmd = &cobra.Command{
 	Use:   "list [group]",
 	Short: "list available templates",
-	Long: ``,
-	Run: ListTemplates,
+	Long:  ``,
+	Run:   ListTemplates,
 }
 
 func init() {
 	templatesCmd.AddCommand(listCmd)
 
-	// and all subcommands, e.g.:
-	// listCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 	listCmd.Flags().BoolP("simple", "s", false, "Shows only the template names, without description")
 }

@@ -19,6 +19,7 @@ import (
 
 	"github.com/spf13/cobra"
 )
+
 func ShowUsage(cmd *cobra.Command, args []string) {
 	const basic_usage string = `
 	USING A SANDBOX
@@ -47,7 +48,7 @@ Example:
 "./clear" stops the server and removes everything from the data directory, 
 letting you ready to start from scratch. (Warning! It's irreversible!)
 `
-	const multiple_usage string =` USING MULTIPLE SERVER SANDBOX
+	const multiple_usage string = ` USING MULTIPLE SERVER SANDBOX
 On a replication sandbox, you have the same commands (run "dbdeployer usage single"), 
 with an "_all" suffix, meaning that you propagate the command to all the members. 
 Then you have "./m" as a shortcut to use the master, "./s1" and "./s2" to access 
@@ -72,13 +73,13 @@ The scripts "check_slaves" or "check_nodes" give the status of replication in th
 		request = args[0]
 	}
 	switch request {
-		case "single" :
-			fmt.Println(basic_usage)
-		case "multiple" :
-			fmt.Println(multiple_usage)
-		default:
-			fmt.Println(basic_usage)
-			fmt.Println(multiple_usage)
+	case "single":
+		fmt.Println(basic_usage)
+	case "multiple":
+		fmt.Println(multiple_usage)
+	default:
+		fmt.Println(basic_usage)
+		fmt.Println(multiple_usage)
 	}
 }
 
@@ -86,20 +87,12 @@ The scripts "check_slaves" or "check_nodes" give the status of replication in th
 var usageCmd = &cobra.Command{
 	Use:   "usage [single|multiple]",
 	Short: "Shows usage of installed sandboxes",
-	Long: `Shows syntax and examples of tools installed in database sandboxes.`,
-	Run: ShowUsage,
+	Long:  `Shows syntax and examples of tools installed in database sandboxes.`,
+	Run:   ShowUsage,
 }
 
 func init() {
 	rootCmd.AddCommand(usageCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// usageCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 	// usageCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

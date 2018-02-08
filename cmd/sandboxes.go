@@ -50,13 +50,13 @@ func GetInstalledPorts(sandbox_home string) []int {
 						sd_node := common.ReadSandboxDescription(fmt.Sprintf("%s/%s/node%d", sandbox_home, fname, node))
 						node_descr = append(node_descr, sd_node)
 					}
-					for _,nd := range node_descr {
+					for _, nd := range node_descr {
 						for _, p := range nd.Port {
 							port_collection = append(port_collection, p)
 						}
 					}
 				}
-			} 
+			}
 		}
 	}
 	return port_collection
@@ -99,7 +99,7 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 						node_descr = append(node_descr, sd_node)
 					}
 					ports := ""
-					for _,nd := range node_descr {
+					for _, nd := range node_descr {
 						for _, p := range nd.Port {
 							if ports != "" {
 								ports += " "
@@ -148,13 +148,5 @@ var sandboxesCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(sandboxesCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// sandboxesCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 	// sandboxesCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

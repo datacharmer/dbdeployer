@@ -1,8 +1,8 @@
 package sandbox
 
 import (
-	"github.com/datacharmer/dbdeployer/common"
 	"fmt"
+	"github.com/datacharmer/dbdeployer/common"
 	"os"
 )
 
@@ -18,10 +18,10 @@ transaction_write_set_extraction=XXHASH64
 report-host=127.0.0.1
 loose-group_replication_group_name="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
 `
-GroupReplSinglePrimary string =`
+	GroupReplSinglePrimary string = `
 loose-group-replication-single-primary-mode=on
 `
-GroupReplMultiPrimary string =`
+	GroupReplMultiPrimary string = `
 loose-group-replication-single-primary-mode=off
 `
 )
@@ -40,9 +40,9 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		fmt.Println("Can't run group replication with less than 3 nodes")
 		os.Exit(1)
 	}
-	for check_port := base_port +1 ; check_port < base_port + nodes +1 ; check_port++ {
+	for check_port := base_port + 1; check_port < base_port+nodes+1; check_port++ {
 		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
-		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port + 100)
+		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port+100)
 	}
 	err := os.Mkdir(sdef.SandboxDir, 0755)
 	if err != nil {
@@ -52,7 +52,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 	var data common.Smap = common.Smap{
 		"Copyright":  Copyright,
 		"SandboxDir": sdef.SandboxDir,
-		"Nodes":     []common.Smap{},
+		"Nodes":      []common.Smap{},
 	}
 	base_group_port := base_port + 100
 	connection_string := ""
@@ -63,7 +63,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		}
 		connection_string += fmt.Sprintf("127.0.0.1:%d", group_port)
 	}
-	
+
 	sb_type := "group-multi-primary"
 	single_multi_primary := GroupReplMultiPrimary
 	if sdef.SinglePrimary {
@@ -73,7 +73,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 	for i := 1; i <= nodes; i++ {
 		group_port := base_group_port + i
 		data["Nodes"] = append(data["Nodes"].([]common.Smap), common.Smap{
-			"Node": i,
+			"Node":        i,
 			"SandboxDir":  sdef.SandboxDir,
 			"RplUser":     sdef.RplUser,
 			"RplPassword": sdef.RplPassword})
@@ -92,20 +92,20 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		sdef.Prompt = fmt.Sprintf("node%d", i)
 		sdef.SBType = "group-node"
 		CreateSingleSandbox(sdef, origin)
-		var data_node  common.Smap = common.Smap{
-			"Node" : i,
-			"SandboxDir" : sdef.SandboxDir,
-			"Copyright" : Copyright,
+		var data_node common.Smap = common.Smap{
+			"Node":       i,
+			"SandboxDir": sdef.SandboxDir,
+			"Copyright":  Copyright,
 		}
-		write_script(MultipleTemplates,fmt.Sprintf("n%d",i), "node_template", sdef.SandboxDir, data_node, true)
+		write_script(MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sdef.SandboxDir, data_node, true)
 	}
 
 	sb_desc := common.SandboxDescription{
-		Basedir : sdef.Basedir + "/" + sdef.Version,
-		SBType	: sb_type,
-		Version : sdef.Version,
-		Port	: []int{0},
-		Nodes 	: nodes,
+		Basedir: sdef.Basedir + "/" + sdef.Version,
+		SBType:  sb_type,
+		Version: sdef.Version,
+		Port:    []int{0},
+		Nodes:   nodes,
 	}
 	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)
 
@@ -125,4 +125,3 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 	fmt.Printf("Replication directory installed in %s\n", sdef.SandboxDir)
 	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
 }
-

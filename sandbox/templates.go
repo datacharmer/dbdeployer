@@ -2,12 +2,12 @@ package sandbox
 
 type TemplateDesc struct {
 	Description string
-	Notes string
-	Contents string
+	Notes       string
+	Contents    string
 }
 
-type TemplateCollection  map[string]TemplateDesc
-type AllTemplateCollection  map[string]TemplateCollection
+type TemplateCollection map[string]TemplateDesc
+type AllTemplateCollection map[string]TemplateCollection
 
 // templates for single sandbox
 
@@ -609,7 +609,7 @@ else
     echo "$MYSQLCMD not found "
 fi
 `
-	show_relaylog_template string=`#!/bin/bash
+	show_relaylog_template string = `#!/bin/bash
 {{.Copyright}}
 # Template : {{.TemplateName}}
 curdir="{{.SandboxDir}}"
@@ -662,7 +662,7 @@ fi
 
 (printf "#\n# Showing $last_relaylog\n#\n" ; ./my sqlbinlog --verbose $last_relaylog ) 
 `
-	test_sb_template string=`#!/bin/bash
+	test_sb_template string = `#!/bin/bash
 {{.Copyright}}
 # Template : {{.TemplateName}}
 SBDIR="{{.SandboxDir}}"
@@ -736,109 +736,107 @@ exit 0
 
 	sb_include_template string = ""
 
-SingleTemplates  = TemplateCollection{
-	"Copyright" : TemplateDesc{
+	SingleTemplates = TemplateCollection{
+		"Copyright": TemplateDesc{
 			Description: "Copyright for every sandbox script",
-			Notes: "",
-			Contents : Copyright,
+			Notes:       "",
+			Contents:    Copyright,
 		},
-		"init_db_template" : TemplateDesc{
-			Description : "Initialization template for the database",
-			Notes : "This should normally run only once",
-			Contents : init_db_template,
+		"init_db_template": TemplateDesc{
+			Description: "Initialization template for the database",
+			Notes:       "This should normally run only once",
+			Contents:    init_db_template,
 		},
-		"start_template" : TemplateDesc{
-			Description : "starts the database in a single sandbox (with optional mysqld arguments)",
-			Notes : "",
-			Contents : start_template,
+		"start_template": TemplateDesc{
+			Description: "starts the database in a single sandbox (with optional mysqld arguments)",
+			Notes:       "",
+			Contents:    start_template,
 		},
-		"use_template" : TemplateDesc{
-			Description : "Invokes the MySQL client with the appropriate options",
-			Notes : "",
-			Contents : use_template,
+		"use_template": TemplateDesc{
+			Description: "Invokes the MySQL client with the appropriate options",
+			Notes:       "",
+			Contents:    use_template,
 		},
-		"stop_template" : TemplateDesc{
-			Description : "Stops a database in a single sandbox",
-			Notes : "",
-			Contents : stop_template,
+		"stop_template": TemplateDesc{
+			Description: "Stops a database in a single sandbox",
+			Notes:       "",
+			Contents:    stop_template,
 		},
-		"clear_template" : TemplateDesc{
-			Description : "Remove all data from a single sandbox",
-			Notes : "",
-			Contents : clear_template,
+		"clear_template": TemplateDesc{
+			Description: "Remove all data from a single sandbox",
+			Notes:       "",
+			Contents:    clear_template,
 		},
-		"my_cnf_template" : TemplateDesc{
-			Description : "Default options file for a sandbox",
-			Notes : "",
-			Contents : my_cnf_template,
+		"my_cnf_template": TemplateDesc{
+			Description: "Default options file for a sandbox",
+			Notes:       "",
+			Contents:    my_cnf_template,
 		},
-		"status_template" : TemplateDesc{
-			Description : "Shows the status of a single sandbox",
-			Notes : "",
-			Contents : status_template,
+		"status_template": TemplateDesc{
+			Description: "Shows the status of a single sandbox",
+			Notes:       "",
+			Contents:    status_template,
 		},
-		"restart_template" : TemplateDesc{
-			Description : "Restarts the database (with optional mysqld arguments)",
-			Notes : "",
-			Contents : restart_template,
+		"restart_template": TemplateDesc{
+			Description: "Restarts the database (with optional mysqld arguments)",
+			Notes:       "",
+			Contents:    restart_template,
 		},
-		"send_kill_template" : TemplateDesc{
-			Description : "Sends a kill signal to the database",
-			Notes : "",
-			Contents : send_kill_template,
+		"send_kill_template": TemplateDesc{
+			Description: "Sends a kill signal to the database",
+			Notes:       "",
+			Contents:    send_kill_template,
 		},
-		"load_grants_template" : TemplateDesc{
-			Description : "Loads the grants defined for the sandbox",
-			Notes : "",
-			Contents : load_grants_template,
+		"load_grants_template": TemplateDesc{
+			Description: "Loads the grants defined for the sandbox",
+			Notes:       "",
+			Contents:    load_grants_template,
 		},
-		"grants_template5x" : TemplateDesc{
-			Description : "Grants for sandboxes up to 5.6",
-			Notes : "",
-			Contents : grants_template5x,
+		"grants_template5x": TemplateDesc{
+			Description: "Grants for sandboxes up to 5.6",
+			Notes:       "",
+			Contents:    grants_template5x,
 		},
-		"grants_template57" : TemplateDesc{
-			Description : "Grants for sandboxes from 5.7+",
-			Notes : "",
-			Contents : grants_template57,
+		"grants_template57": TemplateDesc{
+			Description: "Grants for sandboxes from 5.7+",
+			Notes:       "",
+			Contents:    grants_template57,
 		},
-		"my_template" : TemplateDesc{
-			Description : "Prefix script to run every my* command line tool",
-			Notes : "",
-			Contents : my_template,
+		"my_template": TemplateDesc{
+			Description: "Prefix script to run every my* command line tool",
+			Notes:       "",
+			Contents:    my_template,
 		},
-		"add_option_template" : TemplateDesc{
-			Description : "Adds options to the my.sandbox.cnf file and restarts",
-			Notes : "",
-			Contents : add_option_template,
+		"add_option_template": TemplateDesc{
+			Description: "Adds options to the my.sandbox.cnf file and restarts",
+			Notes:       "",
+			Contents:    add_option_template,
 		},
-		"show_binlog_template" : TemplateDesc{
-			Description : "Shows a binlog for a single sandbox",
-			Notes : "",
-			Contents : show_binlog_template,
+		"show_binlog_template": TemplateDesc{
+			Description: "Shows a binlog for a single sandbox",
+			Notes:       "",
+			Contents:    show_binlog_template,
 		},
-		"show_relaylog_template" : TemplateDesc{
-			Description : "Show the relaylog for a single sandbox",
-			Notes : "",
-			Contents : show_relaylog_template,
+		"show_relaylog_template": TemplateDesc{
+			Description: "Show the relaylog for a single sandbox",
+			Notes:       "",
+			Contents:    show_relaylog_template,
 		},
-		"test_sb_template" : TemplateDesc{
-			Description : "Tests basic sandbox functionality",
-			Notes : "",
-			Contents : test_sb_template,
+		"test_sb_template": TemplateDesc{
+			Description: "Tests basic sandbox functionality",
+			Notes:       "",
+			Contents:    test_sb_template,
 		},
-		"sb_include_template" : TemplateDesc{
-			Description : "TBD",
-			Notes : "",
-			Contents : sb_include_template,
+		"sb_include_template": TemplateDesc{
+			Description: "TBD",
+			Notes:       "",
+			Contents:    sb_include_template,
 		},
 	}
 	AllTemplates = AllTemplateCollection{
-		"single" : SingleTemplates,
-		"multiple" : MultipleTemplates,
-		"replication" : ReplicationTemplates,
-		"group" : GroupTemplates,
+		"single":      SingleTemplates,
+		"multiple":    MultipleTemplates,
+		"replication": ReplicationTemplates,
+		"group":       GroupTemplates,
 	}
 )
-
-

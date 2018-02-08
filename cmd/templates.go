@@ -22,10 +22,10 @@ import (
 
 // templatesCmd represents the templates command
 var templatesCmd = &cobra.Command{
-	Use:   "templates",
+	Use:     "templates",
 	Aliases: []string{"template", "tmpl", "templ"},
-	Short: "Admin operations on templates",
-	Hidden: false,
+	Short:   "Admin operations on templates",
+	Hidden:  false,
 	Long: `The commands in this section show the templates used 
 to create and manipulate sandboxes.
 More commands (and flags) will follow to allow changing templates

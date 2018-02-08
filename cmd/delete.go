@@ -15,32 +15,33 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
 	"bufio"
+	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/spf13/cobra"
+	"os"
 )
+
 func DeleteSandbox(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
 		fmt.Println("Sandbox name required.")
 		fmt.Println("You can run 'dbdeployer sandboxes for a list of available deployments'")
 		os.Exit(1)
-	}	
+	}
 	flags := cmd.Flags()
 	sandbox := args[0]
 	confirm, _ := flags.GetBool("confirm")
 	sandbox_dir, _ := flags.GetString("sandbox-home")
 	full_path := sandbox_dir + "/" + sandbox
-	if ! common.DirExists(full_path) {
+	if !common.DirExists(full_path) {
 		fmt.Println("Directory '%s' not found\n", full_path)
 		os.Exit(1)
 	}
 	stop := full_path + "/stop_all"
-	if ! common.ExecExists(stop) {
+	if !common.ExecExists(stop) {
 		stop = full_path + "/stop"
 	}
-	if ! common.ExecExists(stop) {
+	if !common.ExecExists(stop) {
 		fmt.Println("Executable '%s' not found\n", stop)
 		os.Exit(1)
 	}
@@ -69,7 +70,7 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	rm_cmd := []string{"-rf", full_path, }
+	rm_cmd := []string{"-rf", full_path}
 	cmd_str := "rm"
 	for _, item := range rm_cmd {
 		cmd_str += " " + item
@@ -85,8 +86,8 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 
 // deleteCmd represents the delete command
 var deleteCmd = &cobra.Command{
-	Use:   "delete sandbox_name",
-	Short: "delete an installed sandbox",
+	Use:     "delete sandbox_name",
+	Short:   "delete an installed sandbox",
 	Aliases: []string{"remove", "destroy"},
 	Example: `
 	$ dbdeployer delete msb_8_0_4
@@ -99,5 +100,5 @@ Warning: this command is irreversible!`,
 func init() {
 	rootCmd.AddCommand(deleteCmd)
 
- 	deleteCmd.Flags().BoolP("confirm", "", false, "Requires confirmation.")
+	deleteCmd.Flags().BoolP("confirm", "", false, "Requires confirmation.")
 }

@@ -20,8 +20,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/datacharmer/dbdeployer/unpack"
 	"github.com/spf13/cobra"
 )
@@ -29,7 +29,7 @@ import (
 func UnpackTarball(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	Basedir, _ := flags.GetString("sandbox-binary")
-	if ! common.DirExists(Basedir) {
+	if !common.DirExists(Basedir) {
 		fmt.Printf("Directory %s does not exist.\n", Basedir)
 		fmt.Println("You should create it or provide an alternate base directory using --sandbox-binary")
 		os.Exit(1)
@@ -82,11 +82,11 @@ var unpackCmd = &cobra.Command{
 	Use:   "unpack MySQL-tarball",
 	Args:  cobra.ExactArgs(1),
 	Short: "unpack a tarball into the binary directory",
-	Long:  `If you want to create a sandbox from a tarball, you first need to unpack it
+	Long: `If you want to create a sandbox from a tarball, you first need to unpack it
 into the sandbox-binary directory. This command carries out that task, so that afterwards 
 you can call 'single', 'multiple', and 'replication' commands with only the MySQL version
 for that tarball.`,
-	Run:   UnpackTarball,
+	Run: UnpackTarball,
 	Example: `
     $ dbdeployer --unpack-version=8.0.4 unpack mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz
     Unpacking tarball mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz to $HOME/opt/mysql/8.0.4

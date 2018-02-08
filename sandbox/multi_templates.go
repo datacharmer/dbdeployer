@@ -80,7 +80,6 @@ if [ "$exit_code" != "0" ] ; then exit $exit_code ; fi
 {{end}}
 `
 
-
 	node_template string = `#!/bin/sh
 {{.Copyright}}
 # Template : {{.TemplateName}}
@@ -88,51 +87,51 @@ if [ "$exit_code" != "0" ] ; then exit $exit_code ; fi
 {{.SandboxDir}}/node{{.Node}}/use "$@"
 `
 
-MultipleTemplates  = TemplateCollection{
-	"start_multi_template" : TemplateDesc{
+	MultipleTemplates = TemplateCollection{
+		"start_multi_template": TemplateDesc{
 			Description: "Starts all nodes (with optional mysqld arguments)",
-			Notes: "",
-			Contents : start_multi_template,
+			Notes:       "",
+			Contents:    start_multi_template,
 		},
-	"restart_multi_template" : TemplateDesc{
+		"restart_multi_template": TemplateDesc{
 			Description: "Restarts all nodes (with optional mysqld arguments)",
-			Notes: "",
-			Contents : restart_multi_template,
+			Notes:       "",
+			Contents:    restart_multi_template,
 		},
-	"use_multi_template" : TemplateDesc{
+		"use_multi_template": TemplateDesc{
 			Description: "Runs the same SQL query in all nodes",
-			Notes: "",
-			Contents : use_multi_template,
+			Notes:       "",
+			Contents:    use_multi_template,
 		},
-	"stop_multi_template" : TemplateDesc{
+		"stop_multi_template": TemplateDesc{
 			Description: "Stops all nodes",
-			Notes: "",
-			Contents : stop_multi_template,
+			Notes:       "",
+			Contents:    stop_multi_template,
 		},
-	"send_kill_multi_template" : TemplateDesc{
+		"send_kill_multi_template": TemplateDesc{
 			Description: "Sends kill signal to all nodes",
-			Notes: "",
-			Contents : send_kill_multi_template,
+			Notes:       "",
+			Contents:    send_kill_multi_template,
 		},
-	"clear_multi_template" : TemplateDesc{
+		"clear_multi_template": TemplateDesc{
 			Description: "Removes data from all nodes",
-			Notes: "",
-			Contents : clear_multi_template,
+			Notes:       "",
+			Contents:    clear_multi_template,
 		},
-	"status_multi_template" : TemplateDesc{
+		"status_multi_template": TemplateDesc{
 			Description: "Shows status for all nodes",
-			Notes: "",
-			Contents : status_multi_template,
+			Notes:       "",
+			Contents:    status_multi_template,
 		},
-	"test_sb_multi_template" : TemplateDesc{
+		"test_sb_multi_template": TemplateDesc{
 			Description: "Run sb test on all nodes",
-			Notes: "",
-			Contents : test_sb_multi_template,
+			Notes:       "",
+			Contents:    test_sb_multi_template,
 		},
-	"node_template" : TemplateDesc{
+		"node_template": TemplateDesc{
 			Description: "Runs the MySQL client for a given node",
-			Notes: "",
-			Contents : node_template,
+			Notes:       "",
+			Contents:    node_template,
 		},
-}
+	}
 )

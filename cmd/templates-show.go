@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
 	"github.com/datacharmer/dbdeployer/sandbox"
+	"github.com/spf13/cobra"
 )
 
 func FindTemplate(requested string) (group, contents string) {
@@ -28,7 +28,7 @@ func FindTemplate(requested string) (group, contents string) {
 			if k == requested {
 				contents = v.Contents
 				group = name
-				return 
+				return
 			}
 		}
 	}
@@ -37,7 +37,7 @@ func FindTemplate(requested string) (group, contents string) {
 	return
 }
 
-func ShowTemplate (cmd *cobra.Command, args []string) {
+func ShowTemplate(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
 		fmt.Println("Argument required: template name")
 		os.Exit(1)
@@ -51,20 +51,12 @@ func ShowTemplate (cmd *cobra.Command, args []string) {
 var showCmd = &cobra.Command{
 	Use:   "show",
 	Short: "Show a given template",
-	Long: ``,
-	Run: ShowTemplate,
+	Long:  ``,
+	Run:   ShowTemplate,
 }
 
 func init() {
 	templatesCmd.AddCommand(showCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// showCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 	// showCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

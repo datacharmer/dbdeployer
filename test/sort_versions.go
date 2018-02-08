@@ -1,12 +1,12 @@
 package main
 
 import (
-    "bufio"
-    "fmt"
-    "os"
-    "strconv"
-    "sort"
-    "regexp"
+	"bufio"
+	"fmt"
+	"os"
+	"regexp"
+	"sort"
+	"strconv"
 )
 
 func VersionToList(version string) []int {
@@ -41,37 +41,35 @@ func VersionToList(version string) []int {
 */
 func main() {
 
-    scanner := bufio.NewScanner(os.Stdin)
+	scanner := bufio.NewScanner(os.Stdin)
 
 	type version_list struct {
 		text string
-		mmr []int
+		mmr  []int
 	}
 	var vlist []version_list
-    for scanner.Scan() {
+	for scanner.Scan() {
 		line := scanner.Text()
 		vl := VersionToList(line)
 		rec := version_list{
 			text: line,
-			mmr: vl,
+			mmr:  vl,
 		}
-		if vl[0] > 0 { 
-			vlist = append(vlist, rec)	
+		if vl[0] > 0 {
+			vlist = append(vlist, rec)
 		}
-    }
+	}
 
-    if err := scanner.Err(); err != nil {
-        fmt.Fprintln(os.Stderr, "error:", err)
-        os.Exit(1)
-    }
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, "error:", err)
+		os.Exit(1)
+	}
 	sort.Slice(vlist, func(i, j int) bool {
-		return vlist[i].mmr[0] < vlist[j].mmr[0] || 
-			(vlist[i].mmr[0] == vlist[j].mmr[0] && vlist[i].mmr[1] < vlist[j].mmr[1]) || 
+		return vlist[i].mmr[0] < vlist[j].mmr[0] ||
+			(vlist[i].mmr[0] == vlist[j].mmr[0] && vlist[i].mmr[1] < vlist[j].mmr[1]) ||
 			(vlist[i].mmr[0] == vlist[j].mmr[0] && vlist[i].mmr[1] == vlist[j].mmr[1] && vlist[i].mmr[2] < vlist[j].mmr[2])
 	})
-	for _,v := range vlist {
+	for _, v := range vlist {
 		fmt.Printf("%s\n", v.text)
 	}
 }
-
-

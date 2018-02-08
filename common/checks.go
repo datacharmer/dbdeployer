@@ -2,10 +2,9 @@ package common
 
 import (
 	"fmt"
-	"strings"
 	"os"
+	"strings"
 )
-
 
 func CheckOrigin(args []string) {
 	if len(args) < 1 {
@@ -26,7 +25,7 @@ func CheckOrigin(args []string) {
 }
 
 func CheckSandboxDir(sandbox_home string) {
-	if ! DirExists(sandbox_home) {
+	if !DirExists(sandbox_home) {
 		fmt.Printf("Creating directory %s\n", sandbox_home)
 		err := os.Mkdir(sandbox_home, 0755)
 		if err != nil {
@@ -34,5 +33,5 @@ func CheckSandboxDir(sandbox_home string) {
 			os.Exit(1)
 		}
 	}
-	
+
 }

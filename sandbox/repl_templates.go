@@ -146,7 +146,7 @@ echo "Slave{{.Node}}"
 
 {{.SandboxDir}}/node{{.Node}}/use "$@"
 `
-	test_replication_template string=`#!/bin/bash
+	test_replication_template string = `#!/bin/bash
 {{.Copyright}}
 # Template : {{.TemplateName}}
 SBDIR={{.SandboxDir}}
@@ -272,71 +272,71 @@ test_summary
 
 `
 
-ReplicationTemplates  = TemplateCollection{
-	"init_slaves_template" : TemplateDesc{
+	ReplicationTemplates = TemplateCollection{
+		"init_slaves_template": TemplateDesc{
 			Description: "Initialize slaves after deployment",
-			Notes: "Can also be run after calling './clear_all'",
-			Contents : init_slaves_template,
+			Notes:       "Can also be run after calling './clear_all'",
+			Contents:    init_slaves_template,
 		},
-	"start_all_template" : TemplateDesc{
-		Description: "Starts nodes in replication order (with optional mysqld arguments)",
-			Notes: "",
-			Contents : start_all_template,
+		"start_all_template": TemplateDesc{
+			Description: "Starts nodes in replication order (with optional mysqld arguments)",
+			Notes:       "",
+			Contents:    start_all_template,
 		},
-	"restart_all_template" : TemplateDesc{
+		"restart_all_template": TemplateDesc{
 			Description: "stops all nodes and restarts them (with optional mysqld arguments)",
-			Notes: "",
-			Contents : restart_all_template,
+			Notes:       "",
+			Contents:    restart_all_template,
 		},
-	"use_all_template" : TemplateDesc{
+		"use_all_template": TemplateDesc{
 			Description: "Execute a query for all nodes",
-			Notes: "",
-			Contents : use_all_template,
+			Notes:       "",
+			Contents:    use_all_template,
 		},
-	"stop_all_template" : TemplateDesc{
+		"stop_all_template": TemplateDesc{
 			Description: "Stops all nodes in reverse replication order",
-			Notes: "",
-			Contents : stop_all_template,
+			Notes:       "",
+			Contents:    stop_all_template,
 		},
-	"send_kill_all_template" : TemplateDesc{
+		"send_kill_all_template": TemplateDesc{
 			Description: "Send kill signal to all nodes",
-			Notes: "",
-			Contents : send_kill_all_template,
+			Notes:       "",
+			Contents:    send_kill_all_template,
 		},
-	"clear_all_template" : TemplateDesc{
+		"clear_all_template": TemplateDesc{
 			Description: "Remove data from all nodes",
-			Notes: "",
-			Contents : clear_all_template,
+			Notes:       "",
+			Contents:    clear_all_template,
 		},
-	"status_all_template" : TemplateDesc{
+		"status_all_template": TemplateDesc{
 			Description: "Show status of all nodes",
-			Notes: "",
-			Contents : status_all_template,
+			Notes:       "",
+			Contents:    status_all_template,
 		},
-	"test_sb_all_template" : TemplateDesc{
+		"test_sb_all_template": TemplateDesc{
 			Description: "Run sb test on all nodes",
-			Notes: "",
-			Contents : test_sb_all_template,
+			Notes:       "",
+			Contents:    test_sb_all_template,
 		},
-	"test_replication_template" : TemplateDesc{
+		"test_replication_template": TemplateDesc{
 			Description: "Tests replication flow",
-			Notes: "",
-			Contents : test_replication_template,
+			Notes:       "",
+			Contents:    test_replication_template,
 		},
-	"check_slaves_template" : TemplateDesc{
+		"check_slaves_template": TemplateDesc{
 			Description: "Checks replication status in master and slaves",
-			Notes: "",
-			Contents : check_slaves_template,
+			Notes:       "",
+			Contents:    check_slaves_template,
 		},
-	"master_template" : TemplateDesc{
+		"master_template": TemplateDesc{
 			Description: "Runs the MySQL client for the master",
-			Notes: "",
-			Contents : master_template,
+			Notes:       "",
+			Contents:    master_template,
 		},
-	"slave_template" : TemplateDesc{
+		"slave_template": TemplateDesc{
 			Description: "Runs the MySQL client for a slave",
-			Notes: "",
-			Contents : slave_template,
+			Notes:       "",
+			Contents:    slave_template,
 		},
 	}
 )

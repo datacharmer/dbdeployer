@@ -1,16 +1,16 @@
 package sandbox
 
 import (
-	"github.com/datacharmer/dbdeployer/common"
 	"fmt"
+	"github.com/datacharmer/dbdeployer/common"
 	"os"
 )
 
 type Node struct {
-	Node       int
-	Port       int
-	ServerId   int
-	Name       string
+	Node     int
+	Port     int
+	ServerId int
+	Name     string
 }
 
 func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
@@ -46,14 +46,14 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 	var data common.Smap = common.Smap{
 		"Copyright":  Copyright,
 		"SandboxDir": sdef.SandboxDir,
-		"Nodes":     []common.Smap{},
+		"Nodes":      []common.Smap{},
 	}
 
 	for i := 1; i <= nodes; i++ {
 		data["Nodes"] = append(data["Nodes"].([]common.Smap), common.Smap{
-			"Node": i,
-			"SandboxDir":  sdef.SandboxDir,
-		 })
+			"Node":       i,
+			"SandboxDir": sdef.SandboxDir,
+		})
 		sdef.LoadGrants = true
 		sdef.DirName = fmt.Sprintf("node%d", i)
 		sdef.Port = base_port + i + 1
@@ -62,31 +62,30 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 		sdef.Multi = true
 		sdef.Prompt = fmt.Sprintf("node%d", i)
 		CreateSingleSandbox(sdef, origin)
-		var data_node  common.Smap = common.Smap{
-			"Node" : i,
-			"SandboxDir" : sdef.SandboxDir,
-			"Copyright" : Copyright,
+		var data_node common.Smap = common.Smap{
+			"Node":       i,
+			"SandboxDir": sdef.SandboxDir,
+			"Copyright":  Copyright,
 		}
-		write_script(MultipleTemplates,fmt.Sprintf("n%d",i), "node_template", sdef.SandboxDir, data_node, true)
+		write_script(MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sdef.SandboxDir, data_node, true)
 	}
 	sdef.SBType = "multiple-node"
 	sb_desc := common.SandboxDescription{
-		Basedir : Basedir,
-		SBType	: "multiple",
-		Version : sdef.Version,
-		Port	: []int{0},
-		Nodes 	: nodes,
+		Basedir: Basedir,
+		SBType:  "multiple",
+		Version: sdef.Version,
+		Port:    []int{0},
+		Nodes:   nodes,
 	}
 	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)
 
-	write_script(MultipleTemplates,"start_all", "start_multi_template", sdef.SandboxDir, data, true)
-	write_script(MultipleTemplates,"restart_all", "restart_multi_template", sdef.SandboxDir, data, true)
-	write_script(MultipleTemplates,"status_all", "status_multi_template", sdef.SandboxDir, data, true)
-	write_script(MultipleTemplates,"test_sb_all", "test_sb_multi_template", sdef.SandboxDir, data, true)
-	write_script(MultipleTemplates,"stop_all", "stop_multi_template", sdef.SandboxDir, data, true)
-	write_script(MultipleTemplates,"send_kill_all", "send_kill_multi_template", sdef.SandboxDir, data, true)
-	write_script(MultipleTemplates,"use_all", "use_multi_template", sdef.SandboxDir, data, true)
+	write_script(MultipleTemplates, "start_all", "start_multi_template", sdef.SandboxDir, data, true)
+	write_script(MultipleTemplates, "restart_all", "restart_multi_template", sdef.SandboxDir, data, true)
+	write_script(MultipleTemplates, "status_all", "status_multi_template", sdef.SandboxDir, data, true)
+	write_script(MultipleTemplates, "test_sb_all", "test_sb_multi_template", sdef.SandboxDir, data, true)
+	write_script(MultipleTemplates, "stop_all", "stop_multi_template", sdef.SandboxDir, data, true)
+	write_script(MultipleTemplates, "send_kill_all", "send_kill_multi_template", sdef.SandboxDir, data, true)
+	write_script(MultipleTemplates, "use_all", "use_multi_template", sdef.SandboxDir, data, true)
 	fmt.Printf("Multiple directory installed in %s\n", sdef.SandboxDir)
 	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
 }
-

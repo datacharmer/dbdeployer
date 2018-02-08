@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
 )
 
@@ -41,16 +41,16 @@ func ReplicationSandbox(cmd *cobra.Command, args []string) {
 
 // replicationCmd represents the replication command
 var replicationCmd = &cobra.Command{
-	Use:   "replication MySQL-Version",
+	Use: "replication MySQL-Version",
 	//Args:  cobra.ExactArgs(1),
 	Short: "create replication sandbox",
-	Long:  `The replication command allows you to deploy several nodes in replication.
+	Long: `The replication command allows you to deploy several nodes in replication.
 Allowed topologies are "master-slave" and "group" (requires 5.7.17+)
 For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
 the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
 Use the "unpack" command to get the tarball into the right directory.
 `,
-	Run:   ReplicationSandbox,
+	Run: ReplicationSandbox,
 	Example: `
 		$ dbdeployer replication 5.7.21
 		# (implies topology = master-slave)

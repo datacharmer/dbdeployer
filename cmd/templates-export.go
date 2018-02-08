@@ -58,7 +58,7 @@ var exportCmd = &cobra.Command{
 	//Args: cobra.MinimumNArgs(2),
 	//Args: cobra.ExactArgs(2),
 	Long: `Exports a group of templates to a given file`,
-	Run: ExportTemplates,
+	Run:  ExportTemplates,
 }
 
 func init() {

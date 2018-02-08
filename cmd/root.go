@@ -55,7 +55,7 @@ func set_pflag(key string, abbr string, env_var string, default_var string, help
 		default_value = default_var
 	}
 	if is_slice {
-		rootCmd.PersistentFlags().StringSliceP(key, abbr,  []string{default_value,}, help_str)
+		rootCmd.PersistentFlags().StringSliceP(key, abbr, []string{default_value}, help_str)
 	} else {
 		rootCmd.PersistentFlags().StringP(key, abbr, default_value, help_str)
 	}
@@ -65,7 +65,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "./dbdeployer.json", "config file")
 	set_pflag("sandbox-home", "", "SANDBOX_HOME", os.Getenv("HOME")+"/sandboxes", "Sandbox deployment direcory", false)
-	set_pflag("sandbox-binary", "", "SANDBOX_BINARY", os.Getenv("HOME")+"/opt/mysql", "Binary repository",false)
+	set_pflag("sandbox-binary", "", "SANDBOX_BINARY", os.Getenv("HOME")+"/opt/mysql", "Binary repository", false)
 
 	set_pflag("remote-access", "", "", "127.%", "defines the database access ", false)
 	set_pflag("bind-address", "", "", "127.0.0.1", "defines the database bind-address ", false)

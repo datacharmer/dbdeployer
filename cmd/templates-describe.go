@@ -18,11 +18,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
 	"github.com/datacharmer/dbdeployer/sandbox"
+	"github.com/spf13/cobra"
 )
 
-func RunDescribeTemplate (cmd *cobra.Command, args []string) {
+func RunDescribeTemplate(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
 		fmt.Println("Argument required: template name")
 		os.Exit(1)
@@ -33,7 +33,7 @@ func RunDescribeTemplate (cmd *cobra.Command, args []string) {
 	DescribeTemplate(requested, complete_listing)
 }
 
-func GetTemplatesDescription (requested string, complete_listing bool) string {
+func GetTemplatesDescription(requested string, complete_listing bool) string {
 	group, contents := FindTemplate(requested)
 	out := ""
 	out += fmt.Sprintf("# Collection    : %s\n", group)
@@ -49,17 +49,17 @@ func GetTemplatesDescription (requested string, complete_listing bool) string {
 	return out
 }
 
-func DescribeTemplate (requested string, complete_listing bool) {
+func DescribeTemplate(requested string, complete_listing bool) {
 	fmt.Printf("%s", GetTemplatesDescription(requested, complete_listing))
 }
 
 // describeCmd represents the describe command
 var describeCmd = &cobra.Command{
-	Use:   "describe",
+	Use:     "describe",
 	Aliases: []string{"descr", "structure", "struct"},
-	Short: "Describe a given template",
-	Long: ``,
-	Run: RunDescribeTemplate,
+	Short:   "Describe a given template",
+	Long:    ``,
+	Run:     RunDescribeTemplate,
 }
 
 func init() {

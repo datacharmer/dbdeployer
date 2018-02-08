@@ -10,24 +10,24 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-// 
-/* 
+//
+/*
  Code adapted and enhanced from examples to the book:
  Programming in Go by Mark Summerfield
  http://www.qtrac.eu/gobook.html
- 
+
  Original author: Mark Summerfield
  Converted to package by Giuseppe Maxia in 2018
 
- The original code was a stand-alone program, and it 
+ The original code was a stand-alone program, and it
  had a few bugs:
  * when extracting from a tar file: when there
- isn't a separate item for each directory, the 
- extraction fails. 
- * The attributes of the files were not reproduced 
+ isn't a separate item for each directory, the
+ extraction fails.
+ * The attributes of the files were not reproduced
  in the extracted files.
- This code fixes those problems and introduces a 
- destination directory and verbosity 
+ This code fixes those problems and introduces a
+ destination directory and verbosity
  levels for the extraction
 
 */
@@ -46,9 +46,9 @@ import (
 )
 
 const (
-	SILENT  = iota  // No output
-	VERBOSE 		// Minimal feedback about extraction operations
-	CHATTY  		// Full details of what is being extracted
+	SILENT  = iota // No output
+	VERBOSE        // Minimal feedback about extraction operations
+	CHATTY         // Full details of what is being extracted
 )
 
 var Verbose int
@@ -74,7 +74,7 @@ func validSuffix(filename string) bool {
 
 func UnpackTar(filename string, destination string, verbosity_level int) (err error) {
 	Verbose = verbosity_level
-	f, err := os.Stat(destination) 
+	f, err := os.Stat(destination)
 	if os.IsNotExist(err) {
 		return fmt.Errorf("Destination directory '%s' does not exist", destination)
 	}

@@ -2,8 +2,8 @@ package sandbox
 
 import (
 	// "bytes"
-	"github.com/datacharmer/dbdeployer/common"
 	"fmt"
+	"github.com/datacharmer/dbdeployer/common"
 	"os"
 	// "os/exec"
 	"regexp"
@@ -12,43 +12,43 @@ import (
 )
 
 type SandboxDef struct {
-	DirName      string
-	SBType		 string
-	Multi		 bool
-	Version      string
-	Basedir      string
-	SandboxDir   string
-	LoadGrants   bool
+	DirName        string
+	SBType         string
+	Multi          bool
+	Version        string
+	Basedir        string
+	SandboxDir     string
+	LoadGrants     bool
 	InstalledPorts []int
-	Port         int
-	UserPort     int
-	BasePort     int
-	MorePorts	 []int
-	Prompt       string
-	DbUser       string
-	RplUser      string
-	DbPassword   string
-	RplPassword  string
-	RemoteAccess string
-	BindAddress  string
-	ServerId     int
-	ReplOptions  string
-	GtidOptions  string
-	InitOptions  []string
-	MyCnfOptions []string
+	Port           int
+	UserPort       int
+	BasePort       int
+	MorePorts      []int
+	Prompt         string
+	DbUser         string
+	RplUser        string
+	DbPassword     string
+	RplPassword    string
+	RemoteAccess   string
+	BindAddress    string
+	ServerId       int
+	ReplOptions    string
+	GtidOptions    string
+	InitOptions    []string
+	MyCnfOptions   []string
 	KeepAuthPlugin bool
-	SinglePrimary bool
+	SinglePrimary  bool
 }
 
 const (
 	MasterSlaveBasePort      int    = 10000
 	GroupReplicationBasePort int    = 12000
 	CircReplicationBasePort  int    = 14000
-	MultipleBasePort      	 int    = 16000
-	SandboxPrefix		 	 string = "msb_"
-	MasterSlavePrefix		 string = "rsandbox_"
-	GroupPrefix		 		 string = "group_msb_"
-	MultiplePrefix		 	 string = "multi_msb_"
+	MultipleBasePort         int    = 16000
+	SandboxPrefix            string = "msb_"
+	MasterSlavePrefix        string = "rsandbox_"
+	GroupPrefix              string = "group_msb_"
+	MultiplePrefix           string = "multi_msb_"
 	ReplOptions              string = `
 relay-log-index=mysql-relay
 relay-log=mysql-relay
@@ -72,7 +72,7 @@ var Origins = [...]string{
 	"NoSuchOrigin",
 }
 
-func CheckPort (sandbox_type string, installed_ports []int, port int ) {
+func CheckPort(sandbox_type string, installed_ports []int, port int) {
 	conflict := 0
 	for _, p := range installed_ports {
 		if p == port {
@@ -102,7 +102,6 @@ func getmatch(key string, names []string, matches []string) string {
 	return ""
 }
 
-
 func VersionToList(version string) []int {
 	// A valid version must be made of 3 integers
 	re1 := regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+)$`)
@@ -117,7 +116,8 @@ func VersionToList(version string) []int {
 	}
 	if verList == nil {
 		fmt.Println("Required version format: x.x.xx")
-		os.Exit(1)
+		return []int{-1}
+		//os.Exit(1)
 	}
 
 	major, err1 := strconv.Atoi(verList[0][1])
@@ -178,9 +178,9 @@ func slice_to_text(s_array []string) string {
 	var text string = ""
 	for _, v := range s_array {
 		options_list := strings.Split(v, " ")
-		for _, op := range (options_list) {
+		for _, op := range options_list {
 			if len(op) > 0 {
-				text += fmt.Sprintf("%s\n",op)
+				text += fmt.Sprintf("%s\n", op)
 			}
 		}
 	}
@@ -243,7 +243,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		"OsUser":       os.Getenv("USER"),
 		"ReplOptions":  sdef.ReplOptions,
 		"GtidOptions":  sdef.GtidOptions,
-		"ExtraOptions":  slice_to_text(sdef.MyCnfOptions),
+		"ExtraOptions": slice_to_text(sdef.MyCnfOptions),
 	}
 	if sdef.ServerId > 0 {
 		data["ServerId"] = fmt.Sprintf("server-id=%d", sdef.ServerId)
@@ -302,17 +302,17 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	// fmt.Printf("using basedir: %s\n", sdef.Basedir)
 	// fmt.Printf("%v\n", cmd_list)
 	data["InitScript"] = script_text
-	write_script(SingleTemplates,"init_db", "init_db_template", sandbox_dir, data, true)
+	write_script(SingleTemplates, "init_db", "init_db_template", sandbox_dir, data, true)
 	//cmd := exec.Command(script, cmd_list...)
 	//var out bytes.Buffer
 	//var stderr bytes.Buffer
 	//cmd.Stdout = &out
 	//cmd.Stderr = &stderr
 	//err = cmd.Run()
-	err = common.Run_cmd_ctrl( sandbox_dir + "/init_db", true)
+	err = common.Run_cmd_ctrl(sandbox_dir+"/init_db", true)
 	if err == nil {
 		fmt.Printf("Database installed in %s\n", sandbox_dir)
-		if ! sdef.Multi {
+		if !sdef.Multi {
 			fmt.Printf("run 'dbdeployer usage single' for basic instructions'\n")
 		}
 	} else {
@@ -326,11 +326,11 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		sdef.SBType = "single"
 	}
 	sb_desc := common.SandboxDescription{
-		Basedir : sdef.Basedir,
-		SBType	: sdef.SBType,
-		Version : sdef.Version,
-		Port	: []int{sdef.Port},
-		Nodes 	: 0,
+		Basedir: sdef.Basedir,
+		SBType:  sdef.SBType,
+		Version: sdef.Version,
+		Port:    []int{sdef.Port},
+		Nodes:   0,
 	}
 	if len(sdef.MorePorts) > 0 {
 		for _, port := range sdef.MorePorts {
@@ -338,27 +338,27 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		}
 	}
 	common.WriteSandboxDescription(sandbox_dir, sb_desc)
-	write_script(SingleTemplates,"start", "start_template", sandbox_dir, data, true)
-	write_script(SingleTemplates,"status", "status_template", sandbox_dir, data, true)
-	write_script(SingleTemplates,"stop", "stop_template", sandbox_dir, data, true)
-	write_script(SingleTemplates,"clear", "clear_template", sandbox_dir, data, true)
-	write_script(SingleTemplates,"use", "use_template", sandbox_dir, data, true)
-	write_script(SingleTemplates,"send_kill", "send_kill_template", sandbox_dir, data, true)
-	write_script(SingleTemplates,"restart", "restart_template", sandbox_dir, data, true)
-	write_script(SingleTemplates,"load_grants", "load_grants_template", sandbox_dir, data, true)
-	write_script(SingleTemplates,"add_option", "add_option_template", sandbox_dir, data, true)
-	write_script(SingleTemplates,"my", "my_template", sandbox_dir, data, true)
-	write_script(SingleTemplates,"show_binlog", "show_binlog_template", sandbox_dir, data, true)
-	write_script(SingleTemplates,"show_relaylog", "show_relaylog_template", sandbox_dir, data, true)
-	write_script(SingleTemplates,"test_sb", "test_sb_template", sandbox_dir, data, true)
+	write_script(SingleTemplates, "start", "start_template", sandbox_dir, data, true)
+	write_script(SingleTemplates, "status", "status_template", sandbox_dir, data, true)
+	write_script(SingleTemplates, "stop", "stop_template", sandbox_dir, data, true)
+	write_script(SingleTemplates, "clear", "clear_template", sandbox_dir, data, true)
+	write_script(SingleTemplates, "use", "use_template", sandbox_dir, data, true)
+	write_script(SingleTemplates, "send_kill", "send_kill_template", sandbox_dir, data, true)
+	write_script(SingleTemplates, "restart", "restart_template", sandbox_dir, data, true)
+	write_script(SingleTemplates, "load_grants", "load_grants_template", sandbox_dir, data, true)
+	write_script(SingleTemplates, "add_option", "add_option_template", sandbox_dir, data, true)
+	write_script(SingleTemplates, "my", "my_template", sandbox_dir, data, true)
+	write_script(SingleTemplates, "show_binlog", "show_binlog_template", sandbox_dir, data, true)
+	write_script(SingleTemplates, "show_relaylog", "show_relaylog_template", sandbox_dir, data, true)
+	write_script(SingleTemplates, "test_sb", "test_sb_template", sandbox_dir, data, true)
 
-	write_script(SingleTemplates,"my.sandbox.cnf", "my_cnf_template", sandbox_dir, data, false)
+	write_script(SingleTemplates, "my.sandbox.cnf", "my_cnf_template", sandbox_dir, data, false)
 	if GreaterOrEqualVersion(sdef.Version, []int{5, 7, 6}) {
-		write_script(SingleTemplates,"grants.mysql", "grants_template57", sandbox_dir, data, false)
+		write_script(SingleTemplates, "grants.mysql", "grants_template57", sandbox_dir, data, false)
 	} else {
-		write_script(SingleTemplates,"grants.mysql", "grants_template5x", sandbox_dir, data, false)
+		write_script(SingleTemplates, "grants.mysql", "grants_template5x", sandbox_dir, data, false)
 	}
-	write_script(SingleTemplates,"sb_include", "sb_include_template", sandbox_dir, data, false)
+	write_script(SingleTemplates, "sb_include", "sb_include_template", sandbox_dir, data, false)
 
 	//common.Run_cmd(sandbox_dir + "/start", []string{})
 	common.Run_cmd(sandbox_dir + "/start")
@@ -366,7 +366,6 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		common.Run_cmd(sandbox_dir + "/load_grants")
 	}
 }
-
 
 func write_script(temp_var TemplateCollection, name, template_name, directory string, data common.Smap, make_executable bool) {
 	template := temp_var[template_name].Contents

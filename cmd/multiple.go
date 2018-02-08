@@ -17,8 +17,8 @@ package cmd
 import (
 	//"fmt"
 
-	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
 )
 
@@ -36,13 +36,13 @@ var multipleCmd = &cobra.Command{
 	Use:   "multiple MySQL-Version",
 	Args:  cobra.ExactArgs(1),
 	Short: "create multiple sandbox",
-	Long:  `Creates several sandboxes of the same version,
+	Long: `Creates several sandboxes of the same version,
 without any replication relationship.
 For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
 the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
 Use the "unpack" command to get the tarball into the right directory.
 `,
-	Run:   MultipleSandbox,
+	Run: MultipleSandbox,
 	Example: `
 	$ dbdeployer multiple 5.7.21
 	`,
