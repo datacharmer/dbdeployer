@@ -1,3 +1,7 @@
+0.1.15	08-Feb-2018
+	- Changed default port and sandbox directory for single-primary group
+	  replication.
+	- Added custom abbreviations feature.
 0.1.14	07-Feb-2018
 	- Added script test_sb to every single sandbox
 	- Added script test_sb_all to all multiple/group/replication sandbox
