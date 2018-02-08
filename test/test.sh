@@ -181,11 +181,11 @@ do
     run dbdeployer replication $V --topology=group
     VF=$(echo $V | tr '.' '_')
     port=$(~/sandboxes/group_msb_$VF/n1 -BN -e "select @@port")
-    base_port=$(($port+125))
+    # base_port=$(($port+125))
     run dbdeployer replication $V --topology=group \
-        --single-primary \
-        --sandbox-directory=group_msb2_$VF \
-        --base-port=$base_port
+        --single-primary
+   #     --sandbox-directory=group_msb2_$VF 
+   # --base-port=$base_port
 done
 
 results "group"
@@ -196,11 +196,11 @@ do
     VF=$(echo $V | tr '.' '_')
     run $SANDBOX_HOME/group_msb_$VF/test_sb_all
     run $SANDBOX_HOME/group_msb_$VF/test_replication
-    run $SANDBOX_HOME/group_msb2_$VF/test_sb_all
-    run $SANDBOX_HOME/group_msb2_$VF/test_replication
+    run $SANDBOX_HOME/group_sp_msb_$VF/test_sb_all
+    run $SANDBOX_HOME/group_sp_msb_$VF/test_replication
 
     run dbdeployer delete group_msb_$VF
-    run dbdeployer delete group_msb2_$VF
+    run dbdeployer delete group_sp_msb_$VF
 done
 
 results "group - after deletion"

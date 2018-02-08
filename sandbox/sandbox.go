@@ -41,15 +41,18 @@ type SandboxDef struct {
 }
 
 const (
-	MasterSlaveBasePort      int    = 10000
-	GroupReplicationBasePort int    = 12000
-	CircReplicationBasePort  int    = 14000
-	MultipleBasePort         int    = 16000
-	SandboxPrefix            string = "msb_"
-	MasterSlavePrefix        string = "rsandbox_"
-	GroupPrefix              string = "group_msb_"
-	MultiplePrefix           string = "multi_msb_"
-	ReplOptions              string = `
+	MasterSlaveBasePort        int    = 10000
+	GroupReplicationBasePort   int    = 12000
+	GroupReplicationSPBasePort int    = 13000
+	CircReplicationBasePort    int    = 14000
+	MultipleBasePort           int    = 16000
+	GroupPortDelta             int    = 125
+	SandboxPrefix              string = "msb_"
+	MasterSlavePrefix          string = "rsandbox_"
+	GroupPrefix                string = "group_msb_"
+	GroupSPPrefix              string = "group_sp_msb_"
+	MultiplePrefix             string = "multi_msb_"
+	ReplOptions                string = `
 relay-log-index=mysql-relay
 relay-log=mysql-relay
 log-bin=mysql-bin
@@ -79,7 +82,7 @@ func CheckPort(sandbox_type string, installed_ports []int, port int) {
 			conflict = p
 		}
 		if sandbox_type == "group-node" {
-			if p == (port + 100) {
+			if p == (port + GroupPortDelta) {
 				conflict = p
 			}
 		}

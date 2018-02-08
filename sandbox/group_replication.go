@@ -31,6 +31,9 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 	vList := VersionToList(sdef.Version)
 	rev := vList[2]
 	base_port := sdef.Port + GroupReplicationBasePort + (rev * 100)
+	if sdef.SinglePrimary {
+		base_port = sdef.Port + GroupReplicationSPBasePort + (rev * 100)
+	}
 	if sdef.BasePort > 0 {
 		base_port = sdef.BasePort
 	}
@@ -42,7 +45,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 	}
 	for check_port := base_port + 1; check_port < base_port+nodes+1; check_port++ {
 		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
-		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port+100)
+		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port+GroupPortDelta)
 	}
 	err := os.Mkdir(sdef.SandboxDir, 0755)
 	if err != nil {
@@ -54,7 +57,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		"SandboxDir": sdef.SandboxDir,
 		"Nodes":      []common.Smap{},
 	}
-	base_group_port := base_port + 100
+	base_group_port := base_port + GroupPortDelta
 	connection_string := ""
 	for i := 0; i < nodes; i++ {
 		group_port := base_group_port + i + 1

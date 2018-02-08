@@ -117,7 +117,11 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 	case "master-slave":
 		sdef.SandboxDir += "/" + MasterSlavePrefix + VersionToName(origin)
 	case "group":
-		sdef.SandboxDir += "/" + GroupPrefix + VersionToName(origin)
+		if sdef.SinglePrimary {
+			sdef.SandboxDir += "/" + GroupSPPrefix + VersionToName(origin)
+		} else {
+			sdef.SandboxDir += "/" + GroupPrefix + VersionToName(origin)
+		}
 		if !GreaterOrEqualVersion(sdef.Version, []int{5, 7, 17}) {
 			fmt.Println("Group replication requires MySQL 5.7.17 or greater")
 			os.Exit(1)
