@@ -60,6 +60,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 		sdef.ServerId = (base_server_id + i) * 100
 		fmt.Printf("Installing and starting node %d\n", i)
 		sdef.Multi = true
+		sdef.NodeNum = i
 		sdef.Prompt = fmt.Sprintf("node%d", i)
 		CreateSingleSandbox(sdef, origin)
 		var data_node common.Smap = common.Smap{
@@ -76,6 +77,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 		Version: sdef.Version,
 		Port:    []int{0},
 		Nodes:   nodes,
+		NodeNum : 0,
 	}
 	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)
 

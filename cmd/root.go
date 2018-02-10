@@ -84,6 +84,7 @@ func init() {
 	rootCmd.PersistentFlags().Int("base-port", 0, "Overrides default base-port (for multiple sandboxes)")
 	rootCmd.PersistentFlags().Bool("gtid", false, "enables GTID")
 	rootCmd.PersistentFlags().Bool("keep-auth-plugin", false, "in 8.0.4+, does not change the auth plugin")
+	rootCmd.PersistentFlags().Bool("keep-server-uuid", false, "Does not change the server UUID")
 	// rootCmd.PersistentFlags().Bool("force", false, "If a destination sandbox already exists, it will be overwritten")
 	// rootCmd.PersistentFlags().Bool("check-port", false, "Check if the port is already in use, and find a free one")
 

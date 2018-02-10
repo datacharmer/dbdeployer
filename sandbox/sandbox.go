@@ -15,6 +15,7 @@ type SandboxDef struct {
 	DirName        string
 	SBType         string
 	Multi          bool
+	NodeNum		   int
 	Version        string
 	Basedir        string
 	SandboxDir     string
@@ -37,6 +38,7 @@ type SandboxDef struct {
 	InitOptions    []string
 	MyCnfOptions   []string
 	KeepAuthPlugin bool
+	KeepUuid bool
 	SinglePrimary  bool
 }
 
@@ -103,6 +105,43 @@ func getmatch(key string, names []string, matches []string) string {
 		}
 	}
 	return ""
+}
+
+func MakeNewServerUuid(sdef SandboxDef) string {
+	node_num := sdef.NodeNum
+	re_digit := regexp.MustCompile(`\d`)
+	group1 := fmt.Sprintf("%08d", sdef.Port)
+	group2 := fmt.Sprintf("%04d-%04d-%04d", 0, 0, 0)
+	group3 := fmt.Sprintf("%012d", sdef.Port)
+	//              12345678 1234 1234 1234 123456789012
+	//    new_uuid="00000000-0000-0000-0000-000000000000"
+	if node_num > 0 {
+		group2 = re_digit.ReplaceAllString(group2, fmt.Sprintf("%d",node_num))
+		group3 = re_digit.ReplaceAllString(group3, fmt.Sprintf("%d",node_num))
+	}
+	return  fmt.Sprintf("server-uuid=%s-%s-%s", group1, group2,group3)
+}
+
+func FixServerUuid(sdef SandboxDef) {
+	if !GreaterOrEqualVersion(sdef.Version, []int{5, 6, 9}) {
+		return
+	}
+	new_uuid := MakeNewServerUuid(sdef)
+	operation_dir := sdef.SandboxDir + "/data"
+	uuid_file := operation_dir + "/auto.cnf"
+	if !common.DirExists(operation_dir) {
+		fmt.Printf("Directory %s does not exist\n", operation_dir)
+		os.Exit(1)
+	}
+	new_contents := []string{ "[auto]", new_uuid }
+	err := common.WriteStrings(new_contents, uuid_file)
+	if err != nil {
+		fmt.Printf("%s\n", err)
+		os.Exit(1)
+	}
+	//check_uuid := common.SlurpAsString(uuid_file)
+	//fmt.Printf("UUID file (%s) updated : %s\n", uuid_file, new_uuid)
+	//fmt.Printf("new UUID : %s\n", check_uuid)
 }
 
 func VersionToList(version string) []int {
@@ -210,6 +249,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		sdef.DirName = SandboxPrefix + version_fname
 	}
 	sandbox_dir = sdef.SandboxDir + "/" + sdef.DirName
+	sdef.SandboxDir = sandbox_dir
 	datadir := sandbox_dir + "/data"
 	tmpdir := sandbox_dir + "/tmp"
 	global_tmp_dir := os.Getenv("TMPDIR")
@@ -334,6 +374,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		Version: sdef.Version,
 		Port:    []int{sdef.Port},
 		Nodes:   0,
+		NodeNum: sdef.NodeNum,
 	}
 	if len(sdef.MorePorts) > 0 {
 		for _, port := range sdef.MorePorts {
@@ -363,6 +404,9 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	}
 	write_script(SingleTemplates, "sb_include", "sb_include_template", sandbox_dir, data, false)
 
+	if !sdef.KeepUuid {
+		FixServerUuid(sdef)
+	}
 	//common.Run_cmd(sandbox_dir + "/start", []string{})
 	common.Run_cmd(sandbox_dir + "/start")
 	if sdef.LoadGrants {

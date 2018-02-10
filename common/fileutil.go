@@ -30,6 +30,7 @@ type SandboxDescription struct {
 	Version string `json:"version"`
 	Port    []int  `json:"port"`
 	Nodes   int    `json:"nodes"`
+	NodeNum int    `json:"node_num"`
 }
 
 func WriteSandboxDescription(destination string, sd SandboxDescription) {

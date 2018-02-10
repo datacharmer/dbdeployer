@@ -1,3 +1,6 @@
+0.1.16	10-Feb-2018
+	- Added automatic generation of human-readable server-UUID
+	- Added flag --keep-server-uuid to prevent the above change
 0.1.15	08-Feb-2018
 	- Changed default port and sandbox directory for single-primary group
 	  replication.

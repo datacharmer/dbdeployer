@@ -94,6 +94,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		sdef.Multi = true
 		sdef.Prompt = fmt.Sprintf("node%d", i)
 		sdef.SBType = "group-node"
+		sdef.NodeNum = i
 		CreateSingleSandbox(sdef, origin)
 		var data_node common.Smap = common.Smap{
 			"Node":       i,
@@ -109,6 +110,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		Version: sdef.Version,
 		Port:    []int{0},
 		Nodes:   nodes,
+		NodeNum : 0,
 	}
 	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)
 

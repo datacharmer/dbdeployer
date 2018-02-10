@@ -91,6 +91,7 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.InitOptions, _ = flags.GetStringSlice("init-options")
 	sd.MyCnfOptions, _ = flags.GetStringSlice("my-cnf-options")
 	sd.KeepAuthPlugin, _ = flags.GetBool("keep-auth-plugin")
+	sd.KeepUuid, _ = flags.GetBool("keep-server-uuid")
 
 	var gtid bool
 	var master bool
