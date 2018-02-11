@@ -64,7 +64,7 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 		}
 	}
 	fmt.Printf("Running %s\n", stop)
-	err := common.Run_cmd(stop)
+	err,_ := common.Run_cmd(stop)
 	if err != nil {
 		fmt.Printf("Error while stopping sandbox %s\n", full_path)
 		os.Exit(1)
@@ -76,7 +76,7 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 		cmd_str += " " + item
 	}
 	fmt.Printf("Running %s\n", cmd_str)
-	err = common.Run_cmd_with_args("rm", rm_cmd)
+	err,_ = common.Run_cmd_with_args("rm", rm_cmd)
 	if err != nil {
 		fmt.Printf("Error while deleting sandbox %s\n", full_path)
 		os.Exit(1)

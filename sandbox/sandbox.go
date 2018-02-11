@@ -352,7 +352,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	//cmd.Stdout = &out
 	//cmd.Stderr = &stderr
 	//err = cmd.Run()
-	err = common.Run_cmd_ctrl(sandbox_dir+"/init_db", true)
+	err,_ = common.Run_cmd_ctrl(sandbox_dir+"/init_db", true)
 	if err == nil {
 		fmt.Printf("Database installed in %s\n", sandbox_dir)
 		if !sdef.Multi {

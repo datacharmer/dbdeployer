@@ -2,9 +2,10 @@
 
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 
-[![asciicast](https://asciinema.org/a/160541.png)](https://asciinema.org/a/160541)
-
 ## Main operations
+
+(See this ASCIIcast for a demo of its operations.)
+[![asciicast](https://asciinema.org/a/160541.png)](https://asciinema.org/a/160541)
 
 With dbdeployer, you can deploy a single sandbox, or many sandboxes  at once, with or without replication.
 
@@ -24,6 +25,10 @@ For example:
 
 
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with '--help' will show the main help screen.
+
+    $ dbdeployer --version
+    dbdeployer version 0.1.16
+    
 
     $ dbdeployer -h
     Makes MySQL server installation an easy task.
@@ -54,6 +59,7 @@ The program doesn't have any dependencies. Everything is included in the binary.
       -h, --help                       help for dbdeployer
       -i, --init-options strings       mysqld options to run during initialization
           --keep-auth-plugin           in 8.0.4+, does not change the auth plugin
+          --keep-server-uuid           Does not change the server UUID
       -c, --my-cnf-options strings     mysqld options to add to my.sandbox.cnf
           --port int                   Overrides default port
           --remote-access string       defines the database access  (default "127.%")
@@ -66,6 +72,7 @@ The program doesn't have any dependencies. Everything is included in the binary.
           --version                    version for dbdeployer
     
     Use "dbdeployer [command] --help" for more information about a command.
+    
 
 The flags listed in the main screen can be used with any commands.
 The flags _--my-cnf-options_ and _--init-options_ can be used several times.
@@ -93,6 +100,7 @@ If you don't have any tarballs installed in your system, you should first *unpac
           --prefix string           Prefix for the final expanded directory
           --unpack-version string   which version is contained in the tarball (mandatory)
     
+    
 
 The main command is *single*, which installs a single sandbox.
 
@@ -115,6 +123,7 @@ The main command is *single*, which installs a single sandbox.
       -h, --help     help for single
           --master   Make the server replication ready
     
+    
 
 If you want more than one sandbox of the same version, without any replication relationship, use the *multiple* command with an optional "--node" flag (default: 3).
 
@@ -136,6 +145,7 @@ If you want more than one sandbox of the same version, without any replication r
     Flags:
       -h, --help        help for multiple
       -n, --nodes int   How many nodes will be installed (default 3)
+    
     
 
 The *replication* command will install a master and two or more slaves, with replication started. You can change the topology to "group" and get three nodes in peer replication.
@@ -167,6 +177,7 @@ The *replication* command will install a master and two or more slaves, with rep
       -n, --nodes int         How many nodes will be installed (default 3)
           --single-primary    Using single primary for group replication
       -t, --topology string   Which topology will be installed (default "master-slave")
+    
     
 
 ## Multiple sandboxes, same version and type
@@ -243,5 +254,6 @@ The command "usage" shows how to use the scripts that were installed with each s
     s1, s2, n1, n2
     
     The scripts "check_slaves" or "check_nodes" give the status of replication in the sandbox.
+    
     
 

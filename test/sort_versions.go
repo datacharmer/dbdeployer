@@ -4,11 +4,11 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"regexp"
 	"sort"
-	"strconv"
+	"github.com/datacharmer/dbdeployer/sandbox"
 )
 
+/*
 func VersionToList(version string) []int {
 	// A valid version must be made of 3 integers
 	re1 := regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+)$`)
@@ -33,7 +33,7 @@ func VersionToList(version string) []int {
 	}
 	return []int{major, minor, rev}
 }
-
+*/
 /*
 	This utility reads a list of versions (format x.x.xx)
 	and sorts them in numerical order, taking into account
@@ -50,7 +50,7 @@ func main() {
 	var vlist []version_list
 	for scanner.Scan() {
 		line := scanner.Text()
-		vl := VersionToList(line)
+		vl := sandbox.VersionToList(line)
 		rec := version_list{
 			text: line,
 			mmr:  vl,

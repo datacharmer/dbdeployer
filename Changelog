@@ -1,3 +1,6 @@
+0.1.17	11-Feb-2018
+	- Added automated README generation
+	- minor code changes 
 0.1.16	10-Feb-2018
 	- Added automatic generation of human-readable server-UUID
 	- Added flag --keep-server-uuid to prevent the above change

@@ -137,7 +137,7 @@ func ExecExists(filename string) bool {
 	return err == nil
 }
 
-func Run_cmd_with_args(c string, args []string) error {
+func Run_cmd_with_args(c string, args []string) (error, string) {
 	cmd := exec.Command(c, args...)
 	var out bytes.Buffer
 	var stderr bytes.Buffer
@@ -153,10 +153,10 @@ func Run_cmd_with_args(c string, args []string) error {
 	} else {
 		fmt.Printf("%s", out.String())
 	}
-	return err
+	return err, out.String()
 }
 
-func Run_cmd_ctrl(c string, silent bool) error {
+func Run_cmd_ctrl(c string, silent bool) (error, string) {
 	//cmd := exec.Command(c, args...)
 	cmd := exec.Command(c, "")
 	var out bytes.Buffer
@@ -175,9 +175,9 @@ func Run_cmd_ctrl(c string, silent bool) error {
 			fmt.Printf("%s", out.String())
 		}
 	}
-	return err
+	return err, out.String()
 }
 
-func Run_cmd(c string) error {
+func Run_cmd(c string) (error, string) {
 	return Run_cmd_ctrl(c, false)
 }
