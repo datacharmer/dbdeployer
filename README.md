@@ -27,7 +27,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with '--help' will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 0.1.16
+    dbdeployer version 0.1.18
     
 
     $ dbdeployer -h
@@ -39,6 +39,7 @@ The program doesn't have any dependencies. Everything is included in the binary.
     
     Available Commands:
       delete      delete an installed sandbox
+      global      Runs a given command in every sandbox
       help        Help about any command
       multiple    create multiple sandbox
       replication create replication sandbox
@@ -254,6 +255,60 @@ The command "usage" shows how to use the scripts that were installed with each s
     s1, s2, n1, n2
     
     The scripts "check_slaves" or "check_nodes" give the status of replication in the sandbox.
+    
+    
+
+## Sandbox macro operations
+
+You can run a command in several sandboxes at once, using the *global* command, which propagates your command to all the installed sandboxes.
+
+    $ dbdeployer global -h 
+    This command can propagate the given action through all sandboxes.
+    
+    Usage:
+      dbdeployer global [command]
+    
+    Examples:
+    
+    	$ dbdeployer global use "select version()"
+    	$ dbdeployer global status
+    	$ dbdeployer global stop
+    	
+    
+    Available Commands:
+      restart     Restarts all sandboxes
+      start       Starts all sandboxes
+      status      Shows the status in all sandboxes
+      stop        Stops all sandboxes
+      test        Tests all sandboxes
+      use         Runs a query in all sandboxes
+    
+    Flags:
+      -h, --help   help for global
+    
+    
+
+The sandboxes can also be deleted, either one by one or all at once:
+
+    $ dbdeployer delete -h 
+    Stops the sandbox (and its depending sandboxes, if any), and removes it.
+    Warning: this command is irreversible!
+    
+    Usage:
+      dbdeployer delete sandbox_name (or "ALL") [flags]
+    
+    Aliases:
+      delete, remove, destroy
+    
+    Examples:
+    
+    	$ dbdeployer delete msb_8_0_4
+    	$ dbdeployer delete rsandbox_5_7_21
+    
+    Flags:
+          --confirm        Requires confirmation.
+      -h, --help           help for delete
+          --skip-confirm   Skips confirmation with multiple deletions.
     
     
 

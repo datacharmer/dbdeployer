@@ -78,3 +78,13 @@ The command "usage" shows how to use the scripts that were installed with each s
 
     {{dbdeployer usage}}
 
+## Sandbox macro operations
+
+You can run a command in several sandboxes at once, using the *global* command, which propagates your command to all the installed sandboxes.
+
+    {{dbdeployer global -h }}
+
+The sandboxes can also be deleted, either one by one or all at once:
+
+    {{dbdeployer delete -h }} 
+

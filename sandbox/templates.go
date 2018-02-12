@@ -370,7 +370,7 @@ log-error=msandbox.err
 
 		source $SBDIR/sb_include
 		node_status=off
-		exit_code=1
+		exit_code=0
 		if [ -f $PIDFILE ]
 		then
 			MYPID=$(cat $PIDFILE)

@@ -1,7 +1,30 @@
+# dbdeployer looks for a file "abbreviations.txt" and treats every line
+# as an abbreviation followed by its replacement.
+# Then, it looks at the command line arguments.
+# If an argument matches an abbreviation, it will be replaced by the replacement items.
+# For example, the file contains this line:
+# 	sbs sandboxes
+# 
+# when the user types "dbdeployer sbs", it will be replaced with "dbdeployer sandboxes"
+# 
+# A more interesting example:
+# 	group  replication --topology=group
+# 
+# Here, a command "dbdeployer group 8.0.4" becomes "dbdeployer replication --topology=group 8.0.4"
+# 
+# It is also possible to set variables in the replacement.
+#     sbdef --sandbox-directory={{.sb}} --port={{.port}}
+# 
+# To use this abbreviation, we need to provide the values for 'sb' and 'port'
+# dbdeployer sbdef:port=9000,sb=mysandbox single 8.0.4
+# it will become  "dbdeployer --sandbox-directory=mysandbox --port=9000 single 8.0.4
+# ----------------------------------------------------------------------------
+
 # use as "dbdeployer group 5.7.21"
 group  replication --topology=group
 
 groupsp  replication --topology=group --single-primary
+
 tl templates list
 
 # Use dbdeployer sbdef:port=XXX,sb=YYYYYY

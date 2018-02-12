@@ -103,7 +103,7 @@ echo "REPLICATION  {{.SandboxDir}}"
 {{.SandboxDir}}/master/use -BN -e "select CONCAT('port: ', @@port) AS port"
 {{ range .Slaves }}
 {{.SandboxDir}}/node{{.Node}}/status 
-{{.SandboxDir}}/node{{.Node}}/use -BN -e "select CONCAT('port: ', @@port) AS port"
+# {{.SandboxDir}}/node{{.Node}}/use -BN -e "select CONCAT('port: ', @@port) AS port"
 {{end}}
 `
 	test_sb_all_template string = `#!/bin/sh

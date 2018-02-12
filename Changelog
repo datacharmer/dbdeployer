@@ -1,3 +1,9 @@
+0.1.18	12-Feb-2018
+	- The "delete" command now supports "ALL" as argument. It will delete all installed sandboxes.
+	- Added flag "--skip-confirm" for the "delete" command, to delete without confirmation.
+	- Fixed mistake during initialization: the version search was happening before the check
+	  for the sandbox home directory.
+	- Added the "global" command to propagate a command to all sandboxes
 0.1.17	11-Feb-2018
 	- Added automated README generation
 	- minor code changes 

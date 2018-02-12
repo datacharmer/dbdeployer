@@ -14,4 +14,4 @@
 
 package cmd
 
-var versionDef string = "0.1.16" // 2018-02-10
+var versionDef string = "0.1.18" // 2018-02-12

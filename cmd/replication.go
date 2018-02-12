@@ -65,6 +65,10 @@ Use the "unpack" command to get the tarball into the right directory.
 
 func init() {
 	rootCmd.AddCommand(replicationCmd)
+	//replicationCmd.PersistentFlags().StringSliceP("master-options", "", "", "Extra options for the master")
+	//replicationCmd.PersistentFlags().StringSliceP("slave-options", "", "", "Extra options for the slaves")
+	//replicationCmd.PersistentFlags().StringSliceP("node-options", "", "", "Extra options for all nodes")
+	//replicationCmd.PersistentFlags().StringSliceP("one-node-options", "", "", "Extra options for one node (format #:option)")
 	replicationCmd.PersistentFlags().StringP("topology", "t", "master-slave", "Which topology will be installed")
 	replicationCmd.PersistentFlags().IntP("nodes", "n", 3, "How many nodes will be installed")
 	replicationCmd.PersistentFlags().BoolP("single-primary", "", false, "Using single primary for group replication")

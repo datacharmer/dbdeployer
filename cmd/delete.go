@@ -22,19 +22,10 @@ import (
 	"os"
 )
 
-func DeleteSandbox(cmd *cobra.Command, args []string) {
-	if len(args) < 1 {
-		fmt.Println("Sandbox name required.")
-		fmt.Println("You can run 'dbdeployer sandboxes for a list of available deployments'")
-		os.Exit(1)
-	}
-	flags := cmd.Flags()
-	sandbox := args[0]
-	confirm, _ := flags.GetBool("confirm")
-	sandbox_dir, _ := flags.GetString("sandbox-home")
+func RemoveSandbox(sandbox_dir, sandbox string) {
 	full_path := sandbox_dir + "/" + sandbox
 	if !common.DirExists(full_path) {
-		fmt.Println("Directory '%s' not found\n", full_path)
+		fmt.Printf("Directory '%s' not found\n", full_path)
 		os.Exit(1)
 	}
 	stop := full_path + "/stop_all"
@@ -44,24 +35,6 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 	if !common.ExecExists(stop) {
 		fmt.Println("Executable '%s' not found\n", stop)
 		os.Exit(1)
-	}
-	if confirm {
-		fmt.Printf("We're about to delete %s\n", full_path)
-		fmt.Printf("Do you confirm? y/[N] ")
-
-		bio := bufio.NewReader(os.Stdin)
-		line, _, err := bio.ReadLine()
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			answer := string(line)
-			if answer == "y" || answer == "Y" {
-				fmt.Println("Proceeding with deletion")
-			} else {
-				fmt.Println("Execution interrupted by user")
-				os.Exit(0)
-			}
-		}
 	}
 	fmt.Printf("Running %s\n", stop)
 	err,_ := common.Run_cmd(stop)
@@ -82,11 +55,61 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 	fmt.Printf("Sandbox %s deleted\n", full_path)
+
+}
+
+func DeleteSandbox(cmd *cobra.Command, args []string) {
+	if len(args) < 1 {
+		fmt.Println("Sandbox name (or \"ALL\") required.")
+		fmt.Println("You can run 'dbdeployer sandboxes for a list of available deployments'")
+		os.Exit(1)
+	}
+	flags := cmd.Flags()
+	sandbox := args[0]
+	confirm, _ := flags.GetBool("confirm")
+	skip_confirm, _ := flags.GetBool("skip-confirm")
+	sandbox_dir, _ := flags.GetString("sandbox-home")
+	deletion_list := []string{sandbox}
+	if sandbox == "ALL" {
+		confirm = true
+		if skip_confirm {
+			confirm = false
+		}
+		deletion_list = GetInstalledSandboxes(sandbox_dir)
+	}
+	if len(deletion_list) == 0 {
+		fmt.Printf("Nothing to delete in %s\n", sandbox_dir)
+		return
+	}
+	fmt.Printf("Deleting the following sandboxes\n")
+	for _, sb := range deletion_list {
+		fmt.Printf("%s/%s\n", sandbox_dir, sb)
+	}
+	if confirm {
+		fmt.Printf("Do you confirm? y/[N] ")
+
+		bio := bufio.NewReader(os.Stdin)
+		line, _, err := bio.ReadLine()
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			answer := string(line)
+			if answer == "y" || answer == "Y" {
+				fmt.Println("Proceeding with deletion")
+			} else {
+				fmt.Println("Execution interrupted by user")
+				os.Exit(0)
+			}
+		}
+	}
+	for _, sb := range deletion_list {
+		RemoveSandbox(sandbox_dir, sb)
+	}
 }
 
 // deleteCmd represents the delete command
 var deleteCmd = &cobra.Command{
-	Use:     "delete sandbox_name",
+	Use:     "delete sandbox_name (or \"ALL\")",
 	Short:   "delete an installed sandbox",
 	Aliases: []string{"remove", "destroy"},
 	Example: `
@@ -100,5 +123,6 @@ Warning: this command is irreversible!`,
 func init() {
 	rootCmd.AddCommand(deleteCmd)
 
+	deleteCmd.Flags().BoolP("skip-confirm", "", false, "Skips confirmation with multiple deletions.")
 	deleteCmd.Flags().BoolP("confirm", "", false, "Requires confirmation.")
 }

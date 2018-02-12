@@ -10,7 +10,7 @@ import (
 
 /*
 	This package implements custom abbreviations.
-	It looks for an file "abbreviations.txt" and treats every line
+	It looks for a file "abbreviations.txt" and treats every line
 	as an abbreviation followed by its replacement.
 	Then, it looks at the command line arguments.
 	If an argument matches an abbreviation, it will be replaced by the replacement items.
