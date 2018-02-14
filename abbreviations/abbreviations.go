@@ -35,6 +35,12 @@ import (
 type argList []string
 type AliasList map[string]argList
 
+func debug_print(descr string, v interface{}) {
+	if os.Getenv("DEBUG") != "" {
+		fmt.Printf("%s : %v\n", descr, v)
+	}
+}
+
 func LoadAbbreviations() {
 	var abbrev_file string = "abbreviations.txt"
 	var new_args []string
@@ -81,13 +87,19 @@ func LoadAbbreviations() {
 	}
 	// Loop through original arguments.
 	// Replaces every occurrence of the abbreviation with its components
+	debug_print("os.Args", os.Args)
 	for _, arg := range os.Args {
 		// An abbreviation may set variables
 		// for example
 		// myabbr:varname=var_value
 		// myabbr:varname=var_value,other_var=other_value
 		re := regexp.MustCompile(`(\w+)[-:](\S+)`)
+		re_flag := regexp.MustCompile(`^-`)
 		vars := re.FindStringSubmatch(arg)
+		if re_flag.MatchString(arg) {
+			new_args = append(new_args, arg)
+			continue
+		}
 		if len(vars) > 0 {
 			arg = vars[1]
 			all_vars := vars[2]
@@ -121,6 +133,7 @@ func LoadAbbreviations() {
 			new_args = append(new_args, arg)
 		}
 	}
+	debug_print("new_args", new_args)
 	// Arguments replaced!
 	if replacements_used {
 		if debug_abbr {
