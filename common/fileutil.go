@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -31,6 +32,49 @@ type SandboxDescription struct {
 	Port    []int  `json:"port"`
 	Nodes   int    `json:"nodes"`
 	NodeNum int    `json:"node_num"`
+}
+
+type keyvalue struct {
+	Key string
+	Value string
+}
+
+type configOptions map[string][]keyvalue
+
+func ParseConfigFile(filename string) configOptions {
+	config := make(configOptions)
+	lines := SlurpAsLines(filename)
+	re_comment := regexp.MustCompile(`^\s*#`)
+	re_empty := regexp.MustCompile(`^\s*$`)
+	re_header := regexp.MustCompile(`\[\s*(\w+)\s*\]`)
+	re_k_v := regexp.MustCompile(`(\S+)\s*=\s*(.*)`)
+	current_header := ""
+	for _, line := range lines {
+		if re_comment.MatchString(line) || re_empty.MatchString(line) {	
+			continue
+		}
+		headerList := re_header.FindAllStringSubmatch(line, -1)
+		if headerList != nil {
+			header := headerList[0][1]
+			current_header = header
+		}
+		kvList := re_k_v.FindAllStringSubmatch(line, -1)
+		if kvList != nil {
+			kv  := keyvalue{
+				Key : kvList[0][1],
+				Value : kvList[0][2],
+			}
+			config[current_header] = append(config[current_header], kv)
+		}
+	}
+	/*for header, kvList := range config {
+		fmt.Printf("%s \n", header)
+		for N, kv := range kvList {
+			fmt.Printf("%d %s : %s \n", N, kv.key, kv.value)
+		}
+		fmt.Printf("\n")
+	}*/
+	return config
 }
 
 func WriteSandboxDescription(destination string, sd SandboxDescription) {

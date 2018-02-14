@@ -31,12 +31,13 @@ func ReplicationSandbox(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	nodes, _ := flags.GetInt("nodes")
 	topology, _ := flags.GetString("topology")
+	master_ip, _ := flags.GetString("master-ip")
 	sd.SinglePrimary, _ = flags.GetBool("single-primary")
 	if sd.SinglePrimary && topology != "group" {
 		fmt.Println("Option 'single-primary' can only be used with 'group' topology ")
 		os.Exit(1)
 	}
-	sandbox.CreateReplicationSandbox(sd, args[0], topology, nodes)
+	sandbox.CreateReplicationSandbox(sd, args[0], topology, nodes, master_ip)
 }
 
 // replicationCmd represents the replication command
@@ -69,6 +70,7 @@ func init() {
 	//replicationCmd.PersistentFlags().StringSliceP("slave-options", "", "", "Extra options for the slaves")
 	//replicationCmd.PersistentFlags().StringSliceP("node-options", "", "", "Extra options for all nodes")
 	//replicationCmd.PersistentFlags().StringSliceP("one-node-options", "", "", "Extra options for one node (format #:option)")
+	replicationCmd.PersistentFlags().StringP("master-ip", "", "127.0.0.1", "Which IP the slaves will connect to")
 	replicationCmd.PersistentFlags().StringP("topology", "t", "master-slave", "Which topology will be installed")
 	replicationCmd.PersistentFlags().IntP("nodes", "n", 3, "How many nodes will be installed")
 	replicationCmd.PersistentFlags().BoolP("single-primary", "", false, "Using single primary for group replication")

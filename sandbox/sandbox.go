@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
 	"os"
+	"time"
 	// "os/exec"
 	"regexp"
 	"strconv"
-	"strings"
+	// "strings"
 )
 
 type SandboxDef struct {
@@ -37,9 +38,11 @@ type SandboxDef struct {
 	GtidOptions    string
 	InitOptions    []string
 	MyCnfOptions   []string
+	MyCnfFile      string
 	KeepAuthPlugin bool
 	KeepUuid bool
 	SinglePrimary  bool
+	Force  bool
 }
 
 const (
@@ -75,6 +78,72 @@ var Origins = [...]string{
 	"BareVersion",
 	"FullDir",
 	"NoSuchOrigin",
+}
+
+func GetOptionsFromFile(filename string) (options []string) {
+	skip_options := map[string]bool{
+		"user":true,
+		"port":true,
+		"socket":true,
+		"datadir":true,
+		"basedir":true,
+		"tmpdir":true,
+		"pid-file":true,
+		"server-id":true,
+		"bind-address":true,
+		"log-error" : true,
+		
+	}
+	config := common.ParseConfigFile(filename)
+	for _, kv := range config["mysqld"] {
+
+		if skip_options[kv.Key] {
+			continue
+		}
+		options = append(options, fmt.Sprintf("%s = %s", kv.Key, kv.Value))
+		//fmt.Printf("%d %s : %s \n", N, kv.key, kv.value)
+	}
+	return options
+}
+
+func CheckDirectory(sdef SandboxDef) SandboxDef {
+	sandbox_dir := sdef.SandboxDir
+	if common.DirExists(sandbox_dir) {
+		if sdef.Force {
+			fmt.Printf("Overwriting directory %s\n", sandbox_dir)	
+			stop_command := sandbox_dir + "/stop"
+			if !common.ExecExists(stop_command) {
+				stop_command = sandbox_dir + "/stop_all"
+			}
+			if !common.ExecExists(stop_command) {
+				fmt.Printf("Neither 'stop' or 'stop_all' found in %s\n",sandbox_dir)
+			}
+
+			used_ports_list := common.GetInstalledPorts(sandbox_dir)
+			my_used_ports := make(map[int]bool)
+			for _,p := range used_ports_list {
+				my_used_ports[p] = true
+			}
+
+			common.Run_cmd(stop_command)
+			err, _ := common.Run_cmd_with_args("rm", []string{"-rf", sandbox_dir,})
+			if err != nil {
+				fmt.Printf("Error while deleting sandbox %s\n", sandbox_dir)
+				os.Exit(1)
+			}
+			var new_installed_ports []int
+			for _, port := range sdef.InstalledPorts {
+				if !my_used_ports[port] {
+					new_installed_ports = append(new_installed_ports, port)
+				}
+			}
+			sdef.InstalledPorts = new_installed_ports
+		} else {
+			fmt.Printf("Directory %s already exists. Use --force to override.\n", sandbox_dir)
+			os.Exit(1)
+		}
+	}
+	return sdef
 }
 
 func CheckPort(sandbox_type string, installed_ports []int, port int) {
@@ -219,11 +288,8 @@ func GreaterOrEqualVersion(version string, compared_to []int) bool {
 func slice_to_text(s_array []string) string {
 	var text string = ""
 	for _, v := range s_array {
-		options_list := strings.Split(v, " ")
-		for _, op := range options_list {
-			if len(op) > 0 {
-				text += fmt.Sprintf("%s\n", op)
-			}
+		if len(v) > 0 {
+			text += fmt.Sprintf("%s\n", v)
 		}
 	}
 	return text
@@ -249,6 +315,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		sdef.DirName = SandboxPrefix + version_fname
 	}
 	sandbox_dir = sdef.SandboxDir + "/" + sdef.DirName
+	//sandbox_home := sdef.SandboxDir
 	sdef.SandboxDir = sandbox_dir
 	datadir := sandbox_dir + "/data"
 	tmpdir := sandbox_dir + "/tmp"
@@ -266,9 +333,22 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 			sdef.MyCnfOptions = append(sdef.MyCnfOptions, "default_authentication_plugin=mysql_native_password")
 		}
 	}
+	if sdef.MyCnfFile != "" {
+		options := GetOptionsFromFile(sdef.MyCnfFile)
+		if len(options) > 0 {
+			sdef.MyCnfOptions = append(sdef.MyCnfOptions,fmt.Sprintf("# options retrieved from %s", sdef.MyCnfFile))
+		}
+		for _, option := range options {
+			// fmt.Printf("[%s]\n", option)
+			sdef.MyCnfOptions = append(sdef.MyCnfOptions, option)
+		}
+	}
 	//fmt.Printf("%#v\n", sdef)
+	timestamp := time.Now()
 	var data common.Smap = common.Smap{"Basedir": sdef.Basedir,
 		"Copyright":    Copyright,
+		"AppVersion":   common.VersionDef,
+		"DateTime":    	timestamp.Format(time.UnixDate),
 		"SandboxDir":   sandbox_dir,
 		"Port":         sdef.Port,
 		"BasePort":     sdef.BasePort,
@@ -294,8 +374,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		data["ServerId"] = ""
 	}
 	if common.DirExists(sandbox_dir) {
-		fmt.Printf("Directory %s already exists\n", sandbox_dir)
-		os.Exit(1)
+		sdef = CheckDirectory(sdef)
 	}
 	CheckPort(sdef.SBType, sdef.InstalledPorts, sdef.Port)
 
@@ -397,10 +476,13 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	write_script(SingleTemplates, "test_sb", "test_sb_template", sandbox_dir, data, true)
 
 	write_script(SingleTemplates, "my.sandbox.cnf", "my_cnf_template", sandbox_dir, data, false)
-	if GreaterOrEqualVersion(sdef.Version, []int{5, 7, 6}) {
-		write_script(SingleTemplates, "grants.mysql", "grants_template57", sandbox_dir, data, false)
-	} else {
-		write_script(SingleTemplates, "grants.mysql", "grants_template5x", sandbox_dir, data, false)
+	switch {
+		case GreaterOrEqualVersion(sdef.Version, []int{8, 0, 0}):
+			write_script(SingleTemplates, "grants.mysql", "grants_template8x", sandbox_dir, data, false)
+		case GreaterOrEqualVersion(sdef.Version, []int{5, 7, 6}):
+			write_script(SingleTemplates, "grants.mysql", "grants_template57", sandbox_dir, data, false)
+		default: 
+			write_script(SingleTemplates, "grants.mysql", "grants_template5x", sandbox_dir, data, false)
 	}
 	write_script(SingleTemplates, "sb_include", "sb_include_template", sandbox_dir, data, false)
 

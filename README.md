@@ -27,7 +27,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with '--help' will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 0.1.18
+    dbdeployer version 0.1.19
     
 
     $ dbdeployer -h
@@ -56,11 +56,13 @@ The program doesn't have any dependencies. Everything is included in the binary.
           --config string              config file (default "./dbdeployer.json")
       -p, --db-password string         database password (default "msandbox")
       -u, --db-user string             database user (default "msandbox")
+          --force                      If a destination sandbox already exists, it will be overwritten
           --gtid                       enables GTID
       -h, --help                       help for dbdeployer
       -i, --init-options strings       mysqld options to run during initialization
           --keep-auth-plugin           in 8.0.4+, does not change the auth plugin
           --keep-server-uuid           Does not change the server UUID
+          --my-cnf-file string         Alternative source file for my.sandbox.cnf
       -c, --my-cnf-options strings     mysqld options to add to my.sandbox.cnf
           --port int                   Overrides default port
           --remote-access string       defines the database access  (default "127.%")
@@ -174,10 +176,11 @@ The *replication* command will install a master and two or more slaves, with rep
     	
     
     Flags:
-      -h, --help              help for replication
-      -n, --nodes int         How many nodes will be installed (default 3)
-          --single-primary    Using single primary for group replication
-      -t, --topology string   Which topology will be installed (default "master-slave")
+      -h, --help               help for replication
+          --master-ip string   Which IP the slaves will connect to (default "127.0.0.1")
+      -n, --nodes int          How many nodes will be installed (default 3)
+          --single-primary     Using single primary for group replication
+      -t, --topology string    Which topology will be installed (default "master-slave")
     
     
 

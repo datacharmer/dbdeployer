@@ -75,7 +75,7 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 		if skip_confirm {
 			confirm = false
 		}
-		deletion_list = GetInstalledSandboxes(sandbox_dir)
+		deletion_list = common.GetInstalledSandboxes(sandbox_dir)
 	}
 	if len(deletion_list) == 0 {
 		fmt.Printf("Nothing to delete in %s\n", sandbox_dir)

@@ -16,72 +16,17 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/spf13/cobra"
-	"io/ioutil"
 )
 
-func GetInstalledSandboxes(sandbox_home string) []string {
-	files, err := ioutil.ReadDir(sandbox_home)
-	if err != nil {
-		log.Fatal(err)
-	}
-	var installed_sandboxes []string
-	for _, f := range files {
-		fname := f.Name()
-		fmode := f.Mode()
-		if fmode.IsDir() {
-			sbdesc := sandbox_home + "/" + fname + "/sbdescription.json"
-			if common.FileExists(sbdesc) {
-				installed_sandboxes = append( installed_sandboxes, fname)
-
-			}
-		}
-	}
-	return installed_sandboxes
-}
-
-func GetInstalledPorts(sandbox_home string) []int {
-	files := GetInstalledSandboxes(sandbox_home)
-	var port_collection []int
-	for _, fname := range files {
-		//fname := f.Name()
-		// fmode := f.Mode()
-		sbdesc := sandbox_home + "/" + fname + "/sbdescription.json"
-		if common.FileExists(sbdesc) {
-			sbd := common.ReadSandboxDescription(sandbox_home + "/" + fname)
-			if sbd.Nodes == 0 {
-				for _, p := range sbd.Port {
-					port_collection = append(port_collection, p)
-				}
-			} else {
-				var node_descr []common.SandboxDescription
-				if common.DirExists(sandbox_home + "/" + fname + "/master") {
-					sd_master := common.ReadSandboxDescription(sandbox_home + "/" + fname + "/master")
-					node_descr = append(node_descr, sd_master)
-				}
-				for node := 1; node <= sbd.Nodes; node++ {
-					sd_node := common.ReadSandboxDescription(fmt.Sprintf("%s/%s/node%d", sandbox_home, fname, node))
-					node_descr = append(node_descr, sd_node)
-				}
-				for _, nd := range node_descr {
-					for _, p := range nd.Port {
-						port_collection = append(port_collection, p)
-					}
-				}
-			}
-		}
-	}
-	return port_collection
-}
 
 // Shows installed sandboxes
 func ShowSandboxes(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	SandboxHome, _ := flags.GetString("sandbox-home")
-	files := GetInstalledSandboxes(SandboxHome)
+	files := common.GetInstalledSandboxes(SandboxHome)
 	// files, err := ioutil.ReadDir(SandboxHome)
 	// if err != nil {
 	// 	log.Fatal(err)

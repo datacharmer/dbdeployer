@@ -1,3 +1,10 @@
+0.1.19	14-Feb-2018
+	- MySQL 8.0+ sandboxes now use roles instead of direct privilege
+	assignments.
+	- Added global flag --force to overwrite an existing deployment
+	- Added global flag --my-cnf-file to use a customized my.cnf 
+	- Added flag --master-ip to replication deployments
+	- Fixed bug in abbreviations: flags were not considered correctly.
 0.1.18	12-Feb-2018
 	- The "delete" command now supports "ALL" as argument. It will delete all installed sandboxes.
 	- Added flag "--skip-confirm" for the "delete" command, to delete without confirmation.

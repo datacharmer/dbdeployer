@@ -80,7 +80,7 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.SandboxDir, _ = flags.GetString("sandbox-home")
 	// fmt.Printf("%v\n", installed_ports)
 	common.CheckSandboxDir(sd.SandboxDir)
-	sd.InstalledPorts = GetInstalledPorts(sd.SandboxDir)
+	sd.InstalledPorts = common.GetInstalledPorts(sd.SandboxDir)
 	sd.LoadGrants = true
 	sd.DbUser, _ = flags.GetString("db-user")
 	sd.DbPassword, _ = flags.GetString("db-password")
@@ -90,8 +90,10 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.BindAddress, _ = flags.GetString("bind-address")
 	sd.InitOptions, _ = flags.GetStringSlice("init-options")
 	sd.MyCnfOptions, _ = flags.GetStringSlice("my-cnf-options")
+	sd.MyCnfFile, _ = flags.GetString("my-cnf-file")
 	sd.KeepAuthPlugin, _ = flags.GetBool("keep-auth-plugin")
 	sd.KeepUuid, _ = flags.GetBool("keep-server-uuid")
+	sd.Force, _ = flags.GetBool("force")
 
 	var gtid bool
 	var master bool

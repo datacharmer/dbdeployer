@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
 	"os"
+	"time"
 )
 
 type Node struct {
@@ -25,6 +26,9 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 	} else {
 		sdef.SandboxDir += "/" + sdef.DirName
 	}
+	if common.DirExists(sdef.SandboxDir) {
+		sdef = CheckDirectory(sdef)
+	}
 	err := os.Mkdir(sdef.SandboxDir, 0755)
 	if err != nil {
 		fmt.Println(err)
@@ -43,14 +47,20 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 		fmt.Println("For single sandbox deployment, use the 'single' command")
 		os.Exit(1)
 	}
+	timestamp := time.Now()
 	var data common.Smap = common.Smap{
 		"Copyright":  Copyright,
+		"AppVersion":   common.VersionDef,
+		"DateTime":     timestamp.Format(time.UnixDate),
 		"SandboxDir": sdef.SandboxDir,
 		"Nodes":      []common.Smap{},
 	}
 
 	for i := 1; i <= nodes; i++ {
 		data["Nodes"] = append(data["Nodes"].([]common.Smap), common.Smap{
+			"Copyright":  Copyright,
+			"AppVersion":   common.VersionDef,
+			"DateTime":     timestamp.Format(time.UnixDate),
 			"Node":       i,
 			"SandboxDir": sdef.SandboxDir,
 		})

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
 	"os"
+	"time"
 )
 
 const (
@@ -43,6 +44,9 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		fmt.Println("Can't run group replication with less than 3 nodes")
 		os.Exit(1)
 	}
+	if common.DirExists(sdef.SandboxDir) {
+		sdef = CheckDirectory(sdef)
+	}
 	for check_port := base_port + 1; check_port < base_port+nodes+1; check_port++ {
 		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
 		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port+GroupPortDelta)
@@ -52,8 +56,11 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	timestamp := time.Now()
 	var data common.Smap = common.Smap{
 		"Copyright":  Copyright,
+		"AppVersion":   common.VersionDef,
+		"DateTime":    	timestamp.Format(time.UnixDate),
 		"SandboxDir": sdef.SandboxDir,
 		"Nodes":      []common.Smap{},
 	}
@@ -76,6 +83,9 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 	for i := 1; i <= nodes; i++ {
 		group_port := base_group_port + i
 		data["Nodes"] = append(data["Nodes"].([]common.Smap), common.Smap{
+			"Copyright":    Copyright,
+			"AppVersion":   common.VersionDef,
+			"DateTime":    	timestamp.Format(time.UnixDate),
 			"Node":        i,
 			"SandboxDir":  sdef.SandboxDir,
 			"RplUser":     sdef.RplUser,
@@ -97,9 +107,11 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		sdef.NodeNum = i
 		CreateSingleSandbox(sdef, origin)
 		var data_node common.Smap = common.Smap{
+			"Copyright":    Copyright,
+			"AppVersion":   common.VersionDef,
+			"DateTime":    	timestamp.Format(time.UnixDate),
 			"Node":       i,
 			"SandboxDir": sdef.SandboxDir,
-			"Copyright":  Copyright,
 		}
 		write_script(MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sdef.SandboxDir, data_node, true)
 	}

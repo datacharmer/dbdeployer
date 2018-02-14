@@ -12,6 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package common
 
-var versionDef string = "0.1.18" // 2018-02-12
+var VersionDef string = "0.1.19" // 2018-02-14

@@ -135,6 +135,7 @@ then
     exit 1
 fi
 echo "Versions to test: $how_many_versions of $searched"
+echo "Will test: [${all_versions[*]}]"
 
 for stype in single multiple replication
 do

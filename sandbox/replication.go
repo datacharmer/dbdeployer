@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
 	"os"
+	"time"
 )
 
 type Slave struct {
@@ -14,7 +15,7 @@ type Slave struct {
 	MasterPort int
 }
 
-func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
+func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, master_ip string) {
 
 	sdef.ReplOptions = ReplOptions
 	vList := VersionToList(sdef.Version)
@@ -43,8 +44,11 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 		os.Exit(1)
 	}
 	slaves := nodes - 1
+	timestamp := time.Now()
 	var data common.Smap = common.Smap{
 		"Copyright":  Copyright,
+		"AppVersion":   common.VersionDef,
+		"DateTime":    	timestamp.Format(time.UnixDate),
 		"SandboxDir": sdef.SandboxDir,
 		"Slaves":     []common.Smap{},
 	}
@@ -57,9 +61,13 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 	CreateSingleSandbox(sdef, origin)
 	for i := 1; i <= slaves; i++ {
 		data["Slaves"] = append(data["Slaves"].([]common.Smap), common.Smap{
+			"Copyright":    Copyright,
+			"AppVersion":   common.VersionDef,
+			"DateTime":    	timestamp.Format(time.UnixDate),
 			"Node":        i,
 			"SandboxDir":  sdef.SandboxDir,
 			"MasterPort":  master_port,
+			"MasterIp":  master_ip,
 			"RplUser":     sdef.RplUser,
 			"RplPassword": sdef.RplPassword})
 		sdef.LoadGrants = false
@@ -71,9 +79,11 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 		fmt.Printf("Installing and starting slave %d\n", i)
 		CreateSingleSandbox(sdef, origin)
 		var data_slave common.Smap = common.Smap{
+			"Copyright":    Copyright,
+			"AppVersion":   common.VersionDef,
+			"DateTime":    	timestamp.Format(time.UnixDate),
 			"Node":       i,
 			"SandboxDir": sdef.SandboxDir,
-			"Copyright":  Copyright,
 		}
 		write_script(ReplicationTemplates, fmt.Sprintf("s%d", i), "slave_template", sdef.SandboxDir, data_slave, true)
 		write_script(ReplicationTemplates, fmt.Sprintf("n%d", i+1), "slave_template", sdef.SandboxDir, data_slave, true)
@@ -107,7 +117,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int) {
 	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
 }
 
-func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, nodes int) {
+func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, nodes int, master_ip string) {
 
 	Basedir := sdef.Basedir + "/" + sdef.Version
 	if !common.DirExists(Basedir) {
@@ -138,21 +148,12 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 	}
 
 	if common.DirExists(sdef.SandboxDir) {
-		fmt.Printf("Directory %s already exists\n", sdef.SandboxDir)
-		os.Exit(1)
+		sdef = CheckDirectory(sdef)
 	}
-
-	/*
-		err := os.Mkdir(sdef.SandboxDir, 0755)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-	*/
 
 	switch topology {
 	case "master-slave":
-		CreateMasterSlaveReplication(sdef, origin, nodes)
+		CreateMasterSlaveReplication(sdef, origin, nodes, master_ip)
 	case "group":
 		CreateGroupReplication(sdef, origin, nodes)
 	}
