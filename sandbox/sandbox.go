@@ -38,6 +38,10 @@ type SandboxDef struct {
 	GtidOptions    string
 	InitOptions    []string
 	MyCnfOptions   []string
+	PreGrantsSql   []string
+	PreGrantsSqlFile   string
+	PostGrantsSql  []string
+	PostGrantsSqlFile  string
 	MyCnfFile      string
 	KeepAuthPlugin bool
 	KeepUuid bool
@@ -203,7 +207,7 @@ func FixServerUuid(sdef SandboxDef) {
 		os.Exit(1)
 	}
 	new_contents := []string{ "[auto]", new_uuid }
-	err := common.WriteStrings(new_contents, uuid_file)
+	err := common.WriteStrings(new_contents, uuid_file, "")
 	if err != nil {
 		fmt.Printf("%s\n", err)
 		os.Exit(1)
@@ -489,10 +493,36 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	if !sdef.KeepUuid {
 		FixServerUuid(sdef)
 	}
+
+	pre_grant_sql_file := sandbox_dir + "/pre_grants.sql"
+	post_grant_sql_file := sandbox_dir + "/post_grants.sql"
+	if sdef.PreGrantsSqlFile != "" {
+		common.CopyFile(sdef.PreGrantsSqlFile, pre_grant_sql_file)
+	}
+	if sdef.PostGrantsSqlFile != "" {
+		common.CopyFile(sdef.PostGrantsSqlFile, post_grant_sql_file)
+	}
+
+	if len(sdef.PreGrantsSql) > 0 {
+		if common.FileExists(pre_grant_sql_file) {
+			common.AppendStrings(sdef.PreGrantsSql, pre_grant_sql_file, ";")
+		} else {
+			common.WriteStrings(sdef.PreGrantsSql, pre_grant_sql_file, ";")
+		}
+	}
+	if len(sdef.PostGrantsSql) > 0 {
+		if common.FileExists(post_grant_sql_file) {
+			common.AppendStrings(sdef.PostGrantsSql, post_grant_sql_file, ";")
+		} else {
+			common.WriteStrings(sdef.PostGrantsSql, post_grant_sql_file, ";")
+		}
+	}
 	//common.Run_cmd(sandbox_dir + "/start", []string{})
 	common.Run_cmd(sandbox_dir + "/start")
 	if sdef.LoadGrants {
+		common.Run_cmd_with_args(sandbox_dir + "/load_grants", []string{"pre_grants.sql"})
 		common.Run_cmd(sandbox_dir + "/load_grants")
+		common.Run_cmd_with_args(sandbox_dir + "/load_grants", []string{"post_grants.sql"})
 	}
 }
 

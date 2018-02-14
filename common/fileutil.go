@@ -23,6 +23,8 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"log"
+	"io"
 )
 
 type SandboxDescription struct {
@@ -133,7 +135,7 @@ func SlurpAsBytes(filename string) []byte {
 	return b
 }
 
-func WriteStrings(lines []string, filename string) error {
+func WriteStrings(lines []string, filename string, termination string) error {
 	file, err := os.Create(filename)
 	if err != nil {
 		return err
@@ -142,13 +144,27 @@ func WriteStrings(lines []string, filename string) error {
 
 	w := bufio.NewWriter(file)
 	for _, line := range lines {
-		fmt.Fprintln(w, line)
+		fmt.Fprintln(w, line + termination)
+	}
+	return w.Flush()
+}
+
+func AppendStrings(lines []string, filename string, termination string) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	w := bufio.NewWriter(file)
+	for _, line := range lines {
+		fmt.Fprintln(w, line + termination)
 	}
 	return w.Flush()
 }
 
 func WriteString(line string, filename string) error {
-	return WriteStrings([]string{line}, filename)
+	return WriteStrings([]string{line}, filename, "")
 }
 
 func FileExists(filename string) bool {
@@ -224,4 +240,23 @@ func Run_cmd_ctrl(c string, silent bool) (error, string) {
 
 func Run_cmd(c string) (error, string) {
 	return Run_cmd_ctrl(c, false)
+}
+
+func CopyFile(source, destination string) {
+	from, err := os.Open(source)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer from.Close()
+
+	to, err := os.OpenFile(destination, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer to.Close()
+
+	_, err = io.Copy(to, from)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

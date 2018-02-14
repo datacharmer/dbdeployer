@@ -82,6 +82,10 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	common.CheckSandboxDir(sd.SandboxDir)
 	sd.InstalledPorts = common.GetInstalledPorts(sd.SandboxDir)
 	sd.LoadGrants = true
+	skip_load_grants, _ := flags.GetBool("skip-load-grants")
+	if skip_load_grants {
+		sd.LoadGrants = false
+	}
 	sd.DbUser, _ = flags.GetString("db-user")
 	sd.DbPassword, _ = flags.GetString("db-password")
 	sd.RplUser, _ = flags.GetString("rpl-user")
@@ -90,6 +94,10 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.BindAddress, _ = flags.GetString("bind-address")
 	sd.InitOptions, _ = flags.GetStringSlice("init-options")
 	sd.MyCnfOptions, _ = flags.GetStringSlice("my-cnf-options")
+	sd.PreGrantsSqlFile, _ = flags.GetString("pre-grants-sql-file")
+	sd.PreGrantsSql, _ = flags.GetStringSlice("pre-grants-sql")
+	sd.PostGrantsSql, _ = flags.GetStringSlice("post-grants-sql")
+	sd.PostGrantsSqlFile, _ = flags.GetString("post-grants-sql-file")
 	sd.MyCnfFile, _ = flags.GetString("my-cnf-file")
 	sd.KeepAuthPlugin, _ = flags.GetBool("keep-auth-plugin")
 	sd.KeepUuid, _ = flags.GetBool("keep-server-uuid")

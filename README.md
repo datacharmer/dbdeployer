@@ -27,7 +27,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with '--help' will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 0.1.19
+    dbdeployer version 0.1.20
     
 
     $ dbdeployer -h
@@ -51,28 +51,33 @@ The program doesn't have any dependencies. Everything is included in the binary.
       versions    List available versions
     
     Flags:
-          --base-port int              Overrides default base-port (for multiple sandboxes)
-          --bind-address string        defines the database bind-address  (default "127.0.0.1")
-          --config string              config file (default "./dbdeployer.json")
-      -p, --db-password string         database password (default "msandbox")
-      -u, --db-user string             database user (default "msandbox")
-          --force                      If a destination sandbox already exists, it will be overwritten
-          --gtid                       enables GTID
-      -h, --help                       help for dbdeployer
-      -i, --init-options strings       mysqld options to run during initialization
-          --keep-auth-plugin           in 8.0.4+, does not change the auth plugin
-          --keep-server-uuid           Does not change the server UUID
-          --my-cnf-file string         Alternative source file for my.sandbox.cnf
-      -c, --my-cnf-options strings     mysqld options to add to my.sandbox.cnf
-          --port int                   Overrides default port
-          --remote-access string       defines the database access  (default "127.%")
-          --rpl-password string        replication password (default "rsandbox")
-          --rpl-user string            replication user (default "rsandbox")
-          --sandbox-binary string      Binary repository (default "$HOME/opt/mysql")
-          --sandbox-directory string   Changes the default sandbox directory
-          --sandbox-home string        Sandbox deployment direcory (default "$HOME/sandboxes")
-          --use-template strings       [template_name:file_name] Replace existing template with one from file
-          --version                    version for dbdeployer
+          --base-port int                 Overrides default base-port (for multiple sandboxes)
+          --bind-address string           defines the database bind-address  (default "127.0.0.1")
+          --config string                 config file (default "./dbdeployer.json")
+      -p, --db-password string            database password (default "msandbox")
+      -u, --db-user string                database user (default "msandbox")
+          --force                         If a destination sandbox already exists, it will be overwritten
+          --gtid                          enables GTID
+      -h, --help                          help for dbdeployer
+      -i, --init-options strings          mysqld options to run during initialization
+          --keep-auth-plugin              in 8.0.4+, does not change the auth plugin
+          --keep-server-uuid              Does not change the server UUID
+          --my-cnf-file string            Alternative source file for my.sandbox.cnf
+      -c, --my-cnf-options strings        mysqld options to add to my.sandbox.cnf
+          --port int                      Overrides default port
+          --post-grants-sql strings       SQL queries to run after loading grants
+          --post-grants-sql-file string   SQL file to run after loading grants
+          --pre-grants-sql strings        SQL queries to run before loading grants
+          --pre-grants-sql-file string    SQL file to run before loading grants
+          --remote-access string          defines the database access  (default "127.%")
+          --rpl-password string           replication password (default "rsandbox")
+          --rpl-user string               replication user (default "rsandbox")
+          --sandbox-binary string         Binary repository (default "$HOME/opt/mysql")
+          --sandbox-directory string      Changes the default sandbox directory
+          --sandbox-home string           Sandbox deployment direcory (default "$HOME/sandboxes")
+          --skip-load-grants              Does not load the grants
+          --use-template strings          [template_name:file_name] Replace existing template with one from file
+          --version                       version for dbdeployer
     
     Use "dbdeployer [command] --help" for more information about a command.
     

@@ -1,3 +1,10 @@
+0.1.20	14-Feb-2018
+	- Added flags for pre and post grants SQL execution. 
+		- --pre-grants-sql-file
+		- --pre-grants-sql
+		- --post-grants-sql-file
+		- --post-grants-sql
+	- Fixed bug (in cobra+pflag package) that splits multiple commands by comma.
 0.1.19	14-Feb-2018
 	- MySQL 8.0+ sandboxes now use roles instead of direct privilege
 	assignments.

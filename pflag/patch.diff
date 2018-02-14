@@ -1,0 +1,21 @@
+diff --git a/string_slice.go b/string_slice.go
+index 05eee75..05888e2 100644
+--- a/string_slice.go
++++ b/string_slice.go
+@@ -25,12 +25,16 @@ func readAsCSV(val string) ([]string, error) {
+        }
+        stringReader := strings.NewReader(val)
+        csvReader := csv.NewReader(stringReader)
++       // Change CSV reader field separator
++       csvReader.Comma = ';'
+        return csvReader.Read()
+ }
+
+ func writeAsCSV(vals []string) (string, error) {
+        b := &bytes.Buffer{}
+        w := csv.NewWriter(b)
++       // Change CSV writer field separator
++       w.Comma=';'
+        err := w.Write(vals)
+        if err != nil {
+                return "", err

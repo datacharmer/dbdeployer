@@ -72,6 +72,10 @@ func init() {
 	set_pflag("bind-address", "", "", "127.0.0.1", "defines the database bind-address ", false)
 	set_pflag("init-options", "i", "INIT_OPTIONS", "", "mysqld options to run during initialization", true)
 	set_pflag("my-cnf-options", "c", "MY_CNF_OPTIONS", "", "mysqld options to add to my.sandbox.cnf", true)
+	set_pflag("pre-grants-sql-file", "", "", "", "SQL file to run before loading grants", false)
+	set_pflag("pre-grants-sql", "", "", "", "SQL queries to run before loading grants", true)
+	set_pflag("post-grants-sql", "", "", "", "SQL queries to run after loading grants", true)
+	set_pflag("post-grants-sql-file", "", "", "", "SQL file to run after loading grants", false)
 	// This option will allow to merge the template with an external my.cnf
 	// The options that are essential for the sandbox will be preserved
 	set_pflag("my-cnf-file", "", "MY_CNF_FILE", "", "Alternative source file for my.sandbox.cnf", false)
@@ -87,6 +91,7 @@ func init() {
 	rootCmd.PersistentFlags().Bool("keep-auth-plugin", false, "in 8.0.4+, does not change the auth plugin")
 	rootCmd.PersistentFlags().Bool("keep-server-uuid", false, "Does not change the server UUID")
 	rootCmd.PersistentFlags().Bool("force", false, "If a destination sandbox already exists, it will be overwritten")
+	rootCmd.PersistentFlags().Bool("skip-load-grants", false, "Does not load the grants")
 	// TODO rootCmd.PersistentFlags().Bool("check-port", false, "Check if the port is already in use, and find a free one")
 
 	rootCmd.InitDefaultVersionFlag()
