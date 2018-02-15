@@ -16,9 +16,9 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"github.com/spf13/cobra"
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/spf13/cobra"
+	"os"
 )
 
 func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, require_args bool) {
@@ -44,23 +44,23 @@ func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 			single_use = false
 		}
 		if !common.ExecExists(cmd_file) {
-			fmt.Printf("No %s or %s found in %s\n", executable, executable + "_all", full_dir_path)
+			fmt.Printf("No %s or %s found in %s\n", executable, executable+"_all", full_dir_path)
 			os.Exit(1)
 		}
 		var cmd_args []string
-		
+
 		if single_use && executable == "use" {
 			cmd_args = append(cmd_args, "-e")
 		}
-		for _,arg := range args {
+		for _, arg := range args {
 			cmd_args = append(cmd_args, arg)
 		}
 		var err error
 		fmt.Printf("# Running \"%s\" on %s\n", real_executable, sb)
 		if len(cmd_args) > 0 {
-			err,_ = common.Run_cmd_with_args(cmd_file, cmd_args)
+			err, _ = common.Run_cmd_with_args(cmd_file, cmd_args)
 		} else {
-			err,_ = common.Run_cmd(cmd_file)
+			err, _ = common.Run_cmd(cmd_file)
 		}
 		if err != nil {
 			fmt.Printf("Error while running %s\n", cmd_file)
@@ -98,7 +98,7 @@ var (
 	globalCmd = &cobra.Command{
 		Use:   "global",
 		Short: "Runs a given command in every sandbox",
-		Long: `This command can propagate the given action through all sandboxes.`,
+		Long:  `This command can propagate the given action through all sandboxes.`,
 		Example: `
 	$ dbdeployer global use "select version()"
 	$ dbdeployer global status
@@ -109,35 +109,35 @@ var (
 	globalStartCmd = &cobra.Command{
 		Use:   "start [options]",
 		Short: "Starts all sandboxes",
-		Long: ``,
-		Run: StartAllSandboxes,
+		Long:  ``,
+		Run:   StartAllSandboxes,
 	}
 
 	globalRestartCmd = &cobra.Command{
 		Use:   "restart [options]",
 		Short: "Restarts all sandboxes",
-		Long: ``,
-		Run: RestartAllSandboxes,
+		Long:  ``,
+		Run:   RestartAllSandboxes,
 	}
 
 	globalStopCmd = &cobra.Command{
 		Use:   "stop",
 		Short: "Stops all sandboxes",
-		Long: ``,
-		Run: StopAllSandboxes,
+		Long:  ``,
+		Run:   StopAllSandboxes,
 	}
 	globalStatusCmd = &cobra.Command{
 		Use:   "status",
 		Short: "Shows the status in all sandboxes",
-		Long: ``,
-		Run: StatusAllSandboxes,
+		Long:  ``,
+		Run:   StatusAllSandboxes,
 	}
 
 	globalTestCmd = &cobra.Command{
 		Use:   "test",
 		Short: "Tests all sandboxes",
-		Long: ``,
-		Run: TestAllSandboxes,
+		Long:  ``,
+		Run:   TestAllSandboxes,
 	}
 
 	globalUseCmd = &cobra.Command{

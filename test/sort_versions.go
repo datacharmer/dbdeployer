@@ -3,9 +3,9 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/datacharmer/dbdeployer/sandbox"
 	"os"
 	"sort"
-	"github.com/datacharmer/dbdeployer/sandbox"
 )
 
 /*

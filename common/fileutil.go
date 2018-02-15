@@ -19,12 +19,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"regexp"
+	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
-	"log"
-	"io"
+	"regexp"
 )
 
 type SandboxDescription struct {
@@ -37,7 +37,7 @@ type SandboxDescription struct {
 }
 
 type keyvalue struct {
-	Key string
+	Key   string
 	Value string
 }
 
@@ -52,7 +52,7 @@ func ParseConfigFile(filename string) configOptions {
 	re_k_v := regexp.MustCompile(`(\S+)\s*=\s*(.*)`)
 	current_header := ""
 	for _, line := range lines {
-		if re_comment.MatchString(line) || re_empty.MatchString(line) {	
+		if re_comment.MatchString(line) || re_empty.MatchString(line) {
 			continue
 		}
 		headerList := re_header.FindAllStringSubmatch(line, -1)
@@ -62,9 +62,9 @@ func ParseConfigFile(filename string) configOptions {
 		}
 		kvList := re_k_v.FindAllStringSubmatch(line, -1)
 		if kvList != nil {
-			kv  := keyvalue{
-				Key : kvList[0][1],
-				Value : kvList[0][2],
+			kv := keyvalue{
+				Key:   kvList[0][1],
+				Value: kvList[0][2],
 			}
 			config[current_header] = append(config[current_header], kv)
 		}
@@ -144,7 +144,7 @@ func WriteStrings(lines []string, filename string, termination string) error {
 
 	w := bufio.NewWriter(file)
 	for _, line := range lines {
-		fmt.Fprintln(w, line + termination)
+		fmt.Fprintln(w, line+termination)
 	}
 	return w.Flush()
 }
@@ -158,7 +158,7 @@ func AppendStrings(lines []string, filename string, termination string) error {
 
 	w := bufio.NewWriter(file)
 	for _, line := range lines {
-		fmt.Fprintln(w, line + termination)
+		fmt.Fprintln(w, line+termination)
 	}
 	return w.Flush()
 }

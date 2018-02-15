@@ -2,15 +2,15 @@ package common
 
 import (
 	"fmt"
-	"os"
 	"io/ioutil"
+	"os"
 	"strings"
 )
 
 func GetInstalledSandboxes(sandbox_home string) []string {
 	files, err := ioutil.ReadDir(sandbox_home)
 	if err != nil {
-		fmt.Printf("%s",err)
+		fmt.Printf("%s", err)
 		os.Exit(1)
 	}
 	var installed_sandboxes []string
@@ -20,7 +20,7 @@ func GetInstalledSandboxes(sandbox_home string) []string {
 		if fmode.IsDir() {
 			sbdesc := sandbox_home + "/" + fname + "/sbdescription.json"
 			if FileExists(sbdesc) {
-				installed_sandboxes = append( installed_sandboxes, fname)
+				installed_sandboxes = append(installed_sandboxes, fname)
 
 			}
 		}
@@ -71,7 +71,6 @@ func GetInstalledPorts(sandbox_home string) []int {
 	}
 	return port_collection
 }
-
 
 func CheckOrigin(args []string) {
 	if len(args) < 1 {

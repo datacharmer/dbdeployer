@@ -28,7 +28,6 @@ loose-group-replication-single-primary-mode=off
 )
 
 func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
-	// fmt.Println("Group replication not implemented yet")
 	vList := VersionToList(sdef.Version)
 	rev := vList[2]
 	base_port := sdef.Port + GroupReplicationBasePort + (rev * 100)
@@ -59,8 +58,8 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 	timestamp := time.Now()
 	var data common.Smap = common.Smap{
 		"Copyright":  Copyright,
-		"AppVersion":   common.VersionDef,
-		"DateTime":    	timestamp.Format(time.UnixDate),
+		"AppVersion": common.VersionDef,
+		"DateTime":   timestamp.Format(time.UnixDate),
 		"SandboxDir": sdef.SandboxDir,
 		"Nodes":      []common.Smap{},
 	}
@@ -83,9 +82,9 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 	for i := 1; i <= nodes; i++ {
 		group_port := base_group_port + i
 		data["Nodes"] = append(data["Nodes"].([]common.Smap), common.Smap{
-			"Copyright":    Copyright,
-			"AppVersion":   common.VersionDef,
-			"DateTime":    	timestamp.Format(time.UnixDate),
+			"Copyright":   Copyright,
+			"AppVersion":  common.VersionDef,
+			"DateTime":    timestamp.Format(time.UnixDate),
 			"Node":        i,
 			"SandboxDir":  sdef.SandboxDir,
 			"RplUser":     sdef.RplUser,
@@ -108,9 +107,9 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		sdef.NodeNum = i
 		CreateSingleSandbox(sdef, origin)
 		var data_node common.Smap = common.Smap{
-			"Copyright":    Copyright,
-			"AppVersion":   common.VersionDef,
-			"DateTime":    	timestamp.Format(time.UnixDate),
+			"Copyright":  Copyright,
+			"AppVersion": common.VersionDef,
+			"DateTime":   timestamp.Format(time.UnixDate),
 			"Node":       i,
 			"SandboxDir": sdef.SandboxDir,
 		}
@@ -123,7 +122,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		Version: sdef.Version,
 		Port:    []int{0},
 		Nodes:   nodes,
-		NodeNum : 0,
+		NodeNum: 0,
 	}
 	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)
 

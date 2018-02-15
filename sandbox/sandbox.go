@@ -1,52 +1,49 @@
 package sandbox
 
 import (
-	// "bytes"
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
 	"os"
 	"time"
-	// "os/exec"
 	"regexp"
 	"strconv"
-	// "strings"
 )
 
 type SandboxDef struct {
-	DirName        string
-	SBType         string
-	Multi          bool
-	NodeNum		   int
-	Version        string
-	Basedir        string
-	SandboxDir     string
-	LoadGrants     bool
-	InstalledPorts []int
-	Port           int
-	UserPort       int
-	BasePort       int
-	MorePorts      []int
-	Prompt         string
-	DbUser         string
-	RplUser        string
-	DbPassword     string
-	RplPassword    string
-	RemoteAccess   string
-	BindAddress    string
-	ServerId       int
-	ReplOptions    string
-	GtidOptions    string
-	InitOptions    []string
-	MyCnfOptions   []string
-	PreGrantsSql   []string
-	PreGrantsSqlFile   string
-	PostGrantsSql  []string
-	PostGrantsSqlFile  string
-	MyCnfFile      string
-	KeepAuthPlugin bool
-	KeepUuid bool
-	SinglePrimary  bool
-	Force  bool
+	DirName           string
+	SBType            string
+	Multi             bool
+	NodeNum           int
+	Version           string
+	Basedir           string
+	SandboxDir        string
+	LoadGrants        bool
+	InstalledPorts    []int
+	Port              int
+	UserPort          int
+	BasePort          int
+	MorePorts         []int
+	Prompt            string
+	DbUser            string
+	RplUser           string
+	DbPassword        string
+	RplPassword       string
+	RemoteAccess      string
+	BindAddress       string
+	ServerId          int
+	ReplOptions       string
+	GtidOptions       string
+	InitOptions       []string
+	MyCnfOptions      []string
+	PreGrantsSql      []string
+	PreGrantsSqlFile  string
+	PostGrantsSql     []string
+	PostGrantsSqlFile string
+	MyCnfFile         string
+	KeepAuthPlugin    bool
+	KeepUuid          bool
+	SinglePrimary     bool
+	Force             bool
 }
 
 const (
@@ -86,17 +83,16 @@ var Origins = [...]string{
 
 func GetOptionsFromFile(filename string) (options []string) {
 	skip_options := map[string]bool{
-		"user":true,
-		"port":true,
-		"socket":true,
-		"datadir":true,
-		"basedir":true,
-		"tmpdir":true,
-		"pid-file":true,
-		"server-id":true,
-		"bind-address":true,
-		"log-error" : true,
-		
+		"user":         true,
+		"port":         true,
+		"socket":       true,
+		"datadir":      true,
+		"basedir":      true,
+		"tmpdir":       true,
+		"pid-file":     true,
+		"server-id":    true,
+		"bind-address": true,
+		"log-error":    true,
 	}
 	config := common.ParseConfigFile(filename)
 	for _, kv := range config["mysqld"] {
@@ -114,23 +110,23 @@ func CheckDirectory(sdef SandboxDef) SandboxDef {
 	sandbox_dir := sdef.SandboxDir
 	if common.DirExists(sandbox_dir) {
 		if sdef.Force {
-			fmt.Printf("Overwriting directory %s\n", sandbox_dir)	
+			fmt.Printf("Overwriting directory %s\n", sandbox_dir)
 			stop_command := sandbox_dir + "/stop"
 			if !common.ExecExists(stop_command) {
 				stop_command = sandbox_dir + "/stop_all"
 			}
 			if !common.ExecExists(stop_command) {
-				fmt.Printf("Neither 'stop' or 'stop_all' found in %s\n",sandbox_dir)
+				fmt.Printf("Neither 'stop' or 'stop_all' found in %s\n", sandbox_dir)
 			}
 
 			used_ports_list := common.GetInstalledPorts(sandbox_dir)
 			my_used_ports := make(map[int]bool)
-			for _,p := range used_ports_list {
+			for _, p := range used_ports_list {
 				my_used_ports[p] = true
 			}
 
 			common.Run_cmd(stop_command)
-			err, _ := common.Run_cmd_with_args("rm", []string{"-rf", sandbox_dir,})
+			err, _ := common.Run_cmd_with_args("rm", []string{"-rf", sandbox_dir})
 			if err != nil {
 				fmt.Printf("Error while deleting sandbox %s\n", sandbox_dir)
 				os.Exit(1)
@@ -189,10 +185,10 @@ func MakeNewServerUuid(sdef SandboxDef) string {
 	//              12345678 1234 1234 1234 123456789012
 	//    new_uuid="00000000-0000-0000-0000-000000000000"
 	if node_num > 0 {
-		group2 = re_digit.ReplaceAllString(group2, fmt.Sprintf("%d",node_num))
-		group3 = re_digit.ReplaceAllString(group3, fmt.Sprintf("%d",node_num))
+		group2 = re_digit.ReplaceAllString(group2, fmt.Sprintf("%d", node_num))
+		group3 = re_digit.ReplaceAllString(group3, fmt.Sprintf("%d", node_num))
 	}
-	return  fmt.Sprintf("server-uuid=%s-%s-%s", group1, group2,group3)
+	return fmt.Sprintf("server-uuid=%s-%s-%s", group1, group2, group3)
 }
 
 func FixServerUuid(sdef SandboxDef) {
@@ -206,7 +202,7 @@ func FixServerUuid(sdef SandboxDef) {
 		fmt.Printf("Directory %s does not exist\n", operation_dir)
 		os.Exit(1)
 	}
-	new_contents := []string{ "[auto]", new_uuid }
+	new_contents := []string{"[auto]", new_uuid}
 	err := common.WriteStrings(new_contents, uuid_file, "")
 	if err != nil {
 		fmt.Printf("%s\n", err)
@@ -340,7 +336,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	if sdef.MyCnfFile != "" {
 		options := GetOptionsFromFile(sdef.MyCnfFile)
 		if len(options) > 0 {
-			sdef.MyCnfOptions = append(sdef.MyCnfOptions,fmt.Sprintf("# options retrieved from %s", sdef.MyCnfFile))
+			sdef.MyCnfOptions = append(sdef.MyCnfOptions, fmt.Sprintf("# options retrieved from %s", sdef.MyCnfFile))
 		}
 		for _, option := range options {
 			// fmt.Printf("[%s]\n", option)
@@ -352,7 +348,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	var data common.Smap = common.Smap{"Basedir": sdef.Basedir,
 		"Copyright":    Copyright,
 		"AppVersion":   common.VersionDef,
-		"DateTime":    	timestamp.Format(time.UnixDate),
+		"DateTime":     timestamp.Format(time.UnixDate),
 		"SandboxDir":   sandbox_dir,
 		"Port":         sdef.Port,
 		"BasePort":     sdef.BasePort,
@@ -435,7 +431,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	//cmd.Stdout = &out
 	//cmd.Stderr = &stderr
 	//err = cmd.Run()
-	err,_ = common.Run_cmd_ctrl(sandbox_dir+"/init_db", true)
+	err, _ = common.Run_cmd_ctrl(sandbox_dir+"/init_db", true)
 	if err == nil {
 		fmt.Printf("Database installed in %s\n", sandbox_dir)
 		if !sdef.Multi {
@@ -481,12 +477,12 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 
 	write_script(SingleTemplates, "my.sandbox.cnf", "my_cnf_template", sandbox_dir, data, false)
 	switch {
-		case GreaterOrEqualVersion(sdef.Version, []int{8, 0, 0}):
-			write_script(SingleTemplates, "grants.mysql", "grants_template8x", sandbox_dir, data, false)
-		case GreaterOrEqualVersion(sdef.Version, []int{5, 7, 6}):
-			write_script(SingleTemplates, "grants.mysql", "grants_template57", sandbox_dir, data, false)
-		default: 
-			write_script(SingleTemplates, "grants.mysql", "grants_template5x", sandbox_dir, data, false)
+	case GreaterOrEqualVersion(sdef.Version, []int{8, 0, 0}):
+		write_script(SingleTemplates, "grants.mysql", "grants_template8x", sandbox_dir, data, false)
+	case GreaterOrEqualVersion(sdef.Version, []int{5, 7, 6}):
+		write_script(SingleTemplates, "grants.mysql", "grants_template57", sandbox_dir, data, false)
+	default:
+		write_script(SingleTemplates, "grants.mysql", "grants_template5x", sandbox_dir, data, false)
 	}
 	write_script(SingleTemplates, "sb_include", "sb_include_template", sandbox_dir, data, false)
 
@@ -520,9 +516,9 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	//common.Run_cmd(sandbox_dir + "/start", []string{})
 	common.Run_cmd(sandbox_dir + "/start")
 	if sdef.LoadGrants {
-		common.Run_cmd_with_args(sandbox_dir + "/load_grants", []string{"pre_grants.sql"})
+		common.Run_cmd_with_args(sandbox_dir+"/load_grants", []string{"pre_grants.sql"})
 		common.Run_cmd(sandbox_dir + "/load_grants")
-		common.Run_cmd_with_args(sandbox_dir + "/load_grants", []string{"post_grants.sql"})
+		common.Run_cmd_with_args(sandbox_dir+"/load_grants", []string{"post_grants.sql"})
 	}
 }
 

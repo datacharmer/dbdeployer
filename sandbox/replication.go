@@ -47,8 +47,8 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	timestamp := time.Now()
 	var data common.Smap = common.Smap{
 		"Copyright":  Copyright,
-		"AppVersion":   common.VersionDef,
-		"DateTime":    	timestamp.Format(time.UnixDate),
+		"AppVersion": common.VersionDef,
+		"DateTime":   timestamp.Format(time.UnixDate),
 		"SandboxDir": sdef.SandboxDir,
 		"Slaves":     []common.Smap{},
 	}
@@ -57,17 +57,17 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	sdef.LoadGrants = true
 	sdef.Multi = true
 	sdef.Prompt = "master"
-	sdef.NodeNum =1
+	sdef.NodeNum = 1
 	CreateSingleSandbox(sdef, origin)
 	for i := 1; i <= slaves; i++ {
 		data["Slaves"] = append(data["Slaves"].([]common.Smap), common.Smap{
-			"Copyright":    Copyright,
-			"AppVersion":   common.VersionDef,
-			"DateTime":    	timestamp.Format(time.UnixDate),
+			"Copyright":   Copyright,
+			"AppVersion":  common.VersionDef,
+			"DateTime":    timestamp.Format(time.UnixDate),
 			"Node":        i,
 			"SandboxDir":  sdef.SandboxDir,
 			"MasterPort":  master_port,
-			"MasterIp":  master_ip,
+			"MasterIp":    master_ip,
 			"RplUser":     sdef.RplUser,
 			"RplPassword": sdef.RplPassword})
 		sdef.LoadGrants = false
@@ -79,9 +79,9 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		fmt.Printf("Installing and starting slave %d\n", i)
 		CreateSingleSandbox(sdef, origin)
 		var data_slave common.Smap = common.Smap{
-			"Copyright":    Copyright,
-			"AppVersion":   common.VersionDef,
-			"DateTime":    	timestamp.Format(time.UnixDate),
+			"Copyright":  Copyright,
+			"AppVersion": common.VersionDef,
+			"DateTime":   timestamp.Format(time.UnixDate),
 			"Node":       i,
 			"SandboxDir": sdef.SandboxDir,
 		}
@@ -95,7 +95,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		Version: sdef.Version,
 		Port:    []int{0},
 		Nodes:   slaves,
-		NodeNum : 0,
+		NodeNum: 0,
 	}
 	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)
 

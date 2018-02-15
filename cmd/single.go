@@ -126,9 +126,6 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 
 func SingleSandbox(cmd *cobra.Command, args []string) {
 	var sd sandbox.SandboxDef
-	// fmt.Println("SINGLE")
-	// fmt.Printf("Cmd: %#v\n", cmd)
-	// fmt.Printf("\nArgs: %#v\n", args)
 	common.CheckOrigin(args)
 	sd = FillSdef(cmd, args)
 	sandbox.CreateSingleSandbox(sd, args[0])

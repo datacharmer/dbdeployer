@@ -37,7 +37,7 @@ func RemoveSandbox(sandbox_dir, sandbox string) {
 		os.Exit(1)
 	}
 	fmt.Printf("Running %s\n", stop)
-	err,_ := common.Run_cmd(stop)
+	err, _ := common.Run_cmd(stop)
 	if err != nil {
 		fmt.Printf("Error while stopping sandbox %s\n", full_path)
 		os.Exit(1)
@@ -49,7 +49,7 @@ func RemoveSandbox(sandbox_dir, sandbox string) {
 		cmd_str += " " + item
 	}
 	fmt.Printf("Running %s\n", cmd_str)
-	err,_ = common.Run_cmd_with_args("rm", rm_cmd)
+	err, _ = common.Run_cmd_with_args("rm", rm_cmd)
 	if err != nil {
 		fmt.Printf("Error while deleting sandbox %s\n", full_path)
 		os.Exit(1)

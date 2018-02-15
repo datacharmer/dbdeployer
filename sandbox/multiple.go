@@ -50,8 +50,8 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 	timestamp := time.Now()
 	var data common.Smap = common.Smap{
 		"Copyright":  Copyright,
-		"AppVersion":   common.VersionDef,
-		"DateTime":     timestamp.Format(time.UnixDate),
+		"AppVersion": common.VersionDef,
+		"DateTime":   timestamp.Format(time.UnixDate),
 		"SandboxDir": sdef.SandboxDir,
 		"Nodes":      []common.Smap{},
 	}
@@ -59,8 +59,8 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 	for i := 1; i <= nodes; i++ {
 		data["Nodes"] = append(data["Nodes"].([]common.Smap), common.Smap{
 			"Copyright":  Copyright,
-			"AppVersion":   common.VersionDef,
-			"DateTime":     timestamp.Format(time.UnixDate),
+			"AppVersion": common.VersionDef,
+			"DateTime":   timestamp.Format(time.UnixDate),
 			"Node":       i,
 			"SandboxDir": sdef.SandboxDir,
 		})
@@ -87,7 +87,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 		Version: sdef.Version,
 		Port:    []int{0},
 		Nodes:   nodes,
-		NodeNum : 0,
+		NodeNum: 0,
 	}
 	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)
 

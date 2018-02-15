@@ -21,7 +21,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
 // Shows installed sandboxes
 func ShowSandboxes(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
