@@ -211,15 +211,19 @@ function test_summary
     else
         PERCENT_PASSED=$(($PASSED/$TESTS*100))
         PERCENT_FAILED=$(($FAILED/$TESTS*100))
-        printf "# TESTS : %5d\n" $TESTS
-        printf "# FAILED: %5d (%5.1f%%)\n" $FAILED $PERCENT_FAILED
-        printf "# PASSED: %5d (%5.1f%%)\n" $PASSED $PERCENT_PASSED
+        printf "# Tests : %5d\n" $TESTS
     fi
     exit_code=0
+	fail_label="failed"
+	pass_label="PASSED"
     if [ "$FAILED" != "0" ]
     then
+        fail_label="FAILED"
+		pass_label="passed"
         exit_code=1
     fi
+    printf "# $fail_label: %5d (%5.1f%%)\n" $FAILED $PERCENT_FAILED
+    printf "# $pass_label: %5d (%5.1f%%)\n" $PASSED $PERCENT_PASSED
     echo "# exit code: $exit_code"
     exit $exit_code
 }

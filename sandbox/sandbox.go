@@ -73,14 +73,6 @@ enforce-gtid-consistency
 `
 )
 
-var Origins = [...]string{
-	"Tarball",
-	"NumberedTarball",
-	"BareVersion",
-	"FullDir",
-	"NoSuchOrigin",
-}
-
 func GetOptionsFromFile(filename string) (options []string) {
 	skip_options := map[string]bool{
 		"user":         true,

@@ -786,13 +786,20 @@ else
         fail=$(($fail+1))
     fi
 fi
-echo "# PASS: $pass"
-echo "# FAIL: $fail"
+fail_label="fail"
+pass_label="PASS"
+exit_code=0
+tests=$(($pass+$fail))
 if [ "$fail" != "0" ]
 then
-	exit 1
+	fail_label="FAIL"
+	pass_label="pass"
+	exit_code=1
 fi
-exit 0
+printf "# Tests : %5d\n" $tests
+printf "# $pass_label  : %5d \n" $pass
+printf "# $fail_label  : %5d \n" $fail
+exit $exit_code
 `
 
 	sb_include_template string = ""
