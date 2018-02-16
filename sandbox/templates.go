@@ -54,6 +54,11 @@ var (
 		MYSQLD_SAFE="bin/mysqld_safe"
 		SBDIR={{.SandboxDir}}
 		PIDFILE=$SBDIR/data/mysql_sandbox{{.Port}}.pid
+		CUSTOM_MYSQLD={{.CustomMysqld}}
+		if [ -n "$CUSTOM_MYSQLD" ]
+		then
+    		CUSTOM_MYSQLD="--mysqld=$CUSTOM_MYSQLD"
+		fi
 		if [ ! -f $BASEDIR/$MYSQLD_SAFE ]
 		then
 			echo "mysqld_safe not found in $BASEDIR/bin/"

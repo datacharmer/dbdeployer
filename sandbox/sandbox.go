@@ -30,6 +30,7 @@ type SandboxDef struct {
 	RplPassword       string
 	RemoteAccess      string
 	BindAddress       string
+	CustomMysqld	  string
 	ServerId          int
 	ReplOptions       string
 	GtidOptions       string
@@ -44,6 +45,7 @@ type SandboxDef struct {
 	KeepUuid          bool
 	SinglePrimary     bool
 	Force             bool
+	ExposeDdTables 	  bool
 }
 
 const (
@@ -72,6 +74,15 @@ log-slave-updates
 enforce-gtid-consistency
 `
 )
+var Expose_dd_tables []string= []string{
+	"set persist debug='+d,skip_dd_table_access_check'",
+	"set @col_type=(select c.type from mysql.columns c inner join mysql.tables t where t.id=table_id and t.name='tables' and c.name='hidden')",
+	"set @visible=(if(@col_type = 'MYSQL_TYPE_ENUM', 'Visible', '0'))",
+	"set @hidden=(if(@col_type = 'MYSQL_TYPE_ENUM', 'System', '1'))",
+	"create table sys.dd_hidden_tables (id bigint unsigned, name varchar(64), schema_id bigint unsigned)",
+	"insert into sys.dd_hidden_tables select id, name, schema_id from mysql.tables where hidden=@hidden",
+	"update mysql.tables set hidden=@visible where hidden=@hidden and schema_id = 1",
+	}
 
 func GetOptionsFromFile(filename string) (options []string) {
 	skip_options := map[string]bool{
@@ -319,6 +330,29 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		fmt.Printf("TMP directory %s does not exist\n", global_tmp_dir)
 		os.Exit(1)
 	}
+	if sdef.ExposeDdTables {
+		if !GreaterOrEqualVersion(sdef.Version, []int{8, 0, 0}) {
+			fmt.Printf("--expose-dd-tables requires MySQL 8.0.0+\n")
+			os.Exit(1)
+		}
+		for _, line := range Expose_dd_tables {
+			sdef.PostGrantsSql = append(sdef.PostGrantsSql, line)
+		}
+		if sdef.CustomMysqld !="" && sdef.CustomMysqld != "mysqld-debug" {
+			fmt.Printf("--expose-dd-tables requires mysqld-debug. A different file was indicated (--custom-mysqld=%s)\n", sdef.CustomMysqld)
+			fmt.Println("Either use \"mysqld-debug\" or remove --custom-mysqld")
+			os.Exit(1)
+		}
+		sdef.CustomMysqld="mysqld-debug"
+	}
+	if sdef.CustomMysqld != "" {
+		custom_mysqld := sdef.Basedir + "/" + sdef.CustomMysqld
+		if !common.ExecExists(custom_mysqld) {
+			fmt.Printf("File %s not found or not executable\n",custom_mysqld)
+			fmt.Printf("The file \"%s\" (defined with --custom-mysqld) must be in the same directory as the regular mysqld\n", sdef.CustomMysqld)
+			os.Exit(1)
+		}
+	}
 	if GreaterOrEqualVersion(sdef.Version, []int{8, 0, 4}) {
 		if sdef.KeepAuthPlugin == false {
 			sdef.InitOptions = append(sdef.InitOptions, "--default_authentication_plugin=mysql_native_password")
@@ -342,6 +376,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		"AppVersion":   common.VersionDef,
 		"DateTime":     timestamp.Format(time.UnixDate),
 		"SandboxDir":   sandbox_dir,
+		"CustomMysqld": sdef.CustomMysqld,
 		"Port":         sdef.Port,
 		"BasePort":     sdef.BasePort,
 		"Prompt":       sdef.Prompt,

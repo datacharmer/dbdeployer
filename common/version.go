@@ -14,4 +14,4 @@
 
 package common
 
-var VersionDef string = "0.1.20" // 2018-02-14
+var VersionDef string = "0.1.21" // 2018-02-16

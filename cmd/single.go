@@ -92,6 +92,7 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.RplPassword, _ = flags.GetString("rpl-password")
 	sd.RemoteAccess, _ = flags.GetString("remote-access")
 	sd.BindAddress, _ = flags.GetString("bind-address")
+	sd.CustomMysqld, _ = flags.GetString("custom-mysqld")
 	sd.InitOptions, _ = flags.GetStringSlice("init-options")
 	sd.MyCnfOptions, _ = flags.GetStringSlice("my-cnf-options")
 	sd.PreGrantsSqlFile, _ = flags.GetString("pre-grants-sql-file")
@@ -102,6 +103,7 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.KeepAuthPlugin, _ = flags.GetBool("keep-auth-plugin")
 	sd.KeepUuid, _ = flags.GetBool("keep-server-uuid")
 	sd.Force, _ = flags.GetBool("force")
+	sd.ExposeDdTables, _ = flags.GetBool("expose-dd-tables")
 
 	var gtid bool
 	var master bool

@@ -1,3 +1,6 @@
+0.1.21	16-Feb-2018
+	- Added flag --expose-dd-tables to show data dictionary hidden tables
+	- Added flag --custom-mysqld to use different server executable
 0.1.20	14-Feb-2018
 	- Added flags for pre and post grants SQL execution. 
 		- --pre-grants-sql-file
