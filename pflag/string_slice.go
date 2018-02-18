@@ -25,7 +25,7 @@ func readAsCSV(val string) ([]string, error) {
 	}
 	stringReader := strings.NewReader(val)
 	csvReader := csv.NewReader(stringReader)
-	// Change CSV reader field separator 
+	// Change CSV reader field separator
 	csvReader.Comma = ';'
 	return csvReader.Read()
 }
@@ -33,8 +33,8 @@ func readAsCSV(val string) ([]string, error) {
 func writeAsCSV(vals []string) (string, error) {
 	b := &bytes.Buffer{}
 	w := csv.NewWriter(b)
-	// Change CSV writer field separator 
-	w.Comma=';'
+	// Change CSV writer field separator
+	w.Comma = ';'
 	err := w.Write(vals)
 	if err != nil {
 		return "", err

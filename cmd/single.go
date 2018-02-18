@@ -60,13 +60,12 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	var sd sandbox.SandboxDef
 
 	flags := cmd.Flags()
-
 	template_requests, _ := flags.GetStringSlice("use-template")
 	for _, request := range template_requests {
 		tname, fname := check_template_change_request(request)
 		replace_template(tname, fname)
 	}
-	sd.Port = sandbox.VersionToPort(args[0])
+	sd.Port = common.VersionToPort(args[0])
 
 	sd.UserPort, _ = flags.GetInt("port")
 	sd.BasePort, _ = flags.GetInt("base-port")
@@ -110,13 +109,13 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	master, _ = flags.GetBool("master")
 	gtid, _ = flags.GetBool("gtid")
 	if master {
-		sd.ReplOptions = sandbox.ReplOptions
+		sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 		sd.ServerId = sd.Port
 	}
 	if gtid {
-		if sandbox.GreaterOrEqualVersion(sd.Version, []int{5, 6, 9}) {
-			sd.GtidOptions = sandbox.GtidOptions
-			sd.ReplOptions = sandbox.ReplOptions
+		if common.GreaterOrEqualVersion(sd.Version, []int{5, 6, 9}) {
+			sd.GtidOptions = sandbox.SingleTemplates["gtid_options"].Contents
+			sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 			sd.ServerId = sd.Port
 		} else {
 			fmt.Println("--gtid requires version 5.6.9+")

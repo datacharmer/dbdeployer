@@ -24,6 +24,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 )
 
@@ -243,13 +244,18 @@ func Run_cmd(c string) (error, string) {
 }
 
 func CopyFile(source, destination string) {
+	sfile, err := os.Stat(source)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmode := sfile.Mode()
 	from, err := os.Open(source)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer from.Close()
 
-	to, err := os.OpenFile(destination, os.O_RDWR|os.O_CREATE, 0666)
+	to, err := os.OpenFile(destination, os.O_RDWR|os.O_CREATE, fmode) // 0666)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -258,5 +264,20 @@ func CopyFile(source, destination string) {
 	_, err = io.Copy(to, from)
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+func BaseName(filename string) string {
+	return filepath.Base(filename)
+}
+
+func DirName(filename string) string {
+	return filepath.Dir(filename)
+}
+
+func Mkdir(dir_name string) {
+	err := os.Mkdir(dir_name, 0755)
+	if err != nil {
+		fmt.Printf("Error creating directory %s\n%s\n", dir_name, err)
 	}
 }

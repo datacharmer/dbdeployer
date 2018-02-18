@@ -1,6 +1,12 @@
 package sandbox
 
+const (
+	TEMPLATE_INTERNAL int = 0 + iota
+	TEMPLATE_FILE
+)
+
 type TemplateDesc struct {
+	Origin      int
 	Description string
 	Notes       string
 	Contents    string
@@ -806,6 +812,28 @@ printf "# $pass_label  : %5d \n" $pass
 printf "# $fail_label  : %5d \n" $fail
 exit $exit_code
 `
+	replication_options string = `
+relay-log-index=mysql-relay
+relay-log=mysql-relay
+log-bin=mysql-bin
+log-error=msandbox.err
+`
+	gtid_options string = `
+master-info-repository=table
+relay-log-info-repository=table
+gtid_mode=ON
+log-slave-updates
+enforce-gtid-consistency
+`
+	expose_dd_tables string = `
+set persist debug='+d,skip_dd_table_access_check';
+set @col_type=(select c.type from mysql.columns c inner join mysql.tables t where t.id=table_id and t.name='tables' and c.name='hidden');
+set @visible=(if(@col_type = 'MYSQL_TYPE_ENUM', 'Visible', '0'));
+set @hidden=(if(@col_type = 'MYSQL_TYPE_ENUM', 'System', '1'));
+create table sys.dd_hidden_tables (id bigint unsigned, name varchar(64), schema_id bigint unsigned);
+insert into sys.dd_hidden_tables select id, name, schema_id from mysql.tables where hidden=@hidden;
+update mysql.tables set hidden=@visible where hidden=@hidden and schema_id = 1
+`
 
 	sb_include_template string = ""
 
@@ -814,6 +842,21 @@ exit $exit_code
 			Description: "Copyright for every sandbox script",
 			Notes:       "",
 			Contents:    Copyright,
+		},
+		"replication_options": TemplateDesc{
+			Description: "Replication options for my.cnf",
+			Notes:       "",
+			Contents:    replication_options,
+		},
+		"gtid_options": TemplateDesc{
+			Description: "GTID options for my.cnf",
+			Notes:       "",
+			Contents:    gtid_options,
+		},
+		"expose_dd_tables": TemplateDesc{
+			Description: "Commands needed to enable data dictionary table usage",
+			Notes:       "",
+			Contents:    expose_dd_tables,
 		},
 		"init_db_template": TemplateDesc{
 			Description: "Initialization template for the database",

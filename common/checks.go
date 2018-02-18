@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -100,4 +102,76 @@ func CheckSandboxDir(sandbox_home string) {
 		}
 	}
 
+}
+
+func VersionToList(version string) []int {
+	// A valid version must be made of 3 integers
+	re1 := regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+)$`)
+	// Also valid version is 3 numbers with a prefix
+	re2 := regexp.MustCompile(`^[^.0-9-]+(\d+)\.(\d+)\.(\d+)$`)
+	verList1 := re1.FindAllStringSubmatch(version, -1)
+	verList2 := re2.FindAllStringSubmatch(version, -1)
+	verList := verList1
+	//fmt.Printf("%#v\n", verList)
+	if verList == nil {
+		verList = verList2
+	}
+	if verList == nil {
+		fmt.Println("Required version format: x.x.xx")
+		return []int{-1}
+		//os.Exit(1)
+	}
+
+	major, err1 := strconv.Atoi(verList[0][1])
+	minor, err2 := strconv.Atoi(verList[0][2])
+	rev, err3 := strconv.Atoi(verList[0][3])
+	if err1 != nil || err2 != nil || err3 != nil {
+		return []int{-1}
+	}
+	return []int{major, minor, rev}
+}
+
+func VersionToName(version string) string {
+	re := regexp.MustCompile(`\.`)
+	name := re.ReplaceAllString(version, "_")
+	return name
+}
+
+func VersionToPort(version string) int {
+	verList := VersionToList(version)
+	major := verList[0]
+	if major < 0 {
+		return -1
+	}
+	minor := verList[1]
+	rev := verList[2]
+	//if major < 0 || minor < 0 || rev < 0 {
+	//	return -1
+	//}
+	completeVersion := fmt.Sprintf("%d%d%02d", major, minor, rev)
+	// fmt.Println(completeVersion)
+	i, err := strconv.Atoi(completeVersion)
+	if err == nil {
+		return i
+	}
+	return -1
+}
+
+func GreaterOrEqualVersion(version string, compared_to []int) bool {
+	var cmajor, cminor, crev int = compared_to[0], compared_to[1], compared_to[2]
+	verList := VersionToList(version)
+	major := verList[0]
+	if major < 0 {
+		return false
+	}
+	minor := verList[1]
+	rev := verList[2]
+
+	if major == 10 {
+		return false
+	}
+	sversion := fmt.Sprintf("%02d%02d%02d", major, minor, rev)
+	scompare := fmt.Sprintf("%02d%02d%02d", cmajor, cminor, crev)
+	// fmt.Printf("<%s><%s>\n", sversion, scompare)
+	return sversion >= scompare
 }

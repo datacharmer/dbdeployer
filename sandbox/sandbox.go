@@ -3,10 +3,10 @@ package sandbox
 import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/defaults"
 	"os"
-	"time"
 	"regexp"
-	"strconv"
+	"time"
 )
 
 type SandboxDef struct {
@@ -30,7 +30,7 @@ type SandboxDef struct {
 	RplPassword       string
 	RemoteAccess      string
 	BindAddress       string
-	CustomMysqld	  string
+	CustomMysqld      string
 	ServerId          int
 	ReplOptions       string
 	GtidOptions       string
@@ -45,44 +45,8 @@ type SandboxDef struct {
 	KeepUuid          bool
 	SinglePrimary     bool
 	Force             bool
-	ExposeDdTables 	  bool
+	ExposeDdTables    bool
 }
-
-const (
-	MasterSlaveBasePort        int    = 10000
-	GroupReplicationBasePort   int    = 12000
-	GroupReplicationSPBasePort int    = 13000
-	CircReplicationBasePort    int    = 14000
-	MultipleBasePort           int    = 16000
-	GroupPortDelta             int    = 125
-	SandboxPrefix              string = "msb_"
-	MasterSlavePrefix          string = "rsandbox_"
-	GroupPrefix                string = "group_msb_"
-	GroupSPPrefix              string = "group_sp_msb_"
-	MultiplePrefix             string = "multi_msb_"
-	ReplOptions                string = `
-relay-log-index=mysql-relay
-relay-log=mysql-relay
-log-bin=mysql-bin
-log-error=msandbox.err
-`
-	GtidOptions string = `
-master-info-repository=table
-relay-log-info-repository=table
-gtid_mode=ON
-log-slave-updates
-enforce-gtid-consistency
-`
-)
-var Expose_dd_tables []string= []string{
-	"set persist debug='+d,skip_dd_table_access_check'",
-	"set @col_type=(select c.type from mysql.columns c inner join mysql.tables t where t.id=table_id and t.name='tables' and c.name='hidden')",
-	"set @visible=(if(@col_type = 'MYSQL_TYPE_ENUM', 'Visible', '0'))",
-	"set @hidden=(if(@col_type = 'MYSQL_TYPE_ENUM', 'System', '1'))",
-	"create table sys.dd_hidden_tables (id bigint unsigned, name varchar(64), schema_id bigint unsigned)",
-	"insert into sys.dd_hidden_tables select id, name, schema_id from mysql.tables where hidden=@hidden",
-	"update mysql.tables set hidden=@visible where hidden=@hidden and schema_id = 1",
-	}
 
 func GetOptionsFromFile(filename string) (options []string) {
 	skip_options := map[string]bool{
@@ -156,7 +120,7 @@ func CheckPort(sandbox_type string, installed_ports []int, port int) {
 			conflict = p
 		}
 		if sandbox_type == "group-node" {
-			if p == (port + GroupPortDelta) {
+			if p == (port + defaults.Defaults().GroupPortDelta) {
 				conflict = p
 			}
 		}
@@ -195,7 +159,7 @@ func MakeNewServerUuid(sdef SandboxDef) string {
 }
 
 func FixServerUuid(sdef SandboxDef) {
-	if !GreaterOrEqualVersion(sdef.Version, []int{5, 6, 9}) {
+	if !common.GreaterOrEqualVersion(sdef.Version, []int{5, 6, 9}) {
 		return
 	}
 	new_uuid := MakeNewServerUuid(sdef)
@@ -214,78 +178,6 @@ func FixServerUuid(sdef SandboxDef) {
 	//check_uuid := common.SlurpAsString(uuid_file)
 	//fmt.Printf("UUID file (%s) updated : %s\n", uuid_file, new_uuid)
 	//fmt.Printf("new UUID : %s\n", check_uuid)
-}
-
-func VersionToList(version string) []int {
-	// A valid version must be made of 3 integers
-	re1 := regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+)$`)
-	// Also valid version is 3 numbers with a prefix
-	re2 := regexp.MustCompile(`^[^.0-9-]+(\d+)\.(\d+)\.(\d+)$`)
-	verList1 := re1.FindAllStringSubmatch(version, -1)
-	verList2 := re2.FindAllStringSubmatch(version, -1)
-	verList := verList1
-	//fmt.Printf("%#v\n", verList)
-	if verList == nil {
-		verList = verList2
-	}
-	if verList == nil {
-		fmt.Println("Required version format: x.x.xx")
-		return []int{-1}
-		//os.Exit(1)
-	}
-
-	major, err1 := strconv.Atoi(verList[0][1])
-	minor, err2 := strconv.Atoi(verList[0][2])
-	rev, err3 := strconv.Atoi(verList[0][3])
-	if err1 != nil || err2 != nil || err3 != nil {
-		return []int{-1}
-	}
-	return []int{major, minor, rev}
-}
-
-func VersionToName(version string) string {
-	re := regexp.MustCompile(`\.`)
-	name := re.ReplaceAllString(version, "_")
-	return name
-}
-
-func VersionToPort(version string) int {
-	verList := VersionToList(version)
-	major := verList[0]
-	if major < 0 {
-		return -1
-	}
-	minor := verList[1]
-	rev := verList[2]
-	//if major < 0 || minor < 0 || rev < 0 {
-	//	return -1
-	//}
-	completeVersion := fmt.Sprintf("%d%d%02d", major, minor, rev)
-	// fmt.Println(completeVersion)
-	i, err := strconv.Atoi(completeVersion)
-	if err == nil {
-		return i
-	}
-	return -1
-}
-
-func GreaterOrEqualVersion(version string, compared_to []int) bool {
-	var cmajor, cminor, crev int = compared_to[0], compared_to[1], compared_to[2]
-	verList := VersionToList(version)
-	major := verList[0]
-	if major < 0 {
-		return false
-	}
-	minor := verList[1]
-	rev := verList[2]
-
-	if major == 10 {
-		return false
-	}
-	sversion := fmt.Sprintf("%02d%02d%02d", major, minor, rev)
-	scompare := fmt.Sprintf("%02d%02d%02d", cmajor, cminor, crev)
-	// fmt.Printf("<%s><%s>\n", sversion, scompare)
-	return sversion >= scompare
 }
 
 func slice_to_text(s_array []string) string {
@@ -310,12 +202,12 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	//fmt.Printf("origin: %s\n", origin)
 	//fmt.Printf("def: %#v\n", sdef)
 	// port = VersionToPort(sdef.Version)
-	version_fname := VersionToName(sdef.Version)
+	version_fname := common.VersionToName(sdef.Version)
 	if sdef.Prompt == "" {
 		sdef.Prompt = "mysql"
 	}
 	if sdef.DirName == "" {
-		sdef.DirName = SandboxPrefix + version_fname
+		sdef.DirName = defaults.Defaults().SandboxPrefix + version_fname
 	}
 	sandbox_dir = sdef.SandboxDir + "/" + sdef.DirName
 	//sandbox_home := sdef.SandboxDir
@@ -331,29 +223,27 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		os.Exit(1)
 	}
 	if sdef.ExposeDdTables {
-		if !GreaterOrEqualVersion(sdef.Version, []int{8, 0, 0}) {
+		if !common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 0}) {
 			fmt.Printf("--expose-dd-tables requires MySQL 8.0.0+\n")
 			os.Exit(1)
 		}
-		for _, line := range Expose_dd_tables {
-			sdef.PostGrantsSql = append(sdef.PostGrantsSql, line)
-		}
-		if sdef.CustomMysqld !="" && sdef.CustomMysqld != "mysqld-debug" {
+		sdef.PostGrantsSql = append(sdef.PostGrantsSql, SingleTemplates["expose_dd_tables"].Contents)
+		if sdef.CustomMysqld != "" && sdef.CustomMysqld != "mysqld-debug" {
 			fmt.Printf("--expose-dd-tables requires mysqld-debug. A different file was indicated (--custom-mysqld=%s)\n", sdef.CustomMysqld)
 			fmt.Println("Either use \"mysqld-debug\" or remove --custom-mysqld")
 			os.Exit(1)
 		}
-		sdef.CustomMysqld="mysqld-debug"
+		sdef.CustomMysqld = "mysqld-debug"
 	}
 	if sdef.CustomMysqld != "" {
-		custom_mysqld := sdef.Basedir + "/" + sdef.CustomMysqld
+		custom_mysqld := sdef.Basedir + "/bin/" + sdef.CustomMysqld
 		if !common.ExecExists(custom_mysqld) {
-			fmt.Printf("File %s not found or not executable\n",custom_mysqld)
+			fmt.Printf("File %s not found or not executable\n", custom_mysqld)
 			fmt.Printf("The file \"%s\" (defined with --custom-mysqld) must be in the same directory as the regular mysqld\n", sdef.CustomMysqld)
 			os.Exit(1)
 		}
 	}
-	if GreaterOrEqualVersion(sdef.Version, []int{8, 0, 4}) {
+	if common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 4}) {
 		if sdef.KeepAuthPlugin == false {
 			sdef.InitOptions = append(sdef.InitOptions, "--default_authentication_plugin=mysql_native_password")
 			sdef.MyCnfOptions = append(sdef.MyCnfOptions, "default_authentication_plugin=mysql_native_password")
@@ -372,7 +262,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	//fmt.Printf("%#v\n", sdef)
 	timestamp := time.Now()
 	var data common.Smap = common.Smap{"Basedir": sdef.Basedir,
-		"Copyright":    Copyright,
+		"Copyright":    SingleTemplates["Copyright"].Contents,
 		"AppVersion":   common.VersionDef,
 		"DateTime":     timestamp.Format(time.UnixDate),
 		"SandboxDir":   sandbox_dir,
@@ -406,23 +296,11 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	CheckPort(sdef.SBType, sdef.InstalledPorts, sdef.Port)
 
 	//fmt.Printf("creating: %s\n", sandbox_dir)
-	err := os.Mkdir(sandbox_dir, 0755)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	common.Mkdir(sandbox_dir)
 	// fmt.Printf("creating: %s\n", datadir)
-	err = os.Mkdir(datadir, 0755)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	common.Mkdir(datadir)
 	// fmt.Printf("creating: %s\n", tmpdir)
-	err = os.Mkdir(tmpdir, 0755)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	common.Mkdir(tmpdir)
 	script := sdef.Basedir + "/scripts/mysql_install_db"
 	var cmd_list []string
 	cmd_list = append(cmd_list, "--no-defaults")
@@ -430,7 +308,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	cmd_list = append(cmd_list, "--basedir="+sdef.Basedir)
 	cmd_list = append(cmd_list, "--datadir="+datadir)
 	cmd_list = append(cmd_list, "--tmpdir="+sandbox_dir+"/tmp")
-	if GreaterOrEqualVersion(sdef.Version, []int{5, 7, 0}) {
+	if common.GreaterOrEqualVersion(sdef.Version, []int{5, 7, 0}) {
 		script = sdef.Basedir + "/bin/mysqld"
 		cmd_list = append(cmd_list, "--initialize-insecure")
 	}
@@ -458,7 +336,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	//cmd.Stdout = &out
 	//cmd.Stderr = &stderr
 	//err = cmd.Run()
-	err, _ = common.Run_cmd_ctrl(sandbox_dir+"/init_db", true)
+	err, _ := common.Run_cmd_ctrl(sandbox_dir+"/init_db", true)
 	if err == nil {
 		fmt.Printf("Database installed in %s\n", sandbox_dir)
 		if !sdef.Multi {
@@ -504,9 +382,9 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 
 	write_script(SingleTemplates, "my.sandbox.cnf", "my_cnf_template", sandbox_dir, data, false)
 	switch {
-	case GreaterOrEqualVersion(sdef.Version, []int{8, 0, 0}):
+	case common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 0}):
 		write_script(SingleTemplates, "grants.mysql", "grants_template8x", sandbox_dir, data, false)
-	case GreaterOrEqualVersion(sdef.Version, []int{5, 7, 6}):
+	case common.GreaterOrEqualVersion(sdef.Version, []int{5, 7, 6}):
 		write_script(SingleTemplates, "grants.mysql", "grants_template57", sandbox_dir, data, false)
 	default:
 		write_script(SingleTemplates, "grants.mysql", "grants_template5x", sandbox_dir, data, false)

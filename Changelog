@@ -1,3 +1,10 @@
+0.1.22	18-Feb-2018
+	- All values used for sandbox deployment are now modifiable.
+	- Added command "admin" to deal with default values:
+	  show, store, remove, load, update, export
+	- Refactored global variables to become modifiable through the "admin"
+	  command
+	- Added commands for template export and import.
 0.1.21	16-Feb-2018
 	- Added flag --expose-dd-tables to show data dictionary hidden tables
 	- Added flag --custom-mysqld to use different server executable

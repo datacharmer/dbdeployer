@@ -3,6 +3,7 @@ package sandbox
 import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/defaults"
 	"os"
 	"time"
 )
@@ -22,23 +23,19 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 		os.Exit(1)
 	}
 	if sdef.DirName == "" {
-		sdef.SandboxDir += "/" + MultiplePrefix + VersionToName(origin)
+		sdef.SandboxDir += "/" + defaults.Defaults().MultiplePrefix + common.VersionToName(origin)
 	} else {
 		sdef.SandboxDir += "/" + sdef.DirName
 	}
 	if common.DirExists(sdef.SandboxDir) {
 		sdef = CheckDirectory(sdef)
 	}
-	err := os.Mkdir(sdef.SandboxDir, 0755)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	common.Mkdir(sdef.SandboxDir)
 
-	sdef.ReplOptions = ReplOptions
-	vList := VersionToList(sdef.Version)
+	sdef.ReplOptions = SingleTemplates["replication_options"].Contents
+	vList := common.VersionToList(sdef.Version)
 	rev := vList[2]
-	base_port := sdef.Port + MultipleBasePort + (rev * 100)
+	base_port := sdef.Port + defaults.Defaults().MultipleBasePort + (rev * 100)
 	if sdef.BasePort > 0 {
 		base_port = sdef.BasePort
 	}

@@ -3,6 +3,7 @@ package sandbox
 import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/defaults"
 	"os"
 	"time"
 )
@@ -17,10 +18,10 @@ type Slave struct {
 
 func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, master_ip string) {
 
-	sdef.ReplOptions = ReplOptions
-	vList := VersionToList(sdef.Version)
+	sdef.ReplOptions = SingleTemplates["replication_options"].Contents
+	vList := common.VersionToList(sdef.Version)
 	rev := vList[2]
-	base_port := sdef.Port + MasterSlaveBasePort + (rev * 100)
+	base_port := sdef.Port + defaults.Defaults().MasterSlaveBasePort + (rev * 100)
 	if sdef.BasePort > 0 {
 		base_port = sdef.BasePort
 	}
@@ -30,11 +31,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
 	}
 
-	err := os.Mkdir(sdef.SandboxDir, 0755)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	common.Mkdir(sdef.SandboxDir)
 	sdef.Port = base_port + 1
 	sdef.ServerId = (base_server_id + 1) * 100
 	sdef.LoadGrants = false
@@ -128,14 +125,14 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 	sandbox_dir := sdef.SandboxDir
 	switch topology {
 	case "master-slave":
-		sdef.SandboxDir += "/" + MasterSlavePrefix + VersionToName(origin)
+		sdef.SandboxDir += "/" + defaults.Defaults().MasterSlavePrefix + common.VersionToName(origin)
 	case "group":
 		if sdef.SinglePrimary {
-			sdef.SandboxDir += "/" + GroupSPPrefix + VersionToName(origin)
+			sdef.SandboxDir += "/" + defaults.Defaults().GroupSpPrefix + common.VersionToName(origin)
 		} else {
-			sdef.SandboxDir += "/" + GroupPrefix + VersionToName(origin)
+			sdef.SandboxDir += "/" + defaults.Defaults().GroupPrefix + common.VersionToName(origin)
 		}
-		if !GreaterOrEqualVersion(sdef.Version, []int{5, 7, 17}) {
+		if !common.GreaterOrEqualVersion(sdef.Version, []int{5, 7, 17}) {
 			fmt.Println("Group replication requires MySQL 5.7.17 or greater")
 			os.Exit(1)
 		}

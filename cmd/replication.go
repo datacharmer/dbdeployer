@@ -27,7 +27,7 @@ func ReplicationSandbox(cmd *cobra.Command, args []string) {
 	var sd sandbox.SandboxDef
 	common.CheckOrigin(args)
 	sd = FillSdef(cmd, args)
-	sd.ReplOptions = sandbox.ReplOptions
+	sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 	flags := cmd.Flags()
 	nodes, _ := flags.GetInt("nodes")
 	topology, _ := flags.GetString("topology")

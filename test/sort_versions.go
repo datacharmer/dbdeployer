@@ -3,37 +3,11 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/datacharmer/dbdeployer/sandbox"
+	"github.com/datacharmer/dbdeployer/common"
 	"os"
 	"sort"
 )
 
-/*
-func VersionToList(version string) []int {
-	// A valid version must be made of 3 integers
-	re1 := regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+)$`)
-	// Also valid version is 3 numbers with a prefix
-	re2 := regexp.MustCompile(`^[^.0-9-]+(\d+)\.(\d+)\.(\d+)$`)
-	verList1 := re1.FindAllStringSubmatch(version, -1)
-	verList2 := re2.FindAllStringSubmatch(version, -1)
-	verList := verList1
-	//fmt.Printf("%#v\n", verList)
-	if verList == nil {
-		verList = verList2
-	}
-	if verList == nil {
-		return []int{-1}
-	}
-
-	major, err1 := strconv.Atoi(verList[0][1])
-	minor, err2 := strconv.Atoi(verList[0][2])
-	rev, err3 := strconv.Atoi(verList[0][3])
-	if err1 != nil || err2 != nil || err3 != nil {
-		return []int{-1}
-	}
-	return []int{major, minor, rev}
-}
-*/
 /*
 	This utility reads a list of versions (format x.x.xx)
 	and sorts them in numerical order, taking into account
@@ -50,7 +24,7 @@ func main() {
 	var vlist []version_list
 	for scanner.Scan() {
 		line := scanner.Text()
-		vl := sandbox.VersionToList(line)
+		vl := common.VersionToList(line)
 		rec := version_list{
 			text: line,
 			mmr:  vl,

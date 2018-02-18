@@ -3,6 +3,7 @@ package sandbox
 import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/defaults"
 	"os"
 	"time"
 )
@@ -28,11 +29,11 @@ loose-group-replication-single-primary-mode=off
 )
 
 func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
-	vList := VersionToList(sdef.Version)
+	vList := common.VersionToList(sdef.Version)
 	rev := vList[2]
-	base_port := sdef.Port + GroupReplicationBasePort + (rev * 100)
+	base_port := sdef.Port + defaults.Defaults().GroupReplicationBasePort + (rev * 100)
 	if sdef.SinglePrimary {
-		base_port = sdef.Port + GroupReplicationSPBasePort + (rev * 100)
+		base_port = sdef.Port + defaults.Defaults().GroupReplicationSpBasePort + (rev * 100)
 	}
 	if sdef.BasePort > 0 {
 		base_port = sdef.BasePort
@@ -48,13 +49,9 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 	}
 	for check_port := base_port + 1; check_port < base_port+nodes+1; check_port++ {
 		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
-		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port+GroupPortDelta)
+		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port+defaults.Defaults().GroupPortDelta)
 	}
-	err := os.Mkdir(sdef.SandboxDir, 0755)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	common.Mkdir(sdef.SandboxDir)
 	timestamp := time.Now()
 	var data common.Smap = common.Smap{
 		"Copyright":  Copyright,
@@ -63,7 +60,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		"SandboxDir": sdef.SandboxDir,
 		"Nodes":      []common.Smap{},
 	}
-	base_group_port := base_port + GroupPortDelta
+	base_group_port := base_port + defaults.Defaults().GroupPortDelta
 	connection_string := ""
 	for i := 0; i < nodes; i++ {
 		group_port := base_group_port + i + 1
@@ -96,8 +93,8 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		sdef.ServerId = (base_server_id + i) * 100
 
 		fmt.Printf("Installing and starting node %d\n", i)
-		sdef.ReplOptions = ReplOptions + fmt.Sprintf("\n%s\n%s\n", GroupReplOptions, single_multi_primary)
-		sdef.ReplOptions += fmt.Sprintf("\n%s\n", GtidOptions)
+		sdef.ReplOptions = SingleTemplates["replication_options"].Contents + fmt.Sprintf("\n%s\n%s\n", GroupReplOptions, single_multi_primary)
+		sdef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["gtid_options"].Contents)
 		sdef.ReplOptions += fmt.Sprintf("\nloose-group-replication-local-address=127.0.0.1:%d\n", group_port)
 		sdef.ReplOptions += fmt.Sprintf("\nloose-group-replication-group-seeds=%s\n", connection_string)
 		sdef.Multi = true

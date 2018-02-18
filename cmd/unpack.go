@@ -21,7 +21,6 @@ import (
 	"strings"
 
 	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/datacharmer/dbdeployer/unpack"
 	"github.com/spf13/cobra"
 )
@@ -41,7 +40,7 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 	// This call used to ensure that the port provided is in the right format
-	sandbox.VersionToPort(Version)
+	common.VersionToPort(Version)
 	Prefix, _ := flags.GetString("prefix")
 	tarball := args[0]
 

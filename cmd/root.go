@@ -19,18 +19,15 @@ import (
 	"os"
 
 	"github.com/datacharmer/dbdeployer/common"
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
-
-var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "dbdeployer",
 	Short: "Installs multiple MySQL servers on the same host",
-	Long: `Makes MySQL server installation an easy task.
+	Long: `dbdeployer makes MySQL server installation an easy task.
 Runs single, multiple, and replicated sandboxes.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
@@ -62,11 +59,26 @@ func set_pflag(key string, abbr string, env_var string, default_var string, help
 	}
 }
 
+func checkDefaultsFile() {
+	flags := rootCmd.Flags()
+	defaults.CustomConfigurationFile, _ = flags.GetString("config")
+	if defaults.CustomConfigurationFile != defaults.ConfigurationFile {
+		if common.FileExists(defaults.CustomConfigurationFile) {
+			defaults.ConfigurationFile = defaults.CustomConfigurationFile
+		} else {
+			fmt.Printf("*** File %s not found\n", defaults.CustomConfigurationFile)
+			os.Exit(1)
+		}
+	}
+	defaults.LoadConfiguration()
+	LoadTemplates()
+}
+
 func init() {
-	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "./dbdeployer.json", "config file")
-	set_pflag("sandbox-home", "", "SANDBOX_HOME", os.Getenv("HOME")+"/sandboxes", "Sandbox deployment direcory", false)
-	set_pflag("sandbox-binary", "", "SANDBOX_BINARY", os.Getenv("HOME")+"/opt/mysql", "Binary repository", false)
+	cobra.OnInitialize(checkDefaultsFile)
+	rootCmd.PersistentFlags().StringVar(&defaults.CustomConfigurationFile, "config", defaults.ConfigurationFile, "configuration file")
+	set_pflag("sandbox-home", "", "SANDBOX_HOME", defaults.Defaults().SandboxHome, "Sandbox deployment direcory", false)
+	set_pflag("sandbox-binary", "", "SANDBOX_BINARY", defaults.Defaults().SandboxBinary, "Binary repository", false)
 
 	set_pflag("remote-access", "", "", "127.%", "defines the database access ", false)
 	set_pflag("bind-address", "", "", "127.0.0.1", "defines the database bind-address ", false)
@@ -97,30 +109,4 @@ func init() {
 	// TODO rootCmd.PersistentFlags().Bool("check-port", false, "Check if the port is already in use, and find a free one")
 
 	rootCmd.InitDefaultVersionFlag()
-}
-
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Find home directory.
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
-		// Search config in home directory with name ".dbdeployer" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".dbdeployer")
-	}
-
-	viper.AutomaticEnv() // read in environment variables that match
-
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
 }

@@ -42,6 +42,10 @@ func debug_print(descr string, v interface{}) {
 }
 
 func LoadAbbreviations() {
+	if os.Getenv("SKIP_ABBR") != "" {
+		fmt.Printf("# Abbreviations suppressed by env variable SKIP_ABBR\n")
+		return
+	}
 	var abbrev_file string = "abbreviations.txt"
 	var new_args []string
 	var abbreviations = make(AliasList)
