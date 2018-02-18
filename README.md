@@ -28,17 +28,18 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with '--help' will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 0.1.20
+    dbdeployer version 0.1.22
     
 
     $ dbdeployer -h
-    Makes MySQL server installation an easy task.
+    dbdeployer makes MySQL server installation an easy task.
     Runs single, multiple, and replicated sandboxes.
     
     Usage:
       dbdeployer [command]
     
     Available Commands:
+      admin       administrative tasks
       delete      delete an installed sandbox
       global      Runs a given command in every sandbox
       help        Help about any command
@@ -54,9 +55,11 @@ The program doesn't have any dependencies. Everything is included in the binary.
     Flags:
           --base-port int                 Overrides default base-port (for multiple sandboxes)
           --bind-address string           defines the database bind-address  (default "127.0.0.1")
-          --config string                 config file (default "./dbdeployer.json")
+          --config string                 configuration file (default "$HOME/.dbdeployer/config.json")
+          --custom-mysqld string          Uses an alternative mysqld (must be in the same directory as regular mysqld)
       -p, --db-password string            database password (default "msandbox")
       -u, --db-user string                database user (default "msandbox")
+          --expose-dd-tables              In MySQL 8.0+ shows data dictionary tables
           --force                         If a destination sandbox already exists, it will be overwritten
           --gtid                          enables GTID
       -h, --help                          help for dbdeployer
@@ -210,7 +213,7 @@ There are several ways of changing the default behavior of a sandbox.
 1. You can add options to the sandbox being deployed using --my-cnf-options="some mysqld directive". This option can be used many times. The supplied options are added to my.sandbox.cnf
 2. You can specify a my.cnf template (--my-cnf-file=filename) instead of defining options line by line. dbdeployer will skip all the options that are needed for the sandbox functioning.
 3. You can run SQL statements or SQL files before or after the grants were loaded (--pre-grants-sql, --pre-grants-sql-file, etc). You can also use these options to peek into the state of the sandbox and see what is happening at every stage.
-4. If you feel adventurous, you can look at the templates being used for the deployment, and load your own instead of the original (--use-template=TemplateName:FileName.)
+4. For more advanced needs, you can look at the templates being used for the deployment, and load your own instead of the original s(--use-template=TemplateName:FileName.)
 
 For example:
 
@@ -224,6 +227,61 @@ For example:
     $ dbdeployer single --use-template=templateName:mytemplate.txt 5.7.21
 
 dbdeployer will use your template instead of the original.
+
+5. You can also export the templates, edit them, and ask dbdeployer to edit your changes.
+
+Example:
+
+    $ dbdeployer templates export single my_templates
+    # Will export all the templates for the "single" group to the direcory my_templates/single
+    $ dbdeployer templates export ALL my_templates
+    # exports all templates into my_templates, one directory for each group
+    # Edit the templates that you want to change. You can also remove the ones that you want to leave untouched.
+    $ dbdeployer templates import single my_templates
+    # Will import all templates from my_templates/single
+
+Warning: modifying templates may block the regular work of the sandboxes. Use this feature with caution!
+
+6. Finally, you can modify the defaults for the application, using the "admin" command. You can export the defaults, import them from a modified JSON file, or update a single one on-the-fly.
+
+Here's how:
+
+	$ dbdeployer admin show
+	# Internal values:
+	{
+		"version": "0.1.22",
+		"sandbox-home": "/Users/gmax/sandboxes",
+		"sandbox-binary": "/Users/gmax/opt/mysql",
+		"master-slave-base-port": 11000,
+		"group-replication-base-port": 12000,
+		"group-replication-sp-base-port": 13000,
+		"multiple-base-port": 16000,
+		"group-port-delta": 125,
+		"sandbox-prefix": "msb_",
+		"master-slave-prefix": "rsandbox_",
+		"group-prefix": "group_msb_",
+		"group-sp-prefix": "group_sp_msb_",
+		"multiple-prefix": "multi_msb_"
+	}
+ 
+	$ dbdeployer admin update master-slave-base-port 15000
+	# Updated master-slave-base-port -> "15000"
+	# Configuration file: $HOME/.dbdeployer/config.json
+	{
+		"version": "0.1.22",
+		"sandbox-home": "/Users/gmax/sandboxes",
+		"sandbox-binary": "/Users/gmax/opt/mysql",
+		"master-slave-base-port": 15000,
+		"group-replication-base-port": 12000,
+		"group-replication-sp-base-port": 13000,
+		"multiple-base-port": 16000,
+		"group-port-delta": 125,
+		"sandbox-prefix": "msb_",
+		"master-slave-prefix": "rsandbox_",
+		"group-prefix": "group_msb_",
+		"group-sp-prefix": "group_sp_msb_",
+		"multiple-prefix": "multi_msb_"
+	 }
 
 ## Sandbox management
 

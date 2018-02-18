@@ -56,6 +56,8 @@ var (
 		GroupSpPrefix:              "group_sp_msb_",
 		MultiplePrefix:             "multi_msb_",
 	}
+	// TODO : allow for environmengt variables such as $HOME and $PWD to be
+	// recognized and handled in the configuration file.
 	currentDefaults DbdeployerDefaults
 )
 
