@@ -41,14 +41,21 @@ var (
 		export LD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$LD_LIBRARY_PATH
 		export DYLD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$DYLD_LIBRARY_PATH
 		SBDIR={{.SandboxDir}}
+		DATADIR=$SBDIR/data
 		cd $SBDIR
-		if [ -d ./data/mysql ]
+		if [ -d $DATADIR/mysql ]
 		then
 			echo "Initialization already done."
 			echo "This script should run only once."
 			exit 0
 		fi
-		{{.InitScript}}
+		
+		{{.InitScript}} \
+		    {{.InitDefaults}} \
+		    --user={{.OsUser}} \
+		    --basedir=$BASEDIR \
+		    --datadir=$DATADIR \
+		    --tmpdir={{.Tmpdir}} {{.ExtraInitFlags}}
 `
 
 	start_template string = `#!/bin/bash

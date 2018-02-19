@@ -1,3 +1,10 @@
+0.1.23	19-Feb-2018
+	- Added "test-replication" to "global" command 
+	- Added several aliases to "unpack"
+	- Changed template init_db, to allow for easier customization
+	- Added test for docker. The full test suite can run in a container.
+	- Simplified test.sh by using "dbdeployer global" rather than hand made
+	  loops.
 0.1.22	18-Feb-2018
 	- All values used for sandbox deployment are now modifiable.
 	- Added command "admin" to deal with default values:

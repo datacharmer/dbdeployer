@@ -80,6 +80,7 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 var unpackCmd = &cobra.Command{
 	Use:   "unpack MySQL-tarball",
 	Args:  cobra.ExactArgs(1),
+	Aliases: []string{"extract", "untar", "unzip", "inflate", "expand"},
 	Short: "unpack a tarball into the binary directory",
 	Long: `If you want to create a sandbox from a tarball, you first need to unpack it
 into the sandbox-binary directory. This command carries out that task, so that afterwards 

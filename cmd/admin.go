@@ -28,6 +28,7 @@ func ShowDefaults(cmd *cobra.Command, args []string) {
 
 func WriteDefaults(cmd *cobra.Command, args []string) {
 	defaults.WriteDefaultsFile(defaults.ConfigurationFile, defaults.Defaults())
+	fmt.Printf("# Default values exported to %s\n",defaults.ConfigurationFile)
 }
 
 func RemoveDefaults(cmd *cobra.Command, args []string) {

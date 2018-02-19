@@ -302,15 +302,10 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	// fmt.Printf("creating: %s\n", tmpdir)
 	common.Mkdir(tmpdir)
 	script := sdef.Basedir + "/scripts/mysql_install_db"
-	var cmd_list []string
-	cmd_list = append(cmd_list, "--no-defaults")
-	cmd_list = append(cmd_list, "--user="+os.Getenv("USER"))
-	cmd_list = append(cmd_list, "--basedir="+sdef.Basedir)
-	cmd_list = append(cmd_list, "--datadir="+datadir)
-	cmd_list = append(cmd_list, "--tmpdir="+sandbox_dir+"/tmp")
+	init_script_flags := ""
 	if common.GreaterOrEqualVersion(sdef.Version, []int{5, 7, 0}) {
 		script = sdef.Basedir + "/bin/mysqld"
-		cmd_list = append(cmd_list, "--initialize-insecure")
+		init_script_flags = "--initialize-insecure"
 	}
 	// fmt.Printf("Script: %s\n", script)
 	if !common.ExecExists(script) {
@@ -319,23 +314,17 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	}
 	if len(sdef.InitOptions) > 0 {
 		for _, op := range sdef.InitOptions {
-			cmd_list = append(cmd_list, op)
+			init_script_flags += " " + op
 		}
 	}
-	script_text := script
-	for _, item := range cmd_list {
-		script_text += " \\\n\t" + item
+	data["InitScript"] = script
+	data["InitDefaults"] = "--no-defaults"
+	if init_script_flags != "" {
+		init_script_flags = fmt.Sprintf("\\\n    %s", init_script_flags)
 	}
-	// fmt.Printf("using basedir: %s\n", sdef.Basedir)
-	// fmt.Printf("%v\n", cmd_list)
-	data["InitScript"] = script_text
+	data["ExtraInitFlags"] = init_script_flags
+
 	write_script(SingleTemplates, "init_db", "init_db_template", sandbox_dir, data, true)
-	//cmd := exec.Command(script, cmd_list...)
-	//var out bytes.Buffer
-	//var stderr bytes.Buffer
-	//cmd.Stdout = &out
-	//cmd.Stderr = &stderr
-	//err = cmd.Run()
 	err, _ := common.Run_cmd_ctrl(sandbox_dir+"/init_db", true)
 	if err == nil {
 		fmt.Printf("Database installed in %s\n", sandbox_dir)
@@ -344,9 +333,6 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		}
 	} else {
 		fmt.Printf("err: %s\n", err)
-		// fmt.Printf("cmd: %#v\n", cmd)
-		// fmt.Printf("stdout: %s\n", out.String())
-		// fmt.Printf("stderr: %s\n", stderr.String())
 	}
 
 	if sdef.SBType == "" {

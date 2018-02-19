@@ -104,6 +104,8 @@ func CheckSandboxDir(sandbox_home string) {
 
 }
 
+// Gets three integers for a version string
+// Converts "1.2.3" into []int{1, 2, 3}
 func VersionToList(version string) []int {
 	// A valid version must be made of 3 integers
 	re1 := regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+)$`)
@@ -117,7 +119,7 @@ func VersionToList(version string) []int {
 		verList = verList2
 	}
 	if verList == nil {
-		fmt.Println("Required version format: x.x.xx")
+		fmt.Printf("Required version format: x.x.xx - Got '%s'\n", version)
 		return []int{-1}
 		//os.Exit(1)
 	}
@@ -131,12 +133,16 @@ func VersionToList(version string) []int {
 	return []int{major, minor, rev}
 }
 
+// Converts a version string into a name.
+// Replaces dots with underscores. "1.2.3" -> "1_2_3"
 func VersionToName(version string) string {
 	re := regexp.MustCompile(`\.`)
 	name := re.ReplaceAllString(version, "_")
 	return name
 }
 
+// Converts a version string into a port number
+// e.g. "5.6.33" -> 5633
 func VersionToPort(version string) int {
 	verList := VersionToList(version)
 	major := verList[0]
@@ -157,6 +163,13 @@ func VersionToPort(version string) int {
 	return -1
 }
 
+// Checks if a version string is greater or equal a given numeric version
+// "5.6.33" >= []{5.7.0}  = false
+// "5.7.21" >= []{5.7.0}  = true
+// "10.1.21" >= []{5.7.0}  = false (!)
+// Note: MariaDB versions are skipped. The function returns false for MariaDB 10+ 
+// So far (2018-02-19) this comparison holds, because MariaDB behaves like 5.5+ for 
+// the purposes of sandbox deployment
 func GreaterOrEqualVersion(version string, compared_to []int) bool {
 	var cmajor, cminor, crev int = compared_to[0], compared_to[1], compared_to[2]
 	verList := VersionToList(version)

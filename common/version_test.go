@@ -1,4 +1,4 @@
-package sandbox
+package common
 
 import "testing"
 
@@ -7,8 +7,15 @@ type version_port struct {
 	port    int
 }
 
+type version_pair struct {
+	version string
+	versionList []int
+	expected bool
+}
+
+
 func TestVersionToPort(t *testing.T) {
-	t.Parallel()
+	//t.Parallel()
 	var versions []version_port = []version_port{
 		{"", -1},            // FAIL: Empty string
 		{"5.0.A", -1},       // FAIL: Hexadecimal number
@@ -34,10 +41,30 @@ func TestVersionToPort(t *testing.T) {
 		version := vp.version
 		expected := vp.port
 		port := VersionToPort(version)
+		//t.Logf("+%s\n", version)
 		if expected == port {
 			t.Logf("ok     %-10s => %5d\n", version, port)
 		} else {
 			t.Logf("NOT OK %-10s => %5d\n", version, port)
+			t.Fail()
+		}
+	}
+}
+
+func TestGreaterOrEqualVersion(t *testing.T) {
+	
+	var versions = []version_pair{
+		{"5.0.0", []int{5,6,0}, false},
+		{"8.0.0", []int{5,6,0}, true},
+		{"ps5.7.5", []int{5,7,0}, true},
+		{"10.0.1", []int{5,6,0}, false},
+	}
+	for _, v := range versions {
+		result := GreaterOrEqualVersion(v.version, v.versionList)
+		if v.expected == result {
+			t.Logf("ok     %-10s => %v %v \n", v.version, v.versionList, result)
+		} else {
+			t.Logf("NOT OK %-10s => %v %v \n", v.version, v.versionList, result)
 			t.Fail()
 		}
 	}

@@ -33,7 +33,7 @@ type TemplateInfo struct {
 func FindTemplate(requested string) (group, contents string) {
 	for name, tvar := range sandbox.AllTemplates {
 		for k, v := range tvar {
-			if k == requested {
+			if k == requested || k == requested + "_template" {
 				contents = v.Contents
 				group = name
 				return

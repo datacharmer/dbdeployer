@@ -21,7 +21,7 @@ import (
 	"os"
 )
 
-func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, require_args bool) {
+func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, require_args bool, skip_missing bool) {
 	flags := cmd.Flags()
 	sandbox_dir, _ := flags.GetString("sandbox-home")
 	run_list := common.GetInstalledSandboxes(sandbox_dir)
@@ -44,6 +44,10 @@ func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 			single_use = false
 		}
 		if !common.ExecExists(cmd_file) {
+			if skip_missing {
+				fmt.Printf("# Sandbox %s: not a replication sandbox\n",full_dir_path)
+				continue
+			}
 			fmt.Printf("No %s or %s found in %s\n", executable, executable+"_all", full_dir_path)
 			os.Exit(1)
 		}
@@ -71,27 +75,31 @@ func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 }
 
 func StartAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, "start", args, false)
+	GlobalRunCommand(cmd, "start", args, false, false)
 }
 
 func RestartAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, "restart", args, false)
+	GlobalRunCommand(cmd, "restart", args, false, false)
 }
 
 func StopAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, "stop", args, false)
+	GlobalRunCommand(cmd, "stop", args, false, false)
 }
 
 func StatusAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, "status", args, false)
+	GlobalRunCommand(cmd, "status", args, false, false)
 }
 
 func TestAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, "test_sb", args, false)
+	GlobalRunCommand(cmd, "test_sb", args, false, false)
+}
+
+func TestReplicationAllSandboxes(cmd *cobra.Command, args []string) {
+	GlobalRunCommand(cmd, "test_replication", args, false, true)
 }
 
 func UseAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, "use", args, true)
+	GlobalRunCommand(cmd, "use", args, true, false)
 }
 
 var (
@@ -140,6 +148,13 @@ var (
 		Run:   TestAllSandboxes,
 	}
 
+	globalTestReplicationCmd = &cobra.Command{
+		Use:   "test-replication",
+		Short: "Tests replication in all sandboxes",
+		Long:  ``,
+		Run:   TestReplicationAllSandboxes,
+	}
+
 	globalUseCmd = &cobra.Command{
 		Use:   "use {query}",
 		Short: "Runs a query in all sandboxes",
@@ -159,6 +174,7 @@ func init() {
 	globalCmd.AddCommand(globalStopCmd)
 	globalCmd.AddCommand(globalStatusCmd)
 	globalCmd.AddCommand(globalTestCmd)
+	globalCmd.AddCommand(globalTestReplicationCmd)
 	globalCmd.AddCommand(globalUseCmd)
 
 }
