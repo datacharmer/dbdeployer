@@ -1,3 +1,11 @@
+0.1.24	20-Feb-2018
+	- Fixed bug with "sandboxes" command. It would not check if the 
+	  sandbox_home directory existed.
+	- Fixed bug in "sandboxes" command. It would not report sandboxes
+	  created by other applications (MySQL-Sandbox)
+	- Added check for template version during export/import
+	- Added tests for UUID generation
+	- Improved docker test
 0.1.23	19-Feb-2018
 	- Added "test-replication" to "global" command 
 	- Added several aliases to "unpack"

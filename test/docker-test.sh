@@ -1,4 +1,24 @@
 #!/bin/bash
+# DBDeployer - The MySQL Sandbox
+# Copyright © 2006-2018 Giuseppe Maxia
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This script tests dbdeployer with all available versions inside a docker 
+# container.
+# This setup is useful for testing also template and defaults export/import
+# which could be intrusive in a regular environment.
+
 version=$1
 
 if [ -z "$version" ]
@@ -14,24 +34,34 @@ then
     exit 1
 fi
 
-if [ ! -d "./test" ] 
+if [ ! -d "./test" ]
 then
     echo "directory ./test not found"
     exit 1
 fi
 
-exists=$(docker ps |grep dbtest)
-if [ -n "$exists" ]
+container_name=dbtest
+if [ "$(uname)" == "Darwin" ]
 then
-    docker rm -v -f dbtest
+    # This name identifies the container as running in Docker for mac,
+    # and will allow the test script to tune operations accordingly.
+    container_name=dbtestmac
 fi
 
-docker run -ti  \
+exists=$(docker ps -a | grep $container_name )
+if [ -n "$exists" ]
+then
+    docker rm -v -f $container_name
+fi
+
+(set -x
+  docker run -ti  \
     -v $PWD/$executable:/usr/bin/dbdeployer \
     -v $PWD/test:/home/msandbox/test \
-    --name dbtest \
-    --hostname dbtest \
+    --name $container_name \
+    --hostname $container_name \
     datacharmer/mysql-sb-full bash -c "./test/test.sh"
+)
 
 #    datacharmer/mysql-sb-full bash -c "./test/test.sh"
 #    datacharmer/mysql-sb-full bash

@@ -1,3 +1,18 @@
+// DBDeployer - The MySQL Sandbox
+// Copyright © 2006-2018 Giuseppe Maxia
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package common
 
 import (
@@ -9,25 +24,28 @@ import (
 	"strings"
 )
 
-func GetInstalledSandboxes(sandbox_home string) []string {
+func GetInstalledSandboxes(sandbox_home string) (installed_sandboxes []string) {
+	if !DirExists(sandbox_home) {
+		return
+	}
 	files, err := ioutil.ReadDir(sandbox_home)
 	if err != nil {
 		fmt.Printf("%s", err)
 		os.Exit(1)
 	}
-	var installed_sandboxes []string
 	for _, f := range files {
 		fname := f.Name()
 		fmode := f.Mode()
 		if fmode.IsDir() {
 			sbdesc := sandbox_home + "/" + fname + "/sbdescription.json"
-			if FileExists(sbdesc) {
+			start := sandbox_home + "/" + fname + "/start"
+			start_all := sandbox_home + "/" + fname + "/start_all"
+			if FileExists(sbdesc) || FileExists(start) || FileExists(start_all) {
 				installed_sandboxes = append(installed_sandboxes, fname)
-
 			}
 		}
 	}
-	return installed_sandboxes
+	return
 }
 
 func GetInstalledPorts(sandbox_home string) []int {

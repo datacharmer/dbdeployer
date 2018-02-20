@@ -1,4 +1,5 @@
-// Copyright © 2017-2018 Giuseppe Maxia
+// DBDeployer - The MySQL Sandbox
+// Copyright © 2006-2018 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +15,7 @@
 
 package common
 
-var VersionDef string = "0.1.23" // 2018-02-19
+var VersionDef string = "0.1.24" // 2018-02-20
 
 // Compatible version is the version used to mark compatible archives (templates, configuration).
 // It is usually major.minor.0, except when we are at version 0.x, when

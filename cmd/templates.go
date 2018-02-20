@@ -1,4 +1,5 @@
-// Copyright © 2018 Giuseppe Maxia
+// DBDeployer - The MySQL Sandbox
+// Copyright © 2006-2018 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,11 +17,12 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 type TemplateInfo struct {
@@ -157,6 +159,7 @@ func ExportTemplates(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 	common.Mkdir(dir_name)
+	common.WriteString(common.VersionDef, dir_name + "/version.txt")
 
 	found := false
 	for group_name, group := range sandbox.AllTemplates {
@@ -217,6 +220,23 @@ func ImportTemplates(cmd *cobra.Command, args []string) {
 	dir_name := args[1]
 	if !common.DirExists(dir_name) {
 		fmt.Printf("# Directory <%s> doesn't exist\n", dir_name)
+		os.Exit(1)
+	}
+	version_file := dir_name + "/version.txt"
+	if !common.FileExists(version_file) {
+		fmt.Printf("File %s not found. Unable to validate templates.\n",version_file)
+		os.Exit(1)
+	}
+	template_version := strings.TrimSpace(common.SlurpAsString(version_file))
+	version_list := common.VersionToList(template_version)
+	fmt.Printf("%v\n",version_list)
+	compatible_version_list := common.VersionToList(common.CompatibleVersion)
+	if version_list[0] < 0 {
+		fmt.Printf("Invalid version (%s) found in %s\n",template_version, version_file)
+		os.Exit(1)
+	}
+	if !common.GreaterOrEqualVersion( template_version, compatible_version_list) {
+		fmt.Printf("Templates are for version %s. The minimum compatible version is %s\n", template_version, common.CompatibleVersion)
 		os.Exit(1)
 	}
 	found := false

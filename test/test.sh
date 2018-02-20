@@ -1,4 +1,19 @@
 #!/bin/bash
+# DBDeployer - The MySQL Sandbox
+# Copyright © 2006-2018 Giuseppe Maxia
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 cd $(dirname $0)
 
 version=$(dbdeployer --version)
@@ -71,8 +86,12 @@ fi
 
 # Finding the latest release of every major version
 short_versions=(5.0 5.1 5.5 5.6 5.7 8.0)
-if [ "$(hostname)" == "dbtest" ]
+if [ "$(hostname)" == "dbtestmac" ]
 then
+    # There is a strange bug in docker for Mac, which fails
+    # mysteriously when running several instances of MySQL 5.6
+    # So we're skipping it if we know that we're running inside
+    # a docker for Mac container.
     short_versions=(5.0 5.1 5.5 5.7 8.0)
 fi
 group_short_versions=(5.7 8.0)

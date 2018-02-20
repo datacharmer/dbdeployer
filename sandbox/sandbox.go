@@ -1,3 +1,18 @@
+// DBDeployer - The MySQL Sandbox
+// Copyright © 2006-2018 Giuseppe Maxia
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package sandbox
 
 import (
@@ -5,7 +20,6 @@ import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"os"
-	"regexp"
 	"time"
 )
 
@@ -143,26 +157,11 @@ func getmatch(key string, names []string, matches []string) string {
 	return ""
 }
 
-func MakeNewServerUuid(sdef SandboxDef) string {
-	node_num := sdef.NodeNum
-	re_digit := regexp.MustCompile(`\d`)
-	group1 := fmt.Sprintf("%08d", sdef.Port)
-	group2 := fmt.Sprintf("%04d-%04d-%04d", 0, 0, 0)
-	group3 := fmt.Sprintf("%012d", sdef.Port)
-	//              12345678 1234 1234 1234 123456789012
-	//    new_uuid="00000000-0000-0000-0000-000000000000"
-	if node_num > 0 {
-		group2 = re_digit.ReplaceAllString(group2, fmt.Sprintf("%d", node_num))
-		group3 = re_digit.ReplaceAllString(group3, fmt.Sprintf("%d", node_num))
-	}
-	return fmt.Sprintf("server-uuid=%s-%s-%s", group1, group2, group3)
-}
-
 func FixServerUuid(sdef SandboxDef) {
 	if !common.GreaterOrEqualVersion(sdef.Version, []int{5, 6, 9}) {
 		return
 	}
-	new_uuid := MakeNewServerUuid(sdef)
+	new_uuid := fmt.Sprintf("server-uuid=%s", common.MakeCustomizedUuid(sdef.Port, sdef.NodeNum))
 	operation_dir := sdef.SandboxDir + "/data"
 	uuid_file := operation_dir + "/auto.cnf"
 	if !common.DirExists(operation_dir) {

@@ -1,3 +1,18 @@
+// DBDeployer - The MySQL Sandbox
+// Copyright © 2006-2018 Giuseppe Maxia
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package common
 
 import "testing"
@@ -8,11 +23,16 @@ type version_port struct {
 }
 
 type version_pair struct {
-	version string
+	version     string
 	versionList []int
-	expected bool
+	expected    bool
 }
 
+type UUID_component struct {
+	port     int
+	node_num int
+	expected string
+}
 
 func TestVersionToPort(t *testing.T) {
 	//t.Parallel()
@@ -52,12 +72,12 @@ func TestVersionToPort(t *testing.T) {
 }
 
 func TestGreaterOrEqualVersion(t *testing.T) {
-	
+
 	var versions = []version_pair{
-		{"5.0.0", []int{5,6,0}, false},
-		{"8.0.0", []int{5,6,0}, true},
-		{"ps5.7.5", []int{5,7,0}, true},
-		{"10.0.1", []int{5,6,0}, false},
+		{"5.0.0", []int{5, 6, 0}, false},
+		{"8.0.0", []int{5, 6, 0}, true},
+		{"ps5.7.5", []int{5, 7, 0}, true},
+		{"10.0.1", []int{5, 6, 0}, false},
 	}
 	for _, v := range versions {
 		result := GreaterOrEqualVersion(v.version, v.versionList)
@@ -65,6 +85,33 @@ func TestGreaterOrEqualVersion(t *testing.T) {
 			t.Logf("ok     %-10s => %v %v \n", v.version, v.versionList, result)
 		} else {
 			t.Logf("NOT OK %-10s => %v %v \n", v.version, v.versionList, result)
+			t.Fail()
+		}
+	}
+}
+
+func TestCustomUuid(t *testing.T) {
+	var uuid_samples = []UUID_component{
+		//                            12345678 1234 1234 1234 123456789012
+		//                           "00000000-0000-0000-0000-000000000000"
+		UUID_component{ 5000,      0, "00005000-0000-0000-0000-000000005000"},
+		UUID_component{15000,      0, "00015000-0000-0000-0000-000000015000"},
+		UUID_component{15000,      1, "00015000-1111-1111-1111-111111111111"},
+		UUID_component{25000,      2, "00025000-2222-2222-2222-222222222222"},
+		UUID_component{12987,      7, "00012987-7777-7777-7777-777777777777"},
+		UUID_component{ 8004,      0, "00008004-0000-0000-0000-000000008004"},
+		UUID_component{ 8004,     11, "00008004-0011-0011-0011-000000008004"},
+		UUID_component{ 8004,   3452, "00008004-3452-3452-3452-000000008004"},
+		UUID_component{ 8004,  18976, "00008004-0000-0001-8976-000000008004"},
+		UUID_component{ 6000,  35281, "00006000-0000-0003-5281-000000006000"},
+		UUID_component{ 6000, 235281, "00006000-0023-0000-0000-000000006000"},
+	}
+	for _, sample := range uuid_samples {
+		new_uuid := MakeCustomizedUuid(sample.port, sample.node_num)
+		if new_uuid == sample.expected {
+			t.Logf("ok     %5d %6d => %s \n", sample.port, sample.node_num, new_uuid)
+		} else {
+			t.Logf("NOT OK %5d %6d => <%#v> (expected: <%#v>) \n", sample.port, sample.node_num, new_uuid, sample.expected)
 			t.Fail()
 		}
 	}
