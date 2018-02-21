@@ -281,7 +281,7 @@ func ImportTemplates(cmd *cobra.Command, args []string) {
 }
 
 func ResetTemplates(cmd *cobra.Command, args []string) {
-
+	// TODO: loop through the templates directories and remove all the ones that have compatible versions.
 	templates_dir := defaults.ConfigurationDir + "/templates" + common.CompatibleVersion
 	if !common.DirExists(templates_dir) {
 		return
@@ -301,8 +301,7 @@ var (
 		Hidden:  false,
 		Long: `The commands in this section show the templates used
 to create and manipulate sandboxes.
-More commands (and flags) will follow to allow changing templates
-either temporarily or permanently.`,
+`,
 	}
 
 	templatesListCmd = &cobra.Command{
