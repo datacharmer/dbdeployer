@@ -28,7 +28,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with '--help' will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 0.1.22
+    dbdeployer version 0.1.25
     
 
     $ dbdeployer -h
@@ -99,6 +99,9 @@ If you don't have any tarballs installed in your system, you should first *unpac
     
     Usage:
       dbdeployer unpack MySQL-tarball [flags]
+    
+    Aliases:
+      unpack, extract, untar, unzip, inflate, expand
     
     Examples:
     
@@ -325,6 +328,15 @@ The command "usage" shows how to use the scripts that were installed with each s
     "./clear" stops the server and removes everything from the data directory, 
     letting you ready to start from scratch. (Warning! It's irreversible!)
     
+    "./my" is a prefix script to invoke any command named "my*" from the 
+    MySQL /bin directory. It is important to use it rather than the 
+    corresponding globally installed tool, because this guarantees 
+    that you will be using the tool for the version you have deployed.
+    Examples:
+    
+        ./my sqldump db_name
+    	./my sqlbinlog somefile
+    
      USING MULTIPLE SERVER SANDBOX
     On a replication sandbox, you have the same commands (run "dbdeployer usage single"), 
     with an "_all" suffix, meaning that you propagate the command to all the members. 
@@ -365,12 +377,13 @@ You can run a command in several sandboxes at once, using the *global* command, 
     	
     
     Available Commands:
-      restart     Restarts all sandboxes
-      start       Starts all sandboxes
-      status      Shows the status in all sandboxes
-      stop        Stops all sandboxes
-      test        Tests all sandboxes
-      use         Runs a query in all sandboxes
+      restart          Restarts all sandboxes
+      start            Starts all sandboxes
+      status           Shows the status in all sandboxes
+      stop             Stops all sandboxes
+      test             Tests all sandboxes
+      test-replication Tests replication in all sandboxes
+      use              Runs a query in all sandboxes
     
     Flags:
       -h, --help   help for global
@@ -400,4 +413,14 @@ The sandboxes can also be deleted, either one by one or all at once:
           --skip-confirm   Skips confirmation with multiple deletions.
     
     
+
+You can lock one or more sandboxes to prevent deletion. Use this command to make the sandbox non-deletable.
+
+    $ dbdeployer admin lock sandbox_name
+
+A locked sandbox will not be deleted, even when running "dbdeployer delete ALL."
+
+The lock can also be reverted using
+
+    $ dbdeployer admin unlock sandbox_name
 

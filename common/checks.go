@@ -24,7 +24,19 @@ import (
 	"strings"
 )
 
-func GetInstalledSandboxes(sandbox_home string) (installed_sandboxes []string) {
+type SandboxInfo struct {
+	SandboxName string
+	Locked bool
+}
+
+func SandboxInfoToFileNames(sb_list []SandboxInfo) (file_names []string) {
+	for _, sbinfo := range sb_list {
+		file_names = append(file_names, sbinfo.SandboxName)
+	}
+	return
+}
+
+func GetInstalledSandboxes(sandbox_home string) (installed_sandboxes []SandboxInfo) {
 	if !DirExists(sandbox_home) {
 		return
 	}
@@ -40,8 +52,14 @@ func GetInstalledSandboxes(sandbox_home string) (installed_sandboxes []string) {
 			sbdesc := sandbox_home + "/" + fname + "/sbdescription.json"
 			start := sandbox_home + "/" + fname + "/start"
 			start_all := sandbox_home + "/" + fname + "/start_all"
+			no_clear := sandbox_home + "/" + fname + "/no_clear"
+			no_clear_all := sandbox_home + "/" + fname + "/no_clear_all"
 			if FileExists(sbdesc) || FileExists(start) || FileExists(start_all) {
-				installed_sandboxes = append(installed_sandboxes, fname)
+				if FileExists(no_clear_all) || FileExists(no_clear) {
+					installed_sandboxes = append(installed_sandboxes, SandboxInfo{ fname, true})
+				} else {
+					installed_sandboxes = append(installed_sandboxes, SandboxInfo{fname, false})
+				}
 			}
 		}
 	}
@@ -49,7 +67,7 @@ func GetInstalledSandboxes(sandbox_home string) (installed_sandboxes []string) {
 }
 
 func GetInstalledPorts(sandbox_home string) []int {
-	files := GetInstalledSandboxes(sandbox_home)
+	files := SandboxInfoToFileNames(GetInstalledSandboxes(sandbox_home))
 	// If there is a file sbdescription.json in the top directory
 	// it will be included in the reporting
 	files = append(files, "")

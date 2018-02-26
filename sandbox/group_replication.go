@@ -143,6 +143,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 	write_script(MultipleTemplates, "status_all", "status_multi_template", sdef.SandboxDir, data, true)
 	write_script(MultipleTemplates, "test_sb_all", "test_sb_multi_template", sdef.SandboxDir, data, true)
 	write_script(MultipleTemplates, "stop_all", "stop_multi_template", sdef.SandboxDir, data, true)
+	write_script(MultipleTemplates, "clear_all", "clear_multi_template", sdef.SandboxDir, data, true)
 	write_script(MultipleTemplates, "send_kill_all", "send_kill_multi_template", sdef.SandboxDir, data, true)
 	write_script(MultipleTemplates, "use_all", "use_multi_template", sdef.SandboxDir, data, true)
 	write_script(GroupTemplates, "initialize_nodes", "init_nodes_template", sdef.SandboxDir, data, true)

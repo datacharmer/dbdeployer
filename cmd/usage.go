@@ -48,6 +48,15 @@ Example:
 
 "./clear" stops the server and removes everything from the data directory, 
 letting you ready to start from scratch. (Warning! It's irreversible!)
+
+"./my" is a prefix script to invoke any command named "my*" from the 
+MySQL /bin directory. It is important to use it rather than the 
+corresponding globally installed tool, because this guarantees 
+that you will be using the tool for the version you have deployed.
+Examples:
+
+    ./my sqldump db_name
+	./my sqlbinlog somefile
 `
 	const multiple_usage string = ` USING MULTIPLE SERVER SANDBOX
 On a replication sandbox, you have the same commands (run "dbdeployer usage single"), 

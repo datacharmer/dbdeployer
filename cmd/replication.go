@@ -52,6 +52,8 @@ For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, cont
 the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
 Use the "unpack" command to get the tarball into the right directory.
 `,
+	//Allowed topologies are "master-slave", "group" (requires 5.7.17+),
+	//"fan-in" and "all-msters" (require 5.7.9+)
 	Run: ReplicationSandbox,
 	Example: `
 		$ dbdeployer replication 5.7.21

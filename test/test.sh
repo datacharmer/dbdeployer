@@ -24,6 +24,9 @@ then
 fi
 
 start=$(date)
+pass=0
+fail=0
+tests=0
 start_sec=$(date +%s)
 date > results.txt
 which dbdeployer >> results.txt
@@ -39,6 +42,22 @@ function results {
     echo ""
     echo "" >> results.txt
 }
+
+function ok_equal {
+    label=$1
+    value1=$2
+    value2=$3
+    if [ $value1 == $value2 ]
+    then
+        echo "ok - $label found '$value1' - expected: '$value2' "
+        pass=$(($pass+1))
+    else
+        echo "not ok - $label found '$value1' - expected: '$value2' "
+        fail=$(($fail+1))
+    fi
+    tests=$(($tests+1))
+}
+
 
 function run {
     echo "#$@" >> results.txt
@@ -183,8 +202,22 @@ do
     sleep 3
     run dbdeployer global test
     run dbdeployer global test-replication
+    # test lock
+    num_sandboxes_before=$(dbdeployer sandboxes | wc -l)
+    run dbdeployer admin lock ALL
+    run dbdeployer delete ALL --skip-confirm
+    # deletion of locked sandboxes should be ineffective.
+    # We expect to get the same number of sandboxes before and after the deletion
+    num_sandboxes_after=$(dbdeployer sandboxes | wc -l)
+    ok_equal "num_sandboxes" $num_sandboxes_before $num_sandboxes_after
+
+    run dbdeployer admin unlock ALL
     run dbdeployer delete ALL --skip-confirm
     results "#$V - after deletion"
+    num_sandboxes_final=$(dbdeployer sandboxes | wc -l)
+    # After unlocking, deletion must work, and we should see that
+    # there are no sandboxes left
+    ok_equal "num_sandboxes" $num_sandboxes_final 0
  
 done
 
@@ -192,8 +225,8 @@ for V in ${group_versions[*]}
 do
     echo "#$V"
     run dbdeployer replication $V --topology=group
-    VF=$(echo $V | tr '.' '_')
-    port=$(~/sandboxes/group_msb_$VF/n1 -BN -e "select @@port")
+    # VF=$(echo $V | tr '.' '_')
+    # port=$(~/sandboxes/group_msb_$VF/n1 -BN -e "select @@port")
     run dbdeployer replication $V --topology=group \
         --single-primary
     results "group"
@@ -214,4 +247,13 @@ echo "Ended  : $stop"
 echo "Ended  : $stop" >> results.txt
 echo "Elapsed: $elapsed seconds"
 echo "Elapsed: $elapsed seconds" >> results.txt
-
+echo "Passed subtests: $pass"
+echo "Failed subtests: $fail"
+exit_code=0
+if [ "$fail" != "0" ]
+then
+    echo "*** FAILURES DETECTED ***"
+    exit_code=1
+fi
+echo "Exit code: $exit_code"
+exit $exit_code

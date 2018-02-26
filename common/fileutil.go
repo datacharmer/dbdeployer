@@ -29,6 +29,13 @@ import (
 	"regexp"
 )
 
+type SandboxUser struct {
+	Description string `json:"description"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Privileges string `json:"privileges"`
+}
+
 type SandboxDescription struct {
 	Basedir string `json:"basedir"`
 	SBType  string `json:"type"` // single multi master-slave group

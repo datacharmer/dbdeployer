@@ -116,6 +116,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	write_script(ReplicationTemplates, "status_all", "status_all_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "test_sb_all", "test_sb_all_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "stop_all", "stop_all_template", sdef.SandboxDir, data, true)
+	write_script(ReplicationTemplates, "clear_all", "clear_all_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "send_kill_all", "send_kill_all_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "use_all", "use_all_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "initialize_slaves", "init_slaves_template", sdef.SandboxDir, data, true)
@@ -151,6 +152,18 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 			fmt.Println("Group replication requires MySQL 5.7.17 or greater")
 			os.Exit(1)
 		}
+	case "fan-in":
+		if !common.GreaterOrEqualVersion(sdef.Version, []int{5, 7, 9}) {
+			fmt.Println("multi-source replication requires MySQL 5.7.9 or greater")
+			os.Exit(1)
+		}
+		sdef.SandboxDir += "/" + defaults.Defaults().FanInPrefix + common.VersionToName(origin)
+	case "all-masters":
+		if !common.GreaterOrEqualVersion(sdef.Version, []int{5, 7, 9}) {
+			fmt.Println("multi-source replication requires MySQL 5.7.9 or greater")
+			os.Exit(1)
+		}
+		sdef.SandboxDir += "/" + defaults.Defaults().AllMastersPrefix + common.VersionToName(origin)
 	default:
 		fmt.Println("Unrecognized topology. Accepted: 'master-slave', 'group'")
 		os.Exit(1)
@@ -168,5 +181,13 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 		CreateMasterSlaveReplication(sdef, origin, nodes, master_ip)
 	case "group":
 		CreateGroupReplication(sdef, origin, nodes)
+	case "fan-in":
+		// CreateFanInReplication(sdef, origin, nodes)
+		fmt.Println("fan-in replication is not implemented yet")
+		os.Exit(0)
+	case "all-masters":
+		// CreateAllMastersReplication(sdef, origin, nodes)
+		fmt.Println("all-masters replication is not implemented yet")
+		os.Exit(0)
 	}
 }

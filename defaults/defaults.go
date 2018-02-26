@@ -26,19 +26,29 @@ import (
 )
 
 type DbdeployerDefaults struct {
-	Version                    string `json:"version"`
-	SandboxHome                string `json:"sandbox-home"`
-	SandboxBinary              string `json:"sandbox-binary"`
-	MasterSlaveBasePort        int    `json:"master-slave-base-port"`
-	GroupReplicationBasePort   int    `json:"group-replication-base-port"`
-	GroupReplicationSpBasePort int    `json:"group-replication-sp-base-port"`
-	MultipleBasePort           int    `json:"multiple-base-port"`
-	GroupPortDelta             int    `json:"group-port-delta"`
-	SandboxPrefix              string `json:"sandbox-prefix"`
-	MasterSlavePrefix          string `json:"master-slave-prefix"`
-	GroupPrefix                string `json:"group-prefix"`
-	GroupSpPrefix              string `json:"group-sp-prefix"`
-	MultiplePrefix             string `json:"multiple-prefix"`
+	Version                        string `json:"version"`
+	SandboxHome                    string `json:"sandbox-home"`
+	SandboxBinary                  string `json:"sandbox-binary"`
+	MasterSlaveBasePort            int    `json:"master-slave-base-port"`
+	GroupReplicationBasePort       int    `json:"group-replication-base-port"`
+	GroupReplicationSpBasePort     int    `json:"group-replication-sp-base-port"`
+	FanInReplicationBasePort       int    `json:"fan-in-replication-base-port"`
+	AllMastersReplicationBasePort  int    `json:"all-masters-replication-base-port"`
+	MultipleBasePort               int    `json:"multiple-base-port"`
+	// GaleraBasePort                 int    `json:"galera-base-port"`
+	// PXCBasePort                    int    `json:"pxc-base-port"`
+	// NdbBasePort                    int    `json:"ndb-base-port"`
+	GroupPortDelta                 int    `json:"group-port-delta"`
+	SandboxPrefix                  string `json:"sandbox-prefix"`
+	MasterSlavePrefix              string `json:"master-slave-prefix"`
+	GroupPrefix                    string `json:"group-prefix"`
+	GroupSpPrefix                  string `json:"group-sp-prefix"`
+	MultiplePrefix                 string `json:"multiple-prefix"`
+	FanInPrefix                    string `json:"fan-in-prefix"`
+	AllMastersPrefix               string `json:"all-masters-prefix"`
+	// GaleraPrefix                   string `json:"galera-prefix"`
+	// PxcPrefix                      string `json:"pxc-prefix"`
+	// NdbPrefix                      string `json:"ndb-prefix"`
 }
 
 const (
@@ -57,19 +67,29 @@ var (
 	HashLine                string = strings.Repeat("#", LineLength)
 
 	factoryDefaults = DbdeployerDefaults{
-		Version:                    common.CompatibleVersion,
-		SandboxHome:                home_dir + "/sandboxes",
-		SandboxBinary:              home_dir + "/opt/mysql",
-		MasterSlaveBasePort:        11000,
-		GroupReplicationBasePort:   12000,
-		GroupReplicationSpBasePort: 13000,
-		MultipleBasePort:           16000,
-		GroupPortDelta:             125,
-		SandboxPrefix:              "msb_",
-		MasterSlavePrefix:          "rsandbox_",
-		GroupPrefix:                "group_msb_",
-		GroupSpPrefix:              "group_sp_msb_",
-		MultiplePrefix:             "multi_msb_",
+		Version:                       common.CompatibleVersion,
+		SandboxHome:                   home_dir + "/sandboxes",
+		SandboxBinary:                 home_dir + "/opt/mysql",
+		MasterSlaveBasePort:           11000,
+		GroupReplicationBasePort:      12000,
+		GroupReplicationSpBasePort:    13000,
+		FanInReplicationBasePort:      14000,
+		AllMastersReplicationBasePort: 15000,
+		MultipleBasePort:              16000,
+		// GaleraBasePort:                17000,
+		// PxcBasePort:                   18000,
+		// NdbBasePort:                   19000,
+		GroupPortDelta:                125,
+		SandboxPrefix:                 "msb_",
+		MasterSlavePrefix:             "rsandbox_",
+		GroupPrefix:                   "group_msb_",
+		GroupSpPrefix:                 "group_sp_msb_",
+		MultiplePrefix:                "multi_msb_",
+		FanInPrefix:                   "fan_in_msb_",
+		AllMastersPrefix:              "all_masters_msb_",
+		// GaleraPrefix:                  "galera_msb_",
+		// NdbPrefix:                     "ndb_msb_",
+		// PxcPrefix:                     "pxc_msb_",
 	}
 	// TODO : allow for environmengt variables such as $HOME and $PWD to be
 	// recognized and handled in the configuration file.
@@ -140,6 +160,11 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		check_int("group-replication-base-port", nd.GroupReplicationBasePort, min_port_value, max_port_value) &&
 		check_int("group-replication-sp-base-port", nd.GroupReplicationSpBasePort, min_port_value, max_port_value) &&
 		check_int("multiple-base-port", nd.MultipleBasePort, min_port_value, max_port_value) &&
+		check_int("fan-in-base-port", nd.FanInReplicationBasePort, min_port_value, max_port_value) &&
+		check_int("all-masters-base-port", nd.AllMastersReplicationBasePort, min_port_value, max_port_value) &&
+		// check_int("galera-base-port", nd.GaleraBasePort, min_port_value, max_port_value) &&
+		// check_int("pxc-base-port", nd.PxcBasePort, min_port_value, max_port_value) &&
+		// check_int("ndb-base-port", nd.NdbBasePort, min_port_value, max_port_value) &&
 		check_int("group-port-delta", nd.GroupPortDelta, 101, 299)
 	if !all_ints {
 		return false
@@ -148,10 +173,20 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 	no_conflicts = nd.MultipleBasePort != nd.GroupReplicationSpBasePort &&
 		nd.MultipleBasePort != nd.GroupReplicationBasePort &&
 		nd.MultipleBasePort != nd.MasterSlaveBasePort &&
+		nd.MultipleBasePort != nd.FanInReplicationBasePort &&
+		nd.MultipleBasePort != nd.AllMastersReplicationBasePort &&
+		// nd.MultipleBasePort != nd.NdbBasePort &&
+		// nd.MultipleBasePort != nd.GaleraBasePort &&
+		// nd.MultipleBasePort != nd.PxcBasePort &&
 		nd.MultiplePrefix != nd.GroupSpPrefix &&
 		nd.MultiplePrefix != nd.GroupPrefix &&
 		nd.MultiplePrefix != nd.MasterSlavePrefix &&
 		nd.MultiplePrefix != nd.SandboxPrefix &&
+		nd.MultiplePrefix != nd.FanInPrefix &&
+		nd.MultiplePrefix != nd.AllMastersPrefix &&
+		// nd.MultiplePrefix != nd.NdbPrefix &&
+		// nd.MultiplePrefix != nd.GaleraPrefix &&
+		// nd.MultiplePrefix != nd.PxcPrefix &&
 		nd.SandboxHome != nd.SandboxBinary
 	if !no_conflicts {
 		fmt.Printf("Conflicts found in defaults values:\n")
@@ -218,6 +253,16 @@ func UpdateDefaults(label, value string) {
 		new_defaults.GroupReplicationSpBasePort = a_to_i(value)
 	case "multiple-base-port":
 		new_defaults.MultipleBasePort = a_to_i(value)
+	case "fan-in-base-port":
+		new_defaults.FanInReplicationBasePort = a_to_i(value)
+	case "all-masters-base-port":
+		new_defaults.AllMastersReplicationBasePort = a_to_i(value)
+	// case "ndb-base-port":
+	//	 new_defaults.NdbBasePort = a_to_i(value)
+	// case "galera-base-port":
+	//	 new_defaults.GaleraBasePort = a_to_i(value)
+	// case "pxc-base-port":
+	//	 new_defaults.PxcBasePort = a_to_i(value)
 	case "group-port-delta":
 		new_defaults.GroupPortDelta = a_to_i(value)
 	case "sandbox-prefix":
@@ -230,6 +275,16 @@ func UpdateDefaults(label, value string) {
 		new_defaults.GroupSpPrefix = value
 	case "multiple-prefix":
 		new_defaults.MultiplePrefix = value
+	case "fan-in-prefix":
+		new_defaults.FanInPrefix = value
+	case "all-masters-prefix":
+		new_defaults.AllMastersPrefix = value
+	// case "galera-prefix":
+	// 	new_defaults.GaleraPrefix = value
+	// case "pxc-prefix":
+	// 	new_defaults.PxcPrefix = value
+	// case "ndb-prefix":
+	// 	new_defaults.NdbPrefix = value
 	default:
 		fmt.Printf("Unrecognized label %s\n", label)
 		os.Exit(1)

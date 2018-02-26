@@ -166,3 +166,13 @@ The sandboxes can also be deleted, either one by one or all at once:
 
     {{dbdeployer delete -h }}
 
+You can lock one or more sandboxes to prevent deletion. Use this command to make the sandbox non-deletable.
+
+    $ dbdeployer admin lock sandbox_name
+
+A locked sandbox will not be deleted, even when running "dbdeployer delete ALL."
+
+The lock can also be reverted using
+
+    $ dbdeployer admin unlock sandbox_name
+

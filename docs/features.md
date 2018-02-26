@@ -17,6 +17,8 @@ friendly UUID generation    | yes             | yes         |
 global commands             | yes             | yes         |
 test replication flow       | yes             | yes         |
 delete command              | yes [^2]        | yes         |
+show data dictionary tables | yes             | yes         |
+lock/unlock sandboxes       | yes             | yes         |
 group replication  SP       | no              | yes         |
 group replication  MP       | no              | yes         |
 prevent port collision      | no              | yes  [^3]   |
@@ -32,11 +34,15 @@ custom abbreviations        | no              | yes  [^12]  |
 version flag                | no              | yes  [^13]  |
 fan-in                      | no              | no          | yes [^14]
 all-masters                 | no              | no          | yes [^15]
+galera                      | no              | no          | yes [^16]
+mysql cluster               | no              | no          | yes [^16]
 finding free ports          | yes             | no          | yes
 pre-post grants shell action| yes             | no          | maybe
 getting remote tarballs     | yes             | no          | yes
-circular replication        | yes             | no          | no [^16]
+load plugins                | yes             | yes [^17]   |
+circular replication        | yes             | no          | no [^18]
 master-master  (circular)   | yes             | no          | no
+Windows support             | no              | no [^19]    |
 
 [^1]: It's achieved using --export_binaries and then abandoning the operation.
 
@@ -68,4 +74,10 @@ master-master  (circular)   | yes             | no          | no
 
 [^15]: Same as n. 13.
 
-[^16]: Circular replication should not be used anymore. There are enough good alternatives (multi-source, group replication) to avoid this old technology.
+[^16]: I may need some help on those.
+
+[^17]: Using pre-grants and post-grants options, all plugins can be loaded.
+
+[^18]: Circular replication should not be used anymore. There are enough good alternatives (multi-source, group replication) to avoid this old technology.
+
+[^19]: I don't do Windows. But you can fork the project if you do.

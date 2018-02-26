@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"regexp"
 	"text/template"
+	"time"
 )
 
 // Smap defines the map of variable types, for brevity
@@ -47,7 +48,17 @@ func TrimmedLines(s string) string {
 // Spaces are added between operands when neither is a string.
 // Based on code from https://play.golang.org/p/COHKlB2RML
 func Tprintf(tmpl string, data Smap) string {
-
+	
+	// Adds timestamp and version info
+	timestamp := time.Now()
+	_, time_stamp_exists := data["DateTime"]
+	_, version_exists := data["AppVersion"]
+	if !time_stamp_exists {
+		data["DateTime"] = timestamp.Format(time.UnixDate)
+	}
+	if !version_exists {
+		data["AppVersion"] = VersionDef
+	}
 	// Creates a template
 	t := template.Must(template.New("tmp").Parse(tmpl))
 	buf := &bytes.Buffer{}

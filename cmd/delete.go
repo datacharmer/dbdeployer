@@ -29,6 +29,15 @@ func RemoveSandbox(sandbox_dir, sandbox string) {
 		fmt.Printf("Directory '%s' not found\n", full_path)
 		os.Exit(1)
 	}
+	preserve := full_path + "/no_clear_all"
+	if !common.ExecExists(preserve) {
+		preserve = full_path + "/no_clear"
+	}
+	if common.ExecExists(preserve) {
+		fmt.Printf("The sandbox %s is locked\n",sandbox)
+		fmt.Printf("You need to unlock it with \"dbdeployer admin unlock\"\n",)
+		return	
+	}
 	stop := full_path + "/stop_all"
 	if !common.ExecExists(stop) {
 		stop = full_path + "/stop"
@@ -70,7 +79,7 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 	confirm, _ := flags.GetBool("confirm")
 	skip_confirm, _ := flags.GetBool("skip-confirm")
 	sandbox_dir, _ := flags.GetString("sandbox-home")
-	deletion_list := []string{sandbox}
+	deletion_list := []common.SandboxInfo{common.SandboxInfo{sandbox, false}}
 	if sandbox == "ALL" {
 		confirm = true
 		if skip_confirm {
@@ -82,10 +91,21 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 		fmt.Printf("Nothing to delete in %s\n", sandbox_dir)
 		return
 	}
-	fmt.Printf("Deleting the following sandboxes\n")
+	fmt.Printf("List of deployed sandboxes:\n")
+	unlocked_found := false
 	for _, sb := range deletion_list {
-		fmt.Printf("%s/%s\n", sandbox_dir, sb)
+		locked := ""
+		if sb.Locked {
+			locked = "(*LOCKED*)"
+		} else {
+			unlocked_found = true
+		}
+		fmt.Printf("%s/%s %s\n", sandbox_dir, sb.SandboxName, locked)
 	}
+	 if !unlocked_found {
+	 	fmt.Printf("No unlocked sandboxes found.\n")
+		return
+	 }
 	if confirm {
 		fmt.Printf("Do you confirm? y/[N] ")
 
@@ -104,7 +124,11 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 		}
 	}
 	for _, sb := range deletion_list {
-		RemoveSandbox(sandbox_dir, sb)
+		if sb.Locked {
+			fmt.Printf("Sandbox %s is locked\n",sb.SandboxName)
+		} else {
+			RemoveSandbox(sandbox_dir, sb.SandboxName)
+		}
 	}
 }
 

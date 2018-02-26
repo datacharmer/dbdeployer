@@ -26,20 +26,25 @@ import (
 func ShowSandboxes(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	SandboxHome, _ := flags.GetString("sandbox-home")
-	files := common.GetInstalledSandboxes(SandboxHome)
+	sandbox_list := common.GetInstalledSandboxes(SandboxHome)
 	// files, err := ioutil.ReadDir(SandboxHome)
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
 	var dirs []string
-	for _, fname := range files {
+	for _, sbinfo := range sandbox_list {
 		//fname := f.Name()
 		//fmode := f.Mode()
 		//if fmode.IsDir() {
+		fname := sbinfo.SandboxName
 		description := "single"
 		sbdesc := SandboxHome + "/" + fname + "/sbdescription.json"
 		if common.FileExists(sbdesc) {
 			sbd := common.ReadSandboxDescription(SandboxHome + "/" + fname)
+			locked := ""
+			if sbinfo.Locked {
+				locked = "(*LOCKED*)"
+			}
 			if sbd.Nodes == 0 {
 				port_text := ""
 				for _, p := range sbd.Port {
@@ -71,7 +76,7 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 				//ports += " ]"
 				description = fmt.Sprintf("%-20s %10s [%s]", sbd.SBType, sbd.Version, ports)
 			}
-			dirs = append(dirs, fmt.Sprintf("%-20s : %s", fname, description))
+			dirs = append(dirs, fmt.Sprintf("%-20s : %s %s", fname, description, locked))
 		} else {
 			start := SandboxHome + "/" + fname + "/start"
 			start_all := SandboxHome + "/" + fname + "/start_all"
