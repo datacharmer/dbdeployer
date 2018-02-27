@@ -6,7 +6,7 @@ This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox),
 ## Main operations
 
 (See this ASCIIcast for a demo of its operations.)
-[![asciicast](https://asciinema.org/a/160541.png)](https://asciinema.org/a/160541)
+[![asciicast](https://asciinema.org/a/165707.png)](https://asciinema.org/a/165707)
 
 With dbdeployer, you can deploy a single sandbox, or many sandboxes  at once, with or without replication.
 
@@ -337,7 +337,7 @@ The command "usage" shows how to use the scripts that were installed with each s
     Example:
     
         ./use -BN -e "select @@server_id"
-    	./use -u root
+        ./use -u root
     
     "./clear" stops the server and removes everything from the data directory, 
     letting you ready to start from scratch. (Warning! It's irreversible!)
@@ -349,7 +349,7 @@ The command "usage" shows how to use the scripts that were installed with each s
     Examples:
     
         ./my sqldump db_name
-    	./my sqlbinlog somefile
+        ./my sqlbinlog somefile
     
      USING MULTIPLE SERVER SANDBOX
     On a replication sandbox, you have the same commands (run "dbdeployer usage single"), 

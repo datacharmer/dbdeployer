@@ -6,7 +6,7 @@ This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox),
 ## Main operations
 
 (See this ASCIIcast for a demo of its operations.)
-[![asciicast](https://asciinema.org/a/160541.png)](https://asciinema.org/a/160541)
+[![asciicast](https://asciinema.org/a/165707.png)](https://asciinema.org/a/165707)
 
 With dbdeployer, you can deploy a single sandbox, or many sandboxes  at once, with or without replication.
 
