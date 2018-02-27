@@ -19,6 +19,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -65,6 +66,7 @@ func RemoveSandbox(sandbox_dir, sandbox string) {
 		os.Exit(1)
 	}
 	fmt.Printf("Sandbox %s deleted\n", full_path)
+	defaults.DeleteFromCatalog(full_path)
 
 }
 
@@ -80,7 +82,7 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 	skip_confirm, _ := flags.GetBool("skip-confirm")
 	sandbox_dir, _ := flags.GetString("sandbox-home")
 	deletion_list := []common.SandboxInfo{common.SandboxInfo{sandbox, false}}
-	if sandbox == "ALL" {
+	if sandbox == "ALL" || sandbox == "all" {
 		confirm = true
 		if skip_confirm {
 			confirm = false

@@ -60,7 +60,7 @@ fi
     -v $PWD/test:/home/msandbox/test \
     --name $container_name \
     --hostname $container_name \
-    datacharmer/mysql-sb-full bash -c "./test/test.sh"
+    datacharmer/mysql-sb-full bash -c "./test/test.sh" 
 )
 
 #    datacharmer/mysql-sb-full bash -c "./test/test.sh"

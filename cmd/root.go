@@ -45,7 +45,7 @@ func Execute() {
 	}
 }
 
-func set_pflag(key string, abbr string, env_var string, default_var string, help_str string, is_slice bool) {
+func set_pflag(cmd *cobra.Command, key string, abbr string, env_var string, default_var string, help_str string, is_slice bool) {
 	var default_value string
 	if env_var != "" {
 		default_value = os.Getenv(env_var)
@@ -54,9 +54,9 @@ func set_pflag(key string, abbr string, env_var string, default_var string, help
 		default_value = default_var
 	}
 	if is_slice {
-		rootCmd.PersistentFlags().StringSliceP(key, abbr, []string{default_value}, help_str)
+		cmd.PersistentFlags().StringSliceP(key, abbr, []string{default_value}, help_str)
 	} else {
-		rootCmd.PersistentFlags().StringP(key, abbr, default_value, help_str)
+		cmd.PersistentFlags().StringP(key, abbr, default_value, help_str)
 	}
 }
 
@@ -78,36 +78,8 @@ func checkDefaultsFile() {
 func init() {
 	cobra.OnInitialize(checkDefaultsFile)
 	rootCmd.PersistentFlags().StringVar(&defaults.CustomConfigurationFile, "config", defaults.ConfigurationFile, "configuration file")
-	set_pflag("sandbox-home", "", "SANDBOX_HOME", defaults.Defaults().SandboxHome, "Sandbox deployment direcory", false)
-	set_pflag("sandbox-binary", "", "SANDBOX_BINARY", defaults.Defaults().SandboxBinary, "Binary repository", false)
-
-	set_pflag("remote-access", "", "", "127.%", "defines the database access ", false)
-	set_pflag("bind-address", "", "", "127.0.0.1", "defines the database bind-address ", false)
-	set_pflag("custom-mysqld", "", "", "", "Uses an alternative mysqld (must be in the same directory as regular mysqld)", false)
-	set_pflag("init-options", "i", "INIT_OPTIONS", "", "mysqld options to run during initialization", true)
-	set_pflag("my-cnf-options", "c", "MY_CNF_OPTIONS", "", "mysqld options to add to my.sandbox.cnf", true)
-	set_pflag("pre-grants-sql-file", "", "", "", "SQL file to run before loading grants", false)
-	set_pflag("pre-grants-sql", "", "", "", "SQL queries to run before loading grants", true)
-	set_pflag("post-grants-sql", "", "", "", "SQL queries to run after loading grants", true)
-	set_pflag("post-grants-sql-file", "", "", "", "SQL file to run after loading grants", false)
-	// This option will allow to merge the template with an external my.cnf
-	// The options that are essential for the sandbox will be preserved
-	set_pflag("my-cnf-file", "", "MY_CNF_FILE", "", "Alternative source file for my.sandbox.cnf", false)
-	set_pflag("db-user", "u", "", "msandbox", "database user", false)
-	set_pflag("rpl-user", "", "", "rsandbox", "replication user", false)
-	set_pflag("db-password", "p", "", "msandbox", "database password", false)
-	set_pflag("rpl-password", "", "", "rsandbox", "replication password", false)
-	set_pflag("use-template", "", "", "", "[template_name:file_name] Replace existing template with one from file", true)
-	set_pflag("sandbox-directory", "", "", "", "Changes the default sandbox directory", false)
-	rootCmd.PersistentFlags().Int("port", 0, "Overrides default port")
-	rootCmd.PersistentFlags().Int("base-port", 0, "Overrides default base-port (for multiple sandboxes)")
-	rootCmd.PersistentFlags().Bool("gtid", false, "enables GTID")
-	rootCmd.PersistentFlags().Bool("keep-auth-plugin", false, "in 8.0.4+, does not change the auth plugin")
-	rootCmd.PersistentFlags().Bool("keep-server-uuid", false, "Does not change the server UUID")
-	rootCmd.PersistentFlags().Bool("force", false, "If a destination sandbox already exists, it will be overwritten")
-	rootCmd.PersistentFlags().Bool("skip-load-grants", false, "Does not load the grants")
-	rootCmd.PersistentFlags().Bool("expose-dd-tables", false, "In MySQL 8.0+ shows data dictionary tables")
-	// TODO rootCmd.PersistentFlags().Bool("check-port", false, "Check if the port is already in use, and find a free one")
+	set_pflag(rootCmd,"sandbox-home", "", "SANDBOX_HOME", defaults.Defaults().SandboxHome, "Sandbox deployment direcory", false)
+	set_pflag(rootCmd,"sandbox-binary", "", "SANDBOX_BINARY", defaults.Defaults().SandboxBinary, "Binary repository", false)
 
 	rootCmd.InitDefaultVersionFlag()
 }

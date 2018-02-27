@@ -44,7 +44,7 @@ e.g.:
 Example:
 
     ./use -BN -e "select @@server_id"
-	./use -u root
+    ./use -u root
 
 "./clear" stops the server and removes everything from the data directory, 
 letting you ready to start from scratch. (Warning! It's irreversible!)
@@ -56,7 +56,7 @@ that you will be using the tool for the version you have deployed.
 Examples:
 
     ./my sqldump db_name
-	./my sqlbinlog somefile
+    ./my sqlbinlog somefile
 `
 	const multiple_usage string = ` USING MULTIPLE SERVER SANDBOX
 On a replication sandbox, you have the same commands (run "dbdeployer usage single"), 

@@ -70,7 +70,27 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	sdef.Multi = true
 	sdef.Prompt = "master"
 	sdef.NodeNum = 1
+	sdef.SBType = "replication-node"
 	CreateSingleSandbox(sdef, origin)
+
+	sb_desc := common.SandboxDescription{
+		Basedir: sdef.Basedir + "/" + sdef.Version,
+		SBType:  "master-slave",
+		Version: sdef.Version,
+		Port:    []int{sdef.Port},
+		Nodes:   slaves,
+		NodeNum: 0,
+	}
+
+	sb_item := defaults.SandboxItem{
+		Origin : sb_desc.Basedir,
+		SBType : sb_desc.SBType,
+		Version: sdef.Version,
+		Port:    []int{sdef.Port},
+		Nodes:   []string{"master"},
+		Destination: sdef.SandboxDir,
+	}
+
 	for i := 1; i <= slaves; i++ {
 		data["Slaves"] = append(data["Slaves"].([]common.Smap), common.Smap{
 			"Copyright":   Copyright,
@@ -88,6 +108,9 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		sdef.Port = base_port + i + 1
 		sdef.ServerId = (base_server_id + i + 1) * 100
 		sdef.NodeNum = i + 1
+		sb_item.Nodes = append(sb_item.Nodes, sdef.DirName)
+		sb_item.Port = append(sb_item.Port, sdef.Port)
+		sb_desc.Port = append(sb_desc.Port, sdef.Port)
 		fmt.Printf("Installing and starting slave %d\n", i)
 		CreateSingleSandbox(sdef, origin)
 		var data_slave common.Smap = common.Smap{
@@ -100,16 +123,8 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		write_script(ReplicationTemplates, fmt.Sprintf("s%d", i), "slave_template", sdef.SandboxDir, data_slave, true)
 		write_script(ReplicationTemplates, fmt.Sprintf("n%d", i+1), "slave_template", sdef.SandboxDir, data_slave, true)
 	}
-	sdef.SBType = "replication-node"
-	sb_desc := common.SandboxDescription{
-		Basedir: sdef.Basedir + "/" + sdef.Version,
-		SBType:  "master-slave",
-		Version: sdef.Version,
-		Port:    []int{0},
-		Nodes:   slaves,
-		NodeNum: 0,
-	}
 	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)
+	defaults.UpdateCatalog(sdef.SandboxDir, sb_item)
 
 	write_script(ReplicationTemplates, "start_all", "start_all_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "restart_all", "restart_all_template", sdef.SandboxDir, data, true)

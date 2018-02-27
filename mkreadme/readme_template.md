@@ -10,7 +10,7 @@ This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox),
 
 With dbdeployer, you can deploy a single sandbox, or many sandboxes  at once, with or without replication.
 
-The main commands are **single**, **replication**, and **multiple**, which work with MySQL tarball that have been unpacked into the _sandbox-binary_ directory (by default, $HOME/opt/mysql.)
+The main command is **deploy** with its subcommands **single**, **replication**, and **multiple**, which work with MySQL tarball that have been unpacked into the _sandbox-binary_ directory (by default, $HOME/opt/mysql.)
 
 To use a tarball, you must first run the **unpack** command, which will unpack the tarball into the right directory.
 
@@ -20,7 +20,7 @@ For example:
     Unpacking tarball mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz to $HOME/opt/mysql/8.0.4
     .........100.........200.........292
 
-    $ dbdeployer single 8.0.4
+    $ dbdeployer deploy single 8.0.4
     Database installed in $HOME/sandboxes/msb_8_0_4
     . sandbox server started
 
@@ -38,29 +38,31 @@ If you don't have any tarballs installed in your system, you should first *unpac
 
 	{{dbdeployer unpack -h}}
 
-The main command is *single*, which installs a single sandbox.
+The easiest command is *deploy single*, which installs a single sandbox.
 
-	{{dbdeployer single -h}}
+	{{dbdeployer deploy -h}}
+
+	{{dbdeployer deploy single -h}}
 
 If you want more than one sandbox of the same version, without any replication relationship, use the *multiple* command with an optional "--node" flag (default: 3).
 
-	{{dbdeployer multiple -h}}
+	{{dbdeployer deploy multiple -h}}
 
 The *replication* command will install a master and two or more slaves, with replication started. You can change the topology to "group" and get three nodes in peer replication.
 
-	{{dbdeployer replication -h}}
+	{{dbdeployer deploy replication -h}}
 
 ## Multiple sandboxes, same version and type
 
 If you want to deploy several instances of the same version and the same type (for example two single sandboxes of 8.0.4, or two group replication instances with different single-primary setting) you can specify the data directory name and the ports manually.
 
-    $ dbdeployer single 8.0.4
+    $ dbdeployer deploy single 8.0.4
     # will deploy in msb_8_0_4 using port 8004
 
-    $ dbdeployer single 8.0.4 --sandbox-directory=msb2_8_0_4 --port=8005
+    $ dbdeployer deploy single 8.0.4 --sandbox-directory=msb2_8_0_4 --port=8005
     # will deploy in msb2_8_0_4 using port 8005
 
-    $ dbdeployer replication 8.0.4 --sandbox-directory=rsandbox2_8_0_4 --base-port=18600
+    $ dbdeployer deploy replication 8.0.4 --sandbox-directory=rsandbox2_8_0_4 --base-port=18600
     # will deploy replication in rsandbox2_8_0_4 using ports 18601, 18602, 18603
 
 ## Sandbox customization
@@ -74,14 +76,14 @@ There are several ways of changing the default behavior of a sandbox.
 
 For example:
 
-    $ dbdeployer single 5.6.33 --my-cnf-options="general_log=1" \
+    $ dbdeployer deploy single 5.6.33 --my-cnf-options="general_log=1" \
         --pre-grants-sql="select host, user, password from mysql.user" \
         --post-grants-sql="select @@general_log"
 
-    $ dbdeployer templates list
-    $ dbdeployer templates show templateName > mytemplate.txt
+    $ dbdeployer defaults templates list
+    $ dbdeployer defaults templates show templateName > mytemplate.txt
     # edit the template
-    $ dbdeployer single --use-template=templateName:mytemplate.txt 5.7.21
+    $ dbdeployer deploy single --use-template=templateName:mytemplate.txt 5.7.21
 
 dbdeployer will use your template instead of the original.
 
@@ -89,21 +91,21 @@ dbdeployer will use your template instead of the original.
 
 Example:
 
-    $ dbdeployer templates export single my_templates
+    $ dbdeployer defaults templates export single my_templates
     # Will export all the templates for the "single" group to the direcory my_templates/single
-    $ dbdeployer templates export ALL my_templates
+    $ dbdeployer defaults templates export ALL my_templates
     # exports all templates into my_templates, one directory for each group
     # Edit the templates that you want to change. You can also remove the ones that you want to leave untouched.
-    $ dbdeployer templates import single my_templates
+    $ dbdeployer defaults templates import single my_templates
     # Will import all templates from my_templates/single
 
 Warning: modifying templates may block the regular work of the sandboxes. Use this feature with caution!
 
-6. Finally, you can modify the defaults for the application, using the "admin" command. You can export the defaults, import them from a modified JSON file, or update a single one on-the-fly.
+6. Finally, you can modify the defaults for the application, using the "defaults" command. You can export the defaults, import them from a modified JSON file, or update a single one on-the-fly.
 
 Here's how:
 
-	$ dbdeployer admin show
+	$ dbdeployer defaults show
 	# Internal values:
 	{
 		"version": "0.1.22",
@@ -121,7 +123,7 @@ Here's how:
 		"multiple-prefix": "multi_msb_"
 	}
  
-	$ dbdeployer admin update master-slave-base-port 15000
+	$ dbdeployer defaults update master-slave-base-port 15000
 	# Updated master-slave-base-port -> "15000"
 	# Configuration file: $HOME/.dbdeployer/config.json
 	{

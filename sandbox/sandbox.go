@@ -192,6 +192,7 @@ func slice_to_text(s_array []string) string {
 func CreateSingleSandbox(sdef SandboxDef, origin string) {
 
 	var sandbox_dir string
+	
 	sdef.Basedir = sdef.Basedir + "/" + sdef.Version
 	if !common.DirExists(sdef.Basedir) {
 		fmt.Printf("Base directory %s does not exist\n", sdef.Basedir)
@@ -209,7 +210,6 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		sdef.DirName = defaults.Defaults().SandboxPrefix + version_fname
 	}
 	sandbox_dir = sdef.SandboxDir + "/" + sdef.DirName
-	//sandbox_home := sdef.SandboxDir
 	sdef.SandboxDir = sandbox_dir
 	datadir := sandbox_dir + "/data"
 	tmpdir := sandbox_dir + "/tmp"
@@ -337,6 +337,14 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	if sdef.SBType == "" {
 		sdef.SBType = "single"
 	}
+	sb_item := defaults.SandboxItem{
+		Origin : sdef.Basedir,
+		SBType : sdef.SBType,
+		Version: sdef.Version,
+		Port:    []int{sdef.Port},
+		Nodes:   []string{},
+		Destination: sandbox_dir,
+	}
 	sb_desc := common.SandboxDescription{
 		Basedir: sdef.Basedir,
 		SBType:  sdef.SBType,
@@ -348,9 +356,13 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	if len(sdef.MorePorts) > 0 {
 		for _, port := range sdef.MorePorts {
 			sb_desc.Port = append(sb_desc.Port, port)
+			sb_item.Port = append(sb_item.Port, port)
 		}
 	}
 	common.WriteSandboxDescription(sandbox_dir, sb_desc)
+	if sdef.SBType == "single" {
+		defaults.UpdateCatalog(sandbox_dir, sb_item)
+	}
 	write_script(SingleTemplates, "start", "start_template", sandbox_dir, data, true)
 	write_script(SingleTemplates, "status", "status_template", sandbox_dir, data, true)
 	write_script(SingleTemplates, "stop", "stop_template", sandbox_dir, data, true)

@@ -56,19 +56,20 @@ Use the "unpack" command to get the tarball into the right directory.
 	//"fan-in" and "all-msters" (require 5.7.9+)
 	Run: ReplicationSandbox,
 	Example: `
-		$ dbdeployer replication 5.7.21
+		$ dbdeployer deploy replication 5.7.21
 		# (implies topology = master-slave)
 
-		$ dbdeployer --topology=master-slave replication 5.7.21
+		$ dbdeployer deploy --topology=master-slave replication 5.7.21
 		# (explicitly setting topology)
 
-		$ dbdeployer --topology=group replication 5.7.21
-		$ dbdeployer --topology=group replication 8.0.4 --single-primary
+		$ dbdeployer deploy --topology=group replication 5.7.21
+		$ dbdeployer deploy --topology=group replication 8.0.4 --single-primary
 	`,
 }
 
 func init() {
-	rootCmd.AddCommand(replicationCmd)
+	// rootCmd.AddCommand(replicationCmd)
+	deployCmd.AddCommand(replicationCmd)
 	//replicationCmd.PersistentFlags().StringSliceP("master-options", "", "", "Extra options for the master")
 	//replicationCmd.PersistentFlags().StringSliceP("slave-options", "", "", "Extra options for the slaves")
 	//replicationCmd.PersistentFlags().StringSliceP("node-options", "", "", "Extra options for all nodes")

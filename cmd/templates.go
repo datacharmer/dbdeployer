@@ -297,7 +297,7 @@ var (
 	templatesCmd = &cobra.Command{
 		Use:     "templates",
 		Aliases: []string{"template", "tmpl", "templ"},
-		Short:   "Admin operations on templates",
+		Short:   "Templates management",
 		Hidden:  false,
 		Long: `The commands in this section show the templates used
 to create and manipulate sandboxes.
@@ -346,7 +346,7 @@ to create and manipulate sandboxes.
 )
 
 func init() {
-	rootCmd.AddCommand(templatesCmd)
+	defaultsCmd.AddCommand(templatesCmd)
 	templatesCmd.AddCommand(templatesListCmd)
 	templatesCmd.AddCommand(templatesShowCmd)
 	templatesCmd.AddCommand(templatesDescribeCmd)

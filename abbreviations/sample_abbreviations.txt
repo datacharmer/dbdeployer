@@ -8,22 +8,22 @@
 # when the user types "dbdeployer sbs", it will be replaced with "dbdeployer sandboxes"
 # 
 # A more interesting example:
-# 	group  replication --topology=group
+# 	groupr replication --topology=group
 # 
-# Here, a command "dbdeployer group 8.0.4" becomes "dbdeployer replication --topology=group 8.0.4"
+# Here, a command "dbdeployer groupr 8.0.4" becomes "dbdeployer deploy replication --topology=group 8.0.4"
 # 
 # It is also possible to set variables in the replacement.
 #     sbdef --sandbox-directory={{.sb}} --port={{.port}}
 # 
 # To use this abbreviation, we need to provide the values for 'sb' and 'port'
-# dbdeployer sbdef:port=9000,sb=mysandbox single 8.0.4
-# it will become  "dbdeployer --sandbox-directory=mysandbox --port=9000 single 8.0.4
+# dbdeployer sbdef:port=9000,sb=mysandbox deploy single 8.0.4
+# it will become  "dbdeployer --sandbox-directory=mysandbox --port=9000 deploy single 8.0.4
 # ----------------------------------------------------------------------------
 
 # use as "dbdeployer group 5.7.21"
-group  replication --topology=group
+groupr  deploy replication --topology=group
 
-groupsp  replication --topology=group --single-primary
+groupsp  deploy replication --topology=group --single-primary
 
 tl templates list
 

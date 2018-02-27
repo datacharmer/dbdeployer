@@ -43,7 +43,7 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 			sbd := common.ReadSandboxDescription(SandboxHome + "/" + fname)
 			locked := ""
 			if sbinfo.Locked {
-				locked = "(*LOCKED*)"
+				locked = "(LOCKED)"
 			}
 			if sbd.Nodes == 0 {
 				port_text := ""
@@ -78,10 +78,16 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 			}
 			dirs = append(dirs, fmt.Sprintf("%-20s : %s %s", fname, description, locked))
 		} else {
+			locked := ""
+			no_clear := SandboxHome + "/" + fname + "/no_clear"
+			no_clear_all := SandboxHome + "/" + fname + "/no_clear_all"
 			start := SandboxHome + "/" + fname + "/start"
 			start_all := SandboxHome + "/" + fname + "/start_all"
 			initialize_slaves := SandboxHome + "/" + fname + "/initialize_slaves"
 			initialize_nodes := SandboxHome + "/" + fname + "/initialize_nodes"
+			if common.FileExists(no_clear) || common.FileExists(no_clear_all) {
+				locked = "(LOCKED)"
+			}
 			if common.FileExists(start_all) {
 				description = "multiple sandbox"
 			}
@@ -92,7 +98,7 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 				description = "group replication"
 			}
 			if common.FileExists(start) || common.FileExists(start_all) {
-				dirs = append(dirs, fmt.Sprintf("%-20s : %s", fname, description))
+				dirs = append(dirs, fmt.Sprintf("%-20s : *%s* %s ", fname, description, locked))
 			}
 		}
 	}
@@ -105,7 +111,7 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 var sandboxesCmd = &cobra.Command{
 	Use:     "sandboxes",
 	Short:   "List installed sandboxes",
-	Long:    ``,
+	Long:    `Lists all sandboxes installed in $SANDBOX_HOME.`,
 	Aliases: []string{"installed", "deployed"},
 	Run:     ShowSandboxes,
 }

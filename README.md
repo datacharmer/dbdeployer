@@ -10,7 +10,7 @@ This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox),
 
 With dbdeployer, you can deploy a single sandbox, or many sandboxes  at once, with or without replication.
 
-The main commands are **single**, **replication**, and **multiple**, which work with MySQL tarball that have been unpacked into the _sandbox-binary_ directory (by default, $HOME/opt/mysql.)
+The main command is **deploy** with its subcommands **single**, **replication**, and **multiple**, which work with MySQL tarball that have been unpacked into the _sandbox-binary_ directory (by default, $HOME/opt/mysql.)
 
 To use a tarball, you must first run the **unpack** command, which will unpack the tarball into the right directory.
 
@@ -20,7 +20,7 @@ For example:
     Unpacking tarball mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz to $HOME/opt/mysql/8.0.4
     .........100.........200.........292
 
-    $ dbdeployer single 8.0.4
+    $ dbdeployer deploy single 8.0.4
     Database installed in $HOME/sandboxes/msb_8_0_4
     . sandbox server started
 
@@ -28,7 +28,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with '--help' will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 0.1.25
+    dbdeployer version 0.2.0
     
 
     $ dbdeployer -h
@@ -39,49 +39,23 @@ The program doesn't have any dependencies. Everything is included in the binary.
       dbdeployer [command]
     
     Available Commands:
-      admin       administrative tasks
+      admin       sandbox management tasks
+      defaults    tasks related to dbdeployer defaults
       delete      delete an installed sandbox
+      deploy      deploy sandboxes
       global      Runs a given command in every sandbox
       help        Help about any command
-      multiple    create multiple sandbox
-      replication create replication sandbox
       sandboxes   List installed sandboxes
-      single      deploys a single sandbox
-      templates   Admin operations on templates
       unpack      unpack a tarball into the binary directory
       usage       Shows usage of installed sandboxes
       versions    List available versions
     
     Flags:
-          --base-port int                 Overrides default base-port (for multiple sandboxes)
-          --bind-address string           defines the database bind-address  (default "127.0.0.1")
-          --config string                 configuration file (default "$HOME/.dbdeployer/config.json")
-          --custom-mysqld string          Uses an alternative mysqld (must be in the same directory as regular mysqld)
-      -p, --db-password string            database password (default "msandbox")
-      -u, --db-user string                database user (default "msandbox")
-          --expose-dd-tables              In MySQL 8.0+ shows data dictionary tables
-          --force                         If a destination sandbox already exists, it will be overwritten
-          --gtid                          enables GTID
-      -h, --help                          help for dbdeployer
-      -i, --init-options strings          mysqld options to run during initialization
-          --keep-auth-plugin              in 8.0.4+, does not change the auth plugin
-          --keep-server-uuid              Does not change the server UUID
-          --my-cnf-file string            Alternative source file for my.sandbox.cnf
-      -c, --my-cnf-options strings        mysqld options to add to my.sandbox.cnf
-          --port int                      Overrides default port
-          --post-grants-sql strings       SQL queries to run after loading grants
-          --post-grants-sql-file string   SQL file to run after loading grants
-          --pre-grants-sql strings        SQL queries to run before loading grants
-          --pre-grants-sql-file string    SQL file to run before loading grants
-          --remote-access string          defines the database access  (default "127.%")
-          --rpl-password string           replication password (default "rsandbox")
-          --rpl-user string               replication user (default "rsandbox")
-          --sandbox-binary string         Binary repository (default "$HOME/opt/mysql")
-          --sandbox-directory string      Changes the default sandbox directory
-          --sandbox-home string           Sandbox deployment direcory (default "$HOME/sandboxes")
-          --skip-load-grants              Does not load the grants
-          --use-template strings          [template_name:file_name] Replace existing template with one from file
-          --version                       version for dbdeployer
+          --config string           configuration file (default "$HOME/.dbdeployer/config.json")
+      -h, --help                    help for dbdeployer
+          --sandbox-binary string   Binary repository (default "$HOME/opt/mysql")
+          --sandbox-home string     Sandbox deployment direcory (default "$HOME/sandboxes")
+          --version                 version for dbdeployer
     
     Use "dbdeployer [command] --help" for more information about a command.
     
@@ -117,22 +91,62 @@ If you don't have any tarballs installed in your system, you should first *unpac
     
     
 
-The main command is *single*, which installs a single sandbox.
+The easiest command is *deploy single*, which installs a single sandbox.
 
-    $ dbdeployer single -h
+    $ dbdeployer deploy -h
+    Deploys single, multiple, or replicated sandboxes
+    
+    Usage:
+      dbdeployer deploy [command]
+    
+    Available Commands:
+      multiple    create multiple sandbox
+      replication create replication sandbox
+      single      deploys a single sandbox
+    
+    Flags:
+          --base-port int                 Overrides default base-port (for multiple sandboxes)
+          --bind-address string           defines the database bind-address  (default "127.0.0.1")
+          --custom-mysqld string          Uses an alternative mysqld (must be in the same directory as regular mysqld)
+      -p, --db-password string            database password (default "msandbox")
+      -u, --db-user string                database user (default "msandbox")
+          --expose-dd-tables              In MySQL 8.0+ shows data dictionary tables
+          --force                         If a destination sandbox already exists, it will be overwritten
+          --gtid                          enables GTID
+      -h, --help                          help for deploy
+      -i, --init-options strings          mysqld options to run during initialization
+          --keep-auth-plugin              in 8.0.4+, does not change the auth plugin
+          --keep-server-uuid              Does not change the server UUID
+          --my-cnf-file string            Alternative source file for my.sandbox.cnf
+      -c, --my-cnf-options strings        mysqld options to add to my.sandbox.cnf
+          --port int                      Overrides default port
+          --post-grants-sql strings       SQL queries to run after loading grants
+          --post-grants-sql-file string   SQL file to run after loading grants
+          --pre-grants-sql strings        SQL queries to run before loading grants
+          --pre-grants-sql-file string    SQL file to run before loading grants
+          --remote-access string          defines the database access  (default "127.%")
+          --rpl-password string           replication password (default "rsandbox")
+          --rpl-user string               replication user (default "rsandbox")
+          --sandbox-directory string      Changes the default sandbox directory
+          --skip-load-grants              Does not load the grants
+          --use-template strings          [template_name:file_name] Replace existing template with one from file
+    
+    
+
+    $ dbdeployer deploy single -h
     single installs a sandbox and creates useful scripts for its use.
     MySQL-Version is in the format x.x.xx, and it refers to a directory named after the version
     containing an unpacked tarball. The place where these directories are found is defined by 
     --sandbox-binary (default: $HOME/opt/mysql.)
     For example:
-    	dbdeployer single 5.7.21
+    	dbdeployer deploy single 5.7.21
     
     For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
     the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
     Use the "unpack" command to get the tarball into the right directory.
     
     Usage:
-      dbdeployer single MySQL-Version [flags]
+      dbdeployer deploy single MySQL-Version [flags]
     
     Flags:
       -h, --help     help for single
@@ -142,7 +156,7 @@ The main command is *single*, which installs a single sandbox.
 
 If you want more than one sandbox of the same version, without any replication relationship, use the *multiple* command with an optional "--node" flag (default: 3).
 
-    $ dbdeployer multiple -h
+    $ dbdeployer deploy multiple -h
     Creates several sandboxes of the same version,
     without any replication relationship.
     For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
@@ -150,11 +164,11 @@ If you want more than one sandbox of the same version, without any replication r
     Use the "unpack" command to get the tarball into the right directory.
     
     Usage:
-      dbdeployer multiple MySQL-Version [flags]
+      dbdeployer deploy multiple MySQL-Version [flags]
     
     Examples:
     
-    	$ dbdeployer multiple 5.7.21
+    	$ dbdeployer deploy multiple 5.7.21
     	
     
     Flags:
@@ -165,7 +179,7 @@ If you want more than one sandbox of the same version, without any replication r
 
 The *replication* command will install a master and two or more slaves, with replication started. You can change the topology to "group" and get three nodes in peer replication.
 
-    $ dbdeployer replication -h
+    $ dbdeployer deploy replication -h
     The replication command allows you to deploy several nodes in replication.
     Allowed topologies are "master-slave" and "group" (requires 5.7.17+)
     For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
@@ -173,18 +187,18 @@ The *replication* command will install a master and two or more slaves, with rep
     Use the "unpack" command to get the tarball into the right directory.
     
     Usage:
-      dbdeployer replication MySQL-Version [flags]
+      dbdeployer deploy replication MySQL-Version [flags]
     
     Examples:
     
-    		$ dbdeployer replication 5.7.21
+    		$ dbdeployer deploy replication 5.7.21
     		# (implies topology = master-slave)
     
-    		$ dbdeployer --topology=master-slave replication 5.7.21
+    		$ dbdeployer deploy --topology=master-slave replication 5.7.21
     		# (explicitly setting topology)
     
-    		$ dbdeployer --topology=group replication 5.7.21
-    		$ dbdeployer --topology=group replication 8.0.4 --single-primary
+    		$ dbdeployer deploy --topology=group replication 5.7.21
+    		$ dbdeployer deploy --topology=group replication 8.0.4 --single-primary
     	
     
     Flags:
@@ -200,13 +214,13 @@ The *replication* command will install a master and two or more slaves, with rep
 
 If you want to deploy several instances of the same version and the same type (for example two single sandboxes of 8.0.4, or two group replication instances with different single-primary setting) you can specify the data directory name and the ports manually.
 
-    $ dbdeployer single 8.0.4
+    $ dbdeployer deploy single 8.0.4
     # will deploy in msb_8_0_4 using port 8004
 
-    $ dbdeployer single 8.0.4 --sandbox-directory=msb2_8_0_4 --port=8005
+    $ dbdeployer deploy single 8.0.4 --sandbox-directory=msb2_8_0_4 --port=8005
     # will deploy in msb2_8_0_4 using port 8005
 
-    $ dbdeployer replication 8.0.4 --sandbox-directory=rsandbox2_8_0_4 --base-port=18600
+    $ dbdeployer deploy replication 8.0.4 --sandbox-directory=rsandbox2_8_0_4 --base-port=18600
     # will deploy replication in rsandbox2_8_0_4 using ports 18601, 18602, 18603
 
 ## Sandbox customization
@@ -220,14 +234,14 @@ There are several ways of changing the default behavior of a sandbox.
 
 For example:
 
-    $ dbdeployer single 5.6.33 --my-cnf-options="general_log=1" \
+    $ dbdeployer deploy single 5.6.33 --my-cnf-options="general_log=1" \
         --pre-grants-sql="select host, user, password from mysql.user" \
         --post-grants-sql="select @@general_log"
 
-    $ dbdeployer templates list
-    $ dbdeployer templates show templateName > mytemplate.txt
+    $ dbdeployer defaults templates list
+    $ dbdeployer defaults templates show templateName > mytemplate.txt
     # edit the template
-    $ dbdeployer single --use-template=templateName:mytemplate.txt 5.7.21
+    $ dbdeployer deploy single --use-template=templateName:mytemplate.txt 5.7.21
 
 dbdeployer will use your template instead of the original.
 
@@ -235,21 +249,21 @@ dbdeployer will use your template instead of the original.
 
 Example:
 
-    $ dbdeployer templates export single my_templates
+    $ dbdeployer defaults templates export single my_templates
     # Will export all the templates for the "single" group to the direcory my_templates/single
-    $ dbdeployer templates export ALL my_templates
+    $ dbdeployer defaults templates export ALL my_templates
     # exports all templates into my_templates, one directory for each group
     # Edit the templates that you want to change. You can also remove the ones that you want to leave untouched.
-    $ dbdeployer templates import single my_templates
+    $ dbdeployer defaults templates import single my_templates
     # Will import all templates from my_templates/single
 
 Warning: modifying templates may block the regular work of the sandboxes. Use this feature with caution!
 
-6. Finally, you can modify the defaults for the application, using the "admin" command. You can export the defaults, import them from a modified JSON file, or update a single one on-the-fly.
+6. Finally, you can modify the defaults for the application, using the "defaults" command. You can export the defaults, import them from a modified JSON file, or update a single one on-the-fly.
 
 Here's how:
 
-	$ dbdeployer admin show
+	$ dbdeployer defaults show
 	# Internal values:
 	{
 		"version": "0.1.22",
@@ -267,7 +281,7 @@ Here's how:
 		"multiple-prefix": "multi_msb_"
 	}
  
-	$ dbdeployer admin update master-slave-base-port 15000
+	$ dbdeployer defaults update master-slave-base-port 15000
 	# Updated master-slave-base-port -> "15000"
 	# Configuration file: $HOME/.dbdeployer/config.json
 	{

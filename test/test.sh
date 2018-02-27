@@ -16,6 +16,9 @@
 
 cd $(dirname $0)
 
+#unset DBDEPLOYER_CATALOG
+export DBDEPLOYER_CATALOG=1
+
 version=$(dbdeployer --version)
 if [ -z "$version" ]
 then
@@ -23,24 +26,28 @@ then
     exit 1
 fi
 
+[ -z "$results_log" ] && results_log=results-$(uname).txt
+
 start=$(date)
 pass=0
 fail=0
 tests=0
 start_sec=$(date +%s)
-date > results.txt
-which dbdeployer >> results.txt
-dbdeployer --version >> results.txt
+date > $results_log
+
+which dbdeployer >> $results_log
+dbdeployer --version >> $results_log
+uname -a >> $results_log
 
 function results {
     echo "#$1 $2 $3" 
-    echo "#$1 $2 $3" >> results.txt
+    echo "#$1 $2 $3" >> $results_log
     echo "dbdeployer sandboxes"
-    echo "dbdeployer sandboxes" >> results.txt
+    echo "dbdeployer sandboxes" >> $results_log
     dbdeployer sandboxes 
-    dbdeployer sandboxes >> results.txt
+    dbdeployer sandboxes >> $results_log
     echo ""
-    echo "" >> results.txt
+    echo "" >> $results_log
 }
 
 function ok_equal {
@@ -60,7 +67,7 @@ function ok_equal {
 
 
 function run {
-    echo "#$@" >> results.txt
+    echo "#$@" >> $results_log
     (set -x
     $@
     )
@@ -195,7 +202,7 @@ do
     for stype in single multiple replication
     do
         echo "#$V"
-        run dbdeployer $stype $V
+        run dbdeployer deploy $stype $V
 
         results "$stype"
     done
@@ -224,10 +231,10 @@ done
 for V in ${group_versions[*]} 
 do
     echo "#$V"
-    run dbdeployer replication $V --topology=group
+    run dbdeployer deploy replication $V --topology=group
     # VF=$(echo $V | tr '.' '_')
     # port=$(~/sandboxes/group_msb_$VF/n1 -BN -e "select @@port")
-    run dbdeployer replication $V --topology=group \
+    run dbdeployer deploy replication $V --topology=group \
         --single-primary
     results "group"
 
@@ -241,12 +248,13 @@ done
 stop=$(date)
 stop_sec=$(date +%s)
 elapsed=$(($stop_sec-$start_sec))
+echo "OS:  $(uname)"
 echo "Started: $start"
-echo "Started: $start" >> results.txt
+echo "Started: $start" >> $results_log
 echo "Ended  : $stop"
-echo "Ended  : $stop" >> results.txt
+echo "Ended  : $stop" >> $results_log
 echo "Elapsed: $elapsed seconds"
-echo "Elapsed: $elapsed seconds" >> results.txt
+echo "Elapsed: $elapsed seconds" >> $results_log
 echo "Passed subtests: $pass"
 echo "Failed subtests: $fail"
 exit_code=0

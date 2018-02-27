@@ -32,6 +32,7 @@ test script per sandbox     | no              | yes  [^10]  |
 integrated usage help       | no              | yes  [^11]  |
 custom abbreviations        | no              | yes  [^12]  |
 version flag                | no              | yes  [^13]  |
+sandboxes global catalog    | no              | yes         |
 fan-in                      | no              | no          | yes [^14]
 all-masters                 | no              | no          | yes [^15]
 galera                      | no              | no          | yes [^16]

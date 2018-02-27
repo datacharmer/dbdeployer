@@ -68,6 +68,24 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 		"Nodes":      []common.Smap{},
 	}
 
+	sb_desc := common.SandboxDescription{
+		Basedir: Basedir,
+		SBType:  "multiple",
+		Version: sdef.Version,
+		Port:    []int{},
+		Nodes:   nodes,
+		NodeNum: 0,
+	}
+
+	sb_item := defaults.SandboxItem{
+		Origin : sb_desc.Basedir,
+		SBType : sb_desc.SBType,
+		Version: sdef.Version,
+		Port:    []int{},
+		Nodes:   []string{},
+		Destination: sdef.SandboxDir,
+	}
+
 	for i := 1; i <= nodes; i++ {
 		data["Nodes"] = append(data["Nodes"].([]common.Smap), common.Smap{
 			"Copyright":  Copyright,
@@ -80,10 +98,15 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 		sdef.DirName = fmt.Sprintf("node%d", i)
 		sdef.Port = base_port + i + 1
 		sdef.ServerId = (base_server_id + i) * 100
+		sb_item.Nodes = append(sb_item.Nodes, sdef.DirName)
+		sb_item.Port = append(sb_item.Port, sdef.Port)
+		sb_desc.Port = append(sb_desc.Port, sdef.Port)
+
 		fmt.Printf("Installing and starting node %d\n", i)
 		sdef.Multi = true
 		sdef.NodeNum = i
 		sdef.Prompt = fmt.Sprintf("node%d", i)
+		sdef.SBType = "multiple-node"
 		CreateSingleSandbox(sdef, origin)
 		var data_node common.Smap = common.Smap{
 			"Node":       i,
@@ -92,16 +115,8 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 		}
 		write_script(MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sdef.SandboxDir, data_node, true)
 	}
-	sdef.SBType = "multiple-node"
-	sb_desc := common.SandboxDescription{
-		Basedir: Basedir,
-		SBType:  "multiple",
-		Version: sdef.Version,
-		Port:    []int{0},
-		Nodes:   nodes,
-		NodeNum: 0,
-	}
 	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)
+	defaults.UpdateCatalog(sdef.SandboxDir, sb_item)
 
 	write_script(MultipleTemplates, "start_all", "start_multi_template", sdef.SandboxDir, data, true)
 	write_script(MultipleTemplates, "restart_all", "restart_multi_template", sdef.SandboxDir, data, true)

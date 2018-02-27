@@ -45,11 +45,12 @@ Use the "unpack" command to get the tarball into the right directory.
 `,
 	Run: MultipleSandbox,
 	Example: `
-	$ dbdeployer multiple 5.7.21
+	$ dbdeployer deploy multiple 5.7.21
 	`,
 }
 
 func init() {
-	rootCmd.AddCommand(multipleCmd)
+	//rootCmd.AddCommand(multipleCmd)
+	deployCmd.AddCommand(multipleCmd)
 	multipleCmd.PersistentFlags().IntP("nodes", "n", 3, "How many nodes will be installed")
 }

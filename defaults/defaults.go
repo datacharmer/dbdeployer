@@ -62,6 +62,8 @@ var (
 	ConfigurationDir        string = home_dir + "/.dbdeployer"
 	ConfigurationFile       string = ConfigurationDir + "/config.json"
 	CustomConfigurationFile string = ""
+	SandboxRegistry			string = ConfigurationDir + "/sandboxes.json"
+	SandboxRegistryLock		string = ConfigurationDir + "/sandboxes.lock"
 	StarLine                string = strings.Repeat("*", LineLength)
 	DashLine                string = strings.Repeat("-", LineLength)
 	HashLine                string = strings.Repeat("#", LineLength)

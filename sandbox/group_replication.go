@@ -91,6 +91,25 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		sb_type = "group-single-primary"
 		single_multi_primary = GroupReplSinglePrimary
 	}
+
+	sb_desc := common.SandboxDescription{
+		Basedir: sdef.Basedir + "/" + sdef.Version,
+		SBType:  sb_type,
+		Version: sdef.Version,
+		Port:    []int{},
+		Nodes:   nodes,
+		NodeNum: 0,
+	}
+
+	sb_item := defaults.SandboxItem{
+		Origin : sb_desc.Basedir,
+		SBType : sb_desc.SBType,
+		Version: sdef.Version,
+		Port:    []int{},
+		Nodes:   []string{},
+		Destination: sdef.SandboxDir,
+	}
+
 	for i := 1; i <= nodes; i++ {
 		group_port := base_group_port + i
 		data["Nodes"] = append(data["Nodes"].([]common.Smap), common.Smap{
@@ -106,6 +125,11 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		sdef.Port = base_port + i
 		sdef.MorePorts = []int{group_port}
 		sdef.ServerId = (base_server_id + i) * 100
+		sb_item.Nodes = append(sb_item.Nodes, sdef.DirName)
+		sb_item.Port = append(sb_item.Port, sdef.Port)
+		sb_desc.Port = append(sb_desc.Port, sdef.Port)
+		sb_item.Port = append(sb_item.Port, sdef.Port + defaults.Defaults().GroupPortDelta )
+		sb_desc.Port = append(sb_desc.Port, sdef.Port + defaults.Defaults().GroupPortDelta )
 
 		fmt.Printf("Installing and starting node %d\n", i)
 		sdef.ReplOptions = SingleTemplates["replication_options"].Contents + fmt.Sprintf("\n%s\n%s\n", GroupReplOptions, single_multi_primary)
@@ -127,16 +151,8 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		}
 		write_script(MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sdef.SandboxDir, data_node, true)
 	}
-
-	sb_desc := common.SandboxDescription{
-		Basedir: sdef.Basedir + "/" + sdef.Version,
-		SBType:  sb_type,
-		Version: sdef.Version,
-		Port:    []int{0},
-		Nodes:   nodes,
-		NodeNum: 0,
-	}
 	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)
+	defaults.UpdateCatalog(sdef.SandboxDir, sb_item)
 
 	write_script(MultipleTemplates, "start_all", "start_multi_template", sdef.SandboxDir, data, true)
 	write_script(MultipleTemplates, "restart_all", "restart_multi_template", sdef.SandboxDir, data, true)

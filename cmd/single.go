@@ -133,7 +133,13 @@ func SingleSandbox(cmd *cobra.Command, args []string) {
 	sandbox.CreateSingleSandbox(sd, args[0])
 }
 
-// singleCmd represents the single command
+func ReplacedCmd(cmd *cobra.Command, args []string) {
+	invoked := cmd.Use
+	fmt.Printf("The command \"%s\" has been replaced.\n",invoked)
+	fmt.Printf("Use \"dbdeployer deploy %s\" instead.\n",invoked)
+	os.Exit(0)
+}
+
 var singleCmd = &cobra.Command{
 	Use: "single MySQL-Version",
 	// Args:  cobra.ExactArgs(1),
@@ -143,7 +149,7 @@ MySQL-Version is in the format x.x.xx, and it refers to a directory named after 
 containing an unpacked tarball. The place where these directories are found is defined by 
 --sandbox-binary (default: $HOME/opt/mysql.)
 For example:
-	dbdeployer single 5.7.21
+	dbdeployer deploy single 5.7.21
 
 For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
 the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
@@ -152,8 +158,30 @@ Use the "unpack" command to get the tarball into the right directory.
 	Run: SingleSandbox,
 }
 
+var (
+	hiddenSingleCmd = &cobra.Command{
+		Use: "single",
+		Hidden: true,
+		Run: ReplacedCmd,
+	}
+	hiddenReplicationCmd = &cobra.Command{
+		Use: "replication",
+		Hidden: true,
+		Run: ReplacedCmd,
+	}
+
+	hiddenMultipleCmd = &cobra.Command{
+		Use: "multiple",
+		Hidden: true,
+		Run: ReplacedCmd,
+	}
+)
+
 func init() {
-	rootCmd.AddCommand(singleCmd)
+	rootCmd.AddCommand(hiddenSingleCmd)
+	rootCmd.AddCommand(hiddenReplicationCmd)
+	rootCmd.AddCommand(hiddenMultipleCmd)
+	deployCmd.AddCommand(singleCmd)
 	singleCmd.PersistentFlags().Bool("master", false, "Make the server replication ready")
 
 }

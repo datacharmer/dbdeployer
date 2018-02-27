@@ -1,3 +1,17 @@
+0.2.0	27-Feb-2018
+	- INCOMPATIBLE CHANGES: 
+		. "single", "multiple", and "replication" are now subcommands of "deploy".
+		. Previous "admin" commands are now under "defaults"
+		. "templates" is now a subcommand of "defaults"
+		. New "admin" command only supports "lock" and "unlock"
+
+	- EXPERIMENTAL FEATURE:
+		There is a sandbox catalog being created and updated in
+		$HOME/.dbdeployer/sandboxes.json
+		The deployment and deletion commands handle the catalog
+		transparently. Disabled by default. It can be enabled by 
+		setting the environment variable DBDEPLOYER_CATALOG
+
 0.1.25	26-Feb-2018
 	- Added commands "admin lock" and "admin unlock" to prevent/allow deletion
 	of a sandbox.
