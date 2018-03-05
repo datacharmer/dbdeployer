@@ -45,7 +45,10 @@ func LoadDefaults(cmd *cobra.Command, args []string) {
 	new_defaults := defaults.ReadDefaultsFile(filename)
 	if defaults.ValidateDefaults(new_defaults) {
 		defaults.WriteDefaultsFile(defaults.ConfigurationFile, new_defaults)
+	} else {
+		return
 	}
+	fmt.Printf("Defaults imported from %s into %s\n",filename, defaults.ConfigurationFile)
 }
 
 func ExportDefaults(cmd *cobra.Command, args []string) {
@@ -65,12 +68,12 @@ func ExportDefaults(cmd *cobra.Command, args []string) {
 func UpdateDefaults(cmd *cobra.Command, args []string) {
 	if len(args) < 2 {
 		fmt.Printf("'update' requires a label and a value\n")
-		fmt.Printf("Example: dbdeployer defaults update master-slave-base-port 17500")
+		fmt.Printf("Example: dbdeployer defaults update master-slave-base-port 17500\n")
 		os.Exit(1)
 	}
 	label := args[0]
 	value := args[1]
-	defaults.UpdateDefaults(label, value)
+	defaults.UpdateDefaults(label, value, true)
 	defaults.ShowDefaults(defaults.Defaults())
 }
 
@@ -94,6 +97,7 @@ such as showing the defaults and saving new ones.`,
 	defaultsLoadCmd = &cobra.Command{
 		Use:   "load file_name",
 		Short: "Load defaults from file",
+		Aliases: []string{"import"},
 		Long:  fmt.Sprintf(`Reads defaults from file and saves them to dbdeployer configuration file (%s)`, defaults.ConfigurationFile),
 		Run:   LoadDefaults,
 	}

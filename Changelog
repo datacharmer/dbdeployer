@@ -1,3 +1,10 @@
+0.2.1	04-Mar-2018
+	- Added --defaults flag
+	- Removed hardcoded names for multiple sandbox directories and shortcuts.
+	- Added directory names and shortcuts for multiple sandboxes to configuration data
+	- Added ability of exporting/importing a single template.
+	- Fixed visualization error with template export
+	- Added interactivity to main test script.
 0.2.0	27-Feb-2018
 	- INCOMPATIBLE CHANGES: 
 		. "single", "multiple", and "replication" are now subcommands of "deploy".

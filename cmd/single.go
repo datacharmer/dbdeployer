@@ -19,13 +19,15 @@ import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/sandbox"
+	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/spf13/cobra"
 	"os"
 	"regexp"
+	"strings"
 )
 
 func replace_template(template_name string, file_name string) {
-	group, contents := FindTemplate(template_name)
+	group, _, contents := FindTemplate(template_name)
 	if !common.FileExists(file_name) {
 		fmt.Printf("File %s not found\n", file_name)
 		os.Exit(1)
@@ -55,6 +57,17 @@ func check_template_change_request(request string) (template_name, file_name str
 	template_name = reqList[0][1]
 	file_name = reqList[0][2]
 	return
+}
+
+func process_defaults(new_defaults []string) {
+	for _, nd := range new_defaults {
+		list := strings.Split(nd, ":")
+		if list != nil && len(list) == 2 {
+			label := list[0]
+			value := list[1]
+			defaults.UpdateDefaults(label, value, false)
+		}
+	}
 }
 
 func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
@@ -104,6 +117,9 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.KeepUuid, _ = flags.GetBool("keep-server-uuid")
 	sd.Force, _ = flags.GetBool("force")
 	sd.ExposeDdTables, _ = flags.GetBool("expose-dd-tables")
+	
+	new_defaults, _ := flags.GetStringSlice("defaults")
+	process_defaults(new_defaults)
 
 	var gtid bool
 	var master bool

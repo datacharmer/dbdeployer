@@ -32,12 +32,13 @@ type TemplateInfo struct {
 	Description string
 }
 
-func FindTemplate(requested string) (group, contents string) {
+func FindTemplate(requested string) (group, template_name, contents string) {
 	for name, tvar := range sandbox.AllTemplates {
 		for k, v := range tvar {
 			if k == requested || k == requested + "_template" {
 				contents = v.Contents
 				group = name
+				template_name = k
 				return
 			}
 		}
@@ -53,7 +54,7 @@ func ShowTemplate(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 	requested := args[0]
-	_, contents := FindTemplate(requested)
+	_, _, contents := FindTemplate(requested)
 	fmt.Println(contents)
 }
 
@@ -120,21 +121,21 @@ func RunDescribeTemplate(cmd *cobra.Command, args []string) {
 }
 
 func GetTemplatesDescription(requested string, complete_listing bool) string {
-	group, contents := FindTemplate(requested)
+	group, template_name, contents := FindTemplate(requested)
 	out := ""
 	origin := "   "
 	if sandbox.AllTemplates[group][requested].Origin == sandbox.TEMPLATE_FILE {
 		origin = "{F}"
 	}
 	out += fmt.Sprintf("# Collection    : %s\n", group)
-	out += fmt.Sprintf("# Name   %s    : %s\n", origin, requested)
-	out += fmt.Sprintf("# Description 	: %s\n", sandbox.AllTemplates[group][requested].Description)
-	out += fmt.Sprintf("# Notes     	: %s\n", sandbox.AllTemplates[group][requested].Notes)
+	out += fmt.Sprintf("# Name   %s    : %s\n", origin, template_name)
+	out += fmt.Sprintf("# Description 	: %s\n", sandbox.AllTemplates[group][template_name].Description)
+	out += fmt.Sprintf("# Notes     	: %s\n", sandbox.AllTemplates[group][template_name].Notes)
 	out += fmt.Sprintf("# Length     	: %d\n", len(contents))
 	if complete_listing {
-		out += fmt.Sprintf("##START %s\n", requested)
+		out += fmt.Sprintf("##START %s\n", template_name)
 		out += fmt.Sprintf("%s\n", contents)
-		out += fmt.Sprintf("##END %s\n\n", requested)
+		out += fmt.Sprintf("##END %s\n\n", template_name)
 	}
 	return out
 }
@@ -151,6 +152,10 @@ func ExportTemplates(cmd *cobra.Command, args []string) {
 	}
 	wanted := args[0]
 	dir_name := args[1]
+	template_name := ""
+	if len(args) > 2 {
+		template_name = args[2]
+	}
 	if wanted == "all" || wanted == "ALL" {
 		wanted = ""
 	}
@@ -161,27 +166,37 @@ func ExportTemplates(cmd *cobra.Command, args []string) {
 	common.Mkdir(dir_name)
 	common.WriteString(common.VersionDef, dir_name + "/version.txt")
 
-	found := false
+	found_group := false
+	found_template := false
 	for group_name, group := range sandbox.AllTemplates {
 		if group_name == wanted || wanted == "" {
-			found = true
+			found_group = true
 			group_dir := dir_name + "/" + group_name
 			if !common.DirExists(group_dir) {
 				common.Mkdir(group_dir)
 			}
 			for name, template := range group {
-				file_name := group_dir + "/" + name
-				common.WriteString(common.TrimmedLines(template.Contents), file_name)
+				if template_name == "" || common.Includes(name, template_name) {
+					file_name := group_dir + "/" + name
+					common.WriteString(common.TrimmedLines(template.Contents), file_name)
+					fmt.Printf("%s/%s exported\n",group_name, name)
+					found_template = true
+				}
 			}
 		}
 	}
-	if !found {
+	if !found_group {
 		fmt.Printf("Group %s not found\n", wanted)
+		os.Exit(1)
+	}
+	if !found_template {
+		fmt.Printf("template %s not found\n", template_name)
 		os.Exit(1)
 	}
 	fmt.Printf("Exported to %s\n", dir_name)
 }
 
+// Called by rootCmd when dbdeployer starts
 func LoadTemplates() {
 	load_dir := defaults.ConfigurationDir + "/templates" + common.CompatibleVersion
 	if !common.DirExists(load_dir) {
@@ -222,6 +237,10 @@ func ImportTemplates(cmd *cobra.Command, args []string) {
 		fmt.Printf("# Directory <%s> doesn't exist\n", dir_name)
 		os.Exit(1)
 	}
+	template_name := ""
+	if len(args) > 2 {
+		template_name = args[2]
+	}
 	version_file := dir_name + "/version.txt"
 	if !common.FileExists(version_file) {
 		fmt.Printf("File %s not found. Unable to validate templates.\n",version_file)
@@ -239,7 +258,8 @@ func ImportTemplates(cmd *cobra.Command, args []string) {
 		fmt.Printf("Templates are for version %s. The minimum compatible version is %s\n", template_version, common.CompatibleVersion)
 		os.Exit(1)
 	}
-	found := false
+	found_group := false
+	found_template := false
 	for group_name, group := range sandbox.AllTemplates {
 		group_dir := dir_name + "/" + group_name
 		if !common.DirExists(group_dir) {
@@ -251,7 +271,12 @@ func ImportTemplates(cmd *cobra.Command, args []string) {
 				continue
 			}
 			if group_name == wanted || wanted == "" {
-				found = true
+				found_group = true
+			} else {
+				continue
+			}
+			if template_name == "" || common.Includes(name, template_name) {
+				found_template = true
 			} else {
 				continue
 			}
@@ -274,8 +299,12 @@ func ImportTemplates(cmd *cobra.Command, args []string) {
 			fmt.Printf("# Template %s written to %s\n", name, dest_file)
 		}
 	}
-	if !found {
+	if !found_group {
 		fmt.Printf("Group %s not found\n", wanted)
+		os.Exit(1)
+	}
+	if !found_template {
+		fmt.Printf("template %s not found\n", template_name)
 		os.Exit(1)
 	}
 }
@@ -325,22 +354,22 @@ to create and manipulate sandboxes.
 		Run:     RunDescribeTemplate,
 	}
 	templatesExportCmd = &cobra.Command{
-		Use:   "export group_name dir_name",
-		Short: "Exports all templates to a directory",
-		Long:  `Exports a group of templates to a given directory`,
+		Use:   "export group_name directory_name [template_name]",
+		Short: "Exports templates to a directory",
+		Long:  `Exports a group of templates (or "ALL") to a given directory`,
 		Run:   ExportTemplates,
 	}
 	templatesImportCmd = &cobra.Command{
-		Use:   "import group_name directory_name",
-		Short: "imports all templates from a directory",
-		Long:  `Imports a group of templates to a given directory`,
+		Use:   "import group_name directory_name [template_name]",
+		Short: "imports templates from a directory",
+		Long:  `Imports a group of templates (or "ALL") from a given directory`,
 		Run:   ImportTemplates,
 	}
 	templatesResetCmd = &cobra.Command{
 		Use:     "reset",
 		Aliases: []string{"remove"},
 		Short:   "Removes all template files",
-		Long:    `Removes all template files that were imported and uses internal values.`,
+		Long:    `Removes all template files that were imported and starts using internal values.`,
 		Run:     ResetTemplates,
 	}
 )

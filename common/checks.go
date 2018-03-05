@@ -74,8 +74,6 @@ func GetInstalledPorts(sandbox_home string) []int {
 	var port_collection []int
 	var seen_ports = make(map[int]bool)
 	for _, fname := range files {
-		//fname := f.Name()
-		// fmode := f.Mode()
 		sbdesc := sandbox_home + "/" + fname + "/sbdescription.json"
 		if FileExists(sbdesc) {
 			sbd := ReadSandboxDescription(sandbox_home + "/" + fname)
@@ -88,13 +86,13 @@ func GetInstalledPorts(sandbox_home string) []int {
 				}
 			} else {
 				var node_descr []SandboxDescription
-				if DirExists(sandbox_home + "/" + fname + "/master") {
-					sd_master := ReadSandboxDescription(sandbox_home + "/" + fname + "/master")
-					node_descr = append(node_descr, sd_master)
-				}
-				for node := 1; node <= sbd.Nodes; node++ {
-					sd_node := ReadSandboxDescription(fmt.Sprintf("%s/%s/node%d", sandbox_home, fname, node))
-					node_descr = append(node_descr, sd_node)
+				inner_files := SandboxInfoToFileNames(GetInstalledSandboxes(sandbox_home + "/" + fname))
+				for _, inner := range inner_files {
+					inner_sbdesc := sandbox_home + "/" + fname + "/" + inner + "/sbdescription.json"
+					if FileExists(inner_sbdesc) {
+						sd_node := ReadSandboxDescription(fmt.Sprintf("%s/%s/%s", sandbox_home, fname, inner))
+						node_descr = append(node_descr, sd_node)
+					}
 				}
 				for _, nd := range node_descr {
 					for _, p := range nd.Port {
@@ -107,6 +105,7 @@ func GetInstalledPorts(sandbox_home string) []int {
 			}
 		}
 	}
+	// fmt.Printf("%v\n",port_collection)
 	return port_collection
 }
 

@@ -27,10 +27,6 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	SandboxHome, _ := flags.GetString("sandbox-home")
 	sandbox_list := common.GetInstalledSandboxes(SandboxHome)
-	// files, err := ioutil.ReadDir(SandboxHome)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
 	var dirs []string
 	for _, sbinfo := range sandbox_list {
 		//fname := f.Name()
@@ -56,13 +52,13 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 				description = fmt.Sprintf("%-20s %10s [%s]", sbd.SBType, sbd.Version, port_text)
 			} else {
 				var node_descr []common.SandboxDescription
-				if common.DirExists(SandboxHome + "/" + fname + "/master") {
-					sd_master := common.ReadSandboxDescription(SandboxHome + "/" + fname + "/master")
-					node_descr = append(node_descr, sd_master)
-				}
-				for node := 1; node <= sbd.Nodes; node++ {
-					sd_node := common.ReadSandboxDescription(fmt.Sprintf("%s/%s/node%d", SandboxHome, fname, node))
-					node_descr = append(node_descr, sd_node)
+				inner_files := common.SandboxInfoToFileNames(common.GetInstalledSandboxes(SandboxHome + "/" + fname))
+				for _, inner := range inner_files {
+					inner_sbdesc := SandboxHome + "/" + fname + "/" + inner + "/sbdescription.json"
+					if common.FileExists(inner_sbdesc) {
+						sd_node := common.ReadSandboxDescription(fmt.Sprintf("%s/%s/%s", SandboxHome, fname, inner))
+						node_descr = append(node_descr, sd_node)
+					}
 				}
 				ports := ""
 				for _, nd := range node_descr {

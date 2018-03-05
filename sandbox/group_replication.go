@@ -68,11 +68,19 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 	}
 	common.Mkdir(sdef.SandboxDir)
 	timestamp := time.Now()
+	master_abbr := defaults.Defaults().MasterAbbr
+	master_label := defaults.Defaults().MasterName
+	slave_label := defaults.Defaults().SlavePrefix
+	slave_abbr := defaults.Defaults().SlaveAbbr
 	var data common.Smap = common.Smap{
 		"Copyright":  Copyright,
 		"AppVersion": common.VersionDef,
 		"DateTime":   timestamp.Format(time.UnixDate),
 		"SandboxDir": sdef.SandboxDir,
+		"MasterLabel": master_label,
+		"MasterAbbr": master_abbr,
+		"SlaveLabel": slave_label,
+		"SlaveAbbr": slave_abbr,
 		"Nodes":      []common.Smap{},
 	}
 	base_group_port := base_port + defaults.Defaults().GroupPortDelta
@@ -110,6 +118,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		Destination: sdef.SandboxDir,
 	}
 
+	node_label := defaults.Defaults().NodePrefix
 	for i := 1; i <= nodes; i++ {
 		group_port := base_group_port + i
 		data["Nodes"] = append(data["Nodes"].([]common.Smap), common.Smap{
@@ -117,11 +126,16 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 			"AppVersion":  common.VersionDef,
 			"DateTime":    timestamp.Format(time.UnixDate),
 			"Node":        i,
+			"NodeLabel":  node_label,
+			"MasterLabel": master_label,
+			"MasterAbbr": master_abbr,
+			"SlaveLabel": slave_label,
+			"SlaveAbbr": slave_abbr,
 			"SandboxDir":  sdef.SandboxDir,
 			"RplUser":     sdef.RplUser,
 			"RplPassword": sdef.RplPassword})
 
-		sdef.DirName = fmt.Sprintf("node%d", i)
+		sdef.DirName = fmt.Sprintf("%s%d", node_label, i)
 		sdef.Port = base_port + i
 		sdef.MorePorts = []int{group_port}
 		sdef.ServerId = (base_server_id + i) * 100
@@ -131,14 +145,14 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		sb_item.Port = append(sb_item.Port, sdef.Port + defaults.Defaults().GroupPortDelta )
 		sb_desc.Port = append(sb_desc.Port, sdef.Port + defaults.Defaults().GroupPortDelta )
 
-		fmt.Printf("Installing and starting node %d\n", i)
+		fmt.Printf("Installing and starting %s %d\n", node_label, i)
 		sdef.ReplOptions = SingleTemplates["replication_options"].Contents + fmt.Sprintf("\n%s\n%s\n", GroupReplOptions, single_multi_primary)
 		sdef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["gtid_options"].Contents)
 		sdef.ReplOptions += fmt.Sprintf("\nloose-group-replication-local-address=127.0.0.1:%d\n", group_port)
 		sdef.ReplOptions += fmt.Sprintf("\nloose-group-replication-group-seeds=%s\n", connection_string)
 		sdef.Multi = true
 		sdef.LoadGrants = true
-		sdef.Prompt = fmt.Sprintf("node%d", i)
+		sdef.Prompt = fmt.Sprintf("%s%d", node_label, i)
 		sdef.SBType = "group-node"
 		sdef.NodeNum = i
 		CreateSingleSandbox(sdef, origin)
@@ -147,6 +161,11 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 			"AppVersion": common.VersionDef,
 			"DateTime":   timestamp.Format(time.UnixDate),
 			"Node":       i,
+			"NodeLabel":  node_label,
+			"MasterLabel": master_label,
+			"MasterAbbr": master_abbr,
+			"SlaveLabel": slave_label,
+			"SlaveAbbr": slave_abbr,
 			"SandboxDir": sdef.SandboxDir,
 		}
 		write_script(MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sdef.SandboxDir, data_node, true)

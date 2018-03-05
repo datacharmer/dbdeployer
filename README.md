@@ -28,7 +28,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with '--help' will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 0.2.0
+    dbdeployer version 0.2.1
     
 
     $ dbdeployer -h
@@ -110,6 +110,7 @@ The easiest command is *deploy single*, which installs a single sandbox.
           --custom-mysqld string          Uses an alternative mysqld (must be in the same directory as regular mysqld)
       -p, --db-password string            database password (default "msandbox")
       -u, --db-user string                database user (default "msandbox")
+          --defaults strings              Change defaults on-the-fly (--defaults=label:value)
           --expose-dd-tables              In MySQL 8.0+ shows data dictionary tables
           --force                         If a destination sandbox already exists, it will be overwritten
           --gtid                          enables GTID
@@ -263,42 +264,69 @@ Warning: modifying templates may block the regular work of the sandboxes. Use th
 
 Here's how:
 
-	$ dbdeployer defaults show
-	# Internal values:
-	{
-		"version": "0.1.22",
-		"sandbox-home": "/Users/gmax/sandboxes",
-		"sandbox-binary": "/Users/gmax/opt/mysql",
-		"master-slave-base-port": 11000,
-		"group-replication-base-port": 12000,
-		"group-replication-sp-base-port": 13000,
-		"multiple-base-port": 16000,
-		"group-port-delta": 125,
-		"sandbox-prefix": "msb_",
-		"master-slave-prefix": "rsandbox_",
-		"group-prefix": "group_msb_",
-		"group-sp-prefix": "group_sp_msb_",
-		"multiple-prefix": "multi_msb_"
-	}
+    $ dbdeployer defaults show
+    # Internal values:
+    {
+     	"version": "0.2.1",
+     	"sandbox-home": "$HOME/sandboxes",
+     	"sandbox-binary": "$HOME/opt/mysql",
+     	"master-slave-base-port": 11000,
+     	"group-replication-base-port": 12000,
+     	"group-replication-sp-base-port": 13000,
+     	"fan-in-replication-base-port": 14000,
+     	"all-masters-replication-base-port": 15000,
+     	"multiple-base-port": 16000,
+     	"group-port-delta": 125,
+     	"master-name": "master",
+     	"master-abbr": "m",
+     	"node-prefix": "node",
+     	"slave-prefix": "slave",
+     	"slave-abbr": "s",
+     	"sandbox-prefix": "msb_",
+     	"master-slave-prefix": "rsandbox_",
+     	"group-prefix": "group_msb_",
+     	"group-sp-prefix": "group_sp_msb_",
+     	"multiple-prefix": "multi_msb_",
+     	"fan-in-prefix": "fan_in_msb_",
+     	"all-masters-prefix": "all_masters_msb_"
+     }
+    
  
-	$ dbdeployer defaults update master-slave-base-port 15000
-	# Updated master-slave-base-port -> "15000"
-	# Configuration file: $HOME/.dbdeployer/config.json
-	{
-		"version": "0.1.22",
-		"sandbox-home": "/Users/gmax/sandboxes",
-		"sandbox-binary": "/Users/gmax/opt/mysql",
-		"master-slave-base-port": 15000,
-		"group-replication-base-port": 12000,
-		"group-replication-sp-base-port": 13000,
-		"multiple-base-port": 16000,
-		"group-port-delta": 125,
-		"sandbox-prefix": "msb_",
-		"master-slave-prefix": "rsandbox_",
-		"group-prefix": "group_msb_",
-		"group-sp-prefix": "group_sp_msb_",
-		"multiple-prefix": "multi_msb_"
-	 }
+    $ dbdeployer defaults update master-slave-base-port 15000
+    # Updated master-slave-base-port -> "15000"
+    # Configuration file: $HOME/.dbdeployer/config.json
+    {
+     	"version": "0.2.1",
+     	"sandbox-home": "$HOME/sandboxes",
+     	"sandbox-binary": "$HOME/opt/mysql",
+     	"master-slave-base-port": 15000,
+     	"group-replication-base-port": 12000,
+     	"group-replication-sp-base-port": 13000,
+     	"fan-in-replication-base-port": 14000,
+     	"all-masters-replication-base-port": 15000,
+     	"multiple-base-port": 16000,
+     	"group-port-delta": 125,
+     	"master-name": "master",
+     	"master-abbr": "m",
+     	"node-prefix": "node",
+     	"slave-prefix": "slave",
+     	"slave-abbr": "s",
+     	"sandbox-prefix": "msb_",
+     	"master-slave-prefix": "rsandbox_",
+     	"group-prefix": "group_msb_",
+     	"group-sp-prefix": "group_sp_msb_",
+     	"multiple-prefix": "multi_msb_",
+     	"fan-in-prefix": "fan_in_msb_",
+     	"all-masters-prefix": "all_masters_msb_"
+     }
+    
+
+Another way of modifying the defaults, which does not store the new values in dbdeployer's configuration file, is through the ``--defaults`` flag. The above change could be done like this:
+
+    $ dbdeployer --defaults=master-slave-base-port:15000 \
+        deploy replication 5.7.21
+
+The difference is that using ``dbdeployer defaults update`` the value is changed permanently for the next commands, or until you run a ``dbdeployer defaults reset``. Using the ``--defaults`` flag, instead, will modify the defaults only for the active command.
 
 ## Sandbox management
 

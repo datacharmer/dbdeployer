@@ -86,30 +86,35 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 		Destination: sdef.SandboxDir,
 	}
 
+	node_label := defaults.Defaults().NodePrefix
 	for i := 1; i <= nodes; i++ {
+		sdef.Port = base_port + i + 1
 		data["Nodes"] = append(data["Nodes"].([]common.Smap), common.Smap{
 			"Copyright":  Copyright,
 			"AppVersion": common.VersionDef,
 			"DateTime":   timestamp.Format(time.UnixDate),
 			"Node":       i,
+			"NodePort": sdef.Port,
+			"NodeLabel":  node_label,
 			"SandboxDir": sdef.SandboxDir,
 		})
 		sdef.LoadGrants = true
-		sdef.DirName = fmt.Sprintf("node%d", i)
-		sdef.Port = base_port + i + 1
+		sdef.DirName = fmt.Sprintf("%s%d", node_label, i)
 		sdef.ServerId = (base_server_id + i) * 100
 		sb_item.Nodes = append(sb_item.Nodes, sdef.DirName)
 		sb_item.Port = append(sb_item.Port, sdef.Port)
 		sb_desc.Port = append(sb_desc.Port, sdef.Port)
 
-		fmt.Printf("Installing and starting node %d\n", i)
+		fmt.Printf("Installing and starting %s %d\n", node_label, i)
 		sdef.Multi = true
 		sdef.NodeNum = i
-		sdef.Prompt = fmt.Sprintf("node%d", i)
+		sdef.Prompt = fmt.Sprintf("%s%d",node_label, i)
 		sdef.SBType = "multiple-node"
 		CreateSingleSandbox(sdef, origin)
 		var data_node common.Smap = common.Smap{
 			"Node":       i,
+			"NodePort": sdef.Port,
+			"NodeLabel":  node_label,
 			"SandboxDir": sdef.SandboxDir,
 			"Copyright":  Copyright,
 		}

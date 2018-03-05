@@ -17,7 +17,7 @@ package common
 
 import (
 	"bufio"
-	"bytes"
+	//"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -208,43 +208,52 @@ func ExecExists(filename string) bool {
 
 func Run_cmd_with_args(c string, args []string) (error, string) {
 	cmd := exec.Command(c, args...)
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-	err := cmd.Run()
+	//var out bytes.Buffer
+	//var stderr bytes.Buffer
+	//cmd.Stdout = &out
+	//cmd.Stderr = &stderr
+	var out []byte
+	var err error
+	out, err = cmd.Output()
 	if err != nil {
 		fmt.Printf("err: %s\n", err)
 		fmt.Printf("cmd: %#v\n", cmd)
-		fmt.Printf("stdout: %s\n", out.String())
-		fmt.Printf("stderr: %s\n", stderr.String())
+		fmt.Printf("stdout: %s\n", out)
+		//fmt.Printf("stderr: %s\n", stderr.String())
 		// os.Exit(1)
 	} else {
-		fmt.Printf("%s", out.String())
+		//fmt.Printf("%s", out.String())
+		fmt.Printf("%s", out)
 	}
-	return err, out.String()
+	return err, string(out)
 }
 
 func Run_cmd_ctrl(c string, silent bool) (error, string) {
 	//cmd := exec.Command(c, args...)
 	cmd := exec.Command(c, "")
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-	err := cmd.Run()
+	//var out bytes.Buffer
+	//var stderr bytes.Buffer
+	//cmd.Stdout = &out
+	//cmd.Stderr = &stderr
+
+	//err := cmd.Run()
+	var out []byte
+	var err error
+	out, err = cmd.Output()
 	if err != nil {
 		fmt.Printf("err: %s\n", err)
 		fmt.Printf("cmd: %#v\n", cmd)
-		fmt.Printf("stdout: %s\n", out.String())
-		fmt.Printf("stderr: %s\n", stderr.String())
+		fmt.Printf("stdout: %s\n", out)
+		//fmt.Printf("stdout: %s\n", out.String())
+		//fmt.Printf("stderr: %s\n", stderr.String())
 		// os.Exit(1)
 	} else {
 		if !silent {
-			fmt.Printf("%s", out.String())
+			//fmt.Printf("%s", out.String())
+			fmt.Printf("%s", out)
 		}
 	}
-	return err, out.String()
+	return err, string(out)
 }
 
 func Run_cmd(c string) (error, string) {

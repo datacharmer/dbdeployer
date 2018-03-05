@@ -26,7 +26,7 @@ multi_sb={{.SandboxDir}}
     user_cmd='reset master;'
     user_cmd="$user_cmd CHANGE MASTER TO MASTER_USER='rsandbox', MASTER_PASSWORD='rsandbox' FOR CHANNEL 'group_replication_recovery';"
 	echo "# Node {{.Node}} # $user_cmd"
-    $multi_sb/node{{.Node}}/use -u root -e "$user_cmd"
+    $multi_sb/{{.NodeLabel}}{{.Node}}/use -u root -e "$user_cmd"
 {{end}}
 echo ""
 
@@ -52,7 +52,7 @@ multi_sb={{.SandboxDir}}
 CHECK_NODE="select * from performance_schema.replication_group_members"
 {{ range .Nodes}}
 	echo "# Node {{.Node}} # $CHECK_NODE"
-	$multi_sb/node{{.Node}}/use -t -e "$CHECK_NODE"
+	$multi_sb/{{.NodeLabel}}{{.Node}}/use -t -e "$CHECK_NODE"
 	sleep 1
 {{end}}
 `

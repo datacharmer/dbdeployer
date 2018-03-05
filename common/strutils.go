@@ -45,4 +45,8 @@ func MakeCustomizedUuid(port , node_num int ) string {
 	return fmt.Sprintf("%s-%s-%s", group1, group2, group3)
 }
 
+func Includes(main_string, contained string) bool {
+	re := regexp.MustCompile(contained)
+	return re.MatchString(main_string)
 
+}

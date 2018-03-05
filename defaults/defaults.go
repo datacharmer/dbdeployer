@@ -39,6 +39,11 @@ type DbdeployerDefaults struct {
 	// PXCBasePort                    int    `json:"pxc-base-port"`
 	// NdbBasePort                    int    `json:"ndb-base-port"`
 	GroupPortDelta                 int    `json:"group-port-delta"`
+	MasterName                     string `json:"master-name"`
+	MasterAbbr                     string `json:"master-abbr"`
+	NodePrefix                     string `json:"node-prefix"`
+	SlavePrefix                    string `json:"slave-prefix"`
+	SlaveAbbr                      string `json:"slave-abbr"`
 	SandboxPrefix                  string `json:"sandbox-prefix"`
 	MasterSlavePrefix              string `json:"master-slave-prefix"`
 	GroupPrefix                    string `json:"group-prefix"`
@@ -82,6 +87,11 @@ var (
 		// PxcBasePort:                   18000,
 		// NdbBasePort:                   19000,
 		GroupPortDelta:                125,
+		MasterName:                    "master",
+		MasterAbbr:                    "m",
+		NodePrefix:                    "node",
+		SlavePrefix:                   "slave",
+		SlaveAbbr:                     "s",
 		SandboxPrefix:                 "msb_",
 		MasterSlavePrefix:             "rsandbox_",
 		GroupPrefix:                   "group_msb_",
@@ -186,6 +196,7 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		nd.MultiplePrefix != nd.SandboxPrefix &&
 		nd.MultiplePrefix != nd.FanInPrefix &&
 		nd.MultiplePrefix != nd.AllMastersPrefix &&
+		nd.MasterAbbr != nd.SlaveAbbr &&
 		// nd.MultiplePrefix != nd.NdbPrefix &&
 		// nd.MultiplePrefix != nd.GaleraPrefix &&
 		// nd.MultiplePrefix != nd.PxcPrefix &&
@@ -197,6 +208,11 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 	}
 	all_strings := nd.SandboxPrefix != "" &&
 		nd.MasterSlavePrefix != "" &&
+		nd.MasterName != "" &&
+		nd.MasterAbbr != "" &&
+		nd.NodePrefix != "" &&
+		nd.SlavePrefix != "" &&
+		nd.SlaveAbbr != "" &&
 		nd.GroupPrefix != "" &&
 		nd.GroupSpPrefix != "" &&
 		nd.MultiplePrefix != "" &&
@@ -238,7 +254,7 @@ func a_to_i(val string) int {
 	return numvalue
 }
 
-func UpdateDefaults(label, value string) {
+func UpdateDefaults(label, value string, store_defaults bool) {
 	new_defaults := Defaults()
 	switch label {
 	case "version":
@@ -267,6 +283,16 @@ func UpdateDefaults(label, value string) {
 	//	 new_defaults.PxcBasePort = a_to_i(value)
 	case "group-port-delta":
 		new_defaults.GroupPortDelta = a_to_i(value)
+	case "master-name":
+		new_defaults.MasterName = value
+	case "master-abbr":
+		new_defaults.MasterAbbr = value
+	case "node-prefix":
+		new_defaults.NodePrefix = value
+	case "slave-prefix":
+		new_defaults.SlavePrefix = value
+	case "slave-abbr":
+		new_defaults.SlaveAbbr = value
 	case "sandbox-prefix":
 		new_defaults.SandboxPrefix = value
 	case "master-slave-prefix":
@@ -293,9 +319,14 @@ func UpdateDefaults(label, value string) {
 	}
 	if ValidateDefaults(new_defaults) {
 		currentDefaults = new_defaults
-		WriteDefaultsFile(ConfigurationFile, Defaults())
+		if store_defaults {
+			WriteDefaultsFile(ConfigurationFile, Defaults())
+			fmt.Printf("# Updated %s -> \"%s\"\n", label, value)
+		}
+	} else {
+		fmt.Printf("Invalid defaults data %s : %s\n", label, value)
+		os.Exit(1)
 	}
-	fmt.Printf("# Updated %s -> \"%s\"\n", label, value)
 }
 
 func LoadConfiguration() {

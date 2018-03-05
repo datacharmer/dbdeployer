@@ -14,10 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cd $(dirname $0)
+execdir=$(dirname "$0")
+
+cd "$execdir" || exit 1
 
 #unset DBDEPLOYER_CATALOG
 export DBDEPLOYER_CATALOG=1
+export CATALOG=$HOME/.dbdeployer/sandboxes.json
 
 version=$(dbdeployer --version)
 if [ -z "$version" ]
@@ -33,41 +36,126 @@ pass=0
 fail=0
 tests=0
 start_sec=$(date +%s)
-date > $results_log
+date > "$results_log"
 
-which dbdeployer >> $results_log
-dbdeployer --version >> $results_log
-uname -a >> $results_log
+#which dbdeployer >> "$results_log"
+#dbdeployer --version >> "$results_log"
+#uname -a >> "$results_log"
+
+(which dbdeployer ; dbdeployer --version ; uname -a ) >> "$results_log"
+
+function show_catalog {
+    if [ -f "$CATALOG" ]
+    then
+        cat "$CATALOG"
+    fi
+}
+
+function count_catalog {
+    show_catalog | grep destination | wc -l | tr -d ' '
+}
+
+function user_input {
+    answer=""
+    while [ "$answer" != "continue" ]
+    do
+        echo "Press ENTER to continue or choose among { s c q i o r u  h }"
+        read answer
+        case $answer in
+            [cC])
+                unset INTERACTIVE
+                echo "Now running unattended"
+                return
+                ;;
+            [qQ])
+                echo "Interrupted at user's request"
+                exit 0
+                ;;
+            [iI])
+                echo inspecting
+                show_catalog
+                ;;
+            [oO])
+                echo counting
+                count_catalog
+                ;;
+            [sS])
+                echo show sandboxes
+                dbdeployer sandboxes
+                ;;
+            [rR])
+                echo "Enter global command to run"
+                echo "Choose among : start restart stop status test test-replication"
+                read cmd
+                dbdeployer global $cmd
+                if [ "$?" != "0" ]
+                then
+                    exit 1
+                fi
+                ;;
+            [uU])
+                echo "Enter query to run"
+                read cmd
+                dbdeployer global use "$cmd"
+                if [ "$?" != "0" ]
+                then
+                    exit 1
+                fi
+                ;;
+            [hH])
+                echo "Commands:"
+                echo "c : continue (end interactivity)"
+                echo "i : inspect sandbox catalog"
+                echo "o : count sandbox instances"
+                echo "q : quit the test immediately"
+                echo "r : run 'dbdeployer global' command"
+                echo "u : run 'dbdeployer global use' query"
+                echo "s : show sandboxes"
+                echo "h : display this help"
+                ;;
+            *)
+                answer="continue"
+        esac
+    done
+}
 
 function results {
-    echo "#$1 $2 $3" 
-    echo "#$1 $2 $3" >> $results_log
+    echo "#$*"
+    echo "#$*" >> "$results_log"
     echo "dbdeployer sandboxes"
-    echo "dbdeployer sandboxes" >> $results_log
-    dbdeployer sandboxes 
-    dbdeployer sandboxes >> $results_log
+    echo "dbdeployer sandboxes" >> "$results_log"
+    dbdeployer sandboxes
+    dbdeployer sandboxes >> "$results_log"
     echo ""
-    echo "" >> $results_log
+    echo "" >> "$results_log"
+    if [ -n "$INTERACTIVE" ]
+    then
+        user_input
+    fi
 }
 
 function ok_equal {
     label=$1
     value1=$2
     value2=$3
-    if [ $value1 == $value2 ]
+    if [ "$value1" == "$value2" ]
     then
         echo "ok - $label found '$value1' - expected: '$value2' "
-        pass=$(($pass+1))
+        pass=$((pass+1))
     else
         echo "not ok - $label found '$value1' - expected: '$value2' "
-        fail=$(($fail+1))
+        fail=$((fail+1))
     fi
-    tests=$(($tests+1))
+    tests=$((tests+1))
 }
 
 
 function run {
-    echo "#$@" >> $results_log
+    temp_stop_sec=$(date +%s)
+    temp_elapsed=$(($temp_stop_sec-$start_sec))
+    echo "+ $(date) (${temp_elapsed}s)"
+    echo "+ $(date) (${temp_elapsed}s)" >> "$results_log"
+    echo "# $*" >> "$results_log"
     (set -x
     $@
     )
@@ -81,15 +169,15 @@ function run {
 
 BINARY_DIR=$HOME/opt/mysql
 SANDBOX_HOME=$HOME/sandboxes
-if [ ! -d $BINARY_DIR ]
+if [ ! -d "$BINARY_DIR" ]
 then
-    echo "Directory $BINARY_DIR not found"
+    echo "Directory "$BINARY_DIR" not found"
     exit 1
 fi
 
-if [ ! -d $HOME/sandboxes ]
+if [ ! -d "$SANDBOX_HOME" ]
 then
-    mkdir $HOME/sandboxes
+    mkdir "$SANDBOX_HOME"
 fi
 
 running_mysql=$(ps auxw |grep mysqld | grep $BINARY_DIR)
@@ -126,19 +214,19 @@ all_versions=()
 group_versions=()
 
 OS=$(uname)
-if [ -x sort_versions.$OS ]
+if [ -x "sort_versions.$OS" ]
 then
-    cp sort_versions.$OS sort_versions
+    cp "sort_versions.$OS" sort_versions
 fi
 
 if [ ! -x ./sort_versions ]
 then
     if [ -f ./sort_versions.go ]
     then
-        ENV GOOS=linux GOARCH=386 go build -o sort_versions.linux sort_versions.go 
-        ENV GOOS=darwin GOARCH=386 go build -o sort_versions.Darwin sort_versions.go 
+        ENV GOOS=linux GOARCH=386 go build -o sort_versions.linux sort_versions.go
+        ENV GOOS=darwin GOARCH=386 go build -o sort_versions.Darwin sort_versions.go
         ls -l sort_versions*
-        cp sort_versions.$OS sort_versions
+        cp "sort_versions.$OS" sort_versions
     fi
     if [ ! -x ./sort_versions ]
     then
@@ -150,11 +238,11 @@ fi
 for v in ${short_versions[*]}
 do
     #ls $BINARY_DIR | grep "^$v" | ./sort_versions | tail -n 1
-    latest=$(ls $BINARY_DIR | grep "^$v" | ./sort_versions | tail -n 1)
+    latest=$(ls "$BINARY_DIR" | grep "^$v" | ./sort_versions | tail -n 1)
     if [ -n "$latest" ]
     then
         all_versions[$count]=$latest
-        count=$(($count+1))
+        count=$((count+1))
     else
         echo "No versions found for $v"
     fi
@@ -167,14 +255,14 @@ do
     if [ -n "$latest" ]
     then
         group_versions[$count]=$latest
-        count=$(($count+1))
+        count=$((count+1))
     fi
 done
 
 unset will_fail
-for V in ${all_versions[*]} 
+for V in ${all_versions[*]}
 do
-    if [ ! -d $HOME/opt/mysql/$V ]
+    if [ ! -d "$BINARY_DIR/$V" ]
     then
         echo "Directory \$HOME/opt/mysql/$V not found"
         will_fail=1
@@ -197,7 +285,7 @@ fi
 echo "Versions to test: $how_many_versions of $searched"
 echo "Will test: [${all_versions[*]}]"
 
-for V in ${all_versions[*]} 
+for V in ${all_versions[*]}
 do
     for stype in single multiple replication
     do
@@ -206,7 +294,10 @@ do
 
         results "$stype"
     done
+    how_many=$(count_catalog)
+    ok_equal "sandboxes_in_catalog" $how_many 3
     sleep 3
+    run dbdeployer global status
     run dbdeployer global test
     run dbdeployer global test-replication
     # test lock
@@ -218,6 +309,9 @@ do
     num_sandboxes_after=$(dbdeployer sandboxes | wc -l)
     ok_equal "num_sandboxes" $num_sandboxes_before $num_sandboxes_after
 
+    how_many=$(count_catalog)
+    ok_equal "sandboxes_in_catalog" $how_many 3
+
     run dbdeployer admin unlock ALL
     run dbdeployer delete ALL --skip-confirm
     results "#$V - after deletion"
@@ -225,10 +319,13 @@ do
     # After unlocking, deletion must work, and we should see that
     # there are no sandboxes left
     ok_equal "num_sandboxes" $num_sandboxes_final 0
- 
+
+    how_many=$(count_catalog)
+    ok_equal "sandboxes_in_catalog" $how_many 0
+
 done
 
-for V in ${group_versions[*]} 
+for V in ${group_versions[*]}
 do
     echo "#$V"
     run dbdeployer deploy replication $V --topology=group
@@ -249,14 +346,19 @@ stop=$(date)
 stop_sec=$(date +%s)
 elapsed=$(($stop_sec-$start_sec))
 echo "OS:  $(uname)"
+echo "OS:  $(uname)" >> "$results_log"
 echo "Started: $start"
-echo "Started: $start" >> $results_log
+echo "Started: $start" >> "$results_log"
 echo "Ended  : $stop"
-echo "Ended  : $stop" >> $results_log
+echo "Ended  : $stop" >> "$results_log"
 echo "Elapsed: $elapsed seconds"
-echo "Elapsed: $elapsed seconds" >> $results_log
+echo "Elapsed: $elapsed seconds" >> "$results_log"
 echo "Passed subtests: $pass"
+echo "Passed subtests: $pass" >> "$results_log"
 echo "Failed subtests: $fail"
+echo "Failed subtests: $fail" >> "$results_log"
+echo "Total  subtests: $tests"
+echo "Total  subtests: $tests" >> "$results_log"
 exit_code=0
 if [ "$fail" != "0" ]
 then
@@ -264,4 +366,5 @@ then
     exit_code=1
 fi
 echo "Exit code: $exit_code"
+echo "Exit code: $exit_code" >> "$results_log"
 exit $exit_code

@@ -54,12 +54,14 @@ then
     docker rm -v -f $container_name
 fi
 
+[ -n "$INTERACTIVE" ] && DOCKER_OPTIONS="$DOCKER_OPTIONS -e INTERACTIVE=1"
+
 (set -x
   docker run -ti  \
     -v $PWD/$executable:/usr/bin/dbdeployer \
     -v $PWD/test:/home/msandbox/test \
     --name $container_name \
-    --hostname $container_name \
+    --hostname $container_name $DOCKER_OPTIONS \
     datacharmer/mysql-sb-full bash -c "./test/test.sh" 
 )
 

@@ -15,7 +15,9 @@ then
 	echo "readme_template.md not found"
 	exit 1
 fi
+dbdeployer defaults reset
 ./make_readme < readme_template.md > README.md
+dbdeployer defaults reset
 echo "# $PWD"
 ls -lhotr 
 

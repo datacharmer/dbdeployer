@@ -105,42 +105,16 @@ Warning: modifying templates may block the regular work of the sandboxes. Use th
 
 Here's how:
 
-	$ dbdeployer defaults show
-	# Internal values:
-	{
-		"version": "0.1.22",
-		"sandbox-home": "/Users/gmax/sandboxes",
-		"sandbox-binary": "/Users/gmax/opt/mysql",
-		"master-slave-base-port": 11000,
-		"group-replication-base-port": 12000,
-		"group-replication-sp-base-port": 13000,
-		"multiple-base-port": 16000,
-		"group-port-delta": 125,
-		"sandbox-prefix": "msb_",
-		"master-slave-prefix": "rsandbox_",
-		"group-prefix": "group_msb_",
-		"group-sp-prefix": "group_sp_msb_",
-		"multiple-prefix": "multi_msb_"
-	}
+	{{dbdeployer defaults show}}
  
-	$ dbdeployer defaults update master-slave-base-port 15000
-	# Updated master-slave-base-port -> "15000"
-	# Configuration file: $HOME/.dbdeployer/config.json
-	{
-		"version": "0.1.22",
-		"sandbox-home": "/Users/gmax/sandboxes",
-		"sandbox-binary": "/Users/gmax/opt/mysql",
-		"master-slave-base-port": 15000,
-		"group-replication-base-port": 12000,
-		"group-replication-sp-base-port": 13000,
-		"multiple-base-port": 16000,
-		"group-port-delta": 125,
-		"sandbox-prefix": "msb_",
-		"master-slave-prefix": "rsandbox_",
-		"group-prefix": "group_msb_",
-		"group-sp-prefix": "group_sp_msb_",
-		"multiple-prefix": "multi_msb_"
-	 }
+	{{dbdeployer defaults update master-slave-base-port 15000}}
+
+Another way of modifying the defaults, which does not store the new values in dbdeployer's configuration file, is through the ``--defaults`` flag. The above change could be done like this:
+
+    $ dbdeployer --defaults=master-slave-base-port:15000 \
+        deploy replication 5.7.21
+
+The difference is that using ``dbdeployer defaults update`` the value is changed permanently for the next commands, or until you run a ``dbdeployer defaults reset``. Using the ``--defaults`` flag, instead, will modify the defaults only for the active command.
 
 ## Sandbox management
 

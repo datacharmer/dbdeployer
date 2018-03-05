@@ -41,7 +41,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		base_port = sdef.BasePort
 	}
 	base_server_id := 0
-	sdef.DirName = "master"
+	sdef.DirName = defaults.Defaults().MasterName
 	for check_port := base_port + 1; check_port < base_port+nodes+1; check_port++ {
 		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
 	}
@@ -56,19 +56,28 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		os.Exit(1)
 	}
 	slaves := nodes - 1
+	master_abbr := defaults.Defaults().MasterAbbr
+	master_label := defaults.Defaults().MasterName
+	slave_label := defaults.Defaults().SlavePrefix
+	slave_abbr := defaults.Defaults().SlaveAbbr
 	timestamp := time.Now()
 	var data common.Smap = common.Smap{
 		"Copyright":  Copyright,
 		"AppVersion": common.VersionDef,
 		"DateTime":   timestamp.Format(time.UnixDate),
 		"SandboxDir": sdef.SandboxDir,
+		"MasterLabel": master_label,
+		"MasterPort": sdef.Port,
+		"SlaveLabel": slave_label,
+		"MasterAbbr": master_abbr,
+		"SlaveAbbr": slave_abbr,
 		"Slaves":     []common.Smap{},
 	}
 
-	fmt.Println("Installing and starting master")
+	fmt.Printf("Installing and starting %s\n", master_label)
 	sdef.LoadGrants = true
 	sdef.Multi = true
-	sdef.Prompt = "master"
+	sdef.Prompt = master_label
 	sdef.NodeNum = 1
 	sdef.SBType = "replication-node"
 	CreateSingleSandbox(sdef, origin)
@@ -87,44 +96,58 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		SBType : sb_desc.SBType,
 		Version: sdef.Version,
 		Port:    []int{sdef.Port},
-		Nodes:   []string{"master"},
+		Nodes:   []string{defaults.Defaults().MasterName},
 		Destination: sdef.SandboxDir,
 	}
 
+	node_label := defaults.Defaults().NodePrefix
 	for i := 1; i <= slaves; i++ {
+		sdef.Port = base_port + i + 1
 		data["Slaves"] = append(data["Slaves"].([]common.Smap), common.Smap{
 			"Copyright":   Copyright,
 			"AppVersion":  common.VersionDef,
 			"DateTime":    timestamp.Format(time.UnixDate),
 			"Node":        i,
+			"NodeLabel":   node_label,
+			"NodePort":   sdef.Port,
+			"SlaveLabel":  slave_label,
+			"MasterAbbr": master_abbr,
+			"SlaveAbbr": slave_abbr,
 			"SandboxDir":  sdef.SandboxDir,
 			"MasterPort":  master_port,
 			"MasterIp":    master_ip,
 			"RplUser":     sdef.RplUser,
 			"RplPassword": sdef.RplPassword})
 		sdef.LoadGrants = false
-		sdef.Prompt = fmt.Sprintf("slave%d", i)
-		sdef.DirName = fmt.Sprintf("node%d", i)
-		sdef.Port = base_port + i + 1
+		sdef.Prompt = fmt.Sprintf("%s%d",slave_label, i)
+		sdef.DirName = fmt.Sprintf("%s%d", node_label, i)
 		sdef.ServerId = (base_server_id + i + 1) * 100
 		sdef.NodeNum = i + 1
 		sb_item.Nodes = append(sb_item.Nodes, sdef.DirName)
 		sb_item.Port = append(sb_item.Port, sdef.Port)
 		sb_desc.Port = append(sb_desc.Port, sdef.Port)
-		fmt.Printf("Installing and starting slave %d\n", i)
+		fmt.Printf("Installing and starting %s %d\n", slave_label, i)
 		CreateSingleSandbox(sdef, origin)
 		var data_slave common.Smap = common.Smap{
 			"Copyright":  Copyright,
 			"AppVersion": common.VersionDef,
 			"DateTime":   timestamp.Format(time.UnixDate),
 			"Node":       i,
+			"NodeLabel":  node_label,
+			"NodePort":  sdef.Port,
+			"SlaveLabel":  slave_label,
+			"MasterAbbr": master_abbr,
+			"SlaveAbbr": slave_abbr,
 			"SandboxDir": sdef.SandboxDir,
 		}
-		write_script(ReplicationTemplates, fmt.Sprintf("s%d", i), "slave_template", sdef.SandboxDir, data_slave, true)
+		write_script(ReplicationTemplates, fmt.Sprintf("%s%d", slave_abbr, i), "slave_template", sdef.SandboxDir, data_slave, true)
 		write_script(ReplicationTemplates, fmt.Sprintf("n%d", i+1), "slave_template", sdef.SandboxDir, data_slave, true)
 	}
 	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)
 	defaults.UpdateCatalog(sdef.SandboxDir, sb_item)
+	
+	initialize_slaves := "initialize_" + slave_label + "s"
+	check_slaves := "check_" + slave_label + "s"
 
 	write_script(ReplicationTemplates, "start_all", "start_all_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "restart_all", "restart_all_template", sdef.SandboxDir, data, true)
@@ -134,13 +157,13 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	write_script(ReplicationTemplates, "clear_all", "clear_all_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "send_kill_all", "send_kill_all_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "use_all", "use_all_template", sdef.SandboxDir, data, true)
-	write_script(ReplicationTemplates, "initialize_slaves", "init_slaves_template", sdef.SandboxDir, data, true)
-	write_script(ReplicationTemplates, "check_slaves", "check_slaves_template", sdef.SandboxDir, data, true)
-	write_script(ReplicationTemplates, "m", "master_template", sdef.SandboxDir, data, true)
+	write_script(ReplicationTemplates, initialize_slaves, "init_slaves_template", sdef.SandboxDir, data, true)
+	write_script(ReplicationTemplates, check_slaves, "check_slaves_template", sdef.SandboxDir, data, true)
+	write_script(ReplicationTemplates, master_abbr, "master_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "n1", "master_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "test_replication", "test_replication_template", sdef.SandboxDir, data, true)
-	fmt.Println(sdef.SandboxDir + "/initialize_slaves")
-	common.Run_cmd(sdef.SandboxDir + "/initialize_slaves")
+	fmt.Println(sdef.SandboxDir + "/" + initialize_slaves)
+	common.Run_cmd(sdef.SandboxDir + "/" +initialize_slaves)
 	fmt.Printf("Replication directory installed in %s\n", sdef.SandboxDir)
 	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
 }
