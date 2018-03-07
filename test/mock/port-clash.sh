@@ -40,7 +40,7 @@ versions_mysqld_initialize=(5.7 8.0)
 versions_mysql_install_db=(5.0 5.1 5.5 5.6)
 
 rev_sparse="18 27 36 45 54 63 72 81 99"
-rev_all="$(seq 18 50)"
+rev_all="$(seq 1 99)"
 rev_list=$rev_all
 if [ "$1" == "sparse" ]
 then
@@ -81,8 +81,13 @@ do
         run dbdeployer deploy single $version
         run dbdeployer deploy multiple $version
         run dbdeployer deploy replication $version
-        run dbdeployer deploy replication $version --topology=group
-        run dbdeployer deploy replication $version --topology=group --single-primary
+        if [[ "$vers" ==  "5.7" && $rev -lt 18 ]]
+        then
+            echo "skipping group replication for version $version"
+        else
+            run dbdeployer deploy replication $version --topology=group
+            run dbdeployer deploy replication $version --topology=group --single-primary
+        fi
         results "$version"
         right_installer1=$(grep mysqld  $SANDBOX_HOME/msb_${version_name}/init_db )
         right_installer2=$(grep initialize-insecure  $SANDBOX_HOME/msb_${version_name}/init_db )

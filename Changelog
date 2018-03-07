@@ -1,3 +1,7 @@
+0.2.3	07-Mar-2018
+	- Improved mock test speed by parametrizing sleep intervals:
+	  . 200 mock sandboxes tested in 73 seconds (previously, 15 minutes).
+	  . 2144 mock sandboxes tested in 23 minutes (previously, 145 minutes)
 0.2.2	07-Mar-2018
 	- Now dbdeployer finds unused ports automatically, to avoid conflicts.
 	- Added ability of running faster tests with mock MySQL packages.

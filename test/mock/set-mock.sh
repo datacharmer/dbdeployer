@@ -12,6 +12,7 @@ export HOME=$mock_dir/home
 export CATALOG=$HOME/.dbdeployer/sandboxes.json
 export SANDBOX_HOME=$HOME/sandboxes
 export SANDBOX_BINARY=$HOME/opt/mysql
+export SLEEP_TIME=0
 
 function create_mock_version {
     version_label=$1
