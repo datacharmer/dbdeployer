@@ -20,6 +20,7 @@
 # which could be intrusive in a regular environment.
 
 version=$1
+test_command=$2
 
 if [ -z "$version" ]
 then
@@ -56,13 +57,21 @@ fi
 
 [ -n "$INTERACTIVE" ] && DOCKER_OPTIONS="$DOCKER_OPTIONS -e INTERACTIVE=1"
 
+[ -z "$test_command" ] && test_command="./test/test.sh"
+
+if [ "$test_command" != "bash" ]
+then
+    test_command="bash -c $test_command"
+fi
+
+
 (set -x
   docker run -ti  \
     -v $PWD/$executable:/usr/bin/dbdeployer \
     -v $PWD/test:/home/msandbox/test \
     --name $container_name \
     --hostname $container_name $DOCKER_OPTIONS \
-    datacharmer/mysql-sb-full bash -c "./test/test.sh" 
+    datacharmer/mysql-sb-full $test_command
 )
 
 #    datacharmer/mysql-sb-full bash -c "./test/test.sh"

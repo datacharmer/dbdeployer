@@ -18,42 +18,20 @@ execdir=$(dirname "$0")
 
 cd "$execdir" || exit 1
 
-#unset DBDEPLOYER_CATALOG
-export DBDEPLOYER_CATALOG=1
-export CATALOG=$HOME/.dbdeployer/sandboxes.json
-
-version=$(dbdeployer --version)
-if [ -z "$version" ]
+if [ ! -f common.sh ]
 then
-    echo "dbdeployer not found"
+    echo "common.sh not found"
     exit 1
 fi
 
-[ -z "$results_log" ] && results_log=results-$(uname).txt
+source common.sh
 
-start=$(date)
+start_timer
 pass=0
 fail=0
 tests=0
-start_sec=$(date +%s)
-date > "$results_log"
-
-#which dbdeployer >> "$results_log"
-#dbdeployer --version >> "$results_log"
-#uname -a >> "$results_log"
 
 (which dbdeployer ; dbdeployer --version ; uname -a ) >> "$results_log"
-
-function show_catalog {
-    if [ -f "$CATALOG" ]
-    then
-        cat "$CATALOG"
-    fi
-}
-
-function count_catalog {
-    show_catalog | grep destination | wc -l | tr -d ' '
-}
 
 function user_input {
     answer=""
@@ -119,54 +97,6 @@ function user_input {
     done
 }
 
-function results {
-    echo "#$*"
-    echo "#$*" >> "$results_log"
-    echo "dbdeployer sandboxes"
-    echo "dbdeployer sandboxes" >> "$results_log"
-    dbdeployer sandboxes
-    dbdeployer sandboxes >> "$results_log"
-    echo ""
-    echo "" >> "$results_log"
-    if [ -n "$INTERACTIVE" ]
-    then
-        user_input
-    fi
-}
-
-function ok_equal {
-    label=$1
-    value1=$2
-    value2=$3
-    if [ "$value1" == "$value2" ]
-    then
-        echo "ok - $label found '$value1' - expected: '$value2' "
-        pass=$((pass+1))
-    else
-        echo "not ok - $label found '$value1' - expected: '$value2' "
-        fail=$((fail+1))
-    fi
-    tests=$((tests+1))
-}
-
-
-function run {
-    temp_stop_sec=$(date +%s)
-    temp_elapsed=$(($temp_stop_sec-$start_sec))
-    echo "+ $(date) (${temp_elapsed}s)"
-    echo "+ $(date) (${temp_elapsed}s)" >> "$results_log"
-    echo "# $*" >> "$results_log"
-    (set -x
-    $@
-    )
-    exit_code=$?
-    echo $exit_code
-    if [ "$exit_code" != "0" ]
-    then
-        exit $exit_code
-    fi
-}
-
 BINARY_DIR=$HOME/opt/mysql
 SANDBOX_HOME=$HOME/sandboxes
 if [ ! -d "$BINARY_DIR" ]
@@ -195,6 +125,13 @@ then
     dbdeployer sandboxes
     echo "One or more sandboxes are already deployed. "
     echo "Please remove (or move) the sandboxes and try again"
+    exit 1
+fi
+
+catalog_items=$(count_catalog)
+if [ "$catalog_items" != "0" ]
+then
+    echo "Found $catalog_items items in the catalog. Expected: 0"
     exit 1
 fi
 
@@ -342,17 +279,8 @@ do
 
 done
 
-stop=$(date)
-stop_sec=$(date +%s)
-elapsed=$(($stop_sec-$start_sec))
-echo "OS:  $(uname)"
-echo "OS:  $(uname)" >> "$results_log"
-echo "Started: $start"
-echo "Started: $start" >> "$results_log"
-echo "Ended  : $stop"
-echo "Ended  : $stop" >> "$results_log"
-echo "Elapsed: $elapsed seconds"
-echo "Elapsed: $elapsed seconds" >> "$results_log"
+stop_timer
+
 echo "Passed subtests: $pass"
 echo "Passed subtests: $pass" >> "$results_log"
 echo "Failed subtests: $fail"
