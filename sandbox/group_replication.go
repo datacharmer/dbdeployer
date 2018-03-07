@@ -46,7 +46,8 @@ loose-group-replication-single-primary-mode=off
 func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 	vList := common.VersionToList(sdef.Version)
 	rev := vList[2]
-	base_port := sdef.Port + defaults.Defaults().GroupReplicationBasePort + (rev * 100)
+	// base_port := sdef.Port + defaults.Defaults().GroupReplicationBasePort + (rev * 100)
+	base_port := sdef.Port + defaults.Defaults().GroupReplicationBasePort + rev 
 	if sdef.SinglePrimary {
 		base_port = sdef.Port + defaults.Defaults().GroupReplicationSpBasePort + (rev * 100)
 	}
@@ -62,9 +63,14 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 	if common.DirExists(sdef.SandboxDir) {
 		sdef = CheckDirectory(sdef)
 	}
+	base_port = FindFreePort(base_port, sdef.InstalledPorts,  nodes)
+	base_group_port := base_port + defaults.Defaults().GroupPortDelta
+	base_group_port = FindFreePort(base_group_port, sdef.InstalledPorts,  nodes)
 	for check_port := base_port + 1; check_port < base_port+nodes+1; check_port++ {
 		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
-		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port+defaults.Defaults().GroupPortDelta)
+	}
+	for check_port := base_group_port + 1; check_port < base_group_port+nodes+1; check_port++ {
+		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
 	}
 	common.Mkdir(sdef.SandboxDir)
 	timestamp := time.Now()
@@ -83,7 +89,6 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		"SlaveAbbr": slave_abbr,
 		"Nodes":      []common.Smap{},
 	}
-	base_group_port := base_port + defaults.Defaults().GroupPortDelta
 	connection_string := ""
 	for i := 0; i < nodes; i++ {
 		group_port := base_group_port + i + 1
@@ -155,6 +160,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 		sdef.Prompt = fmt.Sprintf("%s%d", node_label, i)
 		sdef.SBType = "group-node"
 		sdef.NodeNum = i
+		// fmt.Printf("%#v\n",sdef)
 		CreateSingleSandbox(sdef, origin)
 		var data_node common.Smap = common.Smap{
 			"Copyright":  Copyright,

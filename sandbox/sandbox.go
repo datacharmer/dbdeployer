@@ -127,17 +127,55 @@ func CheckDirectory(sdef SandboxDef) SandboxDef {
 	return sdef
 }
 
+func FindFreePort(base_port int, installed_ports []int,  how_many int) int {
+	used_ports := make(map[int]bool)
+	for _, p := range installed_ports {
+		used_ports[p] = true
+	}
+	free_port := 0
+	check_port := base_port
+	for free_port == 0 {
+		is_free := true
+		candidate_port := check_port
+		for N := check_port ; N < (check_port + how_many + 1) ; N++ {
+			_, exists := used_ports[N]
+			if exists {
+				is_free = false
+			}
+			// fmt.Printf("+%d(%v) ", N, is_free )
+		}
+		if is_free {
+			free_port = candidate_port
+		} else {
+			check_port += how_many
+		}
+		if check_port > 60000 {
+			fmt.Printf("Could not find a free range for %d\n", base_port)
+			os.Exit(1)
+		}
+	}
+	// fmt.Printf("%v, %d\n",installed_ports, check_port)
+	if check_port != base_port {
+		if os.Getenv("SHOW_CHANGED_PORTS") != "" {
+			fmt.Printf("#port %d changed to %d\n",base_port, check_port)
+		}
+	}
+	return check_port
+}
+
 func CheckPort(sandbox_type string, installed_ports []int, port int) {
 	conflict := 0
 	for _, p := range installed_ports {
 		if p == port {
 			conflict = p
 		}
+		/*
 		if sandbox_type == "group-node" {
 			if p == (port + defaults.Defaults().GroupPortDelta) {
 				conflict = p
 			}
 		}
+		*/
 	}
 	if conflict > 0 {
 		fmt.Printf("Port conflict detected. Port %d is already used\n", conflict)
@@ -259,6 +297,9 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		}
 	}
 	//fmt.Printf("%#v\n", sdef)
+	if sdef.NodeNum == 0 {
+		sdef.Port = FindFreePort(sdef.Port, sdef.InstalledPorts, 1)
+	}
 	timestamp := time.Now()
 	var data common.Smap = common.Smap{"Basedir": sdef.Basedir,
 		"Copyright":    SingleTemplates["Copyright"].Contents,

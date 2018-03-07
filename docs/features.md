@@ -37,7 +37,7 @@ fan-in                      | no              | no          | yes [^14]
 all-masters                 | no              | no          | yes [^15]
 galera                      | no              | no          | yes [^16]
 mysql cluster               | no              | no          | yes [^16]
-finding free ports          | yes             | no          | yes
+finding free ports          | yes             | yes         | 
 pre-post grants shell action| yes             | no          | maybe
 getting remote tarballs     | yes             | no          | yes
 load plugins                | yes             | yes [^17]   |

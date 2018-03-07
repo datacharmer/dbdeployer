@@ -36,12 +36,14 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	sdef.ReplOptions = SingleTemplates["replication_options"].Contents
 	vList := common.VersionToList(sdef.Version)
 	rev := vList[2]
-	base_port := sdef.Port + defaults.Defaults().MasterSlaveBasePort + (rev * 100)
+	// base_port := sdef.Port + defaults.Defaults().MasterSlaveBasePort + (rev * 100)
+	base_port := sdef.Port + defaults.Defaults().MasterSlaveBasePort + rev 
 	if sdef.BasePort > 0 {
 		base_port = sdef.BasePort
 	}
 	base_server_id := 0
 	sdef.DirName = defaults.Defaults().MasterName
+	base_port = FindFreePort(base_port, sdef.InstalledPorts,  nodes)
 	for check_port := base_port + 1; check_port < base_port+nodes+1; check_port++ {
 		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
 	}

@@ -45,15 +45,21 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 	if common.DirExists(sdef.SandboxDir) {
 		sdef = CheckDirectory(sdef)
 	}
-	common.Mkdir(sdef.SandboxDir)
 
-	sdef.ReplOptions = SingleTemplates["replication_options"].Contents
 	vList := common.VersionToList(sdef.Version)
 	rev := vList[2]
-	base_port := sdef.Port + defaults.Defaults().MultipleBasePort + (rev * 100)
+	// base_port := sdef.Port + defaults.Defaults().MultipleBasePort + (rev * 100)
+	base_port := sdef.Port + defaults.Defaults().MultipleBasePort + rev 
 	if sdef.BasePort > 0 {
 		base_port = sdef.BasePort
 	}
+	base_port = FindFreePort(base_port, sdef.InstalledPorts,  nodes)
+	for check_port := base_port + 1; check_port < base_port+nodes; check_port++ {
+		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
+	}
+	common.Mkdir(sdef.SandboxDir)
+
+	sdef.ReplOptions = SingleTemplates["replication_options"].Contents
 	base_server_id := 0
 	if nodes < 2 {
 		fmt.Println("For single sandbox deployment, use the 'single' command")
@@ -88,7 +94,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 
 	node_label := defaults.Defaults().NodePrefix
 	for i := 1; i <= nodes; i++ {
-		sdef.Port = base_port + i + 1
+		sdef.Port = base_port + i
 		data["Nodes"] = append(data["Nodes"].([]common.Smap), common.Smap{
 			"Copyright":  Copyright,
 			"AppVersion": common.VersionDef,
