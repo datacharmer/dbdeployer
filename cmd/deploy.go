@@ -30,7 +30,7 @@ func init() {
 	deployCmd.PersistentFlags().Int("port", 0, "Overrides default port")
 	deployCmd.PersistentFlags().Int("base-port", 0, "Overrides default base-port (for multiple sandboxes)")
 	deployCmd.PersistentFlags().Bool("gtid", false, "enables GTID")
-	deployCmd.PersistentFlags().Bool("keep-auth-plugin", false, "in 8.0.4+, does not change the auth plugin")
+	deployCmd.PersistentFlags().Bool("native-auth-plugin", false, "in 8.0.4+, uses the native password auth plugin")
 	deployCmd.PersistentFlags().Bool("keep-server-uuid", false, "Does not change the server UUID")
 	deployCmd.PersistentFlags().Bool("force", false, "If a destination sandbox already exists, it will be overwritten")
 	deployCmd.PersistentFlags().Bool("skip-load-grants", false, "Does not load the grants")

@@ -248,7 +248,7 @@ func ImportTemplates(cmd *cobra.Command, args []string) {
 	}
 	template_version := strings.TrimSpace(common.SlurpAsString(version_file))
 	version_list := common.VersionToList(template_version)
-	fmt.Printf("%v\n",version_list)
+	// fmt.Printf("%v\n",version_list)
 	compatible_version_list := common.VersionToList(common.CompatibleVersion)
 	if version_list[0] < 0 {
 		fmt.Printf("Invalid version (%s) found in %s\n",template_version, version_file)

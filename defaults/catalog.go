@@ -38,7 +38,7 @@ const (
 	timeout = 5
 )
 
-var enable_catalog_management bool = false
+var enable_catalog_management bool = true
 
 func setLock(label string) bool {
 	if !enable_catalog_management {
@@ -150,7 +150,7 @@ func DeleteFromCatalog(sb_name string) {
 }
 
 func init() {
-	if os.Getenv("DBDEPLOYER_CATALOG") != "" {
-		enable_catalog_management = true
+	if os.Getenv("SKIP_DBDEPLOYER_CATALOG") != "" {
+		enable_catalog_management = false
 	}
 }

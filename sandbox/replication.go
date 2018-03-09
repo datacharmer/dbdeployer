@@ -53,6 +53,12 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	sdef.ServerId = (base_server_id + 1) * 100
 	sdef.LoadGrants = false
 	master_port := sdef.Port
+	change_master_extra := ""
+	if common.GreaterOrEqualVersion(sdef.Version, []int{8,0,4}) {
+		if !sdef.NativeAuthPlugin {
+			change_master_extra = ", GET_MASTER_PUBLIC_KEY=1"
+		}
+	}
 	if nodes < 2 {
 		fmt.Println("Can't run replication with less than 2 nodes")
 		os.Exit(1)
@@ -72,7 +78,11 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		"MasterPort": sdef.Port,
 		"SlaveLabel": slave_label,
 		"MasterAbbr": master_abbr,
+		"MasterIp":    master_ip,
+		"RplUser":     sdef.RplUser,
+		"RplPassword": sdef.RplPassword,
 		"SlaveAbbr": slave_abbr,
+		"ChangeMasterExtra" : change_master_extra,
 		"Slaves":     []common.Smap{},
 	}
 
@@ -118,6 +128,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 			"SandboxDir":  sdef.SandboxDir,
 			"MasterPort":  master_port,
 			"MasterIp":    master_ip,
+			"ChangeMasterExtra" : change_master_extra,
 			"RplUser":     sdef.RplUser,
 			"RplPassword": sdef.RplPassword})
 		sdef.LoadGrants = false
@@ -139,6 +150,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 			"NodePort":  sdef.Port,
 			"SlaveLabel":  slave_label,
 			"MasterAbbr": master_abbr,
+			"ChangeMasterExtra" : change_master_extra,
 			"SlaveAbbr": slave_abbr,
 			"SandboxDir": sdef.SandboxDir,
 		}
@@ -220,7 +232,7 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 	case "master-slave":
 		CreateMasterSlaveReplication(sdef, origin, nodes, master_ip)
 	case "group":
-		CreateGroupReplication(sdef, origin, nodes)
+		CreateGroupReplication(sdef, origin, nodes, master_ip)
 	case "fan-in":
 		// CreateFanInReplication(sdef, origin, nodes)
 		fmt.Println("fan-in replication is not implemented yet")

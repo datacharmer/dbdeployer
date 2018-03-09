@@ -55,7 +55,7 @@ type SandboxDef struct {
 	PostGrantsSql     []string
 	PostGrantsSqlFile string
 	MyCnfFile         string
-	KeepAuthPlugin    bool
+	NativeAuthPlugin  bool
 	KeepUuid          bool
 	SinglePrimary     bool
 	Force             bool
@@ -281,7 +281,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		}
 	}
 	if common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 4}) {
-		if sdef.KeepAuthPlugin == false {
+		if sdef.NativeAuthPlugin == true {
 			sdef.InitOptions = append(sdef.InitOptions, "--default_authentication_plugin=mysql_native_password")
 			sdef.MyCnfOptions = append(sdef.MyCnfOptions, "default_authentication_plugin=mysql_native_password")
 		}

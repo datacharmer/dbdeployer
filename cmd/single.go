@@ -113,7 +113,7 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.PostGrantsSql, _ = flags.GetStringSlice("post-grants-sql")
 	sd.PostGrantsSqlFile, _ = flags.GetString("post-grants-sql-file")
 	sd.MyCnfFile, _ = flags.GetString("my-cnf-file")
-	sd.KeepAuthPlugin, _ = flags.GetBool("keep-auth-plugin")
+	sd.NativeAuthPlugin, _ = flags.GetBool("native-auth-plugin")
 	sd.KeepUuid, _ = flags.GetBool("keep-server-uuid")
 	sd.Force, _ = flags.GetBool("force")
 	sd.ExposeDdTables, _ = flags.GetBool("expose-dd-tables")

@@ -29,6 +29,7 @@ type DbdeployerDefaults struct {
 	Version                        string `json:"version"`
 	SandboxHome                    string `json:"sandbox-home"`
 	SandboxBinary                  string `json:"sandbox-binary"`
+	UseSandboxCatalog			   bool   `json:"use-sandbox-catalog"`
 	MasterSlaveBasePort            int    `json:"master-slave-base-port"`
 	GroupReplicationBasePort       int    `json:"group-replication-base-port"`
 	GroupReplicationSpBasePort     int    `json:"group-replication-sp-base-port"`
@@ -77,6 +78,7 @@ var (
 		Version:                       common.CompatibleVersion,
 		SandboxHome:                   home_dir + "/sandboxes",
 		SandboxBinary:                 home_dir + "/opt/mysql",
+		UseSandboxCatalog:			   true,
 		MasterSlaveBasePort:           11000,
 		GroupReplicationBasePort:      12000,
 		GroupReplicationSpBasePort:    13000,
@@ -254,6 +256,21 @@ func a_to_i(val string) int {
 	return numvalue
 }
 
+func text_to_bool(value string ) (result bool) {
+    value = strings.ToLower(value)	
+	switch value {
+		case "yes": 
+			result = true
+		case "true":
+			result = true
+		case "1":
+			result = true
+		default:
+			result = false
+	}
+	return
+}
+
 func UpdateDefaults(label, value string, store_defaults bool) {
 	new_defaults := Defaults()
 	switch label {
@@ -263,6 +280,8 @@ func UpdateDefaults(label, value string, store_defaults bool) {
 		new_defaults.SandboxHome = value
 	case "sandbox-binary":
 		new_defaults.SandboxBinary = value
+	case "use-sandbox-catalog":
+		new_defaults.UseSandboxCatalog = text_to_bool(value)
 	case "master-slave-base-port":
 		new_defaults.MasterSlaveBasePort = a_to_i(value)
 	case "group-replication-base-port":

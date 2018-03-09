@@ -20,6 +20,7 @@ import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"os"
+	"regexp"
 	"time"
 )
 
@@ -43,7 +44,7 @@ loose-group-replication-single-primary-mode=off
 `
 )
 
-func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
+func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip string) {
 	vList := common.VersionToList(sdef.Version)
 	rev := vList[2]
 	// base_port := sdef.Port + defaults.Defaults().GroupReplicationBasePort + (rev * 100)
@@ -74,19 +75,29 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 	}
 	common.Mkdir(sdef.SandboxDir)
 	timestamp := time.Now()
-	master_abbr := defaults.Defaults().MasterAbbr
-	master_label := defaults.Defaults().MasterName
 	slave_label := defaults.Defaults().SlavePrefix
 	slave_abbr := defaults.Defaults().SlaveAbbr
+	master_abbr := defaults.Defaults().MasterAbbr
+	master_label := defaults.Defaults().MasterName
+	change_master_extra := ""
+	//if common.GreaterOrEqualVersion(sdef.Version, []int{8,0,4}) {
+	//	if !sdef.NativeAuthPlugin {
+	//		change_master_extra = ", GET_MASTER_PUBLIC_KEY=1"
+	//	}
+	//}
 	var data common.Smap = common.Smap{
 		"Copyright":  Copyright,
 		"AppVersion": common.VersionDef,
 		"DateTime":   timestamp.Format(time.UnixDate),
 		"SandboxDir": sdef.SandboxDir,
-		"MasterLabel": master_label,
-		"MasterAbbr": master_abbr,
+		"MasterIp":    master_ip,
+		"RplUser":     sdef.RplUser,
+		"RplPassword": sdef.RplPassword,
 		"SlaveLabel": slave_label,
 		"SlaveAbbr": slave_abbr,
+		"ChangeMasterExtra" : change_master_extra,
+		"MasterLabel": master_label,
+		"MasterAbbr": master_abbr,
 		"Nodes":      []common.Smap{},
 	}
 	connection_string := ""
@@ -131,11 +142,13 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 			"AppVersion":  common.VersionDef,
 			"DateTime":    timestamp.Format(time.UnixDate),
 			"Node":        i,
+			"MasterIp":    master_ip,
 			"NodeLabel":  node_label,
-			"MasterLabel": master_label,
-			"MasterAbbr": master_abbr,
 			"SlaveLabel": slave_label,
 			"SlaveAbbr": slave_abbr,
+			"ChangeMasterExtra" : change_master_extra,
+			"MasterLabel": master_label,
+			"MasterAbbr": master_abbr,
 			"SandboxDir":  sdef.SandboxDir,
 			"RplUser":     sdef.RplUser,
 			"RplPassword": sdef.RplPassword})
@@ -152,8 +165,10 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 
 		fmt.Printf("Installing and starting %s %d\n", node_label, i)
 		sdef.ReplOptions = SingleTemplates["replication_options"].Contents + fmt.Sprintf("\n%s\n%s\n", GroupReplOptions, single_multi_primary)
+		re_master_ip := regexp.MustCompile(`127\.0\.0\.1`) 
+		sdef.ReplOptions = re_master_ip.ReplaceAllString(sdef.ReplOptions, master_ip)
 		sdef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["gtid_options"].Contents)
-		sdef.ReplOptions += fmt.Sprintf("\nloose-group-replication-local-address=127.0.0.1:%d\n", group_port)
+		sdef.ReplOptions += fmt.Sprintf("\nloose-group-replication-local-address=%s:%d\n", master_ip, group_port)
 		sdef.ReplOptions += fmt.Sprintf("\nloose-group-replication-group-seeds=%s\n", connection_string)
 		sdef.Multi = true
 		sdef.LoadGrants = true
@@ -170,6 +185,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int) {
 			"NodeLabel":  node_label,
 			"MasterLabel": master_label,
 			"MasterAbbr": master_abbr,
+			"ChangeMasterExtra" : change_master_extra,
 			"SlaveLabel": slave_label,
 			"SlaveAbbr": slave_abbr,
 			"SandboxDir": sdef.SandboxDir,

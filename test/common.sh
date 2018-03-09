@@ -1,5 +1,4 @@
 
-export DBDEPLOYER_CATALOG=1
 export CATALOG=$HOME/.dbdeployer/sandboxes.json
 
 version=$(dbdeployer --version)

@@ -1,4 +1,16 @@
-0.2.3	07-Mar-2018
+0.2.4	08-Mar-2018 
+	- INCOMPATIBLE CHANGES:
+	  . MySQL 8.0.x now starts with caching_sha2_password by default.
+	  . flag "--keep-auth-plugin" was removed. Instead, we now have
+	    "--native-auth-plugin", false by default, which will use the old
+		plugin if enabled.
+	  . The sandbox catalog is now enabled by default. It can be disabled 
+	    using either the environment variable SKIP_DBDEPLOYER_CATALOG
+		or using the configuration file.
+	- Added workaround for bug#89959: replication with 8.0 and
+	  caching_sha2_password fails
+	  
+0.2.3	07-Mar-2018 (not released)
 	- Improved mock test speed by parametrizing sleep intervals:
 	  . 200 mock sandboxes tested in 73 seconds (previously, 15 minutes).
 	  . 2144 mock sandboxes tested in 23 minutes (previously, 145 minutes)
