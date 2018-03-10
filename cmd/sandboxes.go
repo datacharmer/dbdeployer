@@ -19,13 +19,43 @@ import (
 	"fmt"
 
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/spf13/cobra"
+	"strings"
 )
+
+func ShowSandboxesFromCatalog(current_sandbox_home string) {
+	sandbox_list := defaults.ReadCatalog()
+	if len(sandbox_list) == 0 {
+		return
+	}
+	template := "%-20s %-10s %-15s %5v %-25s %s \n"
+	//fmt.Printf( template, "name", "version", "type", "nodes", "ports", "")
+	//fmt.Printf( template, "----", "-------", "-----", "-----", "-----", "")
+	for name, contents := range sandbox_list {
+		ports := "["
+		for _, p := range contents.Port {
+			ports += fmt.Sprintf("%d ", p)
+		}
+		ports += "]"
+		extra := ""
+		if ! strings.HasPrefix(contents.Destination, current_sandbox_home) {
+			extra = "(" + common.DirName(contents.Destination) + ")"
+		}
+		fmt.Printf(template, common.BaseName(name), contents.Version, contents.SBType, len(contents.Nodes), ports, extra)
+	}
+}
+
 
 // Shows installed sandboxes
 func ShowSandboxes(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	SandboxHome, _ := flags.GetString("sandbox-home")
+	read_catalog, _ := flags.GetBool("catalog")
+	if read_catalog {
+		ShowSandboxesFromCatalog(SandboxHome)
+		return
+	}
 	sandbox_list := common.GetInstalledSandboxes(SandboxHome)
 	var dirs []string
 	for _, sbinfo := range sandbox_list {
@@ -107,7 +137,12 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 var sandboxesCmd = &cobra.Command{
 	Use:     "sandboxes",
 	Short:   "List installed sandboxes",
-	Long:    `Lists all sandboxes installed in $SANDBOX_HOME.`,
+	Long:    `Lists all sandboxes installed in $SANDBOX_HOME.
+If sandboxes are installed in a different location, use --sandbox-home to 
+indicate where to look.
+Alternatively, using --catalog will list all sandboxes, regardless of where 
+they were deployed.
+`,
 	Aliases: []string{"installed", "deployed"},
 	Run:     ShowSandboxes,
 }
@@ -115,5 +150,5 @@ var sandboxesCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(sandboxesCmd)
 
-	// sandboxesCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	sandboxesCmd.Flags().BoolP("catalog", "", false, "Use sandboxes catalog instead of scanning directory")
 }

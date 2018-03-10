@@ -59,7 +59,7 @@ function user_input {
                 ;;
             [sS])
                 echo show sandboxes
-                dbdeployer sandboxes
+                dbdeployer sandboxes --catalog
                 ;;
             [rR])
                 echo "Enter global command to run"
@@ -119,7 +119,7 @@ then
     exit 1
 fi
 
-installed_sandboxes=$(dbdeployer sandboxes)
+installed_sandboxes=$(dbdeployer sandboxes --catalog)
 if [ -n "$installed_sandboxes" ]
 then
     dbdeployer sandboxes
@@ -252,7 +252,7 @@ do
     run dbdeployer admin unlock ALL
     run dbdeployer delete ALL --skip-confirm
     results "#$V - after deletion"
-    num_sandboxes_final=$(dbdeployer sandboxes | wc -l)
+    num_sandboxes_final=$(dbdeployer sandboxes --catalog | wc -l)
     # After unlocking, deletion must work, and we should see that
     # there are no sandboxes left
     ok_equal "num_sandboxes" $num_sandboxes_final 0

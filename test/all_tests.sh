@@ -69,7 +69,7 @@ function run_test {
 
 function all_tests {
     run_test ./test/test.sh  
-    run_test ./test/docker-test.sh 0.2.4 
+    run_test ./test/docker-test.sh $version
     run_test ./test/mock/defaults-change.sh 
     run_test ./test/mock/port-clash.sh sparse 
     if [ -n "$COMPLETE_PORT_TEST" ]

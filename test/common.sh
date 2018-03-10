@@ -44,10 +44,10 @@ function count_catalog {
 function results {
     echo "#$*"
     echo "#$*" >> "$results_log"
-    echo "dbdeployer sandboxes"
-    echo "dbdeployer sandboxes" >> "$results_log"
-    dbdeployer sandboxes
-    dbdeployer sandboxes >> "$results_log"
+    echo "dbdeployer sandboxes --catalog"
+    echo "dbdeployer sandboxes --catalog" >> "$results_log"
+    dbdeployer sandboxes --catalog
+    dbdeployer sandboxes --catalog >> "$results_log"
     echo ""
     echo "" >> "$results_log"
     echo "catalog: $(count_catalog)" 

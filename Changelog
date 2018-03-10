@@ -1,3 +1,6 @@
+0.2.5	10-Mar-2018 
+	- Added --catalog to "sandboxes" command
+	- Improved tests
 0.2.4	08-Mar-2018 
 	- INCOMPATIBLE CHANGES:
 	  . MySQL 8.0.x now starts with caching_sha2_password by default.
