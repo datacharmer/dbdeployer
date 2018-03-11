@@ -65,6 +65,12 @@ If you want to deploy several instances of the same version and the same type (f
     $ dbdeployer deploy replication 8.0.4 --sandbox-directory=rsandbox2_8_0_4 --base-port=18600
     # will deploy replication in rsandbox2_8_0_4 using ports 18601, 18602, 18603
 
+## Concurrent deployment and deletion
+
+Starting with version 0.3.0, dbdeployer can deploy groups of sandboxes (*replication*, *multiple*) with the flag ``--concurrent``. When this flag is used, dbdeployed will run operations concurrently.
+The same flag can be used with the *delete* command. It is useful when there are several sandboxes to be deleted at once. 
+Concurrent operations run from 2 to 5 times faster than sequential ones, depending on the version of the server and the number of nodes.
+
 ## Sandbox customization
 
 There are several ways of changing the default behavior of a sandbox.

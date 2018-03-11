@@ -108,10 +108,13 @@ done
 
 echo "#Total sandboxes: $(count_catalog)"
 echo "#Total sandboxes: $(count_catalog)" >> $results_log
+num_ports=$(grep -A10 port $CATALOG | grep '^\s*[0-9]\+' | wc -l)
+echo "# Total ports installed: $num_ports"
+echo "# Total ports installed: $num_ports" >> $results_log
 run dbdeployer delete ALL --skip-confirm
 
 results "After deletion"
-cd $test_dir 
+cd $test_dir
 
 run du -sh $mock_dir
 run rm -rf $mock_dir

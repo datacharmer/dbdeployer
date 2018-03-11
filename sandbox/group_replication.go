@@ -18,6 +18,7 @@ package sandbox
 import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"os"
 	"regexp"
@@ -45,6 +46,7 @@ loose-group-replication-single-primary-mode=off
 )
 
 func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip string) {
+	var exec_lists []concurrent.ExecutionList
 	vList := common.VersionToList(sdef.Version)
 	rev := vList[2]
 	// base_port := sdef.Port + defaults.Defaults().GroupReplicationBasePort + (rev * 100)
@@ -163,7 +165,9 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 		sb_item.Port = append(sb_item.Port, sdef.Port + defaults.Defaults().GroupPortDelta )
 		sb_desc.Port = append(sb_desc.Port, sdef.Port + defaults.Defaults().GroupPortDelta )
 
-		fmt.Printf("Installing and starting %s %d\n", node_label, i)
+		if ! sdef.RunConcurrently {
+			fmt.Printf("Installing and starting %s %d\n", node_label, i)
+		}
 		sdef.ReplOptions = SingleTemplates["replication_options"].Contents + fmt.Sprintf("\n%s\n%s\n", GroupReplOptions, single_multi_primary)
 		re_master_ip := regexp.MustCompile(`127\.0\.0\.1`) 
 		sdef.ReplOptions = re_master_ip.ReplaceAllString(sdef.ReplOptions, master_ip)
@@ -176,7 +180,10 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 		sdef.SBType = "group-node"
 		sdef.NodeNum = i
 		// fmt.Printf("%#v\n",sdef)
-		CreateSingleSandbox(sdef, origin)
+		exec_list := CreateSingleSandbox(sdef, origin)
+		for _, list := range exec_list {
+			exec_lists = append(exec_lists, list)
+		}
 		var data_node common.Smap = common.Smap{
 			"Copyright":  Copyright,
 			"AppVersion": common.VersionDef,
@@ -207,6 +214,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	write_script(GroupTemplates, "check_nodes", "check_nodes_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "test_replication", "test_replication_template", sdef.SandboxDir, data, true)
 
+	concurrent.RunParallelTasksByPriority(exec_lists)
 	fmt.Println(sdef.SandboxDir + "/initialize_nodes")
 	common.Run_cmd(sdef.SandboxDir + "/initialize_nodes")
 	fmt.Printf("Replication directory installed in %s\n", sdef.SandboxDir)

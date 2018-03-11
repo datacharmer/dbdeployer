@@ -18,6 +18,7 @@ package sandbox
 import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"os"
 	"time"
@@ -33,6 +34,7 @@ type Slave struct {
 
 func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, master_ip string) {
 
+	var exec_lists []concurrent.ExecutionList
 	sdef.ReplOptions = SingleTemplates["replication_options"].Contents
 	vList := common.VersionToList(sdef.Version)
 	rev := vList[2]
@@ -69,6 +71,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	slave_label := defaults.Defaults().SlavePrefix
 	slave_abbr := defaults.Defaults().SlaveAbbr
 	timestamp := time.Now()
+
 	var data common.Smap = common.Smap{
 		"Copyright":  Copyright,
 		"AppVersion": common.VersionDef,
@@ -86,13 +89,18 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		"Slaves":     []common.Smap{},
 	}
 
-	fmt.Printf("Installing and starting %s\n", master_label)
+	if !sdef.RunConcurrently {
+		fmt.Printf("Installing and starting %s\n", master_label)
+	}
 	sdef.LoadGrants = true
 	sdef.Multi = true
 	sdef.Prompt = master_label
 	sdef.NodeNum = 1
 	sdef.SBType = "replication-node"
-	CreateSingleSandbox(sdef, origin)
+	exec_list := CreateSingleSandbox(sdef, origin)
+	for _, list := range exec_list {
+		exec_lists = append(exec_lists, list)
+	}
 
 	sb_desc := common.SandboxDescription{
 		Basedir: sdef.Basedir + "/" + sdef.Version,
@@ -139,8 +147,13 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		sb_item.Nodes = append(sb_item.Nodes, sdef.DirName)
 		sb_item.Port = append(sb_item.Port, sdef.Port)
 		sb_desc.Port = append(sb_desc.Port, sdef.Port)
-		fmt.Printf("Installing and starting %s %d\n", slave_label, i)
-		CreateSingleSandbox(sdef, origin)
+		if ! sdef.RunConcurrently {
+			fmt.Printf("Installing and starting %s %d\n", slave_label, i)
+		}
+		exec_list_node := CreateSingleSandbox(sdef, origin)
+		for _, list := range exec_list_node {
+			exec_lists = append(exec_lists, list)
+		}
 		var data_slave common.Smap = common.Smap{
 			"Copyright":  Copyright,
 			"AppVersion": common.VersionDef,
@@ -176,6 +189,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	write_script(ReplicationTemplates, master_abbr, "master_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "n1", "master_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "test_replication", "test_replication_template", sdef.SandboxDir, data, true)
+	concurrent.RunParallelTasksByPriority(exec_lists)
 	fmt.Println(sdef.SandboxDir + "/" + initialize_slaves)
 	common.Run_cmd(sdef.SandboxDir + "/" +initialize_slaves)
 	fmt.Printf("Replication directory installed in %s\n", sdef.SandboxDir)

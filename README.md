@@ -28,7 +28,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with '--help' will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 0.2.1
+    dbdeployer version 0.3.0
     
 
     $ dbdeployer -h
@@ -107,6 +107,7 @@ The easiest command is *deploy single*, which installs a single sandbox.
     Flags:
           --base-port int                 Overrides default base-port (for multiple sandboxes)
           --bind-address string           defines the database bind-address  (default "127.0.0.1")
+          --concurrent                    Runs multiple sandbox deployments concurrently
           --custom-mysqld string          Uses an alternative mysqld (must be in the same directory as regular mysqld)
       -p, --db-password string            database password (default "msandbox")
       -u, --db-user string                database user (default "msandbox")
@@ -116,10 +117,10 @@ The easiest command is *deploy single*, which installs a single sandbox.
           --gtid                          enables GTID
       -h, --help                          help for deploy
       -i, --init-options strings          mysqld options to run during initialization
-          --keep-auth-plugin              in 8.0.4+, does not change the auth plugin
           --keep-server-uuid              Does not change the server UUID
           --my-cnf-file string            Alternative source file for my.sandbox.cnf
       -c, --my-cnf-options strings        mysqld options to add to my.sandbox.cnf
+          --native-auth-plugin            in 8.0.4+, uses the native password auth plugin
           --port int                      Overrides default port
           --post-grants-sql strings       SQL queries to run after loading grants
           --post-grants-sql-file string   SQL file to run after loading grants
@@ -224,6 +225,12 @@ If you want to deploy several instances of the same version and the same type (f
     $ dbdeployer deploy replication 8.0.4 --sandbox-directory=rsandbox2_8_0_4 --base-port=18600
     # will deploy replication in rsandbox2_8_0_4 using ports 18601, 18602, 18603
 
+## Concurrent deployment and deletion
+
+Starting with version 0.3.0, dbdeployer can deploy groups of sandboxes (*replication*, *multiple*) with the flag ``--concurrent``. When this flag is used, dbdeployed will run operations concurrently.
+The same flag can be used with the *delete* command. It is useful when there are several sandboxes to be deleted at once. 
+Concurrent operations run from 2 to 5 times faster than sequential ones, depending on the version of the server and the number of nodes.
+
 ## Sandbox customization
 
 There are several ways of changing the default behavior of a sandbox.
@@ -267,9 +274,10 @@ Here's how:
     $ dbdeployer defaults show
     # Internal values:
     {
-     	"version": "0.2.1",
+     	"version": "0.3.0",
      	"sandbox-home": "$HOME/sandboxes",
      	"sandbox-binary": "$HOME/opt/mysql",
+     	"use-sandbox-catalog": true,
      	"master-slave-base-port": 11000,
      	"group-replication-base-port": 12000,
      	"group-replication-sp-base-port": 13000,
@@ -296,9 +304,10 @@ Here's how:
     # Updated master-slave-base-port -> "15000"
     # Configuration file: $HOME/.dbdeployer/config.json
     {
-     	"version": "0.2.1",
+     	"version": "0.3.0",
      	"sandbox-home": "$HOME/sandboxes",
      	"sandbox-binary": "$HOME/opt/mysql",
+     	"use-sandbox-catalog": true,
      	"master-slave-base-port": 15000,
      	"group-replication-base-port": 12000,
      	"group-replication-sp-base-port": 13000,
@@ -450,6 +459,7 @@ The sandboxes can also be deleted, either one by one or all at once:
     	$ dbdeployer delete rsandbox_5_7_21
     
     Flags:
+          --concurrent     Runs multiple deletion tasks concurrently.
           --confirm        Requires confirmation.
       -h, --help           help for delete
           --skip-confirm   Skips confirmation with multiple deletions.

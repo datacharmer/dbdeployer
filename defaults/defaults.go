@@ -30,6 +30,7 @@ type DbdeployerDefaults struct {
 	SandboxHome                    string `json:"sandbox-home"`
 	SandboxBinary                  string `json:"sandbox-binary"`
 	UseSandboxCatalog			   bool   `json:"use-sandbox-catalog"`
+	//UseConcurrency    			   bool   `json:"use-concurrency"`
 	MasterSlaveBasePort            int    `json:"master-slave-base-port"`
 	GroupReplicationBasePort       int    `json:"group-replication-base-port"`
 	GroupReplicationSpBasePort     int    `json:"group-replication-sp-base-port"`
@@ -79,6 +80,7 @@ var (
 		SandboxHome:                   home_dir + "/sandboxes",
 		SandboxBinary:                 home_dir + "/opt/mysql",
 		UseSandboxCatalog:			   true,
+		//UseConcurrency :			   true,
 		MasterSlaveBasePort:           11000,
 		GroupReplicationBasePort:      12000,
 		GroupReplicationSpBasePort:    13000,
@@ -257,7 +259,7 @@ func a_to_i(val string) int {
 }
 
 func text_to_bool(value string ) (result bool) {
-    value = strings.ToLower(value)	
+	value = strings.ToLower(value)	
 	switch value {
 		case "yes": 
 			result = true
@@ -282,6 +284,8 @@ func UpdateDefaults(label, value string, store_defaults bool) {
 		new_defaults.SandboxBinary = value
 	case "use-sandbox-catalog":
 		new_defaults.UseSandboxCatalog = text_to_bool(value)
+	//case "use-concurrency":
+	//	new_defaults.UseConcurrency = text_to_bool(value)
 	case "master-slave-base-port":
 		new_defaults.MasterSlaveBasePort = a_to_i(value)
 	case "group-replication-base-port":

@@ -71,6 +71,15 @@ var (
 		    --basedir=$BASEDIR \
 		    --datadir=$DATADIR \
 		    --tmpdir={{.Tmpdir}} {{.ExtraInitFlags}}
+		exit_code=$?
+		if [ "$exit_code" == "0" ]
+		then
+			echo "Database installed in $SBDIR"
+		else
+			echo "Error installing database in $SBDIR"
+		fi
+		{{.FixUuidFile1}}
+		{{.FixUuidFile2}}
 `
 
 	start_template string = `#!/bin/bash
@@ -204,7 +213,6 @@ var (
 
 		MYSQL_ADMIN="$BASEDIR/bin/mysqladmin"
 
-
 		function is_running
 		{
 			if [ -f $PIDFILE ]
@@ -216,10 +224,7 @@ var (
 
 		if [ -n "$(is_running)" ]
 		then
-			if [ -f $SBDIR/data/master.info ]
-			then
-				echo "stop slave" | $SBDIR/use -u root
-			fi
+			echo "stop $SBDIR"
 			# echo "$MYSQL_ADMIN --defaults-file=$SBDIR/my.sandbox.cnf $MYCLIENT_OPTIONS shutdown"
 			$MYSQL_ADMIN --defaults-file=$SBDIR/my.sandbox.cnf $MYCLIENT_OPTIONS shutdown
 			sleep $SLEEP_TIME

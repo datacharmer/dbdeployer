@@ -118,6 +118,11 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.Force, _ = flags.GetBool("force")
 	sd.ExposeDdTables, _ = flags.GetBool("expose-dd-tables")
 	
+	sd.RunConcurrently, _ = flags.GetBool("concurrent")
+	if os.Getenv("RUN_CONCURRENTLY") != "" {
+		sd.RunConcurrently = true
+	}
+ 
 	new_defaults, _ := flags.GetStringSlice("defaults")
 	process_defaults(new_defaults)
 
@@ -146,6 +151,8 @@ func SingleSandbox(cmd *cobra.Command, args []string) {
 	var sd sandbox.SandboxDef
 	common.CheckOrigin(args)
 	sd = FillSdef(cmd, args)
+	// When deploying a single sandbox, we disable concurrency
+	sd.RunConcurrently = false
 	sandbox.CreateSingleSandbox(sd, args[0])
 }
 

@@ -57,7 +57,7 @@ function run_test {
     if [ "$test_base_name" == "port-clash" ]
     then
         sandboxes=$(grep catalog $test_log | wc -l)
-        ports=$(grep "sandbox server started" $test_log | wc -l)
+        ports=$(grep "Total ports installed" $test_log | awk '{print $NF}')
         changed=$(grep changed $test_log | wc -l)
         echo "# Deployed: $sandboxes sandboxes ($ports total ports) - Changed: $changed" >> $log_summary
     fi

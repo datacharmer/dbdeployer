@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/concurrent"
 	"os"
 	"time"
 )
@@ -60,6 +61,7 @@ type SandboxDef struct {
 	SinglePrimary     bool
 	Force             bool
 	ExposeDdTables    bool
+	RunConcurrently   bool
 }
 
 func GetOptionsFromFile(filename string) (options []string) {
@@ -195,23 +197,24 @@ func getmatch(key string, names []string, matches []string) string {
 	return ""
 }
 
-func FixServerUuid(sdef SandboxDef) {
+func FixServerUuid(sdef SandboxDef) (uuid_file, new_uuid string)  {
 	if !common.GreaterOrEqualVersion(sdef.Version, []int{5, 6, 9}) {
 		return
 	}
-	new_uuid := fmt.Sprintf("server-uuid=%s", common.MakeCustomizedUuid(sdef.Port, sdef.NodeNum))
+	new_uuid = fmt.Sprintf("server-uuid=%s", common.MakeCustomizedUuid(sdef.Port, sdef.NodeNum))
 	operation_dir := sdef.SandboxDir + "/data"
-	uuid_file := operation_dir + "/auto.cnf"
-	if !common.DirExists(operation_dir) {
-		fmt.Printf("Directory %s does not exist\n", operation_dir)
-		os.Exit(1)
-	}
-	new_contents := []string{"[auto]", new_uuid}
-	err := common.WriteStrings(new_contents, uuid_file, "")
-	if err != nil {
-		fmt.Printf("%s\n", err)
-		os.Exit(1)
-	}
+	uuid_file = operation_dir + "/auto.cnf"
+	//if !common.DirExists(operation_dir) {
+	//	fmt.Printf("Directory %s does not exist\n", operation_dir)
+	//	os.Exit(1)
+	//}
+	//uuid_string = []string{"[auto]", new_uuid}
+	return
+	//err := common.WriteStrings(uuid_string, uuid_file, "")
+	//if err != nil {
+	//	fmt.Printf("%s\n", err)
+	//	os.Exit(1)
+	//}
 	//check_uuid := common.SlurpAsString(uuid_file)
 	//fmt.Printf("UUID file (%s) updated : %s\n", uuid_file, new_uuid)
 	//fmt.Printf("new UUID : %s\n", check_uuid)
@@ -227,10 +230,10 @@ func slice_to_text(s_array []string) string {
 	return text
 }
 
-func CreateSingleSandbox(sdef SandboxDef, origin string) {
+func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent.ExecutionList) {
 
 	var sandbox_dir string
-	
+
 	sdef.Basedir = sdef.Basedir + "/" + sdef.Version
 	if !common.DirExists(sdef.Basedir) {
 		fmt.Printf("Base directory %s does not exist\n", sdef.Basedir)
@@ -363,16 +366,34 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		init_script_flags = fmt.Sprintf("\\\n    %s", init_script_flags)
 	}
 	data["ExtraInitFlags"] = init_script_flags
+	data["FixUuidFile1"] = ""
+	data["FixUuidFile2"] = ""
+
+	if !sdef.KeepUuid {
+		uuid_fname, new_uuid := FixServerUuid(sdef)
+		if uuid_fname != "" {
+			data["FixUuidFile1"] = fmt.Sprintf(`echo "[data]" > %s`, uuid_fname)
+			data["FixUuidFile2"] = fmt.Sprintf(`echo "%s" >> %s`, new_uuid, uuid_fname)
+		}
+	}
 
 	write_script(SingleTemplates, "init_db", "init_db_template", sandbox_dir, data, true)
-	err, _ := common.Run_cmd_ctrl(sandbox_dir+"/init_db", true)
-	if err == nil {
-		fmt.Printf("Database installed in %s\n", sandbox_dir)
-		if !sdef.Multi {
-			fmt.Printf("run 'dbdeployer usage single' for basic instructions'\n")
+	if sdef.RunConcurrently {
+		var eCommand = concurrent.ExecCommand{
+			Cmd : sandbox_dir+"/init_db",
+			Args : []string{},
 		}
+		exec_list = append(exec_list, concurrent.ExecutionList{0, eCommand})
 	} else {
-		fmt.Printf("err: %s\n", err)
+		err, _ := common.Run_cmd_ctrl(sandbox_dir+"/init_db", true)
+		if err == nil {
+			// fmt.Printf("Database installed in %s\n", sandbox_dir)
+			if !sdef.Multi {
+				fmt.Printf("run 'dbdeployer usage single' for basic instructions'\n")
+			}
+		} else {
+			fmt.Printf("err: %s\n", err)
+		}
 	}
 
 	if sdef.SBType == "" {
@@ -429,9 +450,6 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 	}
 	write_script(SingleTemplates, "sb_include", "sb_include_template", sandbox_dir, data, false)
 
-	if !sdef.KeepUuid {
-		FixServerUuid(sdef)
-	}
 
 	pre_grant_sql_file := sandbox_dir + "/pre_grants.sql"
 	post_grant_sql_file := sandbox_dir + "/post_grants.sql"
@@ -457,12 +475,39 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) {
 		}
 	}
 	//common.Run_cmd(sandbox_dir + "/start", []string{})
-	common.Run_cmd(sandbox_dir + "/start")
-	if sdef.LoadGrants {
-		common.Run_cmd_with_args(sandbox_dir+"/load_grants", []string{"pre_grants.sql"})
-		common.Run_cmd(sandbox_dir + "/load_grants")
-		common.Run_cmd_with_args(sandbox_dir+"/load_grants", []string{"post_grants.sql"})
+	if sdef.RunConcurrently {
+		var eCommand2 = concurrent.ExecCommand{
+			Cmd : sandbox_dir+"/start",
+			Args : []string{},
+		}
+		exec_list = append(exec_list, concurrent.ExecutionList{2, eCommand2})
+		if sdef.LoadGrants {
+			var eCommand3 = concurrent.ExecCommand{
+				Cmd : sandbox_dir+"/load_grants",
+				Args : []string{"pre_grants.sql"},
+			}
+			var eCommand4 = concurrent.ExecCommand{
+				Cmd : sandbox_dir+"/load_grants",
+				Args : []string{},
+			}
+			var eCommand5 = concurrent.ExecCommand{
+				Cmd : sandbox_dir+"/load_grants",
+				Args : []string{"post_grants.sql"},
+			}
+			exec_list = append(exec_list, concurrent.ExecutionList{3, eCommand3})
+			exec_list = append(exec_list, concurrent.ExecutionList{4, eCommand4})
+			exec_list = append(exec_list, concurrent.ExecutionList{5, eCommand5})
+		}
+
+	} else {
+		common.Run_cmd(sandbox_dir + "/start")
+		if sdef.LoadGrants {
+			common.Run_cmd_with_args(sandbox_dir+"/load_grants", []string{"pre_grants.sql"})
+			common.Run_cmd(sandbox_dir + "/load_grants")
+			common.Run_cmd_with_args(sandbox_dir+"/load_grants", []string{"post_grants.sql"})
+		}
 	}
+	return
 }
 
 func write_script(temp_var TemplateCollection, name, template_name, directory string, data common.Smap, make_executable bool) {

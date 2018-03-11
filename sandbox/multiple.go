@@ -18,6 +18,7 @@ package sandbox
 import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"os"
 	"time"
@@ -32,6 +33,7 @@ type Node struct {
 
 func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 
+	var exec_lists []concurrent.ExecutionList
 	Basedir := sdef.Basedir + "/" + sdef.Version
 	if !common.DirExists(Basedir) {
 		fmt.Printf("Base directory %s does not exist\n", Basedir)
@@ -49,7 +51,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 	vList := common.VersionToList(sdef.Version)
 	rev := vList[2]
 	// base_port := sdef.Port + defaults.Defaults().MultipleBasePort + (rev * 100)
-	base_port := sdef.Port + defaults.Defaults().MultipleBasePort + rev 
+	base_port := sdef.Port + defaults.Defaults().MultipleBasePort + rev
 	if sdef.BasePort > 0 {
 		base_port = sdef.BasePort
 	}
@@ -111,12 +113,18 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 		sb_item.Port = append(sb_item.Port, sdef.Port)
 		sb_desc.Port = append(sb_desc.Port, sdef.Port)
 
-		fmt.Printf("Installing and starting %s %d\n", node_label, i)
 		sdef.Multi = true
 		sdef.NodeNum = i
 		sdef.Prompt = fmt.Sprintf("%s%d",node_label, i)
 		sdef.SBType = "multiple-node"
-		CreateSingleSandbox(sdef, origin)
+		if ! sdef.RunConcurrently {
+			fmt.Printf("Installing and starting %s %d\n", node_label, i)
+		}
+		exec_list := CreateSingleSandbox(sdef, origin)
+		for _, list := range exec_list {
+			exec_lists = append(exec_lists, list)
+		}
+
 		var data_node common.Smap = common.Smap{
 			"Node":       i,
 			"NodePort": sdef.Port,
@@ -137,6 +145,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 	write_script(MultipleTemplates, "clear_all", "clear_multi_template", sdef.SandboxDir, data, true)
 	write_script(MultipleTemplates, "send_kill_all", "send_kill_multi_template", sdef.SandboxDir, data, true)
 	write_script(MultipleTemplates, "use_all", "use_multi_template", sdef.SandboxDir, data, true)
+	concurrent.RunParallelTasksByPriority(exec_lists)
 	fmt.Printf("Multiple directory installed in %s\n", sdef.SandboxDir)
 	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
 }

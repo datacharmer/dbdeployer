@@ -19,12 +19,13 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/spf13/cobra"
 	"os"
 )
 
-func RemoveSandbox(sandbox_dir, sandbox string) {
+func RemoveSandbox(sandbox_dir, sandbox string, run_concurrently bool) (exec_list []concurrent.ExecutionList) {
 	full_path := sandbox_dir + "/" + sandbox
 	if !common.DirExists(full_path) {
 		fmt.Printf("Directory '%s' not found\n", full_path)
@@ -37,7 +38,7 @@ func RemoveSandbox(sandbox_dir, sandbox string) {
 	if common.ExecExists(preserve) {
 		fmt.Printf("The sandbox %s is locked\n",sandbox)
 		fmt.Printf("You need to unlock it with \"dbdeployer admin unlock\"\n",)
-		return	
+		return
 	}
 	stop := full_path + "/stop_all"
 	if !common.ExecExists(stop) {
@@ -47,30 +48,48 @@ func RemoveSandbox(sandbox_dir, sandbox string) {
 		fmt.Println("Executable '%s' not found\n", stop)
 		os.Exit(1)
 	}
-	fmt.Printf("Running %s\n", stop)
-	err, _ := common.Run_cmd(stop)
-	if err != nil {
-		fmt.Printf("Error while stopping sandbox %s\n", full_path)
-		os.Exit(1)
+
+	if run_concurrently {
+		var eCommand1 = concurrent.ExecCommand{
+			Cmd : stop,
+			Args : []string{},
+		}
+		exec_list = append(exec_list, concurrent.ExecutionList{0, eCommand1})
+	} else {
+		fmt.Printf("Running %s\n", stop)
+		err, _ := common.Run_cmd(stop)
+		if err != nil {
+			fmt.Printf("Error while stopping sandbox %s\n", full_path)
+			os.Exit(1)
+		}
 	}
 
-	rm_cmd := []string{"-rf", full_path}
 	cmd_str := "rm"
-	for _, item := range rm_cmd {
-		cmd_str += " " + item
+	rm_args := []string{"-rf", full_path}
+	if run_concurrently {
+		var eCommand2 = concurrent.ExecCommand{
+			Cmd : cmd_str,
+			Args : rm_args,
+		}
+		exec_list = append(exec_list, concurrent.ExecutionList{1, eCommand2})
+	} else {
+		for _, item := range rm_args {
+			cmd_str += " " + item
+		}
+		fmt.Printf("Running %s\n", cmd_str)
+		err, _ := common.Run_cmd_with_args("rm", rm_args)
+		if err != nil {
+			fmt.Printf("Error while deleting sandbox %s\n", full_path)
+			os.Exit(1)
+		}
+		fmt.Printf("Sandbox %s deleted\n", full_path)
 	}
-	fmt.Printf("Running %s\n", cmd_str)
-	err, _ = common.Run_cmd_with_args("rm", rm_cmd)
-	if err != nil {
-		fmt.Printf("Error while deleting sandbox %s\n", full_path)
-		os.Exit(1)
-	}
-	fmt.Printf("Sandbox %s deleted\n", full_path)
-	defaults.DeleteFromCatalog(full_path)
-
+	// fmt.Printf("%#v\n",exec_list)
+	return
 }
 
 func DeleteSandbox(cmd *cobra.Command, args []string) {
+	var exec_lists []concurrent.ExecutionList
 	if len(args) < 1 {
 		fmt.Println("Sandbox name (or \"ALL\") required.")
 		fmt.Println("You can run 'dbdeployer sandboxes for a list of available deployments'")
@@ -79,6 +98,10 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	sandbox := args[0]
 	confirm, _ := flags.GetBool("confirm")
+	run_concurrently, _ := flags.GetBool("concurrent")
+	if os.Getenv("RUN_CONCURRENTLY") != "" {
+		run_concurrently = true
+	}
 	skip_confirm, _ := flags.GetBool("skip-confirm")
 	sandbox_dir, _ := flags.GetString("sandbox-home")
 	deletion_list := []common.SandboxInfo{common.SandboxInfo{sandbox, false}}
@@ -92,6 +115,10 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 	if len(deletion_list) == 0 {
 		fmt.Printf("Nothing to delete in %s\n", sandbox_dir)
 		return
+	}
+	if len(deletion_list) > 60 && run_concurrently {
+		fmt.Println("# Concurrency disabled. Can't run more than 60 concurrent operations\n")
+		run_concurrently = false
 	}
 	fmt.Printf("List of deployed sandboxes:\n")
 	unlocked_found := false
@@ -129,7 +156,17 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 		if sb.Locked {
 			fmt.Printf("Sandbox %s is locked\n",sb.SandboxName)
 		} else {
-			RemoveSandbox(sandbox_dir, sb.SandboxName)
+			exec_list := RemoveSandbox(sandbox_dir, sb.SandboxName, run_concurrently)
+			for _, list := range exec_list {
+				exec_lists = append(exec_lists, list)
+			}
+		}
+	}
+	concurrent.RunParallelTasksByPriority(exec_lists)
+	for _, sb := range deletion_list {
+		full_path := sandbox_dir + "/" + sb.SandboxName
+		if !sb.Locked {
+			defaults.DeleteFromCatalog(full_path)
 		}
 	}
 }
@@ -152,4 +189,5 @@ func init() {
 
 	deleteCmd.Flags().BoolP("skip-confirm", "", false, "Skips confirmation with multiple deletions.")
 	deleteCmd.Flags().BoolP("confirm", "", false, "Requires confirmation.")
+	deleteCmd.Flags().BoolP("concurrent", "", false, "Runs multiple deletion tasks concurrently.")
 }

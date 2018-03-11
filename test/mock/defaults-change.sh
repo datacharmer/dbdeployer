@@ -17,7 +17,7 @@ then
 fi
 
 source ../common.sh
-export results_log=$PWD/port-clash.log
+export results_log=$PWD/defaults-change.log
 source set-mock.sh
 export SHOW_CHANGED_PORTS=1
 start_timer
@@ -34,30 +34,6 @@ mkdir $SANDBOX_HOME
 tests=0
 fail=0
 pass=0
-# {
-#  	"version": "0.2.2",
-#  	"sandbox-home": "$HOME/sandboxes",
-#  	"sandbox-binary": "$HOME/opt/mysql",
-#  	"master-slave-base-port": 11000,
-#  	"group-replication-base-port": 12000,
-#  	"group-replication-sp-base-port": 13000,
-#  	"fan-in-replication-base-port": 14000,
-#  	"all-masters-replication-base-port": 15000,
-#  	"multiple-base-port": 16000,
-#  	"group-port-delta": 125,
-#  	"master-name": "master",
-#  	"master-abbr": "m",
-#  	"node-prefix": "node",
-#  	"slave-prefix": "slave",
-#  	"slave-abbr": "s",
-#  	"sandbox-prefix": "msb_",
-#  	"master-slave-prefix": "rsandbox_",
-#  	"group-prefix": "group_msb_",
-#  	"group-sp-prefix": "group_sp_msb_",
-#  	"multiple-prefix": "multi_msb_",
-#  	"fan-in-prefix": "fan_in_msb_",
-#  	"all-masters-prefix": "all_masters_msb_"
-# }
 
 function ok_generic_exists {
     wanted=$1
@@ -88,10 +64,28 @@ function ok_executable_exists {
     ok_generic_exists $filename "file" -x
 }
 
+function check_deployment {
+    sandbox_dir=$1
+    node_dir=$2
+    master_abbr=$3
+    slave_abbr=$4
+    slave_name=$5
+    ok_dir_exists $sandbox_dir
+    ok_dir_exists $sandbox_dir/${node_dir}1
+    ok_dir_exists $sandbox_dir/${node_dir}2
+    ok_executable_exists $sandbox_dir/$master_abbr
+    ok_executable_exists $sandbox_dir/${slave_abbr}1
+    ok_executable_exists $sandbox_dir/${slave_abbr}2
+    ok_executable_exists $sandbox_dir/check_${slave_name}s
+    ok_executable_exists $sandbox_dir/initialize_${slave_name}s
+}
+
+create_mock_version 5.5.66
 create_mock_version 5.6.66
 create_mock_version 5.7.66
 create_mock_version 8.0.66
 
+# Changing all defaults statically
 run dbdeployer defaults show
 run dbdeployer defaults update master-slave-prefix ms_replication_
 run dbdeployer defaults update master-name primary
@@ -104,14 +98,10 @@ run dbdeployer defaults show
 run dbdeployer deploy replication 5.6.66
 
 sandbox_dir=$SANDBOX_HOME/ms_replication_5_6_66
-ok_dir_exists $sandbox_dir
-ok_dir_exists $sandbox_dir/branch1
-ok_dir_exists $sandbox_dir/branch2
-ok_executable_exists $sandbox_dir/p
-ok_executable_exists $sandbox_dir/r1
-ok_executable_exists $sandbox_dir/r2
-ok_executable_exists $sandbox_dir/check_replicas
-ok_executable_exists $sandbox_dir/initialize_replicas
+check_deployment $sandbox_dir branch p r replica
+
+# Keeping the changes, we deploy a new replication cluster
+# with the defaults changing dynamically.
 
 run dbdeployer deploy replication 5.7.66 \
     --defaults=master-slave-prefix:masterslave_ \
@@ -119,30 +109,23 @@ run dbdeployer deploy replication 5.7.66 \
     --defaults=master-abbr:b \
     --defaults=slave-prefix:robin \
     --defaults=slave-abbr:rob \
-    --defaults=node-prefix:bat 
+    --defaults=node-prefix:bat
 
 sandbox_dir=$SANDBOX_HOME/masterslave_5_7_66
-ok_dir_exists $sandbox_dir
-ok_dir_exists $sandbox_dir/bat1
-ok_dir_exists $sandbox_dir/bat2
-ok_executable_exists $sandbox_dir/b
-ok_executable_exists $sandbox_dir/rob1
-ok_executable_exists $sandbox_dir/rob2
-ok_executable_exists $sandbox_dir/check_robins
-ok_executable_exists $sandbox_dir/initialize_robins
+check_deployment $sandbox_dir bat b rob robin
 
+# We make sure that the defaults stay the same, and they
+# were not affected by the dynamic changes
+run dbdeployer deploy replication 5.5.66
+sandbox_dir=$SANDBOX_HOME/ms_replication_5_5_66
+check_deployment $sandbox_dir branch p r replica
+
+# Restore the original defaults
 run dbdeployer defaults reset
-run dbdeployer deploy replication 8.0.66 
+run dbdeployer deploy replication 8.0.66
 
 sandbox_dir=$SANDBOX_HOME/rsandbox_8_0_66
-ok_dir_exists $sandbox_dir
-ok_dir_exists $sandbox_dir/node1
-ok_dir_exists $sandbox_dir/node2
-ok_executable_exists $sandbox_dir/m
-ok_executable_exists $sandbox_dir/s1
-ok_executable_exists $sandbox_dir/s2
-ok_executable_exists $sandbox_dir/check_slaves
-ok_executable_exists $sandbox_dir/initialize_slaves
+check_deployment $sandbox_dir node m s slave
 
 echo "#Total sandboxes: $(count_catalog)"
 echo "#Total sandboxes: $(count_catalog)" >> $results_log
@@ -153,7 +136,7 @@ fi
 run dbdeployer delete ALL --skip-confirm
 
 results "After deletion"
-cd $test_dir 
+cd $test_dir
 
 run du -sh $mock_dir
 run rm -rf $mock_dir

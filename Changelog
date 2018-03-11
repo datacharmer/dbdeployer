@@ -1,18 +1,22 @@
-0.2.5	10-Mar-2018 
+0.3.0	11-Mar-2018
+	- Implemented parallel deployment of multiple sandboxes
+	- Flag --concurrent is available for *deploy* and *delete*
+	- Improved tests
+0.2.5	10-Mar-2018
 	- Added --catalog to "sandboxes" command
 	- Improved tests
-0.2.4	08-Mar-2018 
+0.2.4	08-Mar-2018
 	- INCOMPATIBLE CHANGES:
 	  . MySQL 8.0.x now starts with caching_sha2_password by default.
 	  . flag "--keep-auth-plugin" was removed. Instead, we now have
 	    "--native-auth-plugin", false by default, which will use the old
 		plugin if enabled.
-	  . The sandbox catalog is now enabled by default. It can be disabled 
+	  . The sandbox catalog is now enabled by default. It can be disabled
 	    using either the environment variable SKIP_DBDEPLOYER_CATALOG
 		or using the configuration file.
 	- Added workaround for bug#89959: replication with 8.0 and
 	  caching_sha2_password fails
-	  
+
 0.2.3	07-Mar-2018 (not released)
 	- Improved mock test speed by parametrizing sleep intervals:
 	  . 200 mock sandboxes tested in 73 seconds (previously, 15 minutes).
@@ -28,7 +32,7 @@
 	- Fixed visualization error with template export
 	- Added interactivity to main test script.
 0.2.0	27-Feb-2018
-	- INCOMPATIBLE CHANGES: 
+	- INCOMPATIBLE CHANGES:
 		. "single", "multiple", and "replication" are now subcommands of "deploy".
 		. Previous "admin" commands are now under "defaults"
 		. "templates" is now a subcommand of "defaults"
@@ -38,7 +42,7 @@
 		There is a sandbox catalog being created and updated in
 		$HOME/.dbdeployer/sandboxes.json
 		The deployment and deletion commands handle the catalog
-		transparently. Disabled by default. It can be enabled by 
+		transparently. Disabled by default. It can be enabled by
 		setting the environment variable DBDEPLOYER_CATALOG
 
 0.1.25	26-Feb-2018
@@ -46,7 +50,7 @@
 	of a sandbox.
 	- Added placeholder fields for multi-source clustering in defaults
 0.1.24	20-Feb-2018
-	- Fixed bug with "sandboxes" command. It would not check if the 
+	- Fixed bug with "sandboxes" command. It would not check if the
 	  sandbox_home directory existed.
 	- Fixed bug in "sandboxes" command. It would not report sandboxes
 	  created by other applications (MySQL-Sandbox)
@@ -54,7 +58,7 @@
 	- Added tests for UUID generation
 	- Improved docker test
 0.1.23	19-Feb-2018
-	- Added "test-replication" to "global" command 
+	- Added "test-replication" to "global" command
 	- Added several aliases to "unpack"
 	- Changed template init_db, to allow for easier customization
 	- Added test for docker. The full test suite can run in a container.
@@ -71,7 +75,7 @@
 	- Added flag --expose-dd-tables to show data dictionary hidden tables
 	- Added flag --custom-mysqld to use different server executable
 0.1.20	14-Feb-2018
-	- Added flags for pre and post grants SQL execution. 
+	- Added flags for pre and post grants SQL execution.
 		- --pre-grants-sql-file
 		- --pre-grants-sql
 		- --post-grants-sql-file
@@ -81,7 +85,7 @@
 	- MySQL 8.0+ sandboxes now use roles instead of direct privilege
 	assignments.
 	- Added global flag --force to overwrite an existing deployment
-	- Added global flag --my-cnf-file to use a customized my.cnf 
+	- Added global flag --my-cnf-file to use a customized my.cnf
 	- Added flag --master-ip to replication deployments
 	- Fixed bug in abbreviations: flags were not considered correctly.
 0.1.18	12-Feb-2018
@@ -92,7 +96,7 @@
 	- Added the "global" command to propagate a command to all sandboxes
 0.1.17	11-Feb-2018
 	- Added automated README generation
-	- minor code changes 
+	- minor code changes
 0.1.16	10-Feb-2018
 	- Added automatic generation of human-readable server-UUID
 	- Added flag --keep-server-uuid to prevent the above change
@@ -111,7 +115,7 @@
 	- Added flags --sandbox-directory, --port, and base-port
 	  to allow deploying several sandboxes of the same version.
 	- Added a check for clash on installed ports
-	- INCOMPATIBLE change: Changed format of sbdescription.json: 
+	- INCOMPATIBLE change: Changed format of sbdescription.json:
 	  now can list several ports per sandbox.
 0.1.12	04-Feb-2018
 	- Added a check for version before applying gtid.

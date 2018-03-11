@@ -35,6 +35,7 @@ func init() {
 	deployCmd.PersistentFlags().Bool("force", false, "If a destination sandbox already exists, it will be overwritten")
 	deployCmd.PersistentFlags().Bool("skip-load-grants", false, "Does not load the grants")
 	deployCmd.PersistentFlags().Bool("expose-dd-tables", false, "In MySQL 8.0+ shows data dictionary tables")
+	deployCmd.PersistentFlags().Bool("concurrent", false, "Runs multiple sandbox deployments concurrently")
 
 	set_pflag(deployCmd,"remote-access", "", "", "127.%", "defines the database access ", false)
 	set_pflag(deployCmd,"bind-address", "", "", "127.0.0.1", "defines the database bind-address ", false)
