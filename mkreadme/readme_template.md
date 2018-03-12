@@ -3,6 +3,23 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
+## Installation
+
+The installation is simple, as the only thing you will need is a binary executable for your operating system.
+Get the one for your O.S. from [dbdeployer releases](https://github.com/datacharmer/dbdeployer/releases) and place it in a directory in your $PATH.
+(There are no binaries for Windows. See the [features list](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more info.)
+
+For example:
+
+    $ VERSION=0.3.1
+    $ origin=https://github.com/datacharmer/dbdeployer/releases/download/$VERSION
+    $ wget $origin/dbdeployer-$VERSION.linux.tar.gz
+    $ gunzip dbdeployer-$VERSION.linux.tar.gz
+    $ chmod +x dbdeployer-$VERSION.linux
+    $ sudo mv dbdeployer-$VERSION.linux /usr/local/bin/dbdeployer
+
+Of course, there are **prerequisites**: your machine must be able to run the MySQL server. Be aware that version 5.6+ and higher require some libraries that are not installed by default in all flavors of Linux (libnuma, libaio.)
+
 ## Main operations
 
 (See this ASCIIcast for a demo of its operations.)
@@ -68,7 +85,7 @@ If you want to deploy several instances of the same version and the same type (f
 ## Concurrent deployment and deletion
 
 Starting with version 0.3.0, dbdeployer can deploy groups of sandboxes (*replication*, *multiple*) with the flag ``--concurrent``. When this flag is used, dbdeployed will run operations concurrently.
-The same flag can be used with the *delete* command. It is useful when there are several sandboxes to be deleted at once. 
+The same flag can be used with the *delete* command. It is useful when there are several sandboxes to be deleted at once.
 Concurrent operations run from 2 to 5 times faster than sequential ones, depending on the version of the server and the number of nodes.
 
 ## Replication topologies
@@ -77,7 +94,7 @@ Multiple sandboxes can be deployed using replication with several topologies (us
 
 * **master-slave** is the default topology. It will install one master and two slaves. More slaves can be added with the option ``--nodes``.
 * **group** will deploy three peer nodes in group replication. If you want to use a single primary deployment, add the option ``--single-primary``. Available for MySQL 5.7 and later.
-* **fan-in** is the opposite of master-slave. Here we have one slave and several masters. This topology requires MySQL 5.7 or higher. 
+* **fan-in** is the opposite of master-slave. Here we have one slave and several masters. This topology requires MySQL 5.7 or higher.
 **all-masters** is a special case of fan-in, where all nodes are masters and are also slaves of all nodes.
 
 It is possible to tune the flow of data in multi-source topologies. The default for fan-in is three nodes, where 1 and 2 are masters, and 2 are slaves. You can change the predefined settings by providing the list of components:
@@ -143,7 +160,7 @@ Warning: modifying templates may block the regular work of the sandboxes. Use th
 Here's how:
 
 	{{dbdeployer defaults show}}
- 
+
 	{{dbdeployer defaults update master-slave-base-port 15000}}
 
 Another way of modifying the defaults, which does not store the new values in dbdeployer's configuration file, is through the ``--defaults`` flag. The above change could be done like this:
