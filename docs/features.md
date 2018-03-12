@@ -1,4 +1,4 @@
-# dbdeployer features 
+# dbdeployer features
 
 This table compares features from [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox) and [dbdeployer](https://github.com/datacharmer/dbdeployer).
 
@@ -11,7 +11,7 @@ master-slave replication    | yes             | yes         |
 "force" flag                | yes             | yes         |
 pre-post grants SQL action  | yes             | yes         |
 initialization options      | yes             | yes         |
-my.cnf options              | yes             | yes         |   
+my.cnf options              | yes             | yes         |
 custom my.cnf               | yes             | yes         |
 friendly UUID generation    | yes             | yes         |
 global commands             | yes             | yes         |
@@ -19,6 +19,7 @@ test replication flow       | yes             | yes         |
 delete command              | yes [^2]        | yes         |
 show data dictionary tables | yes             | yes         |
 lock/unlock sandboxes       | yes             | yes         |
+finding free ports          | yes             | yes         |
 group replication  SP       | no              | yes         |
 group replication  MP       | no              | yes         |
 prevent port collision      | no              | yes  [^3]   |
@@ -34,11 +35,10 @@ custom abbreviations        | no              | yes  [^12]  |
 version flag                | no              | yes  [^13]  |
 sandboxes global catalog    | no              | yes         |
 concurrent deployment       | no              | yes         |
-fan-in                      | no              | no          | yes [^14]
-all-masters                 | no              | no          | yes [^15]
+fan-in                      | no              | yes  [^14]  |
+all-masters                 | no              | yes  [^15]  |
 galera                      | no              | no          | yes [^16]
 mysql cluster               | no              | no          | yes [^16]
-finding free ports          | yes             | yes         | 
 pre-post grants shell action| yes             | no          | maybe
 getting remote tarballs     | yes             | no          | yes
 load plugins                | yes             | yes [^17]   |
@@ -58,7 +58,7 @@ Windows support             | no              | no [^19]    |
 
 [^6]: See also note 5. Using the flag --use-template you can replace an existing template on-the-fly. Group of templates can be exported and imported after editing.
 
-[^7]: Defaults can be exported to file, and eventually re-imported after editing. 
+[^7]: Defaults can be exported to file, and eventually re-imported after editing.
 
 [^8]: This is little more than using an O.S. file listing, with the added awareness of the source directory.
 
@@ -72,7 +72,7 @@ Windows support             | no              | no [^19]    |
 
 [^13]: Strangely enough, this simple feature was never implemented for MySQL-Sandbox, while it was one of the first additions to dbdeployer.
 
-[^14]: Will use the multi source technology introduced in MySQL 5.7.
+[^14]: Uses the multi source technology introduced in MySQL 5.7.
 
 [^15]: Same as n. 13.
 

@@ -87,6 +87,8 @@ do
         else
             run dbdeployer deploy replication $version --topology=group
             run dbdeployer deploy replication $version --topology=group --single-primary
+            run dbdeployer deploy replication $version --topology=all-masters
+            run dbdeployer deploy replication $version --topology=fan-in
         fi
         results "$version"
         right_installer1=$(grep mysqld  $SANDBOX_HOME/msb_${version_name}/init_db )

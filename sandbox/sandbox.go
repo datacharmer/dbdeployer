@@ -372,7 +372,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 	if !sdef.KeepUuid {
 		uuid_fname, new_uuid := FixServerUuid(sdef)
 		if uuid_fname != "" {
-			data["FixUuidFile1"] = fmt.Sprintf(`echo "[data]" > %s`, uuid_fname)
+			data["FixUuidFile1"] = fmt.Sprintf(`echo "[auto]" > %s`, uuid_fname)
 			data["FixUuidFile2"] = fmt.Sprintf(`echo "%s" >> %s`, new_uuid, uuid_fname)
 		}
 	}

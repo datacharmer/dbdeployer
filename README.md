@@ -28,7 +28,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with '--help' will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 0.3.0
+    dbdeployer version 0.3.1
     
 
     $ dbdeployer -h
@@ -179,11 +179,12 @@ If you want more than one sandbox of the same version, without any replication r
     
     
 
-The *replication* command will install a master and two or more slaves, with replication started. You can change the topology to "group" and get three nodes in peer replication.
+The *replication* command will install a master and two or more slaves, with replication started. You can change the topology to "group" and get three nodes in peer replication, or compose multi-source topologies with *all-masters* or *fan-in*.
 
     $ dbdeployer deploy replication -h
     The replication command allows you to deploy several nodes in replication.
-    Allowed topologies are "master-slave" and "group" (requires 5.7.17+)
+    Allowed topologies are "master-slave" for all versions, and  "group", "all-masters", "fan-in"
+    for  5.7.17+.
     For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
     the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
     Use the "unpack" command to get the tarball into the right directory.
@@ -201,14 +202,18 @@ The *replication* command will install a master and two or more slaves, with rep
     
     		$ dbdeployer deploy --topology=group replication 5.7.21
     		$ dbdeployer deploy --topology=group replication 8.0.4 --single-primary
+    		$ dbdeployer deploy --topology=all-masters replication 5.7.21
+    		$ dbdeployer deploy --topology=fan-in replication 5.7.21
     	
     
     Flags:
-      -h, --help               help for replication
-          --master-ip string   Which IP the slaves will connect to (default "127.0.0.1")
-      -n, --nodes int          How many nodes will be installed (default 3)
-          --single-primary     Using single primary for group replication
-      -t, --topology string    Which topology will be installed (default "master-slave")
+      -h, --help                 help for replication
+          --master-ip string     Which IP the slaves will connect to (default "127.0.0.1")
+          --master-list string   Which nodes are masters in a multi-source deployment (default "1 2")
+      -n, --nodes int            How many nodes will be installed (default 3)
+          --single-primary       Using single primary for group replication
+          --slave-list string    Which nodes are slaves in a multi-source deployment (default "3")
+      -t, --topology string      Which topology will be installed (default "master-slave")
     
     
 
@@ -230,6 +235,37 @@ If you want to deploy several instances of the same version and the same type (f
 Starting with version 0.3.0, dbdeployer can deploy groups of sandboxes (*replication*, *multiple*) with the flag ``--concurrent``. When this flag is used, dbdeployed will run operations concurrently.
 The same flag can be used with the *delete* command. It is useful when there are several sandboxes to be deleted at once. 
 Concurrent operations run from 2 to 5 times faster than sequential ones, depending on the version of the server and the number of nodes.
+
+## Replication topologies
+
+Multiple sandboxes can be deployed using replication with several topologies (using ``dbdeployer deploy replication --topology=xxxxx``:
+
+* **master-slave** is the default topology. It will install one master and two slaves. More slaves can be added with the option ``--nodes``.
+* **group** will deploy three peer nodes in group replication. If you want to use a single primary deployment, add the option ``--single-primary``. Available for MySQL 5.7 and later.
+* **fan-in** is the opposite of master-slave. Here we have one slave and several masters. This topology requires MySQL 5.7 or higher. 
+**all-masters** is a special case of fan-in, where all nodes are masters and are also slaves of all nodes.
+
+It is possible to tune the flow of data in multi-source topologies. The default for fan-in is three nodes, where 1 and 2 are masters, and 2 are slaves. You can change the predefined settings by providing the list of components:
+
+    $ dbdeployer deploy replication --topology=fan-in \
+        --nodes=5 --master-list="1 2 3" \
+        --slave-list="4 5" 8.0.4 \
+        --concurrent
+In the above example, we get 5 nodes instead of 3. The first three are master (``--master-list="1 2 3"``) and the last two are slaves (``--slave-list="4 5"``) which will receive data from all the masters. There is a test automatically generated to test replication flow. In our case it shows the following:
+
+    $ ~/sandboxes/fan_in_msb_8_0_4/test_replication
+    # master 1
+    # master 2
+    # master 3
+    # slave 4
+    ok - '3' == '3' - Slaves received tables from all masters
+    # slave 5
+    ok - '3' == '3' - Slaves received tables from all masters
+    # pass: 2
+    # fail: 0
+
+The first three lines show that each master has done something. In our case, each master has created a different table. Slaves in nodes 5 and 6 then count how many tables they found, and if they got the tables from all masters, the test succeeds.
+
 
 ## Sandbox customization
 

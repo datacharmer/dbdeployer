@@ -46,7 +46,7 @@ func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 		}
 		if !common.ExecExists(cmd_file) {
 			if skip_missing {
-				fmt.Printf("# Sandbox %s: not a replication sandbox\n",full_dir_path)
+				fmt.Printf("# Sandbox %s: executable %s not found\n",full_dir_path, executable)
 				continue
 			}
 			fmt.Printf("No %s or %s found in %s\n", executable, executable+"_all", full_dir_path)
@@ -144,6 +144,7 @@ var (
 
 	globalTestCmd = &cobra.Command{
 		Use:   "test",
+		Aliases: []string{"test_sb", "test-sb"},
 		Short: "Tests all sandboxes",
 		Long:  ``,
 		Run:   TestAllSandboxes,
@@ -151,6 +152,7 @@ var (
 
 	globalTestReplicationCmd = &cobra.Command{
 		Use:   "test-replication",
+		Aliases: []string{"test_replication"},
 		Short: "Tests replication in all sandboxes",
 		Long:  ``,
 		Run:   TestReplicationAllSandboxes,

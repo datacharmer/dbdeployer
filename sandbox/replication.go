@@ -196,7 +196,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
 }
 
-func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, nodes int, master_ip string) {
+func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, nodes int, master_ip, master_list, slave_list string) {
 
 	Basedir := sdef.Basedir + "/" + sdef.Version
 	if !common.DirExists(Basedir) {
@@ -231,7 +231,7 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 		}
 		sdef.SandboxDir += "/" + defaults.Defaults().AllMastersPrefix + common.VersionToName(origin)
 	default:
-		fmt.Println("Unrecognized topology. Accepted: 'master-slave', 'group'")
+		fmt.Println("Unrecognized topology. Accepted: 'master-slave', 'group', 'fan-in', 'all-masters'")
 		os.Exit(1)
 	}
 	if sdef.DirName != "" {
@@ -248,12 +248,12 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 	case "group":
 		CreateGroupReplication(sdef, origin, nodes, master_ip)
 	case "fan-in":
-		// CreateFanInReplication(sdef, origin, nodes)
-		fmt.Println("fan-in replication is not implemented yet")
-		os.Exit(0)
+		CreateFanInReplication(sdef, origin, nodes, master_ip, master_list, slave_list)
+		// fmt.Println("fan-in replication is not implemented yet")
+		// os.Exit(0)
 	case "all-masters":
-		// CreateAllMastersReplication(sdef, origin, nodes)
-		fmt.Println("all-masters replication is not implemented yet")
-		os.Exit(0)
+		CreateAllMastersReplication(sdef, origin, nodes, master_ip)
+		//fmt.Println("all-masters replication is not implemented yet")
+		//os.Exit(0)
 	}
 }

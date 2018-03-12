@@ -31,9 +31,13 @@ type Node struct {
 	Name     string
 }
 
-func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
+func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Smap {
 
 	var exec_lists []concurrent.ExecutionList
+	sb_type := sdef.SBType
+	if sb_type == "" {
+		sb_type = "multiple"
+	}
 	Basedir := sdef.Basedir + "/" + sdef.Version
 	if !common.DirExists(Basedir) {
 		fmt.Printf("Base directory %s does not exist\n", Basedir)
@@ -78,7 +82,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 
 	sb_desc := common.SandboxDescription{
 		Basedir: Basedir,
-		SBType:  "multiple",
+		SBType:  sdef.SBType,
 		Version: sdef.Version,
 		Port:    []int{},
 		Nodes:   nodes,
@@ -116,7 +120,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 		sdef.Multi = true
 		sdef.NodeNum = i
 		sdef.Prompt = fmt.Sprintf("%s%d",node_label, i)
-		sdef.SBType = "multiple-node"
+		sdef.SBType += "node"
 		if ! sdef.RunConcurrently {
 			fmt.Printf("Installing and starting %s %d\n", node_label, i)
 		}
@@ -146,6 +150,8 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) {
 	write_script(MultipleTemplates, "send_kill_all", "send_kill_multi_template", sdef.SandboxDir, data, true)
 	write_script(MultipleTemplates, "use_all", "use_multi_template", sdef.SandboxDir, data, true)
 	concurrent.RunParallelTasksByPriority(exec_lists)
-	fmt.Printf("Multiple directory installed in %s\n", sdef.SandboxDir)
+
+	fmt.Printf("%s directory installed in %s\n", sb_type, sdef.SandboxDir)
 	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
+	return data
 }

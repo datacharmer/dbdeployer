@@ -785,7 +785,7 @@ fail=0
 pass=0
 TIMEOUT=180
 expected_port={{.Port}}
-expected_version={{.Version}}
+expected_version=$(echo "{{.Version}}" | tr -d 'A-Z,a-z,_-')
 if [ -z "$(is_running)" ]
 then
 	echo "not ok - server stopped"

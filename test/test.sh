@@ -266,8 +266,6 @@ for V in ${group_versions[*]}
 do
     echo "#$V"
     run dbdeployer deploy replication $V --topology=group
-    # VF=$(echo $V | tr '.' '_')
-    # port=$(~/sandboxes/group_msb_$VF/n1 -BN -e "select @@port")
     run dbdeployer deploy replication $V --topology=group \
         --single-primary
     results "group"
@@ -276,8 +274,22 @@ do
     run dbdeployer global test-replication
     run dbdeployer delete ALL --skip-confirm
     results "group - after deletion"
-
 done
+
+for V in ${group_versions[*]}
+do
+    echo "#$V"
+    run dbdeployer deploy replication $V --topology=fan-in
+    run dbdeployer deploy replication $V --topology=all-masters
+    results "multi-source"
+
+    run dbdeployer global test
+    run dbdeployer global test-replication
+    run dbdeployer delete ALL --skip-confirm
+    results "multi-source - after deletion"
+done
+
+
 
 stop_timer
 

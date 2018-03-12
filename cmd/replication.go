@@ -33,12 +33,18 @@ func ReplicationSandbox(cmd *cobra.Command, args []string) {
 	nodes, _ := flags.GetInt("nodes")
 	topology, _ := flags.GetString("topology")
 	master_ip, _ := flags.GetString("master-ip")
+	master_list, _ := flags.GetString("master-list")
+	slave_list, _ := flags.GetString("slave-list")
 	sd.SinglePrimary, _ = flags.GetBool("single-primary")
+	if topology != "fan-in" && topology != "all-masters" {
+		master_list = ""
+		slave_list = ""
+	}
 	if sd.SinglePrimary && topology != "group" {
 		fmt.Println("Option 'single-primary' can only be used with 'group' topology ")
 		os.Exit(1)
 	}
-	sandbox.CreateReplicationSandbox(sd, args[0], topology, nodes, master_ip)
+	sandbox.CreateReplicationSandbox(sd, args[0], topology, nodes, master_ip, master_list, slave_list)
 }
 
 // replicationCmd represents the replication command
@@ -47,7 +53,8 @@ var replicationCmd = &cobra.Command{
 	//Args:  cobra.ExactArgs(1),
 	Short: "create replication sandbox",
 	Long: `The replication command allows you to deploy several nodes in replication.
-Allowed topologies are "master-slave" and "group" (requires 5.7.17+)
+Allowed topologies are "master-slave" for all versions, and  "group", "all-masters", "fan-in"
+for  5.7.17+.
 For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
 the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
 Use the "unpack" command to get the tarball into the right directory.
@@ -64,6 +71,8 @@ Use the "unpack" command to get the tarball into the right directory.
 
 		$ dbdeployer deploy --topology=group replication 5.7.21
 		$ dbdeployer deploy --topology=group replication 8.0.4 --single-primary
+		$ dbdeployer deploy --topology=all-masters replication 5.7.21
+		$ dbdeployer deploy --topology=fan-in replication 5.7.21
 	`,
 }
 
@@ -74,6 +83,8 @@ func init() {
 	//replicationCmd.PersistentFlags().StringSliceP("slave-options", "", "", "Extra options for the slaves")
 	//replicationCmd.PersistentFlags().StringSliceP("node-options", "", "", "Extra options for all nodes")
 	//replicationCmd.PersistentFlags().StringSliceP("one-node-options", "", "", "Extra options for one node (format #:option)")
+	replicationCmd.PersistentFlags().StringP("master-list", "", "1 2", "Which nodes are masters in a multi-source deployment")
+	replicationCmd.PersistentFlags().StringP("slave-list", "", "3", "Which nodes are slaves in a multi-source deployment")
 	replicationCmd.PersistentFlags().StringP("master-ip", "", "127.0.0.1", "Which IP the slaves will connect to")
 	replicationCmd.PersistentFlags().StringP("topology", "t", "master-slave", "Which topology will be installed")
 	replicationCmd.PersistentFlags().IntP("nodes", "n", 3, "How many nodes will be installed")
