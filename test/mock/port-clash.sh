@@ -24,13 +24,15 @@ start_timer
 
 pwd
 ls -l
-echo "HOME:           $HOME"
-echo "SANDBOX_HOME :  $SANDBOX_HOME"
-echo "SANDBOX_BINARY: $SANDBOX_BINARY"
+echo "HOME:            $HOME"
+echo "SANDBOX_HOME :   $SANDBOX_HOME"
+echo "SANDBOX_BINARY:  $SANDBOX_BINARY"
+echo "SANDBOX_TARBALL: $SANDBOX_TARBALL"
 
 mkdir $HOME
 mkdir -p $SANDBOX_BINARY
 mkdir $SANDBOX_HOME
+mkdir $SANDBOX_TARBALL
 
 run dbdeployer defaults store
 run dbdeployer defaults show
@@ -52,7 +54,9 @@ do
     for vers in ${versions[*]}
     do
         version=${vers}.${rev}
-        create_mock_version $version
+        create_mock_tarball $version $SANDBOX_TARBALL
+        #create_mock_version $version
+        run dbdeployer unpack $SANDBOX_TARBALL/mysql-${version}.tar.gz --unpack-version $version
     done
 
     run dbdeployer available

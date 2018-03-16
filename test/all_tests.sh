@@ -42,6 +42,7 @@ function summary {
     cat $log_summary
     stop_timer
     #rm -f $log_summary
+    echo "# Exit code: $exit_code"
     exit $exit_code
 }
 
@@ -58,7 +59,7 @@ function run_test {
     end_test=$(date +%s)
     elapsed=$((end_test-start_test))
     test_arg="[$test_arg]"
-    printf "%-30s %-9s - time: %4ds - exit code: %d\n" $test_base_name $test_arg ${elapsed}  $exit_code >> $log_summary
+    printf "%-30s %-9s - time: %4ds (%10s) - exit code: %d\n" $test_base_name $test_arg ${elapsed} $(minutes_seconds $elapsed) $exit_code >> $log_summary
     if [ "$test_base_name" == "port-clash" ]
     then
         sandboxes=$(grep catalog $test_log | wc -l)
@@ -68,6 +69,11 @@ function run_test {
     fi
     if [ "$exit_code" != "0" ]
     then
+        echo "# --------------------------------"
+        echo "# Error detected: $test_base_name "
+        echo "# --------------------------------"
+        tail -n 20 $test_log
+        echo "# --------------------------------"
         summary $exit_code
     fi
 }

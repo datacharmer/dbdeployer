@@ -1,3 +1,7 @@
+0.3.3	16-Mar-2018
+	- Added (mock) tests for unpack command
+	- Improved test reporting
+	- Added list of environment variables
 0.3.2	15-Mar-2018
 	- Minor bug fixes
 	- Added more tests

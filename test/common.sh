@@ -1,6 +1,14 @@
 
 export CATALOG=$HOME/.dbdeployer/sandboxes.json
 
+if [ -n "$SKIP_DBDEPLOYER_CATALOG" ]
+then
+    echo "This test requires dbdeployer catalog to be enabled"
+    echo "Unset the variable SKIP_DBDEPLOYER_CATALOG to continue"
+    exit 1
+fi
+
+
 dbdeployer_version=$(dbdeployer --version)
 if [ -z "$dbdeployer_version" ]
 then
@@ -20,7 +28,7 @@ function minutes_seconds {
     secs=$1
     elapsed_minutes=$((secs/60))
     remainder=$((secs-elapsed_minutes*60))
-    echo "${elapsed_minutes}m:${remainder}s"
+    printf "%dm:%02ds" ${elapsed_minutes} ${remainder}
 }
 
 function stop_timer {
