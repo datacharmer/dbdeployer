@@ -6,7 +6,6 @@ then
     exit 1
 fi
 
-
 version=$1
 if [ -z $version ] 
 then
@@ -21,7 +20,15 @@ then
     exit 1
 fi
 
-start_time=$(date +%s)
+if [ ! -f ./test/common.sh ]
+then
+    echo "script './test/common.sh' not found"
+    exit 1
+fi
+
+source ./test/common.sh
+
+start_timer
 timestamp=$(date +%Y-%m-%d-%H.%M)
 log_summary=./test/logs/all_tests${timestamp}-summary.log
 
@@ -32,10 +39,8 @@ fi
 
 function summary {
     exit_code=$1
-    end_time=$(date +%s)
-    elapsed=$((end_time-start_time))
     cat $log_summary
-    echo "# Total test time: $elapsed"
+    stop_timer
     #rm -f $log_summary
     exit $exit_code
 }

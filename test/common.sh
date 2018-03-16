@@ -1,8 +1,8 @@
 
 export CATALOG=$HOME/.dbdeployer/sandboxes.json
 
-version=$(dbdeployer --version)
-if [ -z "$version" ]
+dbdeployer_version=$(dbdeployer --version)
+if [ -z "$dbdeployer_version" ]
 then
     echo "dbdeployer not found"
     exit 1
@@ -16,6 +16,13 @@ function start_timer {
     date > "$results_log"
 }
 
+function minutes_seconds {
+    secs=$1
+    elapsed_minutes=$((secs/60))
+    remainder=$((secs-elapsed_minutes*60))
+    echo "${elapsed_minutes}m:${remainder}s"
+}
+
 function stop_timer {
     stop=$(date)
     stop_sec=$(date +%s)
@@ -26,7 +33,7 @@ function stop_timer {
     echo "Started: $start" >> "$results_log"
     echo "Ended  : $stop"
     echo "Ended  : $stop" >> "$results_log"
-    echo "Elapsed: $elapsed seconds"
+    echo "Elapsed: $elapsed seconds ($(minutes_seconds $elapsed))"
     echo "Elapsed: $elapsed seconds" >> "$results_log"
 }
 
@@ -73,6 +80,35 @@ function ok_equal {
     tests=$((tests+1))
 }
 
+function ok_contains {
+    label=$1
+    value1=$2
+    value2=$3
+    contains=$(echo "$value1" |grep "$value2")
+    if [ -n "$contains" ]
+    then
+        echo "ok - $label - '$value1' contains '$value2' "
+        pass=$((pass+1))
+    else
+        echo "not ok - $label - '$value1' does not contain '$value2' "
+        fail=$((fail+1))
+    fi
+    tests=$((tests+1))
+}
+
+function ok {
+    label=$1
+    value=$2
+    if [ -n "$value" ]
+    then
+        echo "ok - $label "
+        pass=$((pass+1))
+    else
+        echo "not ok - $label "
+        fail=$((fail+1))
+    fi
+    tests=$((tests+1))
+}
 
 function run {
     temp_stop_sec=$(date +%s)

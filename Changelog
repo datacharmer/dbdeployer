@@ -1,3 +1,6 @@
+0.3.2	15-Mar-2018
+	- Minor bug fixes
+	- Added more tests
 0.3.1	12-Mar-2018
 	- Added topologies "fan-in" and "all-masters"
 	- Feature complete: This is release candidate for 1.0

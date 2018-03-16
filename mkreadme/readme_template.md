@@ -14,7 +14,7 @@ For example:
     $ VERSION=0.3.1
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/$VERSION
     $ wget $origin/dbdeployer-$VERSION.linux.tar.gz
-    $ gunzip dbdeployer-$VERSION.linux.tar.gz
+    $ tar -xzf dbdeployer-$VERSION.linux.tar.gz
     $ chmod +x dbdeployer-$VERSION.linux
     $ sudo mv dbdeployer-$VERSION.linux /usr/local/bin/dbdeployer
 

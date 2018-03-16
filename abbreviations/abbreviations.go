@@ -35,23 +35,23 @@ import (
 	when the user types "dbdeployer sbs", it will be replaced with "dbdeployer sandboxes"
 
 	A more interesting example:
-		group  replication --topology=group
+		groupr  replication --topology=group
 
-	Here, a command "dbdeployer group 8.0.4" becomes "dbdeployer replication --topology=group 8.0.4"
+	Here, a command "dbdeployer groupr 8.0.4" becomes "dbdeployer deploy replication --topology=group 8.0.4"
 
 	It is also possible to set variables in the replacement.
 	    sbdef --sandbox-directory={{.sb}} --port={{.port}}
 
 	To use this abbreviation, we need to provide the values for 'sb' and 'port'
-	dbdeployer sbdef:port=9000,sb=mysandbox single 8.0.4
-	it will become  "dbdeployer --sandbox-directory=mysandbox --port=9000 single 8.0.4
+	dbdeployer deploy sbdef:port=9000,sb=mysandbox single 8.0.4
+	it will become  "dbdeployer deploy --sandbox-directory=mysandbox --port=9000 single 8.0.4
 */
 
 type argList []string
 type AliasList map[string]argList
 
 func debug_print(descr string, v interface{}) {
-	if os.Getenv("DEBUG") != "" {
+	if os.Getenv("DEBUG_ABBR") != "" {
 		fmt.Printf("%s : %v\n", descr, v)
 	}
 }

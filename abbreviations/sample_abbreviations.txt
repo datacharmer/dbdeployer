@@ -21,11 +21,11 @@
 # ----------------------------------------------------------------------------
 
 # use as "dbdeployer group 5.7.21"
-groupr  deploy replication --topology=group
+groupr deploy replication --topology=group
 
-groupsp  deploy replication --topology=group --single-primary
+groupsp deploy replication --topology=group --single-primary
 
-tl templates list
+tl defaults templates list
 
 # Use dbdeployer sbdef:port=XXX,sb=YYYYYY
 sbdef --sandbox-directory={{.sb}} --port={{.port}}

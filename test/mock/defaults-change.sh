@@ -67,10 +67,12 @@ function ok_executable_exists {
 function check_deployment {
     sandbox_dir=$1
     node_dir=$2
-    master_abbr=$3
-    slave_abbr=$4
-    slave_name=$5
+    master_name=$3
+    master_abbr=$4
+    slave_abbr=$5
+    slave_name=$6
     ok_dir_exists $sandbox_dir
+    ok_dir_exists $sandbox_dir/${master_name}
     ok_dir_exists $sandbox_dir/${node_dir}1
     ok_dir_exists $sandbox_dir/${node_dir}2
     ok_executable_exists $sandbox_dir/$master_abbr
@@ -78,6 +80,16 @@ function check_deployment {
     ok_executable_exists $sandbox_dir/${slave_abbr}2
     ok_executable_exists $sandbox_dir/check_${slave_name}s
     ok_executable_exists $sandbox_dir/initialize_${slave_name}s
+    for sbdir in $master_name ${node_dir}1 ${node_dir}2
+    do
+        auto_cnf=$sandbox_dir/$sbdir/data/auto.cnf
+        if [ -f $auto_cnf ]
+        then
+            tail -n 1 $auto_cnf | sed -e 's/server-uuid=//'
+            #echo $auto_cnf
+            #cat $auto_cnf
+        fi
+    done
 }
 
 create_mock_version 5.5.66
@@ -98,7 +110,7 @@ run dbdeployer defaults show
 run dbdeployer deploy replication 5.6.66
 
 sandbox_dir=$SANDBOX_HOME/ms_replication_5_6_66
-check_deployment $sandbox_dir branch p r replica
+check_deployment $sandbox_dir branch primary p r replica
 
 # Keeping the changes, we deploy a new replication cluster
 # with the defaults changing dynamically.
@@ -112,20 +124,20 @@ run dbdeployer deploy replication 5.7.66 \
     --defaults=node-prefix:bat
 
 sandbox_dir=$SANDBOX_HOME/masterslave_5_7_66
-check_deployment $sandbox_dir bat b rob robin
+check_deployment $sandbox_dir bat batman b rob robin
 
 # We make sure that the defaults stay the same, and they
 # were not affected by the dynamic changes
 run dbdeployer deploy replication 5.5.66
 sandbox_dir=$SANDBOX_HOME/ms_replication_5_5_66
-check_deployment $sandbox_dir branch p r replica
+check_deployment $sandbox_dir branch primary p r replica
 
 # Restore the original defaults
 run dbdeployer defaults reset
 run dbdeployer deploy replication 8.0.66
 
 sandbox_dir=$SANDBOX_HOME/rsandbox_8_0_66
-check_deployment $sandbox_dir node m s slave
+check_deployment $sandbox_dir node master m s slave
 
 echo "#Total sandboxes: $(count_catalog)"
 echo "#Total sandboxes: $(count_catalog)" >> $results_log

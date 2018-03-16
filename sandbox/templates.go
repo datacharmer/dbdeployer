@@ -874,12 +874,17 @@ echo "The contents of the old '{{.ClearCmd}}' command are in the '{{.NoClearCmd}
 echo 'To remove the lock, run "dbdeployer admin unlock {{.SandboxDir}}"'
 `
 	no_op_mock_template string=`#!/bin/bash
+# The purpose of this script is to run mock tests with a
+# command that returns a wanted exit code
 exit_code=0
  
+# The calling procedure can set FAILMOCK to
+# force a failing result.
 if [ -n "$FAILMOCK" ]
 then
     exit_code=$FAILMOCK
 fi
+# If MOCKMSG is set, the script will display its contents
 if [ -n "$MOCKMSG" ]
 then
 	echo $MOCKMSG
@@ -888,6 +893,9 @@ fi
 exit $exit_code`
 
 	mysqld_safe_mock_template string=`#!/bin/bash
+# This script mimicks the minimal behavior of mysqld_safe
+# so that we can run tests for dbdeployer without using the real
+# MySQL binaries.
 defaults_file=$1
 if [ -z "$defaults_file" ]
 then
