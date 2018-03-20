@@ -50,7 +50,7 @@ func check_node_lists(nodes int, mlist, slist []int) {
 	}
 }
 
-func nodes_list_to_num(nodes_list string, nodes int) (int_list []int) {
+func nodes_list_to_int_slice(nodes_list string, nodes int) (int_list []int) {
 	list := strings.Split(nodes_list, " ")
 	for _, s := range list {
 		if s != "" {
@@ -93,7 +93,7 @@ func CreateAllMastersReplication(sdef SandboxDef, origin string, nodes int, mast
 	slave_label := defaults.Defaults().SlavePrefix
 	data := CreateMultipleSandbox(sdef, origin, nodes)
 	master_list := make_nodes_list(nodes)
-	slist := nodes_list_to_num(master_list, nodes)
+	slist := nodes_list_to_int_slice(master_list, nodes)
 	data["MasterIp"] = master_ip
 	data["MasterAbbr"] = master_abbr
 	data["MasterLabel"] = master_label
@@ -126,8 +126,8 @@ func CreateFanInReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	sandbox_dir := sdef.SandboxDir
 	sdef.SandboxDir = common.DirName(sdef.SandboxDir)
 	data := CreateMultipleSandbox(sdef, origin, nodes)
-	mlist := nodes_list_to_num(master_list, nodes)
-	slist := nodes_list_to_num(slave_list, nodes)
+	mlist := nodes_list_to_int_slice(master_list, nodes)
+	slist := nodes_list_to_int_slice(slave_list, nodes)
 	master_abbr := defaults.Defaults().MasterAbbr
 	slave_abbr := defaults.Defaults().SlaveAbbr
 	master_label := defaults.Defaults().MasterName
@@ -137,7 +137,6 @@ func CreateFanInReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	data["SlaveList"] = slave_list
 	data["MasterAbbr"] = master_abbr
 	data["MasterLabel"] = master_label
-	data["MasterList"] = master_list
 	data["SlaveAbbr"] = slave_abbr
 	data["SlaveLabel"] = slave_label
 	data["RplUser"] = sdef.RplUser

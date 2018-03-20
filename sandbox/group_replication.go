@@ -81,7 +81,23 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	slave_abbr := defaults.Defaults().SlaveAbbr
 	master_abbr := defaults.Defaults().MasterAbbr
 	master_label := defaults.Defaults().MasterName
+	master_list := make_nodes_list(nodes)
+	slave_list := master_list
+	if sdef.SinglePrimary {
+		master_list = "1"
+		slave_list = ""
+		for N := 2; N <= nodes ; N++ {
+			if slave_list != "" {
+				slave_list += " "
+			}
+			slave_list += fmt.Sprintf("%d", N)
+		}
+		mlist := nodes_list_to_int_slice(master_list, nodes)
+		slist := nodes_list_to_int_slice(slave_list, nodes)
+		check_node_lists(nodes, mlist, slist)
+	}
 	change_master_extra := ""
+	node_label := defaults.Defaults().NodePrefix
 	//if common.GreaterOrEqualVersion(sdef.Version, []int{8,0,4}) {
 	//	if !sdef.NativeAuthPlugin {
 	//		change_master_extra = ", GET_MASTER_PUBLIC_KEY=1"
@@ -93,6 +109,9 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 		"DateTime":   timestamp.Format(time.UnixDate),
 		"SandboxDir": sdef.SandboxDir,
 		"MasterIp":    master_ip,
+		"MasterList": master_list,
+		"NodeLabel": node_label,
+		"SlaveList": slave_list,
 		"RplUser":     sdef.RplUser,
 		"RplPassword": sdef.RplPassword,
 		"SlaveLabel": slave_label,
@@ -136,7 +155,6 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 		Destination: sdef.SandboxDir,
 	}
 
-	node_label := defaults.Defaults().NodePrefix
 	for i := 1; i <= nodes; i++ {
 		group_port := base_group_port + i
 		data["Nodes"] = append(data["Nodes"].([]common.Smap), common.Smap{
@@ -212,7 +230,8 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	write_script(MultipleTemplates, "use_all", "use_multi_template", sdef.SandboxDir, data, true)
 	write_script(GroupTemplates, "initialize_nodes", "init_nodes_template", sdef.SandboxDir, data, true)
 	write_script(GroupTemplates, "check_nodes", "check_nodes_template", sdef.SandboxDir, data, true)
-	write_script(ReplicationTemplates, "test_replication", "test_replication_template", sdef.SandboxDir, data, true)
+	//write_script(ReplicationTemplates, "test_replication", "test_replication_template", sdef.SandboxDir, data, true)
+	write_script(ReplicationTemplates, "test_replication", "multi_source_test_template", sdef.SandboxDir, data, true)
 
 	concurrent.RunParallelTasksByPriority(exec_lists)
 	fmt.Println(sdef.SandboxDir + "/initialize_nodes")

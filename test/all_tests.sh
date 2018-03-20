@@ -30,12 +30,14 @@ source ./test/common.sh
 
 start_timer
 timestamp=$(date +%Y-%m-%d-%H.%M)
-log_summary=./test/logs/all_tests${timestamp}-summary.log
 
 if [ ! -d ./test/logs ]
 then
     mkdir ./test/logs
 fi
+
+mkdir ./test/logs/$timestamp
+log_summary=./test/logs/$timestamp/all_tests-summary.log
 
 function summary {
     exit_code=$1
@@ -50,9 +52,8 @@ function run_test {
     test_name="$1"
     test_arg="$2"
     start_test=$(date +%s)
-    timestamp=$(date +%Y-%m-%d-%H.%M)
     test_base_name=$(basename $test_name .sh)
-    test_log=./test/logs/${test_base_name}-${timestamp}.log
+    test_log=./test/logs/$timestamp/${test_base_name}.log
     echo "# Running $test_name $test_arg"
     $test_name $test_arg > $test_log
     exit_code=$?
@@ -90,4 +91,13 @@ function all_tests {
 } 
 
 all_tests 
+
+pass=$(grep '^ok' ./test/logs/$timestamp/*.log | wc -l | tr -d ' ')
+fail=$(grep -i '^not ok' ./test/logs/$timestamp/*.log | wc -l | tr -d ' ')
+tests=$((pass+fail))
+echo "# --------------------------------" >> $log_summary
+echo "# Total tests: $tests"              >> $log_summary
+echo "#       pass : $pass"               >> $log_summary
+echo "#       fail : $fail"               >> $log_summary
+echo "# --------------------------------" >> $log_summary
 summary 0

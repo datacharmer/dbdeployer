@@ -23,8 +23,94 @@ then
     echo "common.sh not found"
     exit 1
 fi
-
 source common.sh
+
+options=$1
+
+if [ -n "$options" ]
+then
+    # If there is any option on the command line,
+    # disable all tests
+    export skip_main_deployment_methods=1
+    export skip_pre_post_operations=1
+    export skip_group_operations=1
+    export skip_multi_source_operations=1
+    export no_tests=1
+fi
+
+while [ -n "$options" ]
+do
+    # Enable tests based on command line options.
+    case $options in
+        interactive)
+            export INTERACTIVE=1
+            echo "# Enabling INTERACTIVE"
+            ;;
+        concurrent)
+            export RUN_CONCURRENTLY=1
+            echo "# Enabling CONCURRENCY"
+            ;;
+        sequential)
+            unset RUN_CONCURRENTLY
+            echo "# Disabling CONCURRENCY"
+            ;;
+        all)
+            unset skip_main_deployment_methods
+            unset skip_pre_post_operations
+            unset skip_group_operations
+            unset skip_multi_source_operations
+            unset no_tests
+            echo "# Enabling all tests"
+            ;;
+        main)
+            unset skip_main_deployment_methods
+            unset no_tests
+            echo "# Enabling main tests"
+            ;;
+        pre)
+            unset skip_pre_post_operations
+            unset no_tests
+            echo "# Enabling pre/post tests"
+            ;;
+        post)
+            unset skip_pre_post_operations
+            unset no_tests
+            echo "# Enabling pre/post tests"
+            ;;
+        group)
+            unset skip_group_operations
+            unset no_tests
+            echo "# Enabling group operations tests"
+            ;;
+        multi)
+            unset skip_multi_source_operations
+            unset no_tests
+            echo "# Enabling multi-source operations tests"
+            ;;
+        *)
+            echo "Allowed tests (you can choose more than one):"
+            echo "  main     : main deployment methods"
+            echo "  pre/post : pre/post grants operations"
+            echo "  group    : group replication operations "
+            echo "  multi    : multi-source operations (fan-in, all-masters)"
+            echo "  all      : enable all the above tests"
+            echo ""
+            echo "Allowed modifiers:"
+            echo "  concurrent  : Enable concurrent operations"
+            echo "  sequential  : Disable concurrent operations"
+            echo "  interactive : Enable interaction with user"
+            exit 1
+    esac
+    shift
+    options=$1
+done
+
+if [ -n "$no_tests" ]
+then
+    echo "No tests were defined - aborting"
+    echo "Run '$0 help' for the list of available tests"
+    exit 1
+fi
 
 start_timer
 pass=0
@@ -32,70 +118,6 @@ fail=0
 tests=0
 
 (which dbdeployer ; dbdeployer --version ; uname -a ) >> "$results_log"
-
-function user_input {
-    answer=""
-    while [ "$answer" != "continue" ]
-    do
-        echo "Press ENTER to continue or choose among { s c q i o r u  h }"
-        read answer
-        case $answer in
-            [cC])
-                unset INTERACTIVE
-                echo "Now running unattended"
-                return
-                ;;
-            [qQ])
-                echo "Interrupted at user's request"
-                exit 0
-                ;;
-            [iI])
-                echo inspecting
-                show_catalog
-                ;;
-            [oO])
-                echo counting
-                count_catalog
-                ;;
-            [sS])
-                echo show sandboxes
-                dbdeployer sandboxes --catalog
-                ;;
-            [rR])
-                echo "Enter global command to run"
-                echo "Choose among : start restart stop status test test-replication"
-                read cmd
-                dbdeployer global $cmd
-                if [ "$?" != "0" ]
-                then
-                    exit 1
-                fi
-                ;;
-            [uU])
-                echo "Enter query to run"
-                read cmd
-                dbdeployer global use "$cmd"
-                if [ "$?" != "0" ]
-                then
-                    exit 1
-                fi
-                ;;
-            [hH])
-                echo "Commands:"
-                echo "c : continue (end interactivity)"
-                echo "i : inspect sandbox catalog"
-                echo "o : count sandbox instances"
-                echo "q : quit the test immediately"
-                echo "r : run 'dbdeployer global' command"
-                echo "u : run 'dbdeployer global use' query"
-                echo "s : show sandboxes"
-                echo "h : display this help"
-                ;;
-            *)
-                answer="continue"
-        esac
-    done
-}
 
 [ -z "$BINARY_DIR" ] && BINARY_DIR=$HOME/opt/mysql
 [ -z "$SANDBOX_HOME" ] && SANDBOX_HOME=$HOME/sandboxes
@@ -324,60 +346,108 @@ echo "Will test: [${all_versions[*]}]"
 # -----------------------------
 # Deployment tests start here
 # -----------------------------
-for V in ${all_versions[*]}
-do
-    # We test the main deployment methods
-    for stype in single multiple replication
+
+function main_deployment_methods {
+    current_test=main_deployment_methods
+    for V in ${all_versions[*]}
     do
-        echo "#$V"
-        run dbdeployer deploy $stype $V
-        # For each type, we display basic info
-        results "$stype"
+        # We test the main deployment methods
+        for stype in single multiple replication
+        do
+            echo "#$V"
+            run dbdeployer deploy $stype $V
+            # For each type, we display basic info
+            results "$stype"
+        done
+        # Test server UUID. It will be skipped for versions
+        # that don't support it.
+        test_uuid $V multi_msb_
+        test_uuid $V rsandbox_
+        how_many=$(count_catalog)
+        ok_equal "sandboxes_in_catalog" $how_many 3
+        sleep 2
+        # Runs basic tests
+        run dbdeployer global status
+        capture_test run dbdeployer global test
+        capture_test run dbdeployer global test-replication
+        test_deletion $V 3
     done
-    # Test server UUID. It will skipped for versions
-    # that don't support it.
-    test_uuid $V multi_msb_
-    test_uuid $V rsandbox_
-    how_many=$(count_catalog)
-    ok_equal "sandboxes_in_catalog" $how_many 3
-    sleep 2
-    # Runs basic tests
-    run dbdeployer global status
-    capture_test run dbdeployer global test
-    capture_test run dbdeployer global test-replication
-    test_deletion $V 3
-done
+}
 
-for V in ${group_versions[*]}
-do
-    echo "# Group operations $V"
-    run dbdeployer deploy replication $V --topology=group
-    run dbdeployer deploy replication $V --topology=group \
-        --single-primary
-    results "group"
+function pre_post_operations {
+    current_test=pre_post_operations
+    for V in ${all_versions[*]}
+    do
+        echo "#pre-post operations $V"
+        ( set -x
+        dbdeployer deploy single $V \
+            --pre-grants-sql='select count(*) as PRE from mysql.user' \
+            --post-grants-sql='select count(*) as POST from mysql.user' > /tmp/pre-post-$V.txt 2>&1
+        )
+        pre=$(grep -A2 PRE /tmp/pre-post-$V.txt | tail -n 1 | tr -d '| ')
+        post=$(grep -A2 POST /tmp/pre-post-$V.txt | tail -n 1 | tr -d '| ')
+        # echo "$pre $post"
+        ok_greater "post grants users more than pre" $post $pre
+        results "pre/post $V"
+        rm /tmp/pre-post-$V.txt
+        #test_deletion $V 1
+        dbdeployer delete ALL --skip-confirm
+    done
+}
 
-    capture_test run dbdeployer global test
-    capture_test run dbdeployer global test-replication
-    test_uuid $V group_msb_ 1
-    test_uuid $V group_sp_msb_ 1
-    test_deletion $V 2
-    results "group - after deletion"
-done
+function group_operations {
+    current_test=group_operations
+    for V in ${group_versions[*]}
+    do
+        echo "# Group operations $V"
+        run dbdeployer deploy replication $V --topology=group
+        run dbdeployer deploy replication $V --topology=group \
+            --single-primary
+        results "group $V"
 
-for V in ${group_versions[*]}
-do
-    echo "# Multi-source operations $V"
-    run dbdeployer deploy replication $V --topology=fan-in
-    run dbdeployer deploy replication $V --topology=all-masters
-    results "multi-source"
+        capture_test run dbdeployer global test
+        capture_test run dbdeployer global test-replication
+        test_uuid $V group_msb_ 1
+        test_uuid $V group_sp_msb_ 1
+        test_deletion $V 2
+        results "group $V - after deletion"
+    done
+}
 
-    capture_test run dbdeployer global test
-    capture_test run dbdeployer global test-replication
-    test_uuid $V fan_in_msb_ 1
-    test_uuid $V all_masters_msb_ 1
-    test_deletion $V 2
-    results "multi-source - after deletion"
-done
+function multi_source_operations {
+    current_test=multi_source_operations
+    for V in ${group_versions[*]}
+    do
+        echo "# Multi-source operations $V"
+        run dbdeployer deploy replication $V --topology=fan-in
+        run dbdeployer deploy replication $V --topology=all-masters
+        results "multi-source"
+
+        capture_test run dbdeployer global test
+        capture_test run dbdeployer global test-replication
+        test_uuid $V fan_in_msb_ 1
+        test_uuid $V all_masters_msb_ 1
+        test_deletion $V 2
+        results "multi-source - after deletion"
+    done
+}
+
+if [ -z "$skip_main_deployment_methods" ]
+then
+    main_deployment_methods
+fi
+if [ -z "$skip_pre_post_operations" ]
+then
+    pre_post_operations
+fi
+if [ -z "$skip_group_operations" ]
+then
+    group_operations
+fi
+if [ -z "$skip_multi_source_operations" ]
+then
+    multi_source_operations
+fi
 
 stop_timer
 

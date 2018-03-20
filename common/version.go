@@ -15,9 +15,9 @@
 
 package common
 
-var VersionDef string = "0.3.2" // 2018-03-15
+var VersionDef string = "0.3.4" // 2018-03-20
 
 // Compatible version is the version used to mark compatible archives (templates, configuration).
 // It is usually major.minor.0, except when we are at version 0.x, when
 // every revision may bring incompatibility
-var CompatibleVersion string = "0.3.0" // 2018-03-11
+var CompatibleVersion string = "0.3.4" // 2018-03-20

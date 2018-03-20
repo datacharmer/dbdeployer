@@ -1,3 +1,9 @@
+0.3.4	20-Mar-2018
+	- Changed test for group replication (now uses the
+	  same defined for multi-source replication)
+	- Improved usability of tests.
+	- Made tests easier to extend.
+	- Added test for pre/post grants SQL.
 0.3.3	16-Mar-2018
 	- Added (mock) tests for unpack command
 	- Improved test reporting

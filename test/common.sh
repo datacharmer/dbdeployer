@@ -8,7 +8,6 @@ then
     exit 1
 fi
 
-
 dbdeployer_version=$(dbdeployer --version)
 if [ -z "$dbdeployer_version" ]
 then
@@ -56,6 +55,105 @@ function count_catalog {
     show_catalog | grep destination | wc -l | tr -d ' '
 }
 
+function list_active_tests {
+    echo "Enabled tests:"
+    if [ -z "$skip_main_deployment_methods" ]
+    then
+        echo main_deployment_methods
+    fi
+    if [ -z "$skip_pre_post_operations" ]
+    then
+        echo pre_post_operations
+    fi
+    if [ -z "$skip_group_operations" ]
+    then
+        echo group_operations
+    fi
+    if [ -z "$skip_multi_source_operations" ]
+    then
+        echo multi_source_operations
+    fi
+    echo "Current test: $current_test"
+    echo ""
+    concurrency=no
+    if [ -n "$RUN_CONCURRENTLY" ]
+    then
+        concurrency=yes
+    fi
+    echo "Runs concurrently: $concurrency"
+    echo ""
+}
+
+
+
+function user_input {
+    answer=""
+    while [ "$answer" != "continue" ]
+    do
+        echo "Press ENTER to continue or choose among { s c q i o r u h t }"
+        read answer
+        case $answer in
+            [cC])
+                unset INTERACTIVE
+                echo "Now running unattended"
+                return
+                ;;
+            [qQ])
+                echo "Interrupted at user's request"
+                exit 0
+                ;;
+            [iI])
+                echo inspecting
+                show_catalog
+                ;;
+            [oO])
+                echo counting
+                count_catalog
+                ;;
+            [sS])
+                echo show sandboxes
+                dbdeployer sandboxes --catalog
+                ;;
+            [rR])
+                echo "Enter global command to run"
+                echo "Choose among : start restart stop status test test-replication"
+                read cmd
+                dbdeployer global $cmd
+                if [ "$?" != "0" ]
+                then
+                    exit 1
+                fi
+                ;;
+            [uU])
+                echo "Enter query to run"
+                read cmd
+                dbdeployer global use "$cmd"
+                if [ "$?" != "0" ]
+                then
+                    exit 1
+                fi
+                ;;
+            [tT])
+                list_active_tests
+                ;;
+            [hH])
+                echo "Commands:"
+                echo "c : continue (end interactivity)"
+                echo "i : inspect sandbox catalog"
+                echo "o : count sandbox instances"
+                echo "q : quit the test immediately"
+                echo "r : run 'dbdeployer global' command"
+                echo "u : run 'dbdeployer global use' query"
+                echo "s : show sandboxes"
+                echo "t : list active tests"
+                echo "h : display this help"
+                ;;
+            *)
+                answer="continue"
+        esac
+    done
+}
+
 function results {
     echo "#$*"
     echo "#$*" >> "$results_log"
@@ -83,6 +181,27 @@ function ok_equal {
         pass=$((pass+1))
     else
         echo "not ok - $label found '$value1' - expected: '$value2' "
+        fail=$((fail+1))
+    fi
+    tests=$((tests+1))
+}
+
+
+function ok_greater {
+    label="$1"
+    value1=$2
+    value2=$3
+    if [ -z "$value1"  -o -z "$value2" ]
+    then
+        echo "ok_greater: empty value passed"
+        exit 1
+    fi
+    if [[ $value1 -gt $value2 ]]
+    then
+        echo "ok - $label  '$value1' > '$value2' "
+        pass=$((pass+1))
+    else
+        echo "not ok - $label  '$value1' not > '$value2' "
         fail=$((fail+1))
     fi
     tests=$((tests+1))

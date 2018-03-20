@@ -50,8 +50,18 @@ import (
 type argList []string
 type AliasList map[string]argList
 
+var DebugAbbr bool = false
+
+func show_args( args argList) {
+	for N, arg := range args {
+		if DebugAbbr {
+			fmt.Printf("%d <<%s>>\n", N, arg)
+		}
+	}
+}
+
 func debug_print(descr string, v interface{}) {
-	if os.Getenv("DEBUG_ABBR") != "" {
+	if DebugAbbr {
 		fmt.Printf("%s : %v\n", descr, v)
 	}
 }
@@ -66,20 +76,16 @@ func LoadAbbreviations() {
 	var abbreviations = make(AliasList)
 	var variables = make(common.Smap)
 	var verbose_abbr bool = true
-	var debug_abbr bool = false
 	var replacements_used bool = false
 	if os.Getenv("SILENT_ABBR") != "" {
 		verbose_abbr = false
-	}
-	if os.Getenv("DEBUG_ABBR") != "" {
-		debug_abbr = true
 	}
 	user_defined_file := os.Getenv("DBDEPLOYER_ABBR_FILE")
 	if user_defined_file != "" {
 		abbrev_file = user_defined_file
 	}
 	if !common.FileExists(abbrev_file) {
-		if debug_abbr {
+		if DebugAbbr {
 			fmt.Printf("# File %s not found\n", abbrev_file)
 		}
 		return
@@ -107,6 +113,7 @@ func LoadAbbreviations() {
 	// Loop through original arguments.
 	// Replaces every occurrence of the abbreviation with its components
 	debug_print("os.Args", os.Args)
+	show_args( os.Args)
 	for _, arg := range os.Args {
 		// An abbreviation may set variables
 		// for example
@@ -155,12 +162,18 @@ func LoadAbbreviations() {
 	debug_print("new_args", new_args)
 	// Arguments replaced!
 	if replacements_used {
-		if debug_abbr {
+		if DebugAbbr {
 			fmt.Printf("# Using file %s\n", abbrev_file)
 		}
 		os.Args = new_args
 		if verbose_abbr {
 			fmt.Printf("# %s\n", os.Args)
 		}
+	}
+}
+
+func init() {
+	if os.Getenv("DEBUG_ABBR") != "" {
+		DebugAbbr = true
 	}
 }
