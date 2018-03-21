@@ -102,7 +102,7 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 				//ports += " ]"
 				description = fmt.Sprintf("%-20s %10s [%s]", sbd.SBType, sbd.Version, ports)
 			}
-			dirs = append(dirs, fmt.Sprintf("%-20s : %s %s", fname, description, locked))
+			dirs = append(dirs, fmt.Sprintf("%-25s : %s %s", fname, description, locked))
 		} else {
 			locked := ""
 			no_clear := SandboxHome + "/" + fname + "/no_clear"

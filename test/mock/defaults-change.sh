@@ -96,6 +96,7 @@ create_mock_version 5.5.66
 create_mock_version 5.6.66
 create_mock_version 5.7.66
 create_mock_version 8.0.66
+create_mock_version 8.0.67
 
 # Changing all defaults statically
 run dbdeployer defaults show
@@ -145,6 +146,18 @@ if [ "$fail" != "0" ]
 then
     exit 1
 fi
+
+temp_template=t$$.dat
+timestamp=$(date +%Y-%m-%d.%H:%M:%S)
+echo "#!/bin/bash" > $temp_template
+echo "echo 'I AM A CUSTOM_TEMPLATE CREATED ON $timestamp'" >> $temp_template
+run dbdeployer deploy --use-template=use_template:$temp_template single 8.0.67
+sandbox_dir=$SANDBOX_HOME/msb_8_0_67
+message=$($sandbox_dir/use)
+rm -f $temp_template
+ok_contains "custom template" "$message" "CUSTOM_TEMPLATE"
+ok_contains "custom template" "$message" $timestamp
+
 run dbdeployer delete ALL --skip-confirm
 
 results "After deletion"
