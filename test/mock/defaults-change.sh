@@ -1,4 +1,20 @@
 #!/bin/bash
+# DBDeployer - The MySQL Sandbox
+# Copyright © 2006-2018 Giuseppe Maxia
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
 test_dir=$(dirname $0)
 cd $test_dir
 test_dir=$PWD
@@ -151,16 +167,32 @@ temp_template=t$$.dat
 timestamp=$(date +%Y-%m-%d.%H:%M:%S)
 echo "#!/bin/bash" > $temp_template
 echo "echo 'I AM A CUSTOM_TEMPLATE CREATED ON $timestamp'" >> $temp_template
-run dbdeployer deploy --use-template=use_template:$temp_template single 8.0.67
+run dbdeployer deploy --use-template=clear_template:$temp_template single 8.0.67
 sandbox_dir=$SANDBOX_HOME/msb_8_0_67
-message=$($sandbox_dir/use)
-rm -f $temp_template
+message=$($sandbox_dir/clear)
 ok_contains "custom template" "$message" "CUSTOM_TEMPLATE"
 ok_contains "custom template" "$message" $timestamp
 
 run dbdeployer delete ALL --skip-confirm
 
 results "After deletion"
+
+run dbdeployer defaults templates export single $mock_dir/templates clear_template
+cp $temp_template $mock_dir/templates/single/clear_template
+rm -f $temp_template
+run dbdeployer defaults templates import single $mock_dir/templates
+installed=$(dbdeployer defaults templates list | grep "clear_template" | grep '{F}')
+echo "# installed template: <$installed>"
+ok "template was installed" "$installed"
+run dbdeployer deploy single 8.0.67
+
+sandbox_dir=$SANDBOX_HOME/msb_8_0_67
+message=$($sandbox_dir/clear)
+ok_contains "installed custom template" "$message" "CUSTOM_TEMPLATE"
+ok_contains "installed custom template" "$message" $timestamp
+
+run dbdeployer delete ALL --skip-confirm
+
 cd $test_dir
 
 run du -sh $mock_dir

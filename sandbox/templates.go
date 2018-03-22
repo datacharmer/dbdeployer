@@ -70,7 +70,7 @@ var (
 		    --user={{.OsUser}} \
 		    --basedir=$BASEDIR \
 		    --datadir=$DATADIR \
-		    --tmpdir={{.Tmpdir}} {{.ExtraInitFlags}}
+		    --tmpdir=$SBDIR/tmp {{.ExtraInitFlags}}
 		exit_code=$?
 		if [ "$exit_code" == "0" ]
 		then

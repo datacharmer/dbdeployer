@@ -1,3 +1,7 @@
+0.3.6	21-Mar-2018
+	- Minor change to templates
+	- Added test for export/import templates
+	- Added more tests for pre/post grants SQL
 0.3.5	21-Mar-2018
 	- Added test for on-the-fly template replacement
 	- Trivial changes to "sandboxes" output

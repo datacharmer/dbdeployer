@@ -167,7 +167,8 @@ function test_uuid {
         expected=$repeated_count-$repeated_count-$repeated_count-${repeated_count}${repeated_count}${repeated_count}
         port=$($SANDBOX_HOME/$group_dir_name$version_path/$dir/use -BN -e 'select @@port')
         uuid_sql=$($SANDBOX_HOME/$group_dir_name$version_path/$dir/use -BN -e 'select @@server_uuid')
-        echo "# $uuid"
+        echo "# UUID from file: $uuid"
+        echo "# UUID from SQL:  $uuid_sql"
         ok_contains "UUID" "$uuid" "$expected"
         ok_contains "UUID" "$uuid" "$port"
         ok_equal "UUID in file and SQL" $uuid $uuid_sql
@@ -361,13 +362,13 @@ function main_deployment_methods {
         done
         # Test server UUID. It will be skipped for versions
         # that don't support it.
-        test_uuid $V multi_msb_
-        test_uuid $V rsandbox_
         how_many=$(count_catalog)
         ok_equal "sandboxes_in_catalog" $how_many 3
         sleep 2
         # Runs basic tests
         run dbdeployer global status
+        test_uuid $V multi_msb_
+        test_uuid $V rsandbox_
         capture_test run dbdeployer global test
         capture_test run dbdeployer global test-replication
         test_deletion $V 3
@@ -376,21 +377,41 @@ function main_deployment_methods {
 
 function pre_post_operations {
     current_test=pre_post_operations
+    # This test checks the following:
+    #   * we can run a SQL command before the grants are loaded
+    #   * we match the result of that query with an expected value
+    #   * we can run more than one query before and after
+    #   * we can compare values before and after the grants were loaded
+    #   * we can run queries containing commas without errors.
+    #     (see ./pflag/README.md)
     for V in ${all_versions[*]}
     do
         echo "#pre-post operations $V"
-        ( set -x
+        outfile=/tmp/pre-post-$V.txt
+        (set -x
         dbdeployer deploy single $V \
-            --pre-grants-sql='select count(*) as PRE from mysql.user' \
-            --post-grants-sql='select count(*) as POST from mysql.user' > /tmp/pre-post-$V.txt 2>&1
+            --pre-grants-sql="select 'preversion' as label, @@version" \
+            --pre-grants-sql="select 'preschema' as label, count(*) as PRE from information_schema.schemata" \
+            --pre-grants-sql="select 'preusers' as label, count(*) as PRE from mysql.user" \
+            --post-grants-sql="select 'postversion' as label, @@version" \
+            --post-grants-sql="select 'postschema' as label, count(*) as POST from information_schema.schemata" \
+            --post-grants-sql="select 'postusers' as label, count(*) as POST from mysql.user" > $outfile 2>&1
         )
-        pre=$(grep -A2 PRE /tmp/pre-post-$V.txt | tail -n 1 | tr -d '| ')
-        post=$(grep -A2 POST /tmp/pre-post-$V.txt | tail -n 1 | tr -d '| ')
-        # echo "$pre $post"
-        ok_greater "post grants users more than pre" $post $pre
+        # Gets the line with a given label.
+        # retrieves the fourth element in the line
+        pre_users=$(grep preusers $outfile | awk '{print $4}')
+        post_users=$(grep postusers $outfile | awk '{print $4}')
+        pre_version=$(grep preversion $outfile | awk '{print $4}')
+        post_version=$(grep postversion $outfile | awk '{print $4}')
+        pre_schema=$(grep preschema $outfile | awk '{print $4}')
+        post_schema=$(grep postschema $outfile | awk '{print $4}')
+        # cat $outfile
+        ok_greater "post grants users more than pre" $post_users $pre_users
+        ok_greater_equal "same or more schemas before and after grants" $post_schema $pre_schema
+        ok_contains "Version" $pre_version $V
+        ok_contains "Version" $post_version $V
         results "pre/post $V"
-        rm /tmp/pre-post-$V.txt
-        #test_deletion $V 1
+        rm $outfile
         dbdeployer delete ALL --skip-confirm
     done
 }

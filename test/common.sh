@@ -163,7 +163,7 @@ function results {
     dbdeployer sandboxes --catalog >> "$results_log"
     echo ""
     echo "" >> "$results_log"
-    echo "catalog: $(count_catalog)" 
+    echo "catalog: $(count_catalog)"
     echo "catalog: $(count_catalog)" >> "$results_log"
     if [ -n "$INTERACTIVE" ]
     then
@@ -171,40 +171,85 @@ function results {
     fi
 }
 
-function ok_equal {
-    label=$1
-    value1=$2
-    value2=$3
-    if [ "$value1" == "$value2" ]
+function ok_comparison {
+    op=$1
+    label=$2
+    value1=$3
+    value2=$4
+    unset success
+    unset failure
+    if [ -z "$value1"  -o -z "$value2" ]
     then
-        echo "ok - $label found '$value1' - expected: '$value2' "
+        echo "ok_$op: empty value passed"
+        exit 1
+    fi
+    case $op in
+        equal)
+            if [ "$value1" == "$value2" ]
+            then
+                success="ok - $label found '$value1' - expected: '$value2' "
+            else
+                failure="not ok - $label found '$value1' - expected: '$value2' "
+            fi
+            ;;
+        greater)
+            if [[ $value1 -gt $value2 ]]
+            then
+                success="ok - $label  '$value1' > '$value2' "
+            else
+                failure="not ok - $label  '$value1' not > '$value2' "
+            fi
+            ;;
+        greater_equal)
+            if [[ $value1 -ge $value2 ]]
+            then
+                success="ok - $label  '$value1' >= '$value2' "
+            else
+                failure="not ok - $label  '$value1' not >= '$value2' "
+            fi
+            ;;
+        *)
+            echo "Unsupported operation '$op'"
+            exit 1
+    esac
+    if [ -n "$success" ]
+    then
+        echo $success
         pass=$((pass+1))
-    else
-        echo "not ok - $label found '$value1' - expected: '$value2' "
+    elif [ -n "$failure" ]
+    then
+        echo $failure
         fail=$((fail+1))
+    else
+        echo "Neither success or failure detected"
+        echo "op:     $op"
+        echo "label:  $label"
+        echo "value1: $value1 "
+        echo "value2: $value2 "
+        exit 1
     fi
     tests=$((tests+1))
 }
 
+function ok_equal {
+    label=$1
+    value1=$2
+    value2=$3
+    ok_comparison equal "$label" "$value1" "$value2"
+}
 
 function ok_greater {
     label="$1"
     value1=$2
     value2=$3
-    if [ -z "$value1"  -o -z "$value2" ]
-    then
-        echo "ok_greater: empty value passed"
-        exit 1
-    fi
-    if [[ $value1 -gt $value2 ]]
-    then
-        echo "ok - $label  '$value1' > '$value2' "
-        pass=$((pass+1))
-    else
-        echo "not ok - $label  '$value1' not > '$value2' "
-        fail=$((fail+1))
-    fi
-    tests=$((tests+1))
+    ok_comparison greater "$label" "$value1" "$value2"
+}
+
+function ok_greater_equal {
+    label="$1"
+    value1=$2
+    value2=$3
+    ok_comparison greater_equal "$label" "$value1" "$value2"
 }
 
 function ok_contains {
