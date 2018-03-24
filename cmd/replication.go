@@ -26,10 +26,12 @@ import (
 
 func ReplicationSandbox(cmd *cobra.Command, args []string) {
 	var sd sandbox.SandboxDef
+	var semisync bool
 	common.CheckOrigin(args)
 	sd = FillSdef(cmd, args)
 	sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 	flags := cmd.Flags()
+	semisync, _ = flags.GetBool("semi-sync")
 	nodes, _ := flags.GetInt("nodes")
 	topology, _ := flags.GetString("topology")
 	master_ip, _ := flags.GetString("master-ip")
@@ -39,6 +41,18 @@ func ReplicationSandbox(cmd *cobra.Command, args []string) {
 	if topology != "fan-in" && topology != "all-masters" {
 		master_list = ""
 		slave_list = ""
+	}
+	if semisync {
+		if topology != "master-slave" {
+			fmt.Println("--semi-sync is only available with master/slave topology")
+			os.Exit(1)
+		}
+		if common.GreaterOrEqualVersion(sd.Version, []int{5, 5, 1}) {
+			sd.SemiSyncOptions = sandbox.SingleTemplates["semisync_master_options"].Contents
+		} else {
+			fmt.Println("--semi-sync requires version 5.5.1+")
+			os.Exit(1)
+		}
 	}
 	if sd.SinglePrimary && topology != "group" {
 		fmt.Println("Option 'single-primary' can only be used with 'group' topology ")
@@ -89,5 +103,6 @@ func init() {
 	replicationCmd.PersistentFlags().StringP("topology", "t", "master-slave", "Which topology will be installed")
 	replicationCmd.PersistentFlags().IntP("nodes", "n", 3, "How many nodes will be installed")
 	replicationCmd.PersistentFlags().BoolP("single-primary", "", false, "Using single primary for group replication")
+	replicationCmd.PersistentFlags().BoolP("semi-sync", "", false, "Use semi-synchronous plugin")
 	//replicationCmd.PersistentFlags().Int("slaves",  2, "How many slaves will be installed")
 }

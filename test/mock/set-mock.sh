@@ -30,6 +30,11 @@ export SANDBOX_BINARY=$HOME/opt/mysql
 export SANDBOX_TARBALL=$HOME/downloads
 export SLEEP_TIME=0
 
+# A mock version is a collection of
+# fake MySQL executable that will create
+# empty sandboxes with no-op key executables.
+# Its purpose is testing the administrative part of
+# dbdeployer.
 function create_mock_version {
     version_label=$1
     if [ -z "$SANDBOX_BINARY" ]
@@ -53,10 +58,14 @@ function create_mock_version {
     chmod +x $SANDBOX_BINARY/$version_label/scripts/*
 }
 
+# a mock tarball is a tarball that contains mock MySQL executables
+# for the purpose of testing "dbdeployer unpack"
 function create_mock_tarball {
     version_label=$1
     tarball_dir=$2
     save_sandbox_binary=$SANDBOX_BINARY
+    # Changes SANDBOX_BINARY so that create_mock_version
+    # will create the mock directory in the tarball place.
     SANDBOX_BINARY=$tarball_dir
     create_mock_version $version_label
     cd $tarball_dir
@@ -65,6 +74,8 @@ function create_mock_tarball {
         echo "$version_label not found in $PWD"
         exit 1
     fi
+    # Change the name of the directory, so that it's different
+    # from the ultimate destination
     mv $version_label mysql-${version_label}
     tar -c mysql-${version_label} | gzip -c > mysql-${version_label}.tar.gz
     rm -rf mysql-$version_label

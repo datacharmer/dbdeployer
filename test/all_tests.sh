@@ -70,34 +70,51 @@ function run_test {
     fi
     if [ "$exit_code" != "0" ]
     then
-        echo "# --------------------------------"
+        echo $dash_line
         echo "# Error detected: $test_base_name "
-        echo "# --------------------------------"
+        echo $dash_line
         tail -n 20 $test_log
-        echo "# --------------------------------"
+        echo $dash_line
         summary $exit_code
     fi
 }
 
 function all_tests {
-    run_test ./test/test.sh  
+    run_test ./test/functional-test.sh
     run_test ./test/docker-test.sh $version
     run_test ./test/mock/defaults-change.sh 
-    run_test ./test/mock/port-clash.sh sparse 
     if [ -n "$COMPLETE_PORT_TEST" ]
     then
         run_test ./test/mock/port-clash.sh 
+    else
+        run_test ./test/mock/port-clash.sh sparse
     fi
 } 
 
 all_tests 
 
+echo $dash_line
+echo $dash_line >> $log_summary
+for logfile in ./test/logs/$timestamp/*.log
+do
+    fname=$(basename $logfile .log)
+    if [ "$fname" != "all_tests-summary" ]
+    then
+        lf_pass=$(grep '^ok' $logfile | wc -l | tr -d ' ')
+        lf_fail=$(grep '^not ok' $logfile | wc -l | tr -d ' ')
+        lf_tests=$((lf_pass+lf_fail))
+        printf "# %-20s - tests: %4d - pass: %4d - fail: %4d\n" $fname $lf_tests $lf_pass $lf_fail
+        printf "# %-20s - tests: %4d - pass: %4d - fail: %4d\n" $fname $lf_tests $lf_pass $lf_fail >> $log_summary
+    fi
+done
+echo $dash_line
+echo $dash_line >> $log_summary
 pass=$(grep '^ok' ./test/logs/$timestamp/*.log | wc -l | tr -d ' ')
 fail=$(grep -i '^not ok' ./test/logs/$timestamp/*.log | wc -l | tr -d ' ')
 tests=$((pass+fail))
-echo "# --------------------------------" >> $log_summary
+echo $dash_line >> $log_summary
 echo "# Total tests: $tests"              >> $log_summary
 echo "#       pass : $pass"               >> $log_summary
 echo "#       fail : $fail"               >> $log_summary
-echo "# --------------------------------" >> $log_summary
+echo $dash_line >> $log_summary
 summary 0

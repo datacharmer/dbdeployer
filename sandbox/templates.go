@@ -340,6 +340,7 @@ log-error=msandbox.err
 {{.ServerId}}
 {{.ReplOptions}}
 {{.GtidOptions}}
+{{.SemiSyncOptions}}
 
 {{.ExtraOptions}}
 `
@@ -848,6 +849,14 @@ relay-log=mysql-relay
 log-bin=mysql-bin
 log-error=msandbox.err
 `
+	semisync_master_options string = `
+plugin-load=rpl_semi_sync_master=semisync_master.so
+#rpl_semi_sync_master_enabled=1
+`
+	semisync_slave_options string = `
+plugin-load=rpl_semi_sync_slave=semisync_slave.so
+#rpl_semi_sync_slave_enabled=1
+`
 	gtid_options string = `
 master-info-repository=table
 relay-log-info-repository=table
@@ -940,6 +949,16 @@ exit 0
 			Description: "Replication options for my.cnf",
 			Notes:       "",
 			Contents:    replication_options,
+		},
+		"semisync_master_options": TemplateDesc{
+			Description: "master semi-synch options for my.cnf",
+			Notes:       "",
+			Contents:    semisync_master_options,
+		},
+		"semisync_slave_options": TemplateDesc{
+			Description: "slave semi-synch options for my.cnf",
+			Notes:       "",
+			Contents:    semisync_slave_options,
 		},
 		"gtid_options": TemplateDesc{
 			Description: "GTID options for my.cnf",

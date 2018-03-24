@@ -1,3 +1,6 @@
+0.3.7	24-Mar-2018
+	- Added --semi-sync option to replication
+	- Added more tests
 0.3.6	21-Mar-2018
 	- Minor change to templates
 	- Added test for export/import templates

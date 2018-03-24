@@ -150,6 +150,9 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		if ! sdef.RunConcurrently {
 			fmt.Printf("Installing and starting %s %d\n", slave_label, i)
 		}
+		if sdef.SemiSyncOptions != "" {
+			sdef.SemiSyncOptions = SingleTemplates["semisync_slave_options"].Contents
+		}
 		exec_list_node := CreateSingleSandbox(sdef, origin)
 		for _, list := range exec_list_node {
 			exec_lists = append(exec_lists, list)
@@ -176,6 +179,9 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	initialize_slaves := "initialize_" + slave_label + "s"
 	check_slaves := "check_" + slave_label + "s"
 
+	if sdef.SemiSyncOptions != "" {
+		write_script(ReplicationTemplates, "post_initialization", "semi_sync_start_template", sdef.SandboxDir, data, true)
+	}
 	write_script(ReplicationTemplates, "start_all", "start_all_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "restart_all", "restart_all_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "status_all", "status_all_template", sdef.SandboxDir, data, true)

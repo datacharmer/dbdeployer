@@ -32,7 +32,7 @@ then
 fi
 
 source ../common.sh
-export results_log=$PWD/port-clash.log
+#export results_log=$PWD/port-clash.log
 source set-mock.sh
 export SHOW_CHANGED_PORTS=1
 start_timer
@@ -128,10 +128,10 @@ do
 done
 
 echo "#Total sandboxes: $(count_catalog)"
-echo "#Total sandboxes: $(count_catalog)" >> $results_log
+#echo "#Total sandboxes: $(count_catalog)" >> $results_log
 num_ports=$(grep -A10 port $CATALOG | grep '^\s*[0-9]\+' | wc -l)
 echo "# Total ports installed: $num_ports"
-echo "# Total ports installed: $num_ports" >> $results_log
+#echo "# Total ports installed: $num_ports" >> $results_log
 run dbdeployer delete ALL --skip-confirm
 
 results "After deletion"

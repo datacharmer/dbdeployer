@@ -33,7 +33,7 @@ then
 fi
 
 source ../common.sh
-export results_log=$PWD/defaults-change.log
+#export results_log=$PWD/defaults-change.log
 source set-mock.sh
 export SHOW_CHANGED_PORTS=1
 start_timer
@@ -157,7 +157,7 @@ sandbox_dir=$SANDBOX_HOME/rsandbox_8_0_66
 check_deployment $sandbox_dir node master m s slave
 
 echo "#Total sandboxes: $(count_catalog)"
-echo "#Total sandboxes: $(count_catalog)" >> $results_log
+#echo "#Total sandboxes: $(count_catalog)" >> $results_log
 if [ "$fail" != "0" ]
 then
     exit 1

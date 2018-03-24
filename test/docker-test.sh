@@ -59,7 +59,7 @@ fi
 [ -n "$RUN_CONCURRENTLY" ] && DOCKER_OPTIONS="$DOCKER_OPTIONS -e RUN_CONCURRENTLY=1"
 [ -n "$VERBOSE_CONCURRENCY" ] && DOCKER_OPTIONS="$DOCKER_OPTIONS -e VERBOSE_CONCURRENCY=1"
 
-[ -z "$test_command" ] && test_command="./test/test.sh"
+[ -z "$test_command" ] && test_command="./test/functional-test.sh"
 
 if [ "$test_command" != "bash" ]
 then
@@ -76,6 +76,6 @@ fi
     datacharmer/mysql-sb-full $test_command
 )
 
-#    datacharmer/mysql-sb-full bash -c "./test/test.sh"
+#    datacharmer/mysql-sb-full bash -c "./test/functional-test.sh"
 #    datacharmer/mysql-sb-full bash
 

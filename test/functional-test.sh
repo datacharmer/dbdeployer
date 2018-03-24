@@ -33,6 +33,7 @@ then
     # disable all tests
     export skip_main_deployment_methods=1
     export skip_pre_post_operations=1
+    export skip_semisync_operations=1
     export skip_group_operations=1
     export skip_multi_source_operations=1
     export no_tests=1
@@ -57,6 +58,7 @@ do
         all)
             unset skip_main_deployment_methods
             unset skip_pre_post_operations
+            unset skip_semisync_operations
             unset skip_group_operations
             unset skip_multi_source_operations
             unset no_tests
@@ -66,6 +68,11 @@ do
             unset skip_main_deployment_methods
             unset no_tests
             echo "# Enabling main tests"
+            ;;
+        semi)
+            unset skip_semisync_operations
+            unset no_tests
+            echo "# Enabling semi_sync tests"
             ;;
         pre)
             unset skip_pre_post_operations
@@ -91,6 +98,7 @@ do
             echo "Allowed tests (you can choose more than one):"
             echo "  main     : main deployment methods"
             echo "  pre/post : pre/post grants operations"
+            echo "  semi     : semisync operations"
             echo "  group    : group replication operations "
             echo "  multi    : multi-source operations (fan-in, all-masters)"
             echo "  all      : enable all the above tests"
@@ -136,6 +144,26 @@ then
     echo "Directory (\$SANDBOX_HOME) "$SANDBOX_HOME" could not be created"
     exit 1
 fi
+
+function test_semi_sync {
+    running_version=$1
+    group_dir_name=$2
+    version_path=$(echo $running_version| tr '.' '_')
+    sbdir=$SANDBOX_HOME/$group_dir_name$version_path
+    master_enabled=$($sbdir/m -BN -e 'select @@rpl_semi_sync_master_enabled' | tr -d ' ' )
+    master_yes_trx_before=$($sbdir/m -BN -e 'show global status like "Rpl_semi_sync_master_yes_tx"' | awk '{print $2}' )
+    master_no_trx_before=$($sbdir/m -BN -e 'show global status like "Rpl_semi_sync_master_no_tx"' | awk '{print $2}' )
+    slave1_enabled=$($sbdir/s1 -BN -e 'select @@rpl_semi_sync_slave_enabled' | tr -d ' ' )
+    slave2_enabled=$($sbdir/s2 -BN -e 'select @@rpl_semi_sync_slave_enabled' | tr -d ' ' )
+    ok_equal "Master semisync enabled" "$master_enabled" 1 -1
+    ok_equal "Slave 1 semisync enabled" "$slave1_enabled" 1 -1
+    ok_equal "Slave 2 semisync enabled" "$slave2_enabled" 1 -1
+    $sbdir/test_replication
+    master_yes_trx_after=$($sbdir/m -BN -e 'show global status like "Rpl_semi_sync_master_yes_tx"' | awk '{print $2}' )
+    master_no_trx_after=$($sbdir/m -BN -e 'show global status like "Rpl_semi_sync_master_no_tx"' | awk '{print $2}' )
+    ok_equal "Same number of async trx" $master_no_trx_before $master_no_trx_after
+    ok_greater "Bigger number of sync trx" $master_yes_trx_after $master_yes_trx_before
+}
 
 function test_uuid {
     running_version=$1
@@ -209,7 +237,20 @@ function test_deletion {
 function capture_test {
     cmd="$@"
     output=/tmp/capture_test$$
+    # echo "# cmd: <$cmd>"
     $cmd > $output 2>&1
+    exit_code=$?
+    if [ "$exit_code" != "0" ]
+    then
+        echo $dash_line
+        echo "# command    : $cmd"
+        echo "# output file: $output"
+        echo $dash_line
+        cat $output
+        echo $dash_line
+        rm -f $output
+        exit 1
+    fi
     tmp_pass=$(grep '^ok' $output | wc -l | tr -d ' ')
     pass=$((pass+tmp_pass))
     tmp_fail=$(grep -i '^not ok' $output | wc -l | tr -d ' ')
@@ -268,9 +309,11 @@ then
     short_versions=(5.0 5.1 5.5 5.7 8.0)
 fi
 [ -z "$group_short_versions" ] && group_short_versions=(5.7 8.0)
+[ -z "$semisync_short_versions" ] && semisync_short_versions=(5.5 5.6 5.7 8.0)
 count=0
 all_versions=()
 group_versions=()
+semisync_versions=()
 
 OS=$(uname)
 if [ -x "sort_versions.$OS" ]
@@ -314,6 +357,17 @@ do
     if [ -n "$latest" ]
     then
         group_versions[$count]=$latest
+        count=$((count+1))
+    fi
+done
+
+count=0
+for v in ${semisync_short_versions[*]}
+do
+    latest=$(ls $BINARY_DIR | grep "^$v" | ./sort_versions | tail -n 1)
+    if [ -n "$latest" ]
+    then
+        semisync_versions[$count]=$latest
         count=$((count+1))
     fi
 done
@@ -416,6 +470,27 @@ function pre_post_operations {
     done
 }
 
+function semisync_operations {
+    current_test=semisync_operations
+    for V in ${semisync_versions[*]}
+    do
+        echo "# semisync operations $V"
+        is_5_5=$(echo $V | grep '^5.5')
+        GTID=""
+        if [ -z "$is_5_5" ]
+        then
+            GTID=--gtid
+        fi
+        run dbdeployer deploy replication $V --semi-sync $GTID
+        results "semisync $V"
+        #sleep 2
+        capture_test run dbdeployer global test
+        test_semi_sync $V rsandbox_
+        dbdeployer delete ALL --skip-confirm
+        results "semisync $V - after deletion"
+    done
+}
+
 function group_operations {
     current_test=group_operations
     for V in ${group_versions[*]}
@@ -461,6 +536,10 @@ if [ -z "$skip_pre_post_operations" ]
 then
     pre_post_operations
 fi
+if [ -z "$skip_semisync_operations" ]
+then
+    semisync_operations
+fi
 if [ -z "$skip_group_operations" ]
 then
     group_operations
@@ -481,7 +560,9 @@ echo "Total  subtests: $tests" >> "$results_log"
 exit_code=0
 if [ "$fail" != "0" ]
 then
+    echo $dash_line
     echo "*** FAILURES DETECTED ***"
+    echo $dash_line
     exit_code=1
 fi
 echo "Exit code: $exit_code"

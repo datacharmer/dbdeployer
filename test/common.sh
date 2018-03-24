@@ -1,5 +1,6 @@
 
 export CATALOG=$HOME/.dbdeployer/sandboxes.json
+export dash_line="# ----------------------------------------------------------------"
 
 if [ -n "$SKIP_DBDEPLOYER_CATALOG" ]
 then
@@ -176,6 +177,7 @@ function ok_comparison {
     label=$2
     value1=$3
     value2=$4
+    value3=$5
     unset success
     unset failure
     if [ -z "$value1"  -o -z "$value2" ]
@@ -185,11 +187,16 @@ function ok_comparison {
     fi
     case $op in
         equal)
-            if [ "$value1" == "$value2" ]
+            expected="'$value2'"
+            if [ -n "$value3" ]
             then
-                success="ok - $label found '$value1' - expected: '$value2' "
+                expected="'$value2 or $value3'"
+            fi
+            if [ "$value1" == "$value2" -o "$value1" == "$value3" ]
+            then
+                success="ok - $label found '$value1' - expected: $expected "
             else
-                failure="not ok - $label found '$value1' - expected: '$value2' "
+                failure="not ok - $label found '$value1' - expected: $expected "
             fi
             ;;
         greater)
@@ -235,7 +242,8 @@ function ok_equal {
     label=$1
     value1=$2
     value2=$3
-    ok_comparison equal "$label" "$value1" "$value2"
+    value3=$4
+    ok_comparison equal "$label" "$value1" "$value2" "$value3"
 }
 
 function ok_greater {

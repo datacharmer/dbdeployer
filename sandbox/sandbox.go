@@ -49,6 +49,7 @@ type SandboxDef struct {
 	ServerId          int
 	ReplOptions       string
 	GtidOptions       string
+	SemiSyncOptions  string
 	InitOptions       []string
 	MyCnfOptions      []string
 	PreGrantsSql      []string
@@ -326,6 +327,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 		"OsUser":       os.Getenv("USER"),
 		"ReplOptions":  sdef.ReplOptions,
 		"GtidOptions":  sdef.GtidOptions,
+		"SemiSyncOptions":  sdef.SemiSyncOptions,
 		"ExtraOptions": slice_to_text(sdef.MyCnfOptions),
 	}
 	if sdef.ServerId > 0 {
