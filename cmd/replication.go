@@ -97,7 +97,7 @@ func init() {
 	//replicationCmd.PersistentFlags().StringSliceP("slave-options", "", "", "Extra options for the slaves")
 	//replicationCmd.PersistentFlags().StringSliceP("node-options", "", "", "Extra options for all nodes")
 	//replicationCmd.PersistentFlags().StringSliceP("one-node-options", "", "", "Extra options for one node (format #:option)")
-	replicationCmd.PersistentFlags().StringP("master-list", "", "1 2", "Which nodes are masters in a multi-source deployment")
+	replicationCmd.PersistentFlags().StringP("master-list", "", "1,2", "Which nodes are masters in a multi-source deployment")
 	replicationCmd.PersistentFlags().StringP("slave-list", "", "3", "Which nodes are slaves in a multi-source deployment")
 	replicationCmd.PersistentFlags().StringP("master-ip", "", "127.0.0.1", "Which IP the slaves will connect to")
 	replicationCmd.PersistentFlags().StringP("topology", "t", "master-slave", "Which topology will be installed")

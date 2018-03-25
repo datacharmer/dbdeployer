@@ -42,7 +42,7 @@ log_summary=./test/logs/$timestamp/all_tests-summary.log
 function summary {
     exit_code=$1
     cat $log_summary
-    stop_timer
+    stop_timer $log_summary
     #rm -f $log_summary
     echo "# Exit code: $exit_code"
     exit $exit_code

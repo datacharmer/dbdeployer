@@ -51,34 +51,6 @@ tests=0
 fail=0
 pass=0
 
-function ok_generic_exists {
-    wanted=$1
-    label=$2
-    op=$3
-    if [ $op "$wanted" ]
-    then
-        echo "ok - $label $wanted exists"
-        pass=$((pass+1))
-    else
-        echo "NOT OK - $label $wanted does not  exist"
-        fail=$((fail+1))
-    fi
-}
-
-function ok_dir_exists {
-    dir=$1
-    ok_generic_exists $dir directory -d
-}
-
-function ok_file_exists {
-    filename=$1
-    ok_generic_exists $filename "file" -f
-}
-
-function ok_executable_exists {
-    filename=$1
-    ok_generic_exists $filename "file" -x
-}
 
 function check_deployment {
     sandbox_dir=$1

@@ -45,7 +45,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with '--help' will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 0.3.1
+    dbdeployer version 0.3.8
     
 
     $ dbdeployer -h
@@ -228,6 +228,7 @@ The *replication* command will install a master and two or more slaves, with rep
           --master-ip string     Which IP the slaves will connect to (default "127.0.0.1")
           --master-list string   Which nodes are masters in a multi-source deployment (default "1 2")
       -n, --nodes int            How many nodes will be installed (default 3)
+          --semi-sync            Use semi-synchronous plugin
           --single-primary       Using single primary for group replication
           --slave-list string    Which nodes are slaves in a multi-source deployment (default "3")
       -t, --topology string      Which topology will be installed (default "master-slave")
@@ -265,10 +266,10 @@ Multiple sandboxes can be deployed using replication with several topologies (us
 It is possible to tune the flow of data in multi-source topologies. The default for fan-in is three nodes, where 1 and 2 are masters, and 2 are slaves. You can change the predefined settings by providing the list of components:
 
     $ dbdeployer deploy replication --topology=fan-in \
-        --nodes=5 --master-list="1 2 3" \
-        --slave-list="4 5" 8.0.4 \
+        --nodes=5 --master-list="1,2 3" \
+        --slave-list="4,5" 8.0.4 \
         --concurrent
-In the above example, we get 5 nodes instead of 3. The first three are master (``--master-list="1 2 3"``) and the last two are slaves (``--slave-list="4 5"``) which will receive data from all the masters. There is a test automatically generated to test replication flow. In our case it shows the following:
+In the above example, we get 5 nodes instead of 3. The first three are master (``--master-list="1,2,3"``) and the last two are slaves (``--slave-list="4,5"``) which will receive data from all the masters. There is a test automatically generated to check the replication flow. In our case it shows the following:
 
     $ ~/sandboxes/fan_in_msb_8_0_4/test_replication
     # master 1
@@ -327,7 +328,7 @@ Here's how:
     $ dbdeployer defaults show
     # Internal values:
     {
-     	"version": "0.3.0",
+     	"version": "0.3.7",
      	"sandbox-home": "$HOME/sandboxes",
      	"sandbox-binary": "$HOME/opt/mysql",
      	"use-sandbox-catalog": true,
@@ -357,7 +358,7 @@ Here's how:
     # Updated master-slave-base-port -> "15000"
     # Configuration file: $HOME/.dbdeployer/config.json
     {
-     	"version": "0.3.0",
+     	"version": "0.3.7",
      	"sandbox-home": "$HOME/sandboxes",
      	"sandbox-binary": "$HOME/opt/mysql",
      	"use-sandbox-catalog": true,

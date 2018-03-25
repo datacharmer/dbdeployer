@@ -100,10 +100,10 @@ Multiple sandboxes can be deployed using replication with several topologies (us
 It is possible to tune the flow of data in multi-source topologies. The default for fan-in is three nodes, where 1 and 2 are masters, and 2 are slaves. You can change the predefined settings by providing the list of components:
 
     $ dbdeployer deploy replication --topology=fan-in \
-        --nodes=5 --master-list="1 2 3" \
-        --slave-list="4 5" 8.0.4 \
+        --nodes=5 --master-list="1,2 3" \
+        --slave-list="4,5" 8.0.4 \
         --concurrent
-In the above example, we get 5 nodes instead of 3. The first three are master (``--master-list="1 2 3"``) and the last two are slaves (``--slave-list="4 5"``) which will receive data from all the masters. There is a test automatically generated to test replication flow. In our case it shows the following:
+In the above example, we get 5 nodes instead of 3. The first three are master (``--master-list="1,2,3"``) and the last two are slaves (``--slave-list="4,5"``) which will receive data from all the masters. There is a test automatically generated to check the replication flow. In our case it shows the following:
 
     $ ~/sandboxes/fan_in_msb_8_0_4/test_replication
     # master 1

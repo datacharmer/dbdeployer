@@ -32,17 +32,19 @@ function minutes_seconds {
 }
 
 function stop_timer {
+    stop_log=$1
+    [ -z "$stop_log" ] && stop_log=$results_log
     stop=$(date)
     stop_sec=$(date +%s)
     elapsed=$(($stop_sec-$start_sec))
     echo "OS:  $(uname)"
-    echo "OS:  $(uname)" >> "$results_log"
+    echo "OS:  $(uname)" >> "$stop_log"
     echo "Started: $start"
-    echo "Started: $start" >> "$results_log"
+    echo "Started: $start" >> "$stop_log"
     echo "Ended  : $stop"
-    echo "Ended  : $stop" >> "$results_log"
+    echo "Ended  : $stop" >> "$stop_log"
     echo "Elapsed: $elapsed seconds ($(minutes_seconds $elapsed))"
-    echo "Elapsed: $elapsed seconds" >> "$results_log"
+    echo "Elapsed: $elapsed seconds" >> "$stop_log"
 }
 
 function show_catalog {
@@ -199,7 +201,15 @@ function ok_comparison {
                 failure="not ok - $label found '$value1' - expected: $expected "
             fi
             ;;
-        greater)
+        not_equal)
+            if [ "$value1" != "$value2" ]
+            then
+                success="ok - $label found '$value1' - expected: != $value2 "
+            else
+                failure="not ok - $label found '$value1' - expected: != $value2 "
+            fi
+            ;;
+         greater)
             if [[ $value1 -gt $value2 ]]
             then
                 success="ok - $label  '$value1' > '$value2' "
@@ -246,6 +256,13 @@ function ok_equal {
     ok_comparison equal "$label" "$value1" "$value2" "$value3"
 }
 
+function ok_not_equal {
+    label=$1
+    value1=$2
+    value2=$3
+    ok_comparison not_equal "$label" "$value1" "$value2"
+}
+
 function ok_greater {
     label="$1"
     value1=$2
@@ -289,6 +306,38 @@ function ok {
     fi
     tests=$((tests+1))
 }
+
+function ok_generic_exists {
+    wanted=$1
+    label=$2
+    op=$3
+    if [ $op "$wanted" ]
+    then
+        echo "ok - $label $wanted exists"
+        pass=$((pass+1))
+    else
+        echo "NOT OK - $label $wanted does not  exist"
+        fail=$((fail+1))
+    fi
+    tests=$((tests+1))
+}
+
+function ok_dir_exists {
+    dir=$1
+    ok_generic_exists $dir directory -d
+}
+
+function ok_file_exists {
+    filename=$1
+    ok_generic_exists $filename "file" -f
+}
+
+function ok_executable_exists {
+    filename=$1
+    ok_generic_exists $filename "file" -x
+}
+
+
 
 function run {
     temp_stop_sec=$(date +%s)

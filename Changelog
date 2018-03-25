@@ -1,3 +1,7 @@
+0.3.8	24-Mar-2018
+	- Fixed deployment bug in fan-in replication
+	- Added tests for fan-in replication, sandbox completeness, start,
+	  restart, and add_options.
 0.3.7	24-Mar-2018
 	- Added --semi-sync option to replication
 	- Added more tests

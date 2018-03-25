@@ -145,6 +145,106 @@ then
     exit 1
 fi
 
+function test_completeness {
+    running_version=$1
+    dir_name=$2
+    mode=$3
+    version_path=$(echo $running_version| tr '.' '_')
+    if [ -d $SANDBOX_HOME/$dir_name ]
+    then
+        sbdir=$SANDBOX_HOME/$dir_name
+    else
+        sbdir=$SANDBOX_HOME/$dir_name$version_path
+    fi
+    base_scripts=(use start stop restart add_options send_kill clear test_sb status)
+    script_postfix=""
+    folders=(data tmp)
+    case  "$mode" in
+        single)
+            scripts=$base_scripts
+            ;;
+        multiple)
+            scripts=$base_scripts
+            script_postfix="_all"
+            folders=(node1 node2 node3)
+            ;;
+        replication)
+            scripts=$base_scripts
+            script_postfix="_all"
+            folders=(master node1 node2)
+            ;;
+        *)
+        echo "Unknown mode '$mode'"
+        exit 1
+    esac
+    for dir in ${folders[*]}
+    do
+        ok_dir_exists $sbdir/$dir
+    done
+    for f in ${scripts[*]}
+    do
+        fname=$f$script_postfix
+        ok_executable_exists $sbdir/$fname
+        if [ "$mode" != "single" ]
+        then
+            for dir in ${folders[*]}
+            do
+                ok_executable_exists $sbdir/$dir/$f
+            done
+        fi
+    done
+}
+
+function test_start_restart {
+    running_version=$1
+    dir_name=$2
+    mode=$3
+    use_name=use
+    start_name=start
+    stop_name=stop
+    use_name2=""
+    if [ "$mode" == "multiple" ]
+    then
+        use_name="n1"
+        use_name2="n2"
+        start_name=start_all
+        stop_name=stop_all
+    fi
+    version_path=$(echo $running_version| tr '.' '_')
+    sbdir=$SANDBOX_HOME/$dir_name$version_path
+    before_connections=$($sbdir/$use_name -BN -e 'select @@max_connections' | tr -d ' ' )
+    new_connections=66
+    ok_not_equal "Initial max connections" "$before_connections" $new_connections
+    $sbdir/$stop_name
+    $sbdir/$start_name --max-connections=$new_connections
+    after_connections=$($sbdir/$use_name -BN -e 'select @@max_connections' | tr -d ' ' )
+    ok_equal "start: changed max connections" "$after_connections" $new_connections
+    if [ -n "$use_name2" ]
+    then
+        after_connections=$($sbdir/$use_name2 -BN -e 'select @@max_connections' | tr -d ' ' )
+        ok_equal "start: changed max connections (node2)" "$after_connections" $new_connections
+    fi
+    new_connections=$before_connections
+    $sbdir/re$start_name --max-connections=$new_connections
+    after_connections=$($sbdir/$use_name -BN -e 'select @@max_connections' | tr -d ' ' )
+    ok_equal "restart: changed max connections" "$after_connections" $new_connections
+    if [ -n "$use_name2" ]
+    then
+        after_connections=$($sbdir/$use_name2 -BN -e 'select @@max_connections' | tr -d ' ' )
+        ok_equal "restart: changed max connections (node2)" "$after_connections" $new_connections
+    fi
+    if [ "$mode" == "single" ]
+    then
+        new_connections=88
+        $sbdir/add_option max-connections=$new_connections
+        after_connections=$($sbdir/$use_name -BN -e 'select @@max_connections' | tr -d ' ' )
+        ok_equal "add_options: changed max connections" "$after_connections" $new_connections
+        new_option=$(grep "max-connections=$new_connections" $sbdir/my.sandbox.cnf)
+        ok_equal "add_options: added line to my.sandbox.cnf" "$new_option" "max-connections=$new_connections"
+    fi
+}
+
+
 function test_semi_sync {
     running_version=$1
     group_dir_name=$2
@@ -423,6 +523,11 @@ function main_deployment_methods {
         run dbdeployer global status
         test_uuid $V multi_msb_
         test_uuid $V rsandbox_
+        test_completeness $V msb_ single
+        test_completeness $V rsandbox_ replication
+        test_completeness $V multi_msb_ multiple
+        test_start_restart $V msb_ single
+        test_start_restart $V rsandbox_ multiple
         capture_test run dbdeployer global test
         capture_test run dbdeployer global test-replication
         test_deletion $V 3
@@ -515,7 +620,20 @@ function multi_source_operations {
     for V in ${group_versions[*]}
     do
         echo "# Multi-source operations $V"
+        v_path=$(echo $V| tr '.' '_')
         run dbdeployer deploy replication $V --topology=fan-in
+        run dbdeployer deploy replication $V --topology=fan-in \
+            --sandbox-directory=fan_in_msb2_$v_path \
+            --base-port=24000 \
+            --nodes=5 \
+            --master-list='1,2' \
+            --slave-list='3,4,5'
+        run dbdeployer deploy replication $V --topology=fan-in \
+            --sandbox-directory=fan_in_msb3_$v_path \
+            --base-port=25000 \
+            --nodes=5 \
+            --master-list='1.2.3' \
+            --slave-list='4:5'
         run dbdeployer deploy replication $V --topology=all-masters
         results "multi-source"
 
@@ -523,7 +641,7 @@ function multi_source_operations {
         capture_test run dbdeployer global test-replication
         test_uuid $V fan_in_msb_ 1
         test_uuid $V all_masters_msb_ 1
-        test_deletion $V 2
+        test_deletion $V 4
         results "multi-source - after deletion"
     done
 }
