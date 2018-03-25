@@ -91,7 +91,6 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.Version = args[0]
 	sd.Basedir, _ = flags.GetString("sandbox-binary")
 	sd.SandboxDir, _ = flags.GetString("sandbox-home")
-	// fmt.Printf("%v\n", installed_ports)
 	common.CheckSandboxDir(sd.SandboxDir)
 	sd.InstalledPorts = common.GetInstalledPorts(sd.SandboxDir)
 	sd.LoadGrants = true
@@ -208,59 +207,3 @@ func init() {
 	singleCmd.PersistentFlags().Bool("master", false, "Make the server replication ready")
 
 }
-
-/*
-	Cmd: &cobra.Command{Use:"single",
-	Aliases:[]string(nil),
-	Short:"deploys a single sandbox",
-	Long:"Installs a sandbox and creates useful scripts for its use.",
-	Example:"",
-	ValidArgs:[]string(nil),
-	Args:(cobra.PositionalArgs)(0x1194300),
-	ArgAliases:[]string(nil),
-	BashCompletionFunction:"",
-	Deprecated:"",
-	Hidden:false,
-	Annotations:map[string]string(nil),
-	Version:"",
-	PersistentPreRun:(func(*cobra.Command, []string))(nil),
-	PersistentPreRunE:(func(*cobra.Command, []string) error)(nil),
-	PreRun:(func(*cobra.Command, []string))(nil),
-	PreRunE:(func(*cobra.Command, []string) error)(nil),
-	Run:(func(*cobra.Command, []string))(0x138fda0),
-	RunE:(func(*cobra.Command, []string) error)(nil),
-	PostRun:(func(*cobra.Command, []string))(nil),
-	PostRunE:(func(*cobra.Command, []string) error)(nil),
-	PersistentPostRun:(func(*cobra.Command, []string))(nil),
-	PersistentPostRunE:(func(*cobra.Command, []string) error)(nil),
-	SilenceErrors:false,
-	SilenceUsage:false,
-	DisableFlagParsing:false,
-	DisableAutoGenTag:false,
-	DisableFlagsInUseLine:false,
-	DisableSuggestions:false,
-	SuggestionsMinimumDistance:0,
-	TraverseChildren:false,
-	commands:[]*cobra.Command(nil),
-	parent:(*cobra.Command)(0x16a3140),
-	commandsMaxUseLen:0,
-	commandsMaxCommandPathLen:0,
-	commandsMaxNameLen:0,
-	commandsAreSorted:false,
-	args:[]string(nil),
-	flagErrorBuf:(*bytes.Buffer)(0xc420125810),
-	flags:(*pflag.FlagSet)(0xc42008c5a0),
-	pflags:(*pflag.FlagSet)(0xc42008c690),
-	lflags:(*pflag.FlagSet)(nil),
-	iflags:(*pflag.FlagSet)(nil),
-	parentsPflags:(*pflag.FlagSet)(0xc42008c4b0),
-	globNormFunc:(func(*pflag.FlagSet, string) pflag.NormalizedName)(nil),
-	output:io.Writer(nil),
-	usageFunc:(func(*cobra.Command) error)(nil),
-	usageTemplate:"",
-	flagErrorFunc:(func(*cobra.Command, error) error)(nil),
-	helpTemplate:"",
-	helpFunc:(func(*cobra.Command, []string))(nil),
-	helpCommand:(*cobra.Command)(nil),
-	versionTemplate:""}
-*/

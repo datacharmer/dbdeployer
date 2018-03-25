@@ -45,6 +45,13 @@ function summary {
     stop_timer $log_summary
     #rm -f $log_summary
     echo "# Exit code: $exit_code"
+    concurrency=no
+    if [ -n "$RUN_CONCURRENTLY" ]
+    then
+        concurrency=yes
+    fi
+    echo "Runs concurrently: $concurrency"
+    echo "Runs concurrently: $concurrency" >> $log_summary
     exit $exit_code
 }
 

@@ -33,7 +33,6 @@ func MultipleSandbox(cmd *cobra.Command, args []string) {
 	sandbox.CreateMultipleSandbox(sd, args[0], nodes)
 }
 
-// multipleCmd represents the multiple command
 var multipleCmd = &cobra.Command{
 	Use:   "multiple MySQL-Version",
 	Args:  cobra.ExactArgs(1),
@@ -51,7 +50,6 @@ Use the "unpack" command to get the tarball into the right directory.
 }
 
 func init() {
-	//rootCmd.AddCommand(multipleCmd)
 	deployCmd.AddCommand(multipleCmd)
 	multipleCmd.PersistentFlags().IntP("nodes", "n", 3, "How many nodes will be installed")
 }

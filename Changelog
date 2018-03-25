@@ -1,3 +1,9 @@
+0.3.9	25-Mar-2018
+	- Added version detection to *unpack* command. now --unpack-version
+	  becomes mandatory only if a version is not detected from the tarball
+	  name.
+	- Added --header flag to *sandboxes* command.
+	- More tests and improved tests.
 0.3.8	24-Mar-2018
 	- Fixed deployment bug in fan-in replication
 	- Added tests for fan-in replication, sandbox completeness, start,

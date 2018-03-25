@@ -104,5 +104,4 @@ func init() {
 	replicationCmd.PersistentFlags().IntP("nodes", "n", 3, "How many nodes will be installed")
 	replicationCmd.PersistentFlags().BoolP("single-primary", "", false, "Using single primary for group replication")
 	replicationCmd.PersistentFlags().BoolP("semi-sync", "", false, "Use semi-synchronous plugin")
-	//replicationCmd.PersistentFlags().Int("slaves",  2, "How many slaves will be installed")
 }

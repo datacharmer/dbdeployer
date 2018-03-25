@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"regexp"
 	"strings"
 
 	"github.com/datacharmer/dbdeployer/common"
@@ -34,16 +35,24 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 		fmt.Println("You should create it or provide an alternate base directory using --sandbox-binary")
 		os.Exit(1)
 	}
-
+	tarball := args[0]
+	re_version := regexp.MustCompile(`(\d+\.\d+\.\d+)`)
+	verList := re_version.FindAllStringSubmatch(tarball, -1)
+	detected_version := verList[0][0]
+	// fmt.Printf(">> %#v %s\n",verList, detected_version)
+	
 	Version, _ := flags.GetString("unpack-version")
 	if Version == "" {
-		fmt.Println("unpack: flag --unpack-version is mandatory")
+		Version = detected_version
+	}
+	if Version == "" {
+		fmt.Println("unpack: No version was detected from tarball name. ")
+		fmt.Println("Flag --unpack-version becomes mandatory")
 		os.Exit(1)
 	}
 	// This call used to ensure that the port provided is in the right format
 	common.VersionToPort(Version)
 	Prefix, _ := flags.GetString("prefix")
-	tarball := args[0]
 
 	destination := Basedir + "/" + Prefix + Version
 	if common.DirExists(destination) {
@@ -86,18 +95,26 @@ var unpackCmd = &cobra.Command{
 	Long: `If you want to create a sandbox from a tarball, you first need to unpack it
 into the sandbox-binary directory. This command carries out that task, so that afterwards 
 you can call 'single', 'multiple', and 'replication' commands with only the MySQL version
-for that tarball.`,
+for that tarball.
+If the version is not contained in the tarball name, it should be supplied using --unpack-version.
+If there is already an expanded tarball with the same version, a new one can be differentiated with --prefix.
+`,
 	Run: UnpackTarball,
 	Example: `
-    $ dbdeployer --unpack-version=8.0.4 unpack mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz
+    $ dbdeployer unpack mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz
     Unpacking tarball mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz to $HOME/opt/mysql/8.0.4
-    .........100.........200.........292
+
+    $ dbdeployer unpack --prefix=ps Percona-Server-5.7.21-linux.tar.gz
+    Unpacking tarball Percona-Server-5.7.21-linux.tar.gz to $HOME/opt/mysql/ps5.7.21
+
+    $ dbdeployer unpack --unpack-version=8.0.18 --prefix=bld mysql-mybuild.tar.gz
+    Unpacking tarball mysql-mybuild.tar.gz to $HOME/opt/mysql/bld8.0.18
 	`,
 }
 
 func init() {
 	rootCmd.AddCommand(unpackCmd)
 
-	unpackCmd.PersistentFlags().String("unpack-version", "", "which version is contained in the tarball (mandatory)")
+	unpackCmd.PersistentFlags().String("unpack-version", "", "which version is contained in the tarball")
 	unpackCmd.PersistentFlags().String("prefix", "", "Prefix for the final expanded directory")
 }

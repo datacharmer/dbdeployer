@@ -71,7 +71,8 @@ do
         version=${vers}.${rev}
         create_mock_tarball $version $SANDBOX_TARBALL
         #create_mock_version $version
-        run dbdeployer unpack $SANDBOX_TARBALL/mysql-${version}.tar.gz --unpack-version $version
+        run dbdeployer unpack $SANDBOX_TARBALL/mysql-${version}.tar.gz
+        # --unpack-version $version
     done
 
     run dbdeployer available

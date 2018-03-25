@@ -26,16 +26,32 @@ function start_timer {
 
 function minutes_seconds {
     secs=$1
+    if [ -z "$secs" ]
+    then
+        secs=0
+    fi
+    if [[ $secs -lt 60 ]]
+    then
+        echo "${secs}s"
+        return
+    fi
     elapsed_minutes=$((secs/60))
-    remainder=$((secs-elapsed_minutes*60))
-    printf "%dm:%02ds" ${elapsed_minutes} ${remainder}
+    remainder_sec=$((secs-elapsed_minutes*60))
+    if [[ $elapsed_minutes -lt 60 ]]
+    then
+        printf "%dm:%02ds" ${elapsed_minutes} ${remainder_sec}
+        return
+    fi
+    elapsed_hours=$((elapsed_minutes/60))
+    remainder_min=$((elapsed_minutes-elapsed_hours*60))
+    printf "%dh:%dm:%02ds" ${elapsed_hours} ${remainder_min} ${remainder_sec}
 }
 
 function stop_timer {
     stop_log=$1
     [ -z "$stop_log" ] && stop_log=$results_log
     stop=$(date)
-    stop_sec=$(date +%s)
+    [ -z "$stop_sec" ] && stop_sec=$(date +%s)
     elapsed=$(($stop_sec-$start_sec))
     echo "OS:  $(uname)"
     echo "OS:  $(uname)" >> "$stop_log"
@@ -44,7 +60,7 @@ function stop_timer {
     echo "Ended  : $stop"
     echo "Ended  : $stop" >> "$stop_log"
     echo "Elapsed: $elapsed seconds ($(minutes_seconds $elapsed))"
-    echo "Elapsed: $elapsed seconds" >> "$stop_log"
+    echo "Elapsed: $elapsed seconds ($(minutes_seconds $elapsed))" >> "$stop_log"
 }
 
 function show_catalog {

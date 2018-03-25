@@ -24,14 +24,16 @@ import (
 	"strings"
 )
 
-func ShowSandboxesFromCatalog(current_sandbox_home string) {
+func ShowSandboxesFromCatalog(current_sandbox_home string, header bool) {
 	sandbox_list := defaults.ReadCatalog()
 	if len(sandbox_list) == 0 {
 		return
 	}
 	template := "%-25s %-10s %-15s %5v %-25s %s \n"
-	//fmt.Printf( template, "name", "version", "type", "nodes", "ports", "")
-	//fmt.Printf( template, "----", "-------", "-----", "-----", "-----", "")
+	if header {
+		fmt.Printf( template, "name", "version", "type", "nodes", "ports", "")
+		fmt.Printf( template, "----", "-------", "-----", "-----", "-----", "")
+	}
 	for name, contents := range sandbox_list {
 		ports := "["
 		for _, p := range contents.Port {
@@ -52,8 +54,9 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	SandboxHome, _ := flags.GetString("sandbox-home")
 	read_catalog, _ := flags.GetBool("catalog")
+	use_header, _ := flags.GetBool("header")
 	if read_catalog {
-		ShowSandboxesFromCatalog(SandboxHome)
+		ShowSandboxesFromCatalog(SandboxHome, use_header)
 		return
 	}
 	sandbox_list := common.GetInstalledSandboxes(SandboxHome)
@@ -128,12 +131,19 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 			}
 		}
 	}
+	if use_header {
+	//           1         2         3         4         5         6         7     
+	//  12345678901234567890123456789012345678901234567890123456789012345678901234567890
+	//	fan_in_msb_5_7_21         : fan-in                   5.7.21 [14001 14002 14003]	
+		template := "%-25s   %-23s %-8s %s\n"
+		fmt.Printf( template, "name",             "type",    "version", "ports")
+		fmt.Printf( template, "----------------", "-------", "-------", "-----")
+	}
 	for _, dir := range dirs {
 		fmt.Println(dir)
 	}
 }
 
-// sandboxesCmd represents the sandboxes command
 var sandboxesCmd = &cobra.Command{
 	Use:     "sandboxes",
 	Short:   "List installed sandboxes",
@@ -151,4 +161,5 @@ func init() {
 	rootCmd.AddCommand(sandboxesCmd)
 
 	sandboxesCmd.Flags().BoolP("catalog", "", false, "Use sandboxes catalog instead of scanning directory")
+	sandboxesCmd.Flags().BoolP("header", "", false, "Shows header with catalog output")
 }

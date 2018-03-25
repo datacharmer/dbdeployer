@@ -22,6 +22,7 @@ import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/spf13/cobra"
+	//"github.com/davecgh/go-spew/spew"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -77,6 +78,7 @@ func checkDefaultsFile() {
 
 func init() {
 	cobra.OnInitialize(checkDefaultsFile)
+	// spew.Dump(rootCmd)
 	rootCmd.PersistentFlags().StringVar(&defaults.CustomConfigurationFile, "config", defaults.ConfigurationFile, "configuration file")
 	set_pflag(rootCmd,"sandbox-home", "", "SANDBOX_HOME", defaults.Defaults().SandboxHome, "Sandbox deployment direcory", false)
 	set_pflag(rootCmd,"sandbox-binary", "", "SANDBOX_BINARY", defaults.Defaults().SandboxBinary, "Binary repository", false)

@@ -93,7 +93,6 @@ The scripts "check_slaves" or "check_nodes" give the status of replication in th
 	}
 }
 
-// usageCmd represents the usage command
 var usageCmd = &cobra.Command{
 	Use:   "usage [single|multiple]",
 	Short: "Shows usage of installed sandboxes",

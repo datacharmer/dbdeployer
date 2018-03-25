@@ -45,7 +45,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with '--help' will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 0.3.8
+    dbdeployer version 0.3.9
     
 
     $ dbdeployer -h
@@ -87,6 +87,8 @@ If you don't have any tarballs installed in your system, you should first *unpac
     into the sandbox-binary directory. This command carries out that task, so that afterwards 
     you can call 'single', 'multiple', and 'replication' commands with only the MySQL version
     for that tarball.
+    If the version is not contained in the tarball name, it should be supplied using --unpack-version.
+    If there is already an expanded tarball with the same version, a new one can be differentiated with --prefix.
     
     Usage:
       dbdeployer unpack MySQL-tarball [flags]
@@ -96,15 +98,20 @@ If you don't have any tarballs installed in your system, you should first *unpac
     
     Examples:
     
-        $ dbdeployer --unpack-version=8.0.4 unpack mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz
+        $ dbdeployer unpack mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz
         Unpacking tarball mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz to $HOME/opt/mysql/8.0.4
-        .........100.........200.........292
+    
+        $ dbdeployer unpack --prefix=ps Percona-Server-5.7.21-linux.tar.gz
+        Unpacking tarball Percona-Server-5.7.21-linux.tar.gz to $HOME/opt/mysql/ps5.7.21
+    
+        $ dbdeployer unpack --unpack-version=8.0.18 --prefix=bld mysql-mybuild.tar.gz
+        Unpacking tarball mysql-mybuild.tar.gz to $HOME/opt/mysql/bld8.0.18
     	
     
     Flags:
       -h, --help                    help for unpack
           --prefix string           Prefix for the final expanded directory
-          --unpack-version string   which version is contained in the tarball (mandatory)
+          --unpack-version string   which version is contained in the tarball
     
     
 
@@ -226,7 +233,7 @@ The *replication* command will install a master and two or more slaves, with rep
     Flags:
       -h, --help                 help for replication
           --master-ip string     Which IP the slaves will connect to (default "127.0.0.1")
-          --master-list string   Which nodes are masters in a multi-source deployment (default "1 2")
+          --master-list string   Which nodes are masters in a multi-source deployment (default "1,2")
       -n, --nodes int            How many nodes will be installed (default 3)
           --semi-sync            Use semi-synchronous plugin
           --single-primary       Using single primary for group replication
