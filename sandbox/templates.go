@@ -787,46 +787,87 @@ pass=0
 TIMEOUT=180
 expected_port={{.Port}}
 expected_version=$(echo "{{.Version}}" | tr -d 'A-Z,a-z,_-')
+
+
+if [ -f sbdescription.json ]
+then
+	sb_single=$(grep 'type' sbdescription.json| grep 'single')
+fi
+
+function test_query {
+    user=$1
+    query="$2"
+    expected=$3
+	./use -BN -u $user -e "$query" > /dev/null 2>&1
+    exit_code=$?
+    if [ "$exit_code" == "$expected" ]
+    then
+		msg="was successful"
+		if [ "$expected" != "0" ]
+		then
+			msg="failed as expected"
+		fi
+        echo "ok - query $msg for user $user: '$query'"
+        pass=$((pass+1))
+    else
+        echo "not ok - query failed for user $user: '$query'"
+        fail=$((fail+1))
+    fi
+}
+
 if [ -z "$(is_running)" ]
 then
 	echo "not ok - server stopped"
-    fail=$(($fail+1))
+    fail=$((fail+1))
 else
     version=$(./use -BN -e "select version()")
     port=$(./use -BN -e "show variables like 'port'" | awk '{print $2}')
     if [ -n "$version" ]
     then
         echo "ok - version '$version'"
-        pass=$(($pass+1))
+        pass=$((pass+1))
     else
         echo "not ok - no version detected"
-        fail=$(($fail+1))
+        fail=$((fail+1))
     fi
     if [ -n "$port" ]
     then
         echo "ok - port detected: $port"
-        pass=$(($pass+1))
+        pass=$((pass+1))
     else
         echo "not ok - no port detected"
-        fail=$(($fail+1))
+        fail=$((fail+1))
     fi
     
     if [ -n "$( echo $version| grep $expected_version)" ]
     then
         echo "ok - version is $version as expected"
-        pass=$(($pass+1))
+        pass=$((pass+1))
     else
         echo "not ok - version detected ($version) but expected was $expected_version"
-        fail=$(($fail+1))
+        fail=$((fail+1))
     fi
     if [ "$port" == "$expected_port" ]
     then
         echo "ok - port is $port as expected"
-        pass=$(($pass+1))
+        pass=$((pass+1))
     else
         echo "not ok - port detected ($port) but expected was $expected_port"
-        fail=$(($fail+1))
+        fail=$((fail+1))
     fi
+	ro_query='use mysql; select count(*) from information_schema.tables where table_schema=schema()'
+    create_query='create table if not exists test.txyz(i int)'
+    drop_query='drop table if exists test.txyz'
+    test_query msandbox_ro 'select 1' 0
+    test_query msandbox_rw 'select 1' 0
+    test_query msandbox_ro "$ro_query" 0
+    test_query msandbox_rw "$ro_query" 0
+	if [ -n "$sb_single" ]
+	then
+        test_query msandbox_ro "$create_query" 1
+        test_query msandbox_rw "$create_query" 0
+        test_query msandbox_rw "$drop_query" 0
+	fi
 fi
 fail_label="fail"
 pass_label="PASS"

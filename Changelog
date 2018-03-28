@@ -1,3 +1,10 @@
+1.0.0	26-Mar-2018
+	- General Availability.
+	- Fixed bug with single deployment and --force. On the second deployment,
+	  the port was changed.
+	- More tests added. The test suite now runs a total of 3,013 tests (MacOS)
+	  and 3,143 (Linux). A total of 6,156 tests that ran at least twice (once 
+	  with concurrency and once without)
 0.3.9	25-Mar-2018
 	- Added version detection to *unpack* command. now --unpack-version
 	  becomes mandatory only if a version is not detected from the tarball

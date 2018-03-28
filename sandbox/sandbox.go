@@ -301,7 +301,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 		}
 	}
 	//fmt.Printf("%#v\n", sdef)
-	if sdef.NodeNum == 0 {
+	if sdef.NodeNum == 0 && !sdef.Force {
 		sdef.Port = FindFreePort(sdef.Port, sdef.InstalledPorts, 1)
 	}
 	timestamp := time.Now()

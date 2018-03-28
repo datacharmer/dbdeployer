@@ -149,6 +149,7 @@ function test_completeness {
     running_version=$1
     dir_name=$2
     mode=$3
+    test_header test_completeness $running_version
     version_path=$(echo $running_version| tr '.' '_')
     if [ -d $SANDBOX_HOME/$dir_name ]
     then
@@ -199,6 +200,7 @@ function test_start_restart {
     running_version=$1
     dir_name=$2
     mode=$3
+    test_header test_start_restart $running_version
     use_name=use
     start_name=start
     stop_name=stop
@@ -248,6 +250,7 @@ function test_start_restart {
 function test_semi_sync {
     running_version=$1
     group_dir_name=$2
+    test_header test_semi_sync $running_version
     version_path=$(echo $running_version| tr '.' '_')
     sbdir=$SANDBOX_HOME/$group_dir_name$version_path
     master_enabled=$($sbdir/m -BN -e 'select @@rpl_semi_sync_master_enabled' | tr -d ' ' )
@@ -265,10 +268,23 @@ function test_semi_sync {
     ok_greater "Bigger number of sync trx" $master_yes_trx_after $master_yes_trx_before
 }
 
+function test_force {
+    running_version=$1
+    dir_name=$2
+    test_header test_force $running_version
+    version_path=$(echo $running_version| tr '.' '_')
+    sandbox_dir=$dir_name$version_path
+    port_before=$($SANDBOX_HOME/$sandbox_dir/use -BN -e 'show variables like "port"' | awk '{print $2}')
+    run dbdeployer deploy single $running_version --force
+    port_after=$($SANDBOX_HOME/$sandbox_dir/use -BN -e 'show variables like "port"' | awk '{print $2}')
+    ok_equal "Port before and after --force redeployment" $port_after $port_before
+}
+ 
 function test_uuid {
     running_version=$1
     group_dir_name=$2
     must_exist=$3
+    test_header test_uuid $running_version
     version_path=$(echo $running_version| tr '.' '_')
     count=0
     if [ -d $SANDBOX_HOME/$group_dir_name$version_path/master ]
@@ -306,6 +322,7 @@ function test_uuid {
 function test_deletion {
     del_version=$1
     expected_items=$2
+    test_header test_deletion $del_version
     # test lock: sandboxes become locked against deletion
     num_sandboxes_before=$(dbdeployer sandboxes | wc -l)
     run dbdeployer admin lock ALL
@@ -379,7 +396,7 @@ installed_sandboxes=$(dbdeployer sandboxes --catalog)
 if [ -n "$installed_sandboxes" ]
 then
     (set -x
-    dbdeployer sandboxes --catalog
+    dbdeployer sandboxes
     )
     echo "One or more sandboxes are already deployed. "
     echo "Please remove (or move) the sandboxes and try again"
@@ -393,6 +410,7 @@ then
     dbdeployer sandboxes --catalog
     )
     echo "Found $catalog_items items in the catalog. Expected: 0"
+    echo "Check the file ${CATALOG}: it should be empty."
     exit 1
 fi
 
@@ -504,6 +522,7 @@ echo "Will test: [${all_versions[*]}]"
 
 function main_deployment_methods {
     current_test=main_deployment_methods
+    test_header main_deployment_methods "" double
     for V in ${all_versions[*]}
     do
         # We test the main deployment methods
@@ -521,6 +540,7 @@ function main_deployment_methods {
         sleep 2
         # Runs basic tests
         run dbdeployer global status
+        test_force $V msb_
         test_uuid $V multi_msb_
         test_uuid $V rsandbox_
         test_completeness $V msb_ single
@@ -535,6 +555,7 @@ function main_deployment_methods {
 }
 
 function pre_post_operations {
+    test_header pre_post_operations "" double
     current_test=pre_post_operations
     # This test checks the following:
     #   * we can run a SQL command before the grants are loaded
@@ -577,6 +598,7 @@ function pre_post_operations {
 
 function semisync_operations {
     current_test=semisync_operations
+    test_header semisync_operations "" double
     for V in ${semisync_versions[*]}
     do
         echo "# semisync operations $V"
@@ -598,6 +620,7 @@ function semisync_operations {
 
 function group_operations {
     current_test=group_operations
+    test_header group_operations "" double
     for V in ${group_versions[*]}
     do
         echo "# Group operations $V"
@@ -617,6 +640,7 @@ function group_operations {
 
 function multi_source_operations {
     current_test=multi_source_operations
+    test_header multi_source_operations "" double
     for V in ${group_versions[*]}
     do
         echo "# Multi-source operations $V"
@@ -625,15 +649,15 @@ function multi_source_operations {
         run dbdeployer deploy replication $V --topology=fan-in \
             --sandbox-directory=fan_in_msb2_$v_path \
             --base-port=24000 \
-            --nodes=5 \
+            --nodes=4 \
             --master-list='1,2' \
-            --slave-list='3,4,5'
-        run dbdeployer deploy replication $V --topology=fan-in \
-            --sandbox-directory=fan_in_msb3_$v_path \
-            --base-port=25000 \
-            --nodes=5 \
-            --master-list='1.2.3' \
-            --slave-list='4:5'
+            --slave-list='3:4'
+        #run dbdeployer deploy replication $V --topology=fan-in \
+        #    --sandbox-directory=fan_in_msb3_$v_path \
+        #    --base-port=25000 \
+        #    --nodes=5 \
+        #    --master-list='1.2.3' \
+        #    --slave-list='4:5'
         run dbdeployer deploy replication $V --topology=all-masters
         results "multi-source"
 
@@ -641,7 +665,7 @@ function multi_source_operations {
         capture_test run dbdeployer global test-replication
         test_uuid $V fan_in_msb_ 1
         test_uuid $V all_masters_msb_ 1
-        test_deletion $V 4
+        test_deletion $V 3
         results "multi-source - after deletion"
     done
 }

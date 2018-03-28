@@ -109,6 +109,18 @@ do
             run dbdeployer deploy replication $version --topology=group --single-primary
             run dbdeployer deploy replication $version --topology=all-masters
             run dbdeployer deploy replication $version --topology=fan-in
+            run dbdeployer deploy replication $version --topology=fan-in \
+                 --sandbox-directory=fan_in_msb2_$version_name \
+                 --base-port=24000 \
+                 --nodes=5 \
+                 --master-list='1,2' \
+                 --slave-list='3:4:5'
+            run dbdeployer deploy replication $version --topology=fan-in \
+                 --sandbox-directory=fan_in_msb3_$version_name \
+                 --base-port=25000 \
+                 --nodes=5 \
+                 --master-list='1.2.3' \
+                 --slave-list='4,5'
         fi
         results "$version"
         right_installer1=$(grep mysqld  $SANDBOX_HOME/msb_${version_name}/init_db )

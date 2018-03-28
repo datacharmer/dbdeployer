@@ -1,6 +1,7 @@
 
 export CATALOG=$HOME/.dbdeployer/sandboxes.json
 export dash_line="# ----------------------------------------------------------------"
+export double_dash_line="# ================================================================"
 
 if [ -n "$SKIP_DBDEPLOYER_CATALOG" ]
 then
@@ -17,6 +18,25 @@ then
 fi
 
 [ -z "$results_log" ] && export results_log=results-$(uname).txt
+
+function test_header {
+    func_name=$1
+    arg=$2
+    double_line=$3
+    if [ -n "$double_line" ]
+    then
+        echo $double_dash_line
+    else
+        echo $dash_line
+    fi
+    echo "# $func_name $arg"
+    if [ -n "$double_line" ]
+    then
+        echo $double_dash_line
+    else
+        echo $dash_line
+    fi
+}
 
 function start_timer {
     start=$(date)
