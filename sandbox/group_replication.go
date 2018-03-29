@@ -234,8 +234,8 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	write_script(ReplicationTemplates, "test_replication", "multi_source_test_template", sdef.SandboxDir, data, true)
 
 	concurrent.RunParallelTasksByPriority(exec_lists)
-	fmt.Println(sdef.SandboxDir + "/initialize_nodes")
+	fmt.Println(common.ReplaceLiteralHome(sdef.SandboxDir) + "/initialize_nodes")
 	common.Run_cmd(sdef.SandboxDir + "/initialize_nodes")
-	fmt.Printf("Replication directory installed in %s\n", sdef.SandboxDir)
+	fmt.Printf("Replication directory installed in %s\n", common.ReplaceLiteralHome(sdef.SandboxDir))
 	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
 }

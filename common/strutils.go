@@ -21,6 +21,23 @@ import (
 	"regexp"
 )
 
+// Given a path starting at the HOME directory
+// returns a string where the literal value for $HOME
+// is replaced by the string "$HOME"
+func ReplaceLiteralHome( path string) string {
+	home := os.Getenv("HOME")
+	re := regexp.MustCompile(`^` + home)
+	return re.ReplaceAllString(path, "$$HOME")
+}
+
+// Given a path with the variable "$HOME" at the start,
+// returns a string with the value of HOME expanded
+func ReplaceHomeVar(path string) string {
+	home := os.Getenv("HOME")
+	re := regexp.MustCompile(`^\$HOME\b`)
+	return re.ReplaceAllString(path, home)
+}
+
 func MakeCustomizedUuid(port , node_num int ) string {
 	re_digit := regexp.MustCompile(`\d`)
 	group1 := fmt.Sprintf("%08d", port)

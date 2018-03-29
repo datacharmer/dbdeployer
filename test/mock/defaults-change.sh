@@ -80,6 +80,19 @@ function check_deployment {
     done
 }
 
+function check_deployment_message {
+    version=$1
+    shift
+    args="$@"
+    path_version=$(echo $version | tr '.' '_')
+    output_file=deployment$$.txt
+    dbdeployer deploy $args $version > $output_file 2>&1
+    grep "installed.*\$HOME.*$path_version" $output_file
+    installed=$(grep "installed.*\$HOME.*$path_version" $output_file)
+    ok "deploy $args $version" "$installed"
+    rm $output_file
+}
+
 create_mock_version 5.5.66
 create_mock_version 5.6.66
 create_mock_version 5.7.66
@@ -162,6 +175,18 @@ sandbox_dir=$SANDBOX_HOME/msb_8_0_67
 message=$($sandbox_dir/clear)
 ok_contains "installed custom template" "$message" "CUSTOM_TEMPLATE"
 ok_contains "installed custom template" "$message" $timestamp
+
+run dbdeployer delete ALL --skip-confirm
+
+echo "Test installed messages"
+check_deployment_message 8.0.67 single
+check_deployment_message 8.0.67 multiple
+check_deployment_message 8.0.67 replication
+check_deployment_message 8.0.67 replication --topology=group
+check_deployment_message 8.0.67 replication --topology=group --single-primary
+check_deployment_message 8.0.67 replication --topology=fan-in
+check_deployment_message 8.0.67 replication --topology=all-masters
+
 
 run dbdeployer delete ALL --skip-confirm
 

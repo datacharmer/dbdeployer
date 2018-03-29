@@ -389,8 +389,8 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 	} else {
 		err, _ := common.Run_cmd_ctrl(sandbox_dir+"/init_db", true)
 		if err == nil {
-			// fmt.Printf("Database installed in %s\n", sandbox_dir)
 			if !sdef.Multi {
+				fmt.Printf("Database installed in %s\n", common.ReplaceLiteralHome(sandbox_dir))
 				fmt.Printf("run 'dbdeployer usage single' for basic instructions'\n")
 			}
 		} else {
