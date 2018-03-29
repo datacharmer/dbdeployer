@@ -151,7 +151,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Sma
 	write_script(MultipleTemplates, "use_all", "use_multi_template", sdef.SandboxDir, data, true)
 	concurrent.RunParallelTasksByPriority(exec_lists)
 
-	fmt.Printf("%s directory installed in %s\n", sb_type, sdef.SandboxDir)
+	fmt.Printf("%s directory installed in %s\n", sb_type, common.ReplaceLiteralHome(sdef.SandboxDir))
 	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
 	return data
 }

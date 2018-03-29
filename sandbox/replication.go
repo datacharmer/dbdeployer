@@ -196,9 +196,9 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	write_script(ReplicationTemplates, "n1", "master_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "test_replication", "test_replication_template", sdef.SandboxDir, data, true)
 	concurrent.RunParallelTasksByPriority(exec_lists)
-	fmt.Println(sdef.SandboxDir + "/" + initialize_slaves)
+	fmt.Println(common.ReplaceLiteralHome(sdef.SandboxDir) + "/" + initialize_slaves)
 	common.Run_cmd(sdef.SandboxDir + "/" +initialize_slaves)
-	fmt.Printf("Replication directory installed in %s\n", sdef.SandboxDir)
+	fmt.Printf("Replication directory installed in %s\n", common.ReplaceLiteralHome(sdef.SandboxDir))
 	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
 }
 

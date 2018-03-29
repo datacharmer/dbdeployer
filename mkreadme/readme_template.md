@@ -33,7 +33,7 @@ To use a tarball, you must first run the **unpack** command, which will unpack t
 
 For example:
 
-    $ dbdeployer --unpack-version=8.0.4 unpack mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz
+    $ dbdeployer unpack mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz
     Unpacking tarball mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz to $HOME/opt/mysql/8.0.4
     .........100.........200.........292
 
@@ -205,4 +205,14 @@ A locked sandbox will not be deleted, even when running "dbdeployer delete ALL."
 The lock can also be reverted using
 
     $ dbdeployer admin unlock sandbox_name
+
+## Semantic versioning
+
+As of version 1.0.0, dbdeployer adheres to the principles of [semantic versioning](https://semver.org/). A version number is made of Major, Minor, and Revision. When changes are applied, the following happens:
+
+* Backward-compatible bug fixes increment the **Revision** number.
+* Backward-compatible new features increment the **Minor** number.
+* Backward incompatible changes (either features or bug fixes that break compatibility with the API) increment the **Major** number.
+
+The starting API is defined in [API-1.0.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API-1.0.md).
 

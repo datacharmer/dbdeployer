@@ -1,3 +1,9 @@
+1.0.1	28-Mar-2018
+	- Fixed Issue #5 "Single deployment doesn't show the location of the
+	  sandbox"
+	- Added API definition (./docs/API-1.0.md)
+	- Added test for Issue #5
+	- Fixed typos and improved docs.
 1.0.0	26-Mar-2018
 	- General Availability.
 	- Fixed bug with single deployment and --force. On the second deployment,

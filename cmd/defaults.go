@@ -116,7 +116,7 @@ Use "dbdeployer defaults show" to see which values are available`,
 	defaultsExportCmd = &cobra.Command{
 		Use:   "export filename",
 		Short: "Export current defaults to a given file",
-		Long:  `Saves current defaults to a fileer-defined file`,
+		Long:  `Saves current defaults to a user-defined file`,
 		Run:   ExportDefaults,
 	}
 

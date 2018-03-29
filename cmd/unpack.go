@@ -69,7 +69,7 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Unpacking tarball %s to %s\n", tarball, destination)
+	fmt.Printf("Unpacking tarball %s to %s\n", tarball, common.ReplaceLiteralHome(destination))
 	verbosity_level := unpack.VERBOSE
 	err := unpack.UnpackTar(tarball, Basedir, verbosity_level)
 	if err != nil {
