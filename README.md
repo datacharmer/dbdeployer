@@ -45,7 +45,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with '--help' will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.0.1
+    dbdeployer version 1.1.0
     
 
     $ dbdeployer -h
@@ -335,7 +335,7 @@ Here's how:
     $ dbdeployer defaults show
     # Internal values:
     {
-     	"version": "1.0.0",
+     	"version": "1.1.0",
      	"sandbox-home": "$HOME/sandboxes",
      	"sandbox-binary": "$HOME/opt/mysql",
      	"use-sandbox-catalog": true,
@@ -365,7 +365,7 @@ Here's how:
     # Updated master-slave-base-port -> "15000"
     # Configuration file: $HOME/.dbdeployer/config.json
     {
-     	"version": "1.0.0",
+     	"version": "1.1.0",
      	"sandbox-home": "$HOME/sandboxes",
      	"sandbox-binary": "$HOME/opt/mysql",
      	"use-sandbox-catalog": true,

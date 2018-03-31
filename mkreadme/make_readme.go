@@ -52,7 +52,7 @@ func get_cmd_output(cmdText string) string {
 	from the current release.
 
 	Use as:
-	./docs/make_readme < docs/readme_template.md > README.md
+	./mkreadme/make_readme < ./mkreadme/readme_template.md > README.md
 
 */
 func main() {

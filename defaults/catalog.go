@@ -26,7 +26,7 @@ import (
 
 type SandboxItem struct {
 	Origin string `json:"origin"`
-	SBType  string `json:"type"` // single multi master-slave group
+	SBType  string `json:"type"` // single multi master-slave group all-masters fan-in
 	Version string `json:"version"`
 	Port    []int  `json:"port"`
 	Nodes   []string   `json:"nodes"`

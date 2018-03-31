@@ -45,7 +45,7 @@ func RemoveSandbox(sandbox_dir, sandbox string, run_concurrently bool) (exec_lis
 		stop = full_path + "/stop"
 	}
 	if !common.ExecExists(stop) {
-		fmt.Println("Executable '%s' not found\n", stop)
+		fmt.Printf("Executable '%s' not found\n", stop)
 		os.Exit(1)
 	}
 
@@ -117,7 +117,7 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 		return
 	}
 	if len(deletion_list) > 60 && run_concurrently {
-		fmt.Println("# Concurrency disabled. Can't run more than 60 concurrent operations\n")
+		fmt.Println("# Concurrency disabled. Can't run more than 60 concurrent operations")
 		run_concurrently = false
 	}
 	fmt.Printf("List of deployed sandboxes:\n")

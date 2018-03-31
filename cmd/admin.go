@@ -44,7 +44,7 @@ func UnpreserveSandbox(sandbox_dir, sandbox_name string) {
 		is_multiple = false
 	}
 	if !common.ExecExists(clear) {
-		fmt.Println("Executable '%s' not found\n", clear)
+		fmt.Printf("Executable '%s' not found\n", clear)
 		os.Exit(1)
 	}
 	no_clear := full_path + "/no_clear"
@@ -87,7 +87,7 @@ func PreserveSandbox(sandbox_dir, sandbox_name string) {
 		is_multiple = false
 	}
 	if !common.ExecExists(clear) {
-		fmt.Println("Executable '%s' not found\n", clear)
+		fmt.Printf("Executable '%s' not found\n", clear)
 		os.Exit(1)
 	}
 	no_clear := full_path + "/no_clear"

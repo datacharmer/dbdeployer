@@ -25,17 +25,31 @@ import (
 // returns a string where the literal value for $HOME
 // is replaced by the string "$HOME"
 func ReplaceLiteralHome( path string) string {
-	home := os.Getenv("HOME")
-	re := regexp.MustCompile(`^` + home)
-	return re.ReplaceAllString(path, "$$HOME")
+	// home := os.Getenv("HOME")
+	// re := regexp.MustCompile(`^` + home)
+	// return re.ReplaceAllString(path, "$$HOME")
+	return ReplaceLiteralEnvVar(path, "HOME")
+}
+
+func ReplaceLiteralEnvVar(name string, env_var string) string {
+	value := os.Getenv(env_var)
+	re := regexp.MustCompile(value)
+	return re.ReplaceAllString(name, "$$" + env_var)
+}
+
+func ReplaceEnvVar(name string, env_var string) string {
+	value := os.Getenv(env_var)
+	re := regexp.MustCompile(`\$` + env_var+ `\b`)
+	return re.ReplaceAllString(name, value)
 }
 
 // Given a path with the variable "$HOME" at the start,
 // returns a string with the value of HOME expanded
 func ReplaceHomeVar(path string) string {
-	home := os.Getenv("HOME")
-	re := regexp.MustCompile(`^\$HOME\b`)
-	return re.ReplaceAllString(path, home)
+	// home := os.Getenv("HOME")
+	// re := regexp.MustCompile(`^\$HOME\b`)
+	//return re.ReplaceAllString(path, home)
+	return ReplaceEnvVar(path, "HOME")
 }
 
 func MakeCustomizedUuid(port , node_num int ) string {

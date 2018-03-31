@@ -1,3 +1,13 @@
+1.1.0	30-Mar-2018
+	- Added ability of handling environment variables
+	  in configuration file. $HOME and $PWD are expanded
+	  to actual values.
+	- Added hidden command "tree" that can generate the
+	  full dbdeployer API. Using this feature, from now on
+	  we can compare API changes automatically.
+	- Fixed visualization of sandboxes from catalog
+	- Fixed minor code issues.
+	- Added tests for environment variable replacement
 1.0.1	28-Mar-2018
 	- Fixed Issue #5 "Single deployment doesn't show the location of the
 	  sandbox"

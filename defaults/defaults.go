@@ -79,6 +79,7 @@ var (
 		Version:                       common.CompatibleVersion,
 		SandboxHome:                   home_dir + "/sandboxes",
 		SandboxBinary:                 home_dir + "/opt/mysql",
+
 		UseSandboxCatalog:			   true,
 		//UseConcurrency :			   true,
 		MasterSlaveBasePort:           11000,
@@ -107,8 +108,6 @@ var (
 		// NdbPrefix:                     "ndb_msb_",
 		// PxcPrefix:                     "pxc_msb_",
 	}
-	// TODO : allow for environmengt variables such as $HOME and $PWD to be
-	// recognized and handled in the configuration file.
 	currentDefaults DbdeployerDefaults
 )
 
@@ -124,6 +123,7 @@ func Defaults() DbdeployerDefaults {
 }
 
 func ShowDefaults(defaults DbdeployerDefaults) {
+	defaults = replace_literal_env_values(defaults)
 	if common.FileExists(ConfigurationFile) {
 		fmt.Printf("# Configuration file: %s\n", ConfigurationFile)
 	} else {
@@ -138,6 +138,7 @@ func ShowDefaults(defaults DbdeployerDefaults) {
 }
 
 func WriteDefaultsFile(filename string, defaults DbdeployerDefaults) {
+	defaults = replace_literal_env_values(defaults)
 	defaults_dir := common.DirName(filename)
 	if !common.DirExists(defaults_dir) {
 		common.Mkdir(defaults_dir)
@@ -151,6 +152,22 @@ func WriteDefaultsFile(filename string, defaults DbdeployerDefaults) {
 	common.WriteString(json_string, filename)
 }
 
+func expand_environment_variables(defaults DbdeployerDefaults) DbdeployerDefaults {
+    defaults.SandboxHome = common.ReplaceEnvVar(defaults.SandboxHome, "HOME")
+    defaults.SandboxHome = common.ReplaceEnvVar(defaults.SandboxHome, "PWD")
+    defaults.SandboxBinary = common.ReplaceEnvVar(defaults.SandboxBinary, "HOME")
+    defaults.SandboxBinary = common.ReplaceEnvVar(defaults.SandboxBinary, "PWD")
+	return defaults
+}
+
+func replace_literal_env_values(defaults DbdeployerDefaults) DbdeployerDefaults {
+    defaults.SandboxHome = common.ReplaceLiteralEnvVar(defaults.SandboxHome, "HOME")
+    defaults.SandboxHome = common.ReplaceLiteralEnvVar(defaults.SandboxHome, "PWD")
+    defaults.SandboxBinary = common.ReplaceLiteralEnvVar(defaults.SandboxBinary, "HOME")
+    defaults.SandboxBinary = common.ReplaceLiteralEnvVar(defaults.SandboxBinary, "PWD")
+	return defaults
+}
+
 func ReadDefaultsFile(filename string) (defaults DbdeployerDefaults) {
 	defaults_blob := common.SlurpAsBytes(filename)
 
@@ -159,6 +176,7 @@ func ReadDefaultsFile(filename string) (defaults DbdeployerDefaults) {
 		fmt.Println("error decoding defaults: ", err)
 		os.Exit(1)
 	}
+	defaults = expand_environment_variables(defaults)
 	return
 }
 

@@ -29,7 +29,7 @@ func ShowSandboxesFromCatalog(current_sandbox_home string, header bool) {
 	if len(sandbox_list) == 0 {
 		return
 	}
-	template := "%-25s %-10s %-15s %5v %-25s %s \n"
+	template := "%-25s %-10s %-20s %5v %-25s %s \n"
 	if header {
 		fmt.Printf( template, "name", "version", "type", "nodes", "ports", "")
 		fmt.Printf( template, "----", "-------", "-----", "-----", "-----", "")

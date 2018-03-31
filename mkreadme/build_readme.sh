@@ -20,7 +20,8 @@ then
     dbdeployer defaults reset
 fi
 ./make_readme < readme_template.md > README.md
-./make_readme < api_template.md > API.md
+#./make_readme < api_template.md > API.md
+dbdeployer tree --api | ./make_readme > API.md
 dbdeployer defaults reset
 echo "# $PWD"
 ls -lhotr 

@@ -183,17 +183,20 @@ Use the "unpack" command to get the tarball into the right directory.
 var (
 	hiddenSingleCmd = &cobra.Command{
 		Use: "single",
+		Short: "REMOVED: use 'deploy single' instead",
 		Hidden: true,
 		Run: ReplacedCmd,
 	}
 	hiddenReplicationCmd = &cobra.Command{
 		Use: "replication",
+		Short: "REMOVED: use 'deploy replication' instead",
 		Hidden: true,
 		Run: ReplacedCmd,
 	}
 
 	hiddenMultipleCmd = &cobra.Command{
 		Use: "multiple",
+		Short: "REMOVED: use 'deploy multiple' instead",
 		Hidden: true,
 		Run: ReplacedCmd,
 	}
