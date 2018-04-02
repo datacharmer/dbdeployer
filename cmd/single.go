@@ -155,12 +155,14 @@ func SingleSandbox(cmd *cobra.Command, args []string) {
 	sandbox.CreateSingleSandbox(sd, args[0])
 }
 
+/*
 func ReplacedCmd(cmd *cobra.Command, args []string) {
 	invoked := cmd.Use
 	fmt.Printf("The command \"%s\" has been replaced.\n",invoked)
 	fmt.Printf("Use \"dbdeployer deploy %s\" instead.\n",invoked)
 	os.Exit(0)
 }
+*/
 
 var singleCmd = &cobra.Command{
 	Use: "single MySQL-Version",
@@ -180,6 +182,7 @@ Use the "unpack" command to get the tarball into the right directory.
 	Run: SingleSandbox,
 }
 
+/*
 var (
 	hiddenSingleCmd = &cobra.Command{
 		Use: "single",
@@ -201,11 +204,12 @@ var (
 		Run: ReplacedCmd,
 	}
 )
+*/
 
 func init() {
-	rootCmd.AddCommand(hiddenSingleCmd)
-	rootCmd.AddCommand(hiddenReplicationCmd)
-	rootCmd.AddCommand(hiddenMultipleCmd)
+	//rootCmd.AddCommand(hiddenSingleCmd)
+	//rootCmd.AddCommand(hiddenReplicationCmd)
+	//rootCmd.AddCommand(hiddenMultipleCmd)
 	deployCmd.AddCommand(singleCmd)
 	singleCmd.PersistentFlags().Bool("master", false, "Make the server replication ready")
 

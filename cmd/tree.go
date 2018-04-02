@@ -13,26 +13,118 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// +build docs
+
 package cmd
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"github.com/spf13/cobra"
+	"github.com/spf13/cobra/doc"
+	"github.com/datacharmer/dbdeployer/common"
 )
 
-func ShowTree(cmd *cobra.Command, args []string) {
+func WriteApi(show_hidden bool) {
+	fmt.Println("This is the list of commands and modifiers available for")
+	fmt.Println("dbdeployer {{.Version}} as of {{.Date}}")
+	fmt.Println("")
+	fmt.Println("# main")
+	fmt.Println("{{dbdeployer -h }}")
+	fmt.Println("")
+	fmt.Println("{{dbdeployer-docs tree }}")
+	traverse(rootCmd, "", 0, true, show_hidden)
+}
+
+func WriteBashCompletion() {
+	completion_file := "dbdeployer_completion.sh"
+	rootCmd.GenBashCompletionFile(completion_file)
+	fmt.Printf("Copy %s to the completion directory (/etc/bash_completion.d or /usr/local/etc/bash_completion.d)\n",completion_file)
+
+}
+
+func WriteManPages() {
+	man_dir := "man_pages"
+	if common.DirExists(man_dir) {
+		fmt.Printf("manual pages directory '%s' exists already.\n",man_dir)
+		os.Exit(1)
+	}
+	common.Mkdir(man_dir)
+	header := &doc.GenManHeader{
+		Title: "dbdeployer",
+		Section: "1",
+	}
+	err := doc.GenManTree(rootCmd, header, man_dir)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	fmt.Printf("Man pages generated in '%s'\n", man_dir)
+}
+
+func WriteMarkdownPages() {
+	md_dir := "markdown_pages"
+	if common.DirExists(md_dir) {
+		fmt.Printf("Markdown pages directory '%s' exists already.\n",md_dir)
+		os.Exit(1)
+	}
+	common.Mkdir(md_dir)
+	err := doc.GenMarkdownTree(rootCmd, md_dir)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	err = doc.GenReSTTree(rootCmd, md_dir)
+	fmt.Printf("Markdown pages generated in '%s'\n", md_dir)
+}
+
+func WriteRstPages() {
+	rst_dir := "rst_pages"
+	if common.DirExists(rst_dir) {
+		fmt.Printf("Restructured Text pages directory '%s' exists already.\n",rst_dir)
+		os.Exit(1)
+	}
+	common.Mkdir(rst_dir)
+	err := doc.GenReSTTree(rootCmd, rst_dir)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	fmt.Printf("Restructured Text pages generated in '%s'\n", rst_dir)
+}
+
+func MakeDocumentation(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	api, _  := flags.GetBool("api")
 	show_hidden, _  := flags.GetBool("show-hidden")
+	bash_completion, _  := flags.GetBool("bash-completion")
+	man_pages, _  := flags.GetBool("man-pages")
+	md_pages, _  := flags.GetBool("markdown-pages")
+	rst_pages, _  := flags.GetBool("rst-pages")
+	if (man_pages && api) || (api && bash_completion) || (api && md_pages) || (api && rst_pages) {
+		fmt.Printf("Choose one option only\n")
+		os.Exit(1)
+	}
+	if rst_pages {
+		WriteRstPages()
+		return
+	}
+	if man_pages {
+		WriteManPages()
+		return
+	}
+	if md_pages {
+		WriteMarkdownPages()
+		return
+	}
+	if bash_completion {
+		WriteBashCompletion()
+		return
+	}
 	if api {
-		fmt.Println("This is the list of commands and modifiers available for dbdeployer")
-		fmt.Println("")
-		fmt.Println("{{dbdeployer --version}}")
-		fmt.Println("# main")
-		fmt.Println("{{dbdeployer -h }}")
-		fmt.Println("")
-		fmt.Println("{{dbdeployer tree }}")
+		WriteApi(show_hidden)
+		return
 	}
 	traverse(rootCmd, "", 0, api, show_hidden)
 }
@@ -66,15 +158,20 @@ func traverse(cmd *cobra.Command, parent string, level int, api, show_hidden boo
 
 var treeCmd = &cobra.Command{
 	Use:   "tree",
-	Short: "shows command tree",
+	Short: "shows command tree and other docs",
+	Aliases: []string{"docs"},
 	Long: `This command is only used to create API documentation. 
 You can, however, use it to show the command structure at a glance.`,
 	Hidden : true,
-	Run: ShowTree,
+	Run: MakeDocumentation,
 }
 
 func init() {
 	rootCmd.AddCommand(treeCmd)
+	treeCmd.PersistentFlags().Bool("man-pages", false, "Writes man pages")
+	treeCmd.PersistentFlags().Bool("markdown-pages", false, "Writes Markdown docs")
+	treeCmd.PersistentFlags().Bool("rst-pages", false, "Writes Restructured Text docs")
 	treeCmd.PersistentFlags().Bool("api", false, "Writes API template")
+	treeCmd.PersistentFlags().Bool("bash-completion", false, "creates bash-completion file")
 	treeCmd.PersistentFlags().Bool("show-hidden", false, "Shows also hidden commands")
 }

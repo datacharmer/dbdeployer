@@ -3,6 +3,8 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
+Documentation updated for version 1.1.0 (01-Apr-2018 13:08 UTC)
+
 ## Installation
 
 The installation is simple, as the only thing you will need is a binary executable for your operating system.
@@ -11,7 +13,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=0.3.1
+    $ VERSION=1.1.0
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/$VERSION
     $ wget $origin/dbdeployer-$VERSION.linux.tar.gz
     $ tar -xzf dbdeployer-$VERSION.linux.tar.gz
@@ -537,6 +539,69 @@ The lock can also be reverted using
 
     $ dbdeployer admin unlock sandbox_name
 
+## Generating additional documentation
+
+Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API-1.1.md), you have all the existing documentation for dbdeployer.
+Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
+
+* dbdeployer-1.1.0-docs.linux.tar.gz
+* dbdeployer-1.1.0-docs.osx.tar.gz
+* dbdeployer-1.1.0.linux.tar.gz
+* dbdeployer-1.1.0.osx.tar.gz
+
+The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
+
+This is the command used to help generating the API documentation. In addition to the API template, the ``tree`` command can produce:
+
+* man pages;
+* Markdown documentation;
+* Restructured Text pages;
+* Command line completion script (see next section).
+
+    $ dbdeployer-docs tree -h
+    This command is only used to create API documentation. 
+    You can, however, use it to show the command structure at a glance.
+    
+    Usage:
+      dbdeployer tree [flags]
+    
+    Aliases:
+      tree, docs
+    
+    Flags:
+          --api               Writes API template
+          --bash-completion   creates bash-completion file
+      -h, --help              help for tree
+          --man-pages         Writes man pages
+          --markdown-pages    Writes Markdown docs
+          --rst-pages         Writes Restructured Text docs
+          --show-hidden       Shows also hidden commands
+    
+    
+
+## Command line completion
+
+There is a file ``./docs/dbdeployer_completion.sh``, which is automatically generated with dbdeployer API documentation. If you want to use bash completion on the command line, simply copy the file to the bash completion directory. For example:
+
+    # Linux
+    $ sudo cp ./docs/dbdeployer_completion.sh /etc/bash_completion.d
+    $ source /etc/bash_completion
+
+    # OSX
+    $ sudo cp ./docs/dbdeployer_completion.sh /usr/local/etc/bash_completion.d
+    $ source /usr/local/etc/bash_completion
+
+Then, you can use completion as follows:
+
+    $ dbdeployer [tab]
+        admin  defaults  delete  deploy  global  sandboxes  unpack  usage  versions
+    $ dbdeployer dep[tab]
+    $ dbdeployer deploy [tab][tab]
+        multiple     replication  single
+    $ dbdeployer deploy s[tab]
+    $ dbdeployer deploy single --b[tab][tab]
+        --base-port=     --bind-address=
+
 ## Semantic versioning
 
 As of version 1.0.0, dbdeployer adheres to the principles of [semantic versioning](https://semver.org/). A version number is made of Major, Minor, and Revision. When changes are applied, the following happens:
@@ -545,5 +610,7 @@ As of version 1.0.0, dbdeployer adheres to the principles of [semantic versionin
 * Backward-compatible new features increment the **Minor** number.
 * Backward incompatible changes (either features or bug fixes that break compatibility with the API) increment the **Major** number.
 
-The starting API is defined in [API-1.0.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API-1.0.md).
+The starting API is defined in [API-1.0.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API-1.0.md) (generated manually.)
+The file [API-1.1.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API-1.1.md) contains the same API definition, but was generated automatically and can be used to better compare the initial API with further version.
+
 

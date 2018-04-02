@@ -1,8 +1,6 @@
-This is the list of commands and modifiers available for dbdeployer
+This is the list of commands and modifiers available for
+dbdeployer 1.1.0 as of 01-Apr-2018 13:08 UTC
 
-    $ dbdeployer --version
-    dbdeployer version 1.1.0
-    
 # main
     $ dbdeployer -h 
     dbdeployer makes MySQL server installation an easy task.
@@ -33,41 +31,41 @@ This is the list of commands and modifiers available for dbdeployer
     Use "dbdeployer [command] --help" for more information about a command.
     
 
-    $ dbdeployer tree 
-    - admin                
-        - lock                 
-        - unlock               
-    - defaults             
-        - export               
-        - load                 
-        - reset                
-        - show                 
-        - store                
-        - templates            
-            - describe             
-            - export               
-            - import               
-            - list                 
-            - reset                
-            - show                 
-        - update               
-    - delete               
-    - deploy               
-        - multiple             
-        - replication          
-        - single               
-    - global               
-        - restart              
-        - start                
-        - status               
-        - stop                 
-        - test                 
-        - test-replication     
-        - use                  
-    - sandboxes            
-    - unpack               
-    - usage                
-    - versions             
+    $ dbdeployer-docs tree 
+    - admin               
+        - lock                
+        - unlock              
+    - defaults            
+        - export              
+        - load                
+        - reset               
+        - show                
+        - store               
+        - templates           
+            - describe            
+            - export              
+            - import              
+            - list                
+            - reset               
+            - show                
+        - update              
+    - delete              
+    - deploy              
+        - multiple            
+        - replication         
+        - single              
+    - global              
+        - restart             
+        - start               
+        - status              
+        - stop                
+        - test                
+        - test-replication    
+        - use                 
+    - sandboxes           
+    - unpack              
+    - usage               
+    - versions            
     
 
 ## admin

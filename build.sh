@@ -2,6 +2,13 @@
 target=$1
 version=$2
 
+docs_flags=""
+docs_tag=""
+if [ -n "$DBDEPLOYER_DOCS" -o -n "$MKDOCS" ]
+then
+    docs_flags="--tags docs"
+    docs_tag="-docs"
+fi
 if [ -z "$version" ]
 then
     echo "Syntax: target  version"
@@ -15,16 +22,18 @@ case $target in
         $0 linux $version
         ;;
     OSX)
-        executable=dbdeployer-$version.osx
-	    env GOOS=darwin GOARCH=386 go build -o $executable .
+        executable=dbdeployer-${version}${docs_tag}.osx
+	    (set -x
+        env GOOS=darwin GOARCH=386 go build $docs_flags -o $executable .
+        )
         tar -c $executable | gzip -c > ${executable}.tar.gz
-        ls -lh $executable*
     ;;
     linux)
-        executable=dbdeployer-$version.linux
-	    env GOOS=linux GOARCH=386 go build -o $executable .
+        executable=dbdeployer-${version}${docs_tag}.linux
+        (set -x
+	    env GOOS=linux GOARCH=386 go build $docs_flags -o $executable .
+        )
         tar -c $executable | gzip -c > ${executable}.tar.gz
-        ls -lh $executable*
     ;;
     *)
         echo unrecognized target.
@@ -32,3 +41,4 @@ case $target in
         ;;
 esac
 
+ls -lh dbdeployer-${version}*

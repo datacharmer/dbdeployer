@@ -23,6 +23,8 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"github.com/datacharmer/dbdeployer/common"
+	"time"
 )
 
 func get_cmd_output(cmdText string) string {
@@ -59,13 +61,22 @@ func main() {
 	// Gets input from stdin
 	scanner := bufio.NewScanner(os.Stdin)
 
+	re_version := regexp.MustCompile(`{{\.Version}}`)
+	re_date := regexp.MustCompile(`{{\.Date}}`)
 	re_cmd := regexp.MustCompile(`{{([^}]+)}}`)
 	re_flag := regexp.MustCompile(`(?sm)Global Flags:.*`)
 	re_spaces := regexp.MustCompile(`(?m)^`)
 	home := os.Getenv("HOME")
 	re_home := regexp.MustCompile(home)
+	time_format := "02-Jan-2006 15:04 MST"
+	timestamp := time.Now().UTC().Format(time_format)
+	if os.Getenv("DBDEPLOYER_TIMESTAMP") != "" {
+		timestamp = os.Getenv("DBDEPLOYER_TIMESTAMP")
+	}
 	for scanner.Scan() {
 		line := scanner.Text()
+		line = re_version.ReplaceAllString(line, common.VersionDef)
+		line = re_date.ReplaceAllString(line, timestamp)
 		// Find a placeholder for a {{command}}
 		findList := re_cmd.FindAllStringSubmatch(line, -1)
 		if findList != nil {

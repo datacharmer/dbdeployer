@@ -1,3 +1,9 @@
+1.1.1	02-Apr-2018
+	- Added more documentation
+	- Added bash-completion script
+	- Moved hidden command "tree" to conditional compiling.
+	  Now there is a separated build for docs-enabled dbdeployer
+	- Added ability of producing more documentation using command "tree"
 1.1.0	30-Mar-2018
 	- Added ability of handling environment variables
 	  in configuration file. $HOME and $PWD are expanded
