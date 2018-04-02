@@ -1,5 +1,5 @@
 This is the list of commands and modifiers available for
-dbdeployer 1.1.0 as of 01-Apr-2018 13:08 UTC
+dbdeployer 1.1.1 as of 02-Apr-2018 10:39 UTC
 
 # main
     $ dbdeployer -h 

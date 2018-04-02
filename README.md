@@ -3,7 +3,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.1.0 (01-Apr-2018 13:08 UTC)
+Documentation updated for version 1.1.1 (02-Apr-2018 10:39 UTC)
 
 ## Installation
 
@@ -13,7 +13,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.1.0
+    $ VERSION=1.1.1
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/$VERSION
     $ wget $origin/dbdeployer-$VERSION.linux.tar.gz
     $ tar -xzf dbdeployer-$VERSION.linux.tar.gz
@@ -47,7 +47,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with '--help' will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.1.0
+    dbdeployer version 1.1.1
     
 
     $ dbdeployer -h
@@ -544,10 +544,10 @@ The lock can also be reverted using
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.1.0-docs.linux.tar.gz
-* dbdeployer-1.1.0-docs.osx.tar.gz
-* dbdeployer-1.1.0.linux.tar.gz
-* dbdeployer-1.1.0.osx.tar.gz
+* dbdeployer-1.1.1-docs.linux.tar.gz
+* dbdeployer-1.1.1-docs.osx.tar.gz
+* dbdeployer-1.1.1.linux.tar.gz
+* dbdeployer-1.1.1.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 
