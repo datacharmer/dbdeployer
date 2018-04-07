@@ -30,6 +30,18 @@ export SANDBOX_BINARY=$HOME/opt/mysql
 export SANDBOX_TARBALL=$HOME/downloads
 export SLEEP_TIME=0
 
+pwd
+ls -l
+echo "HOME           : $HOME"
+echo "SANDBOX_HOME   : $SANDBOX_HOME"
+echo "SANDBOX_BINARY : $SANDBOX_BINARY"
+echo "SANDBOX_TARBALL: $SANDBOX_TARBALL"
+
+mkdir $HOME
+mkdir -p $SANDBOX_BINARY
+mkdir $SANDBOX_HOME
+mkdir $SANDBOX_TARBALL
+
 # A mock version is a collection of
 # fake MySQL executable that will create
 # empty sandboxes with no-op key executables.

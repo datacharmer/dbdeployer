@@ -38,15 +38,6 @@ source set-mock.sh
 export SHOW_CHANGED_PORTS=1
 start_timer
 
-pwd
-ls -l
-echo "HOME:           $HOME"
-echo "SANDBOX_HOME :  $SANDBOX_HOME"
-echo "SANDBOX_BINARY: $SANDBOX_BINARY"
-
-mkdir $HOME
-mkdir -p $SANDBOX_BINARY
-mkdir $SANDBOX_HOME
 tests=0
 fail=0
 pass=0
