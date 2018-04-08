@@ -1,6 +1,7 @@
 
 export CATALOG=$HOME/.dbdeployer/sandboxes.json
 export dash_line="# ----------------------------------------------------------------"
+export dotted_line="# ................................................................"
 export double_dash_line="# ================================================================"
 
 if [ -n "$SKIP_DBDEPLOYER_CATALOG" ]
@@ -21,7 +22,7 @@ fi
 
 function test_header {
     func_name=$1
-    arg=$2
+    arg="$2"
     double_line=$3
     if [ -n "$double_line" ]
     then

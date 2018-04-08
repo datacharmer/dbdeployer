@@ -149,7 +149,7 @@ function test_completeness {
     running_version=$1
     dir_name=$2
     mode=$3
-    test_header test_completeness $running_version
+    test_header test_completeness "$running_version $mode"
     version_path=$(echo $running_version| tr '.' '_')
     if [ -d $SANDBOX_HOME/$dir_name ]
     then
@@ -200,7 +200,7 @@ function test_start_restart {
     running_version=$1
     dir_name=$2
     mode=$3
-    test_header test_start_restart $running_version
+    test_header test_start_restart "$running_version $mode"
     use_name=use
     start_name=start
     stop_name=stop
@@ -268,24 +268,82 @@ function test_semi_sync {
     ok_greater "Bigger number of sync trx" $master_yes_trx_after $master_yes_trx_before
 }
 
-function test_force {
+function test_force_single {
     running_version=$1
-    dir_name=$2
-    test_header test_force $running_version
+    dir_name=msb_
     version_path=$(echo $running_version| tr '.' '_')
+    test_header test_force_single "${dir_name}$version_path"
     sandbox_dir=$dir_name$version_path
+    capture_test $SANDBOX_HOME/$sandbox_dir/test_sb
     port_before=$($SANDBOX_HOME/$sandbox_dir/use -BN -e 'show variables like "port"' | awk '{print $2}')
     run dbdeployer deploy single $running_version --force
     port_after=$($SANDBOX_HOME/$sandbox_dir/use -BN -e 'show variables like "port"' | awk '{print $2}')
     ok_equal "Port before and after --force redeployment" $port_after $port_before
+}
+
+function test_force_replication {
+    running_version=$1
+    dir_name=rsandbox_
+    version_path=$(echo $running_version| tr '.' '_')
+    test_header test_force_replication "${dir_name}$version_path"
+    sandbox_dir=$dir_name$version_path
+    capture_test $SANDBOX_HOME/$sandbox_dir/test_sb_all
+    port_before=$($SANDBOX_HOME/$sandbox_dir/m -BN -e 'show variables like "port"' | awk '{print $2}')
+    run dbdeployer deploy replication $running_version --force
+    port_after=$($SANDBOX_HOME/$sandbox_dir/m -BN -e 'show variables like "port"' | awk '{print $2}')
+    ok_equal "Port before and after --force redeployment" $port_after $port_before
+}
+
+function test_custom_credentials {
+    running_version=$1
+    mode=$2
+    dir_name=$3
+    version_path=$(echo $running_version| tr '.' '_')
+    test_header test_custom_credentials "${mode} $version_path"
+    sandbox_dir=$dir_name$version_path
+    # testing correctness before redeploying
+    test_sb=test_sb
+    test_replication=""
+    my_cnf=my.sandbox.cnf
+    grants_file=grants.mysql
+    if [ "$mode" != "single" ]
+    then
+        test_sb=test_sb_all
+        test_replication=test_replication
+        my_cnf=node1/my.sandbox.cnf
+        grants_file=node1/grants.mysql
+    fi
+    capture_test run $SANDBOX_HOME/$sandbox_dir/$test_sb
+    if [ -n "$test_replication" ]
+    then
+        capture_test run $SANDBOX_HOME/$sandbox_dir/$test_replication
+    fi
+    new_db_user=different
+    new_db_password=anotherthing
+    new_repl_user=different_rpl
+    new_repl_password=anotherthing_rpl
+    run dbdeployer deploy $mode $running_version \
+        --db-user=$new_db_user --db-password=$new_db_password \
+        --force \
+        --rpl-user=$new_repl_user --rpl-password=$new_repl_password
+    # This deployment will be re-tested later together with the rest of the sandboxes
+    user_found=$(grep $new_db_user $SANDBOX_HOME/$sandbox_dir/$my_cnf) 
+    password_found=$(grep $new_db_password $SANDBOX_HOME/$sandbox_dir/$my_cnf) 
+    repl_user_found=$(grep $new_repl_user $SANDBOX_HOME/$sandbox_dir/$grants_file) 
+    repl_password_found=$(grep $new_repl_password $SANDBOX_HOME/$sandbox_dir/$grants_file) 
+    ok "custom user found" "$user_found"
+    ok "custom password found" "$password_found"
+    ok "custom replication user found" "$repl_user_found"
+    ok "custom replication password found" "$repl_password_found"
+    sleep 1
 }
  
 function test_uuid {
     running_version=$1
     group_dir_name=$2
     must_exist=$3
-    test_header test_uuid $running_version
     version_path=$(echo $running_version| tr '.' '_')
+    test_header test_uuid "${group_dir_name}${version_path}"
     count=0
     if [ -d $SANDBOX_HOME/$group_dir_name$version_path/master ]
     then
@@ -526,10 +584,30 @@ function main_deployment_methods {
     for V in ${all_versions[*]}
     do
         # We test the main deployment methods
+        # and also the ability of dbdeployer to handle
+        # operations while similar calls occur
+        # in the background
+        echo $dotted_line
         for stype in single multiple replication
         do
-            echo "#$V"
-            run dbdeployer deploy $stype $V
+            echo "# Parallel deployment: $stype $V"
+            install_out="/tmp/${stype}-${V}-$$"
+            run dbdeployer deploy $stype $V > $install_out 2>&1 &
+        done
+        echo $dotted_line
+        # wait for the installation processes to finish
+        wait
+        # Display the result of each installation
+        for stype in single multiple replication
+        do
+            install_out="/tmp/${stype}-${V}-$$"
+            cat $install_out
+            echo $dotted_line
+            rm $install_out
+        done
+        # Runs the post installation check.
+        for stype in single multiple replication
+        do
             # For each type, we display basic info
             results "$stype"
         done
@@ -540,7 +618,10 @@ function main_deployment_methods {
         sleep 2
         # Runs basic tests
         run dbdeployer global status
-        test_force $V msb_
+        test_force_single $V
+        test_force_replication $V 
+        test_custom_credentials $V single msb_
+        test_custom_credentials $V replication rsandbox_
         test_uuid $V multi_msb_
         test_uuid $V rsandbox_
         test_completeness $V msb_ single
@@ -652,12 +733,6 @@ function multi_source_operations {
             --nodes=4 \
             --master-list='1,2' \
             --slave-list='3:4'
-        #run dbdeployer deploy replication $V --topology=fan-in \
-        #    --sandbox-directory=fan_in_msb3_$v_path \
-        #    --base-port=25000 \
-        #    --nodes=5 \
-        #    --master-list='1.2.3' \
-        #    --slave-list='4:5'
         run dbdeployer deploy replication $V --topology=all-masters
         results "multi-source"
 
