@@ -491,7 +491,7 @@ all_versions=()
 group_versions=()
 semisync_versions=()
 
-OS=$(uname)
+OS=$(uname | tr '[A-Z]' '[a-z]')
 if [ -x "sort_versions.$OS" ]
 then
     cp "sort_versions.$OS" sort_versions
@@ -501,8 +501,8 @@ if [ ! -x ./sort_versions ]
 then
     if [ -f ./sort_versions.go ]
     then
-        ENV GOOS=linux GOARCH=386 go build -o sort_versions.linux sort_versions.go
-        ENV GOOS=darwin GOARCH=386 go build -o sort_versions.Darwin sort_versions.go
+        env GOOS=linux GOARCH=386 go build -o sort_versions.linux sort_versions.go
+        env GOOS=darwin GOARCH=386 go build -o sort_versions.Darwin sort_versions.go
         ls -l sort_versions*
         cp "sort_versions.$OS" sort_versions
     fi
