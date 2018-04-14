@@ -32,6 +32,7 @@ then
     # If there is any option on the command line,
     # disable all tests
     export skip_main_deployment_methods=1
+    export skip_skip_start_deployment=1
     export skip_pre_post_operations=1
     export skip_semisync_operations=1
     export skip_group_operations=1
@@ -57,6 +58,7 @@ do
             ;;
         all)
             unset skip_main_deployment_methods
+            unset skip_skip_start_deployment
             unset skip_pre_post_operations
             unset skip_semisync_operations
             unset skip_group_operations
@@ -68,6 +70,11 @@ do
             unset skip_main_deployment_methods
             unset no_tests
             echo "# Enabling main tests"
+            ;;
+        skip)
+            unset skip_skip_start_deployment
+            unset no_tests
+            echo "# Enabling skip-start tests"
             ;;
         semi)
             unset skip_semisync_operations
@@ -97,6 +104,7 @@ do
         *)
             echo "Allowed tests (you can choose more than one):"
             echo "  main     : main deployment methods"
+            echo "  skip     : skip-start deployments"
             echo "  pre/post : pre/post grants operations"
             echo "  semi     : semisync operations"
             echo "  group    : group replication operations "
@@ -194,6 +202,17 @@ function test_completeness {
             done
         fi
     done
+}
+
+function test_slave_hosts {
+    running_version=$1
+    dir_name=$2
+    expected_nodes=$3
+    test_header test_slave_hosts "$running_version"
+    version_path=$(echo $running_version| tr '.' '_')
+    sbdir=$SANDBOX_HOME/$dir_name$version_path
+    found_nodes=$($sbdir/m -BN -e 'show slave hosts' | wc -l | tr -d ' ')
+    ok_equal "slave hosts" $found_nodes $expected_nodes
 }
 
 function test_start_restart {
@@ -629,9 +648,72 @@ function main_deployment_methods {
         test_completeness $V multi_msb_ multiple
         test_start_restart $V msb_ single
         test_start_restart $V rsandbox_ multiple
+        test_slave_hosts $V rsandbox_ 2
         capture_test run dbdeployer global test
         capture_test run dbdeployer global test-replication
         test_deletion $V 3
+    done
+}
+
+function global_status_count_on {
+    dbdeployer global status | grep 'on  -\|on$' | wc -l | tr -d ' '
+}
+
+function global_status_count_off {
+    dbdeployer global status | grep -w off | wc -l | tr -d ' '
+}
+
+function check_on_off_status {
+    expected_on=$1
+    expected_off=$2
+    status_count_off=$(global_status_count_off)
+    status_count_on=$(global_status_count_on)
+    ok_equal "idle sandboxes $V" $status_count_off $expected_off
+    ok_equal "started sandboxes $V" $status_count_on $expected_on
+}
+
+function skip_start_deployment {
+    current_test=skip_start_deployment
+    test_header skip_start_deployment "" double
+    for V in ${all_versions[*]}
+    do
+        for stype in single multiple replication
+        do
+            run dbdeployer deploy $stype $V --skip-start
+        done
+        # all sandboxes OFF
+        check_on_off_status 0 7
+        version_path=$(echo $V| tr '.' '_')
+        singledir=msb_$version_path
+        repldir=rsandbox_$version_path
+
+        # One sandbox ON
+        $SANDBOX_HOME/$singledir/start
+        $SANDBOX_HOME/$singledir/load_grants
+        check_on_off_status 1 6
+        # Check that the manually started sandbox behaves as expected
+        capture_test $SANDBOX_HOME/$singledir/test_sb
+
+        # Three more sandboxes ON
+        $SANDBOX_HOME/$repldir/start_all
+        $SANDBOX_HOME/$repldir/master/load_grants
+        $SANDBOX_HOME/$repldir/initialize_slaves
+        check_on_off_status 4 3
+
+        # Check that the manually started replication sandbox behaves as expected
+        capture_test $SANDBOX_HOME/$repldir/test_sb_all
+        capture_test $SANDBOX_HOME/$repldir/test_replication
+        dbdeployer delete all --skip-confirm
+    done
+
+    for V in ${group_versions[*]}
+    do
+        run dbdeployer deploy replication $V --skip-start --topology=group
+        run dbdeployer deploy replication $V --skip-start --topology=group --single-primary
+        run dbdeployer deploy replication $V --skip-start --topology=fan-in
+        run dbdeployer deploy replication $V --skip-start --topology=all-masters
+        check_on_off_status 0 12
+        dbdeployer delete all --skip-confirm
     done
 }
 
@@ -748,6 +830,10 @@ function multi_source_operations {
 if [ -z "$skip_main_deployment_methods" ]
 then
     main_deployment_methods
+fi
+if [ -z "$skip_skip_start_deployment" ]
+then
+    skip_start_deployment
 fi
 if [ -z "$skip_pre_post_operations" ]
 then

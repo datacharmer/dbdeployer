@@ -1,3 +1,11 @@
+1.2.0	14-Apr-2018
+	- Added option --skip-start
+	- Added report-port and report-host automatically to my.sandbox.cnf
+	- Added options --skip-report-host and --skip-report-port
+	- Added documentation dbdeployer compiling.
+	- Added documentation for --skip-start
+	- Enhanced build.sh to handle dependencies.
+	- Added tests for --skip-start and report-host/report-port behavior.
 1.1.1	02-Apr-2018
 	- Added more documentation
 	- Added bash-completion script

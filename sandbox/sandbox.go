@@ -33,6 +33,9 @@ type SandboxDef struct {
 	Basedir           string
 	SandboxDir        string
 	LoadGrants        bool
+	SkipReportHost    bool
+	SkipReportPort    bool
+	SkipStart         bool
 	InstalledPorts    []int
 	Port              int
 	UserPort          int
@@ -329,6 +332,17 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 		"GtidOptions":  sdef.GtidOptions,
 		"SemiSyncOptions":  sdef.SemiSyncOptions,
 		"ExtraOptions": slice_to_text(sdef.MyCnfOptions),
+		"ReportHost": fmt.Sprintf("report-host=single-%d", sdef.Port),
+		"ReportPort": fmt.Sprintf("report-port=%d", sdef.Port),
+	}
+	if sdef.NodeNum != 0 {
+		data["ReportHost"] = fmt.Sprintf("report-host = node-%d", sdef.NodeNum) 
+	}
+	if sdef.SkipReportHost {
+		data["ReportHost"] = ""
+	}
+	if sdef.SkipReportPort {
+		data["ReportPort"] = ""
 	}
 	if sdef.ServerId > 0 {
 		data["ServerId"] = fmt.Sprintf("server-id=%d", sdef.ServerId)
@@ -477,7 +491,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 		}
 	}
 	//common.Run_cmd(sandbox_dir + "/start", []string{})
-	if sdef.RunConcurrently {
+	if !sdef.SkipStart && sdef.RunConcurrently {
 		var eCommand2 = concurrent.ExecCommand{
 			Cmd : sandbox_dir+"/start",
 			Args : []string{},
@@ -500,13 +514,14 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 			exec_list = append(exec_list, concurrent.ExecutionList{4, eCommand4})
 			exec_list = append(exec_list, concurrent.ExecutionList{5, eCommand5})
 		}
-
 	} else {
-		common.Run_cmd(sandbox_dir + "/start")
-		if sdef.LoadGrants {
-			common.Run_cmd_with_args(sandbox_dir+"/load_grants", []string{"pre_grants.sql"})
-			common.Run_cmd(sandbox_dir + "/load_grants")
-			common.Run_cmd_with_args(sandbox_dir+"/load_grants", []string{"post_grants.sql"})
+		if !sdef.SkipStart {
+			common.Run_cmd(sandbox_dir + "/start")
+			if sdef.LoadGrants {
+				common.Run_cmd_with_args(sandbox_dir+"/load_grants", []string{"pre_grants.sql"})
+				common.Run_cmd(sandbox_dir + "/load_grants")
+				common.Run_cmd_with_args(sandbox_dir+"/load_grants", []string{"post_grants.sql"})
+			}
 		}
 	}
 	return

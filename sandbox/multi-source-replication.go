@@ -132,8 +132,10 @@ func CreateAllMastersReplication(sdef SandboxDef, origin string, nodes int, mast
 	write_script(ReplicationTemplates, "test_replication", "multi_source_test_template", sandbox_dir, data, true)
 	write_script(ReplicationTemplates, "check_ms_nodes", "check_multi_source_template", sandbox_dir, data, true)
 	write_script(ReplicationTemplates, "initialize_ms_nodes", "multi_source_template", sandbox_dir, data, true)
-	fmt.Println(common.ReplaceLiteralHome(sandbox_dir) + "/initialize_ms_nodes")
-	common.Run_cmd(sandbox_dir + "/initialize_ms_nodes")
+	if !sdef.SkipStart {
+		fmt.Println(common.ReplaceLiteralHome(sandbox_dir) + "/initialize_ms_nodes")
+		common.Run_cmd(sandbox_dir + "/initialize_ms_nodes")
+	}
 }
 
 func normalize_node_list(list string) string {
@@ -179,8 +181,10 @@ func CreateFanInReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	write_script(ReplicationTemplates, "test_replication", "multi_source_test_template", sandbox_dir, data, true)
 	write_script(ReplicationTemplates, "check_ms_nodes", "check_multi_source_template", sandbox_dir, data, true)
 	write_script(ReplicationTemplates, "initialize_ms_nodes", "multi_source_template", sandbox_dir, data, true)
-	fmt.Println(common.ReplaceLiteralHome(sandbox_dir) + "/initialize_ms_nodes")
-	common.Run_cmd(sandbox_dir + "/initialize_ms_nodes")
+	if !sdef.SkipStart {
+		fmt.Println(common.ReplaceLiteralHome(sandbox_dir) + "/initialize_ms_nodes")
+		common.Run_cmd(sandbox_dir + "/initialize_ms_nodes")
+	}
 }
 
 

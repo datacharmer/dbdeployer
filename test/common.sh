@@ -274,6 +274,11 @@ function ok_comparison {
     then
         echo $failure
         fail=$((fail+1))
+        if [ -n "$EXIT_ON_FAILURE" ]
+        then
+            echo "pass: $pass - fail: $fail"
+            exit
+        fi
     else
         echo "Neither success or failure detected"
         echo "op:     $op"
@@ -326,6 +331,11 @@ function ok_contains {
     else
         echo "not ok - $label - '$value1' does not contain '$value2' "
         fail=$((fail+1))
+        if [ -n "$EXIT_ON_FAILURE" ]
+        then
+            echo "pass: $pass - fail: $fail"
+            exit
+        fi
     fi
     tests=$((tests+1))
 }
@@ -340,6 +350,11 @@ function ok {
     else
         echo "not ok - $label "
         fail=$((fail+1))
+        if [ -n "$EXIT_ON_FAILURE" ]
+        then
+            echo "pass: $pass - fail: $fail"
+            exit
+        fi
     fi
     tests=$((tests+1))
 }
@@ -355,6 +370,11 @@ function ok_generic_exists {
     else
         echo "NOT OK - $label $wanted does not  exist"
         fail=$((fail+1))
+        if [ -n "$EXIT_ON_FAILURE" ]
+        then
+            echo "pass: $pass - fail: $fail"
+            exit
+        fi
     fi
     tests=$((tests+1))
 }

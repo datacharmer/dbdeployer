@@ -183,8 +183,12 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 		sb_item.Port = append(sb_item.Port, sdef.Port + defaults.Defaults().GroupPortDelta )
 		sb_desc.Port = append(sb_desc.Port, sdef.Port + defaults.Defaults().GroupPortDelta )
 
-		if ! sdef.RunConcurrently {
-			fmt.Printf("Installing and starting %s %d\n", node_label, i)
+		if !sdef.RunConcurrently {
+			installation_message := "Installing and starting %s %d\n"
+			if sdef.SkipStart {
+				installation_message="Installing %s %d\n"
+			}
+			fmt.Printf(installation_message, node_label, i)
 		}
 		sdef.ReplOptions = SingleTemplates["replication_options"].Contents + fmt.Sprintf("\n%s\n%s\n", GroupReplOptions, single_multi_primary)
 		re_master_ip := regexp.MustCompile(`127\.0\.0\.1`) 
@@ -234,8 +238,10 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	write_script(ReplicationTemplates, "test_replication", "multi_source_test_template", sdef.SandboxDir, data, true)
 
 	concurrent.RunParallelTasksByPriority(exec_lists)
-	fmt.Println(common.ReplaceLiteralHome(sdef.SandboxDir) + "/initialize_nodes")
-	common.Run_cmd(sdef.SandboxDir + "/initialize_nodes")
+	if !sdef.SkipStart {
+		fmt.Println(common.ReplaceLiteralHome(sdef.SandboxDir) + "/initialize_nodes")
+		common.Run_cmd(sdef.SandboxDir + "/initialize_nodes")
+	}
 	fmt.Printf("Replication directory installed in %s\n", common.ReplaceLiteralHome(sdef.SandboxDir))
 	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
 }

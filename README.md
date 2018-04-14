@@ -3,7 +3,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.1.1 (02-Apr-2018 10:39 UTC)
+Documentation updated for version 1.2.0 (14-Apr-2018 18:27 UTC)
 
 ## Installation
 
@@ -13,7 +13,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.1.1
+    $ VERSION=1.2.0
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/$VERSION
     $ wget $origin/dbdeployer-$VERSION.linux.tar.gz
     $ tar -xzf dbdeployer-$VERSION.linux.tar.gz
@@ -29,9 +29,9 @@ Of course, there are **prerequisites**: your machine must be able to run the MyS
 
 With dbdeployer, you can deploy a single sandbox, or many sandboxes  at once, with or without replication.
 
-The main command is **deploy** with its subcommands **single**, **replication**, and **multiple**, which work with MySQL tarball that have been unpacked into the _sandbox-binary_ directory (by default, $HOME/opt/mysql.)
+The main command is ``deploy`` with its subcommands ``single``, ``replication``, and ``multiple``, which work with MySQL tarball that have been unpacked into the _sandbox-binary_ directory (by default, $HOME/opt/mysql.)
 
-To use a tarball, you must first run the **unpack** command, which will unpack the tarball into the right directory.
+To use a tarball, you must first run the ``unpack`` command, which will unpack the tarball into the right directory.
 
 For example:
 
@@ -44,10 +44,10 @@ For example:
     . sandbox server started
 
 
-The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with '--help' will show the main help screen.
+The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.1.1
+    dbdeployer version 1.2.0
     
 
     $ dbdeployer -h
@@ -80,9 +80,9 @@ The program doesn't have any dependencies. Everything is included in the binary.
     
 
 The flags listed in the main screen can be used with any commands.
-The flags _--my-cnf-options_ and _--init-options_ can be used several times.
+The flags ``--my-cnf-options`` and ``--init-options`` can be used several times.
 
-If you don't have any tarballs installed in your system, you should first *unpack* it (see an example above).
+If you don't have any tarballs installed in your system, you should first ``unpack`` it (see an example above).
 
     $ dbdeployer unpack -h
     If you want to create a sandbox from a tarball, you first need to unpack it
@@ -117,7 +117,7 @@ If you don't have any tarballs installed in your system, you should first *unpac
     
     
 
-The easiest command is *deploy single*, which installs a single sandbox.
+The easiest command is ``deploy single``, which installs a single sandbox.
 
     $ dbdeployer deploy -h
     Deploys single, multiple, or replicated sandboxes
@@ -157,6 +157,9 @@ The easiest command is *deploy single*, which installs a single sandbox.
           --rpl-user string               replication user (default "rsandbox")
           --sandbox-directory string      Changes the default sandbox directory
           --skip-load-grants              Does not load the grants
+          --skip-report-host              Does not include report host in my.sandbox.cnf
+          --skip-report-port              Does not include report port in my.sandbox.cnf
+          --skip-start                    Does not start the database server
           --use-template strings          [template_name:file_name] Replace existing template with one from file
     
     
@@ -182,7 +185,7 @@ The easiest command is *deploy single*, which installs a single sandbox.
     
     
 
-If you want more than one sandbox of the same version, without any replication relationship, use the *multiple* command with an optional "--node" flag (default: 3).
+If you want more than one sandbox of the same version, without any replication relationship, use the ``deploy multiple`` command with an optional ``--node`` flag (default: 3).
 
     $ dbdeployer deploy multiple -h
     Creates several sandboxes of the same version,
@@ -205,7 +208,7 @@ If you want more than one sandbox of the same version, without any replication r
     
     
 
-The *replication* command will install a master and two or more slaves, with replication started. You can change the topology to "group" and get three nodes in peer replication, or compose multi-source topologies with *all-masters* or *fan-in*.
+The ``deploy replication`` command will install a master and two or more slaves, with replication started. You can change the topology to *group* and get three nodes in peer replication, or compose multi-source topologies with *all-masters* or *fan-in*.
 
     $ dbdeployer deploy replication -h
     The replication command allows you to deploy several nodes in replication.
@@ -259,8 +262,8 @@ If you want to deploy several instances of the same version and the same type (f
 
 ## Concurrent deployment and deletion
 
-Starting with version 0.3.0, dbdeployer can deploy groups of sandboxes (*replication*, *multiple*) with the flag ``--concurrent``. When this flag is used, dbdeployed will run operations concurrently.
-The same flag can be used with the *delete* command. It is useful when there are several sandboxes to be deleted at once.
+Starting with version 0.3.0, dbdeployer can deploy groups of sandboxes (``deploy replication``, ``deploy multiple``) with the flag ``--concurrent``. When this flag is used, dbdeployed will run operations concurrently.
+The same flag can be used with the ``delete`` command. It is useful when there are several sandboxes to be deleted at once.
 Concurrent operations run from 2 to 5 times faster than sequential ones, depending on the version of the server and the number of nodes.
 
 ## Replication topologies
@@ -293,15 +296,44 @@ In the above example, we get 5 nodes instead of 3. The first three are master (`
 
 The first three lines show that each master has done something. In our case, each master has created a different table. Slaves in nodes 5 and 6 then count how many tables they found, and if they got the tables from all masters, the test succeeds.
 
+## Skip server start
+
+By default, when sandboxes are deployed, the servers start and additional operations to complete the topology are executed automatically. It is possible to skip the server start, using the ``--skip-start`` option. When this option is used, the server is initialized, but not started. Consequently, the default users are not created, and the database, when started manually, is only accessible with user ``root`` without password.
+
+If you deploy with ``--skip-start``, you can run the rest of the operations manually:
+
+    $ dbdeployer deploy single --skip-start 5.7.21
+    $ $HOME/sandboxes/msb_5_7_21/start
+    $ $HOME/sandboxes/msb_5_7_21/load_grants
+
+The same can be done for replication, but you need also to run the additional step of initializing the slaves:
+
+    $ dbdeployer deploy replication --skip-start 5.7.21 --concurrent
+    $ $HOME/sandboxes/rsandbox_5_7_21/start_all
+    $ $HOME/sandboxes/rsandbox_5_7_21/master/load_grants
+    # NOTE: only the master needs to load grants. The slaves receive the grants through replication
+    $ $HOME/sandboxes/rsandbox_5_7_21/initialize_slaves
+
+Similarly, for group replication
+
+    $ dbdeployer deploy replication --skip-start 5.7.21 --topology=group --concurrent
+    $ $HOME/sandboxes/group_msb_5_7_21/start_all
+    $ $HOME/sandboxes/group_msb_5_7_21/node1/load_grants
+    $ $HOME/sandboxes/group_msb_5_7_21/node2/load_grants
+    $ $HOME/sandboxes/group_msb_5_7_21/node3/load_grants
+    $ $HOME/sandboxes/rsandbox_5_7_21/initialize_nodes
+
+WARNING: running sandboxes with ``--skip-start`` is provided for advanced users and is not recommended.
+If the purpose of skipping the start is to inspect the server before the sandbox granting operations, you may consider using ``--pre-grants-sql`` and ``--pre-grants-sql-file`` to run the necessary SQL commands (see _Sandbox customization_ below.)
 
 ## Sandbox customization
 
 There are several ways of changing the default behavior of a sandbox.
 
-1. You can add options to the sandbox being deployed using --my-cnf-options="some mysqld directive". This option can be used many times. The supplied options are added to my.sandbox.cnf
-2. You can specify a my.cnf template (--my-cnf-file=filename) instead of defining options line by line. dbdeployer will skip all the options that are needed for the sandbox functioning.
-3. You can run SQL statements or SQL files before or after the grants were loaded (--pre-grants-sql, --pre-grants-sql-file, etc). You can also use these options to peek into the state of the sandbox and see what is happening at every stage.
-4. For more advanced needs, you can look at the templates being used for the deployment, and load your own instead of the original s(--use-template=TemplateName:FileName.)
+1. You can add options to the sandbox being deployed using ``--my-cnf-options="some mysqld directive"``. This option can be used many times. The supplied options are added to my.sandbox.cnf
+2. You can specify a my.cnf template (``--my-cnf-file=filename``) instead of defining options line by line. dbdeployer will skip all the options that are needed for the sandbox functioning.
+3. You can run SQL statements or SQL files before or after the grants were loaded (``--pre-grants-sql``, ``--pre-grants-sql-file``, etc). You can also use these options to peek into the state of the sandbox and see what is happening at every stage.
+4. For more advanced needs, you can look at the templates being used for the deployment, and load your own instead of the original s(``--use-template=TemplateName:FileName``.)
 
 For example:
 
@@ -337,7 +369,7 @@ Here's how:
     $ dbdeployer defaults show
     # Internal values:
     {
-     	"version": "1.1.0",
+     	"version": "1.2.0",
      	"sandbox-home": "$HOME/sandboxes",
      	"sandbox-binary": "$HOME/opt/mysql",
      	"use-sandbox-catalog": true,
@@ -367,7 +399,7 @@ Here's how:
     # Updated master-slave-base-port -> "15000"
     # Configuration file: $HOME/.dbdeployer/config.json
     {
-     	"version": "1.1.0",
+     	"version": "1.2.0",
      	"sandbox-home": "$HOME/sandboxes",
      	"sandbox-binary": "$HOME/opt/mysql",
      	"use-sandbox-catalog": true,
@@ -475,7 +507,7 @@ The command "usage" shows how to use the scripts that were installed with each s
 
 ## Sandbox macro operations
 
-You can run a command in several sandboxes at once, using the *global* command, which propagates your command to all the installed sandboxes.
+You can run a command in several sandboxes at once, using the ``global`` command, which propagates your command to all the installed sandboxes.
 
     $ dbdeployer global -h 
     This command can propagate the given action through all sandboxes.
@@ -533,21 +565,32 @@ You can lock one or more sandboxes to prevent deletion. Use this command to make
 
     $ dbdeployer admin lock sandbox_name
 
-A locked sandbox will not be deleted, even when running "dbdeployer delete ALL."
+A locked sandbox will not be deleted, even when running ``dbdeployer delete ALL``.
 
 The lock can also be reverted using
 
     $ dbdeployer admin unlock sandbox_name
+
+## Compiling dbdeployer
+
+Should you need to compile your own binaries for dbdeployer, follow these steps:
+
+1. Make sure you have go installed in your system, and that the ``$GOPATH`` variable is set.
+2. Run ``go get github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
+3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
+4. From the folder ``./pflag``, copy the file ``string_slice.go`` to ``$GOPATH/src/github.com/spf13/pflag``.
+5. Run ``./build.sh {linux|OSX} 1.2.0``
+6. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.2.0``
 
 ## Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.1.1-docs.linux.tar.gz
-* dbdeployer-1.1.1-docs.osx.tar.gz
-* dbdeployer-1.1.1.linux.tar.gz
-* dbdeployer-1.1.1.osx.tar.gz
+* dbdeployer-1.2.0-docs.linux.tar.gz
+* dbdeployer-1.2.0-docs.osx.tar.gz
+* dbdeployer-1.2.0.linux.tar.gz
+* dbdeployer-1.2.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

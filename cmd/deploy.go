@@ -33,7 +33,10 @@ func init() {
 	deployCmd.PersistentFlags().Bool("native-auth-plugin", false, "in 8.0.4+, uses the native password auth plugin")
 	deployCmd.PersistentFlags().Bool("keep-server-uuid", false, "Does not change the server UUID")
 	deployCmd.PersistentFlags().Bool("force", false, "If a destination sandbox already exists, it will be overwritten")
+	deployCmd.PersistentFlags().Bool("skip-start", false, "Does not start the database server")
 	deployCmd.PersistentFlags().Bool("skip-load-grants", false, "Does not load the grants")
+	deployCmd.PersistentFlags().Bool("skip-report-host", false, "Does not include report host in my.sandbox.cnf")
+	deployCmd.PersistentFlags().Bool("skip-report-port", false, "Does not include report port in my.sandbox.cnf")
 	deployCmd.PersistentFlags().Bool("expose-dd-tables", false, "In MySQL 8.0+ shows data dictionary tables")
 	deployCmd.PersistentFlags().Bool("concurrent", false, "Runs multiple sandbox deployments concurrently")
 
@@ -56,5 +59,4 @@ func init() {
 	set_pflag(deployCmd,"rpl-password", "", "", "rsandbox", "replication password", false)
 	set_pflag(deployCmd,"use-template", "", "", "", "[template_name:file_name] Replace existing template with one from file", true)
 	set_pflag(deployCmd,"sandbox-directory", "", "", "", "Changes the default sandbox directory", false)
-
 }

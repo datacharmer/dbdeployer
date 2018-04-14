@@ -94,10 +94,13 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	common.CheckSandboxDir(sd.SandboxDir)
 	sd.InstalledPorts = common.GetInstalledPorts(sd.SandboxDir)
 	sd.LoadGrants = true
+	sd.SkipStart, _ = flags.GetBool("skip-start")
 	skip_load_grants, _ := flags.GetBool("skip-load-grants")
-	if skip_load_grants {
+	if skip_load_grants || sd.SkipStart {
 		sd.LoadGrants = false
 	}
+	sd.SkipReportHost, _ = flags.GetBool("skip-report-host")
+	sd.SkipReportPort, _ = flags.GetBool("skip-report-port")
 	sd.DbUser, _ = flags.GetString("db-user")
 	sd.DbPassword, _ = flags.GetString("db-password")
 	sd.RplUser, _ = flags.GetString("rpl-user")

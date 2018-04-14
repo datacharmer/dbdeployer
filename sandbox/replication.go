@@ -89,8 +89,12 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		"Slaves":     []common.Smap{},
 	}
 
+	installation_message := "Installing and starting %s\n"
+	if sdef.SkipStart {
+		installation_message = "Installing %s\n"
+	}
 	if !sdef.RunConcurrently {
-		fmt.Printf("Installing and starting %s\n", master_label)
+		fmt.Printf(installation_message, master_label)
 	}
 	sdef.LoadGrants = true
 	sdef.Multi = true
@@ -147,8 +151,12 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		sb_item.Nodes = append(sb_item.Nodes, sdef.DirName)
 		sb_item.Port = append(sb_item.Port, sdef.Port)
 		sb_desc.Port = append(sb_desc.Port, sdef.Port)
-		if ! sdef.RunConcurrently {
-			fmt.Printf("Installing and starting %s %d\n", slave_label, i)
+		installation_message = "Installing and starting %s%d\n"
+		if sdef.SkipStart {
+			installation_message = "Installing %s%d\n"
+		}
+		if !sdef.RunConcurrently {
+			fmt.Printf(installation_message, slave_label, i)
 		}
 		if sdef.SemiSyncOptions != "" {
 			sdef.SemiSyncOptions = SingleTemplates["semisync_slave_options"].Contents
@@ -196,8 +204,10 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	write_script(ReplicationTemplates, "n1", "master_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "test_replication", "test_replication_template", sdef.SandboxDir, data, true)
 	concurrent.RunParallelTasksByPriority(exec_lists)
-	fmt.Println(common.ReplaceLiteralHome(sdef.SandboxDir) + "/" + initialize_slaves)
-	common.Run_cmd(sdef.SandboxDir + "/" +initialize_slaves)
+	if !sdef.SkipStart {
+		fmt.Println(common.ReplaceLiteralHome(sdef.SandboxDir) + "/" + initialize_slaves)
+		common.Run_cmd(sdef.SandboxDir + "/" +initialize_slaves)
+	}
 	fmt.Printf("Replication directory installed in %s\n", common.ReplaceLiteralHome(sdef.SandboxDir))
 	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
 }

@@ -336,6 +336,8 @@ datadir            = {{.Datadir}}
 tmpdir             = {{.Tmpdir}}
 pid-file           = {{.Datadir}}/mysql_sandbox{{.Port}}.pid
 bind-address       = {{.BindAddress}}
+{{.ReportHost}}
+{{.ReportPort}}
 log-error=msandbox.err
 {{.ServerId}}
 {{.ReplOptions}}
