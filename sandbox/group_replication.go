@@ -45,6 +45,17 @@ loose-group-replication-single-primary-mode=off
 `
 )
 
+func get_base_mysqlx_port(base_port int, sdef SandboxDef, nodes int) int {
+	base_mysqlx_port := base_port + 10000
+	if common.GreaterOrEqualVersion(sdef.Version, []int{8,0,11}) {
+		base_mysqlx_port = FindFreePort(base_mysqlx_port, sdef.InstalledPorts,  nodes)
+		for check_port := base_mysqlx_port + 1; check_port < base_mysqlx_port+nodes+1; check_port++ {
+			CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
+		}
+	}
+	return base_mysqlx_port
+}
+
 func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip string) {
 	var exec_lists []concurrent.ExecutionList
 	vList := common.VersionToList(sdef.Version)
@@ -67,6 +78,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 		sdef = CheckDirectory(sdef)
 	}
 	base_port = FindFreePort(base_port, sdef.InstalledPorts,  nodes)
+	base_mysqlx_port := get_base_mysqlx_port(base_port, sdef, nodes)
 	base_group_port := base_port + defaults.Defaults().GroupPortDelta
 	base_group_port = FindFreePort(base_group_port, sdef.InstalledPorts,  nodes)
 	for check_port := base_port + 1; check_port < base_port+nodes+1; check_port++ {
@@ -196,6 +208,13 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 		sdef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["gtid_options"].Contents)
 		sdef.ReplOptions += fmt.Sprintf("\nloose-group-replication-local-address=%s:%d\n", master_ip, group_port)
 		sdef.ReplOptions += fmt.Sprintf("\nloose-group-replication-group-seeds=%s\n", connection_string)
+		if common.GreaterOrEqualVersion(sdef.Version, []int{8,0,11}) {
+			sdef.MysqlXPort = base_mysqlx_port + i
+			if !sdef.DisableMysqlX {
+				sb_desc.Port = append(sb_desc.Port, base_mysqlx_port + i)
+				sb_item.Port = append(sb_item.Port, base_mysqlx_port + i)
+			}
+		}
 		sdef.Multi = true
 		sdef.LoadGrants = true
 		sdef.Prompt = fmt.Sprintf("%s%d", node_label, i)
@@ -232,6 +251,8 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	write_script(MultipleTemplates, "clear_all", "clear_multi_template", sdef.SandboxDir, data, true)
 	write_script(MultipleTemplates, "send_kill_all", "send_kill_multi_template", sdef.SandboxDir, data, true)
 	write_script(MultipleTemplates, "use_all", "use_multi_template", sdef.SandboxDir, data, true)
+	write_script(ReplicationTemplates, "use_all_slaves", "multi_source_use_slaves_template", sdef.SandboxDir, data, true)
+	write_script(ReplicationTemplates, "use_all_masters", "multi_source_use_masters_template", sdef.SandboxDir, data, true)
 	write_script(GroupTemplates, "initialize_nodes", "init_nodes_template", sdef.SandboxDir, data, true)
 	write_script(GroupTemplates, "check_nodes", "check_nodes_template", sdef.SandboxDir, data, true)
 	//write_script(ReplicationTemplates, "test_replication", "test_replication_template", sdef.SandboxDir, data, true)

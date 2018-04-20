@@ -42,12 +42,15 @@ then
 fi
 
 container_name=dbtest
-if [ "$(uname)" == "Darwin" ]
-then
-    # This name identifies the container as running in Docker for mac,
-    # and will allow the test script to tune operations accordingly.
-    container_name=dbtestmac
-fi
+#if [ "$(uname)" == "Darwin" ]
+#then
+#    # This name identifies the container as running in Docker for mac,
+#    # and will allow the test script to tune operations accordingly.
+#    if [ -z "$INCLUDE_56" ]
+#    then
+#        container_name=dbtestmac
+#    fi
+#fi
 
 exists=$(docker ps -a | grep $container_name )
 if [ -n "$exists" ]

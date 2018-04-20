@@ -1,3 +1,19 @@
+1.3.0	21-Apr-2018
+	ADJUSTMENTS:
+	- Added support for mysqlx plugin being enabled by default (MySQL 8.0.11+)
+	- Added flag "--disable-mysqlx" to disable mysqlx plugin (8.0.11+)
+	NEW FEATURES:
+	- Added scripts use_all_masters and use_all_slaves to all replication
+	  sandboxes.
+	- Added option --verbosity={0,1,2} to *unpack* command.
+	BUGS FIXED:
+		- Fixed Issue#10 "dbdeployer unpack does not handle symlinks"
+		- Fixed minor bug in documentation test builder.
+	TESTING
+	- Added tests for number of ports, log errors, use_all_masters,
+	  use_all_slaves, running processes.
+	- Added options to stop tests after a given set of operations.
+	- Removed restriction on running 5.6 tests in docker for Mac.
 1.2.0	14-Apr-2018
 	- Added option --skip-start
 	- Added report-port and report-host automatically to my.sandbox.cnf

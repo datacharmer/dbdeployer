@@ -72,6 +72,8 @@ status_all
 restart_all
 stop_all
 use_all
+use_all_masters
+use_all_slaves
 clear_all
 m
 s1, s2, n1, n2

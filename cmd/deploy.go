@@ -34,6 +34,7 @@ func init() {
 	deployCmd.PersistentFlags().Bool("keep-server-uuid", false, "Does not change the server UUID")
 	deployCmd.PersistentFlags().Bool("force", false, "If a destination sandbox already exists, it will be overwritten")
 	deployCmd.PersistentFlags().Bool("skip-start", false, "Does not start the database server")
+	deployCmd.PersistentFlags().Bool("disable-mysqlx", false, "Disable MySQLX plugin (8.0.11+)")
 	deployCmd.PersistentFlags().Bool("skip-load-grants", false, "Does not load the grants")
 	deployCmd.PersistentFlags().Bool("skip-report-host", false, "Does not include report host in my.sandbox.cnf")
 	deployCmd.PersistentFlags().Bool("skip-report-port", false, "Does not include report port in my.sandbox.cnf")

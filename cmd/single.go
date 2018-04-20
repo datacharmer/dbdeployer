@@ -101,6 +101,7 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	}
 	sd.SkipReportHost, _ = flags.GetBool("skip-report-host")
 	sd.SkipReportPort, _ = flags.GetBool("skip-report-port")
+	sd.DisableMysqlX, _ = flags.GetBool("disable-mysqlx")
 	sd.DbUser, _ = flags.GetString("db-user")
 	sd.DbPassword, _ = flags.GetString("db-password")
 	sd.RplUser, _ = flags.GetString("rpl-user")

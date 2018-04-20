@@ -56,6 +56,10 @@ do
             unset RUN_CONCURRENTLY
             echo "# Disabling CONCURRENCY"
             ;;
+        exitfail)
+            export EXIT_ON_FAILURE=1
+            echo "# Enabling EXIT_ON_FAILURE"
+            ;;
         all)
             unset skip_main_deployment_methods
             unset skip_skip_start_deployment
@@ -115,6 +119,7 @@ do
             echo "  concurrent  : Enable concurrent operations"
             echo "  sequential  : Disable concurrent operations"
             echo "  interactive : Enable interaction with user"
+            echo "  exitfail    : Enable exit on failure"
             exit 1
     esac
     shift
@@ -152,6 +157,24 @@ then
     echo "Directory (\$SANDBOX_HOME) "$SANDBOX_HOME" could not be created"
     exit 1
 fi
+
+function test_ports {
+    running_version=$1
+    dir_name=$2
+    expected_ports=$3
+    nodes=$4
+    major=$(echo $running_version | tr '.' ' ' | awk '{print $1}')
+    minor=$(echo $running_version | tr '.' ' ' | awk '{print $2}')
+    rev=$(echo $running_version | tr '.' ' ' | awk '{print $3}')
+    if [[ $major -eq 8 && $minor -eq 0  && $rev -ge 11 ]]
+    then
+        expected_ports=$((expected_ports+nodes))
+    fi
+    test_header test_ports "$dir_name $running_version"
+    how_many_ports=$(sandbox_num_ports $running_version $dir_name)
+    ok_equal "Ports in $dir_name $running_version" $how_many_ports $expected_ports
+    check_for_exit test_ports
+}
 
 function test_completeness {
     running_version=$1
@@ -202,17 +225,34 @@ function test_completeness {
             done
         fi
     done
+    check_for_exit test_completeness
 }
 
 function test_slave_hosts {
     running_version=$1
     dir_name=$2
     expected_nodes=$3
-    test_header test_slave_hosts "$running_version"
     version_path=$(echo $running_version| tr '.' '_')
+    test_header test_slave_hosts "$dir_name$version_path"
     sbdir=$SANDBOX_HOME/$dir_name$version_path
     found_nodes=$($sbdir/m -BN -e 'show slave hosts' | wc -l | tr -d ' ')
     ok_equal "slave hosts" $found_nodes $expected_nodes
+    check_for_exit test_slave_hosts skip_log_check
+}
+
+function test_use_masters_slaves {
+    running_version=$1
+    dir_name=$2
+    expected_masters=$3
+    expected_slaves=$4
+    version_path=$(echo $running_version| tr '.' '_')
+    test_header test_use_masters_slaves "$dir_name$version_path"
+    sbdir=$SANDBOX_HOME/$dir_name$version_path
+    found_masters=$($sbdir/use_all_masters 'select @@server_id' | grep '^[0-9]\+$' | wc -l | tr -d ' ')
+    found_slaves=$($sbdir/use_all_slaves 'select @@server_id' | grep '^[0-9]\+$'  | wc -l | tr -d ' ')
+    ok_equal "master hosts" $found_masters $expected_masters
+    ok_equal "slave hosts" $found_slaves $expected_slaves
+    check_for_exit test_use_masters_slaves skip_log_check
 }
 
 function test_start_restart {
@@ -236,6 +276,10 @@ function test_start_restart {
     before_connections=$($sbdir/$use_name -BN -e 'select @@max_connections' | tr -d ' ' )
     new_connections=66
     ok_not_equal "Initial max connections" "$before_connections" $new_connections
+    #(set -x
+    #find $SANDBOX_HOME -name '*.pid' -exec cat {} \;
+    #pgrep mysqld
+    #)
     $sbdir/$stop_name
     $sbdir/$start_name --max-connections=$new_connections
     after_connections=$($sbdir/$use_name -BN -e 'select @@max_connections' | tr -d ' ' )
@@ -263,6 +307,11 @@ function test_start_restart {
         new_option=$(grep "max-connections=$new_connections" $sbdir/my.sandbox.cnf)
         ok_equal "add_options: added line to my.sandbox.cnf" "$new_option" "max-connections=$new_connections"
     fi
+    #(set -x
+    #find $SANDBOX_HOME -name '*.pid' -exec cat {} \;
+    #pgrep mysqld
+    #)
+    check_for_exit test_start_restart skip_log_check
 }
 
 
@@ -285,6 +334,7 @@ function test_semi_sync {
     master_no_trx_after=$($sbdir/m -BN -e 'show global status like "Rpl_semi_sync_master_no_tx"' | awk '{print $2}' )
     ok_equal "Same number of async trx" $master_no_trx_before $master_no_trx_after
     ok_greater "Bigger number of sync trx" $master_yes_trx_after $master_yes_trx_before
+    check_for_exit test_semi_sync skip_log_check
 }
 
 function test_force_single {
@@ -295,9 +345,10 @@ function test_force_single {
     sandbox_dir=$dir_name$version_path
     capture_test $SANDBOX_HOME/$sandbox_dir/test_sb
     port_before=$($SANDBOX_HOME/$sandbox_dir/use -BN -e 'show variables like "port"' | awk '{print $2}')
-    run dbdeployer deploy single $running_version --force
+    run dbdeployer deploy single $CUSTOM_OPTIONS $running_version --force
     port_after=$($SANDBOX_HOME/$sandbox_dir/use -BN -e 'show variables like "port"' | awk '{print $2}')
     ok_equal "Port before and after --force redeployment" $port_after $port_before
+    check_for_exit test_force_single
 }
 
 function test_force_replication {
@@ -308,9 +359,10 @@ function test_force_replication {
     sandbox_dir=$dir_name$version_path
     capture_test $SANDBOX_HOME/$sandbox_dir/test_sb_all
     port_before=$($SANDBOX_HOME/$sandbox_dir/m -BN -e 'show variables like "port"' | awk '{print $2}')
-    run dbdeployer deploy replication $running_version --force
+    run dbdeployer deploy $CUSTOM_OPTIONS replication $running_version --force
     port_after=$($SANDBOX_HOME/$sandbox_dir/m -BN -e 'show variables like "port"' | awk '{print $2}')
     ok_equal "Port before and after --force redeployment" $port_after $port_before
+    check_for_exit test_force_replication
 }
 
 function test_custom_credentials {
@@ -343,7 +395,7 @@ function test_custom_credentials {
     new_repl_password=anotherthing_rpl
     run dbdeployer deploy $mode $running_version \
         --db-user=$new_db_user --db-password=$new_db_password \
-        --force \
+        --force  $CUSTOM_OPTIONS \
         --rpl-user=$new_repl_user --rpl-password=$new_repl_password
     # This deployment will be re-tested later together with the rest of the sandboxes
     user_found=$(grep $new_db_user $SANDBOX_HOME/$sandbox_dir/$my_cnf) 
@@ -355,6 +407,7 @@ function test_custom_credentials {
     ok "custom replication user found" "$repl_user_found"
     ok "custom replication password found" "$repl_password_found"
     sleep 1
+    check_for_exit test_custom_credentials
 }
  
 function test_uuid {
@@ -394,12 +447,15 @@ function test_uuid {
         ok_contains "UUID" "$uuid" "$port"
         ok_equal "UUID in file and SQL" $uuid $uuid_sql
     done
+    check_for_exit test_uuid
 }
 
 function test_deletion {
     del_version=$1
     expected_items=$2
+    processes_before=$3
     test_header test_deletion $del_version
+
     # test lock: sandboxes become locked against deletion
     num_sandboxes_before=$(dbdeployer sandboxes | wc -l)
     run dbdeployer admin lock ALL
@@ -413,6 +469,7 @@ function test_deletion {
     ok_equal "sandboxes_in_catalog" $how_many $expected_items
 
     run dbdeployer admin unlock ALL
+    check_for_exit test_deletion skip_log_check
     run dbdeployer delete ALL --skip-confirm
     results "#$del_version - after deletion"
     num_sandboxes_final=$(dbdeployer sandboxes --catalog | wc -l)
@@ -422,8 +479,11 @@ function test_deletion {
 
     how_many=$(count_catalog)
     ok_equal "sandboxes_in_catalog" $how_many 0
+    processes_after=$(pgrep mysqld | wc -l | tr -d ' \t')
+    ok_equal 'no more mysqld processes after deletion' $processes_after $processes_before
     if [ "$fail" != "0" ]
     then
+        echo "# detected failures: $fail"
         exit 1
     fi
 }
@@ -495,14 +555,6 @@ fi
 
 [ -z "$short_versions" ] && short_versions=(5.0 5.1 5.5 5.6 5.7 8.0)
 
-if [ "$(hostname)" == "dbtestmac" ]
-then
-    # There is a strange bug in docker for Mac, which fails
-    # mysteriously when running several instances of MySQL 5.6
-    # So we're skipping it if we know that we're running inside
-    # a docker for Mac container.
-    short_versions=(5.0 5.1 5.5 5.7 8.0)
-fi
 [ -z "$group_short_versions" ] && group_short_versions=(5.7 8.0)
 [ -z "$semisync_short_versions" ] && semisync_short_versions=(5.5 5.6 5.7 8.0)
 count=0
@@ -600,6 +652,7 @@ echo "Will test: [${all_versions[*]}]"
 function main_deployment_methods {
     current_test=main_deployment_methods
     test_header main_deployment_methods "" double
+    processes_before=$(pgrep mysqld | wc -l | tr -d ' \t')
     for V in ${all_versions[*]}
     do
         # We test the main deployment methods
@@ -611,7 +664,7 @@ function main_deployment_methods {
         do
             echo "# Parallel deployment: $stype $V"
             install_out="/tmp/${stype}-${V}-$$"
-            run dbdeployer deploy $stype $V > $install_out 2>&1 &
+            run dbdeployer deploy $stype $CUSTOM_OPTIONS $V > $install_out 2>&1 &
         done
         echo $dotted_line
         # wait for the installation processes to finish
@@ -646,12 +699,18 @@ function main_deployment_methods {
         test_completeness $V msb_ single
         test_completeness $V rsandbox_ replication
         test_completeness $V multi_msb_ multiple
+        test_ports $V msb_ 1 1
+        test_ports $V rsandbox_ 3 3
+        test_ports $V multi_msb_ 3 3
         test_start_restart $V msb_ single
         test_start_restart $V rsandbox_ multiple
+        test_start_restart $V multi_msb_ multiple
         test_slave_hosts $V rsandbox_ 2
+        test_use_masters_slaves $V rsandbox_ 1 2
         capture_test run dbdeployer global test
         capture_test run dbdeployer global test-replication
-        test_deletion $V 3
+        echo "# processes $processes_before"
+        test_deletion $V 3 $processes_before
     done
 }
 
@@ -670,6 +729,7 @@ function check_on_off_status {
     status_count_on=$(global_status_count_on)
     ok_equal "idle sandboxes $V" $status_count_off $expected_off
     ok_equal "started sandboxes $V" $status_count_on $expected_on
+    check_for_exit check_on_off_status
 }
 
 function skip_start_deployment {
@@ -703,6 +763,7 @@ function skip_start_deployment {
         # Check that the manually started replication sandbox behaves as expected
         capture_test $SANDBOX_HOME/$repldir/test_sb_all
         capture_test $SANDBOX_HOME/$repldir/test_replication
+        check_for_exit skip_start_deployment
         dbdeployer delete all --skip-confirm
     done
 
@@ -713,6 +774,7 @@ function skip_start_deployment {
         run dbdeployer deploy replication $V --skip-start --topology=fan-in
         run dbdeployer deploy replication $V --skip-start --topology=all-masters
         check_on_off_status 0 12
+        check_for_exit skip_start_deployment2
         dbdeployer delete all --skip-confirm
     done
 }
@@ -755,6 +817,7 @@ function pre_post_operations {
         ok_contains "Version" $post_version $V
         results "pre/post $V"
         rm $outfile
+        check_for_exit pre_post_operations
         dbdeployer delete ALL --skip-confirm
     done
 }
@@ -776,6 +839,7 @@ function semisync_operations {
         #sleep 2
         capture_test run dbdeployer global test
         test_semi_sync $V rsandbox_
+        check_for_exit semisync_operations skip_log_check
         dbdeployer delete ALL --skip-confirm
         results "semisync $V - after deletion"
     done
@@ -784,6 +848,7 @@ function semisync_operations {
 function group_operations {
     current_test=group_operations
     test_header group_operations "" double
+    processes_before=$(pgrep mysqld | wc -l | tr -d ' \t')
     for V in ${group_versions[*]}
     do
         echo "# Group operations $V"
@@ -796,7 +861,12 @@ function group_operations {
         capture_test run dbdeployer global test-replication
         test_uuid $V group_msb_ 1
         test_uuid $V group_sp_msb_ 1
-        test_deletion $V 2
+        test_use_masters_slaves $V group_msb_ 3 3
+        test_use_masters_slaves $V group_sp_msb_ 1 2
+        test_ports $V group_msb_ 6 3
+        test_ports $V group_sp_msb_ 6 3
+        check_for_exit group_operations
+        test_deletion $V 2 $processes_before
         results "group $V - after deletion"
     done
 }
@@ -804,6 +874,7 @@ function group_operations {
 function multi_source_operations {
     current_test=multi_source_operations
     test_header multi_source_operations "" double
+    processes_before=$(pgrep mysqld | wc -l | tr -d ' \t')
     for V in ${group_versions[*]}
     do
         echo "# Multi-source operations $V"
@@ -822,7 +893,12 @@ function multi_source_operations {
         capture_test run dbdeployer global test-replication
         test_uuid $V fan_in_msb_ 1
         test_uuid $V all_masters_msb_ 1
-        test_deletion $V 3
+        test_ports $V fan_in_msb_ 3 3
+        test_ports $V all_masters_msb_ 3 3
+        test_use_masters_slaves $V fan_in_msb_ 2 1
+        test_use_masters_slaves $V all_masters_msb_ 3 3
+        check_for_exit multi_source_operations
+        test_deletion $V 3 $processes_before
         results "multi-source - after deletion"
     done
 }

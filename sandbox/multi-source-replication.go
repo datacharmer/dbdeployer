@@ -130,6 +130,8 @@ func CreateAllMastersReplication(sdef SandboxDef, origin string, nodes int, mast
 		write_script(ReplicationTemplates, fmt.Sprintf("m%d", node), "slave_template", sandbox_dir, data, true)
 	}
 	write_script(ReplicationTemplates, "test_replication", "multi_source_test_template", sandbox_dir, data, true)
+	write_script(ReplicationTemplates, "use_all_slaves", "multi_source_use_slaves_template", sandbox_dir, data, true)
+	write_script(ReplicationTemplates, "use_all_masters", "multi_source_use_masters_template", sandbox_dir, data, true)
 	write_script(ReplicationTemplates, "check_ms_nodes", "check_multi_source_template", sandbox_dir, data, true)
 	write_script(ReplicationTemplates, "initialize_ms_nodes", "multi_source_template", sandbox_dir, data, true)
 	if !sdef.SkipStart {
@@ -180,6 +182,8 @@ func CreateFanInReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	}
 	write_script(ReplicationTemplates, "test_replication", "multi_source_test_template", sandbox_dir, data, true)
 	write_script(ReplicationTemplates, "check_ms_nodes", "check_multi_source_template", sandbox_dir, data, true)
+	write_script(ReplicationTemplates, "use_all_slaves", "multi_source_use_slaves_template", sandbox_dir, data, true)
+	write_script(ReplicationTemplates, "use_all_masters", "multi_source_use_masters_template", sandbox_dir, data, true)
 	write_script(ReplicationTemplates, "initialize_ms_nodes", "multi_source_template", sandbox_dir, data, true)
 	if !sdef.SkipStart {
 		fmt.Println(common.ReplaceLiteralHome(sandbox_dir) + "/initialize_ms_nodes")

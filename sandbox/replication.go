@@ -46,6 +46,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	base_server_id := 0
 	sdef.DirName = defaults.Defaults().MasterName
 	base_port = FindFreePort(base_port, sdef.InstalledPorts,  nodes)
+	base_mysqlx_port := get_base_mysqlx_port(base_port, sdef, nodes)
 	for check_port := base_port + 1; check_port < base_port+nodes+1; check_port++ {
 		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
 	}
@@ -124,6 +125,14 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		Destination: sdef.SandboxDir,
 	}
 
+	if common.GreaterOrEqualVersion(sdef.Version, []int{8,0,11}) {
+		sdef.MysqlXPort = base_mysqlx_port + 1
+		if !sdef.DisableMysqlX {
+			sb_desc.Port = append(sb_desc.Port, base_mysqlx_port + 1)
+			sb_item.Port = append(sb_item.Port, base_mysqlx_port + 1)
+		}
+	}
+
 	node_label := defaults.Defaults().NodePrefix
 	for i := 1; i <= slaves; i++ {
 		sdef.Port = base_port + i + 1
@@ -151,6 +160,13 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		sb_item.Nodes = append(sb_item.Nodes, sdef.DirName)
 		sb_item.Port = append(sb_item.Port, sdef.Port)
 		sb_desc.Port = append(sb_desc.Port, sdef.Port)
+		if common.GreaterOrEqualVersion(sdef.Version, []int{8,0,11}) {
+			sdef.MysqlXPort = base_mysqlx_port + i + 1
+			if !sdef.DisableMysqlX {
+				sb_desc.Port = append(sb_desc.Port, base_mysqlx_port + i + 1)
+				sb_item.Port = append(sb_item.Port, base_mysqlx_port + i + 1)
+			}
+		}
 		installation_message = "Installing and starting %s%d\n"
 		if sdef.SkipStart {
 			installation_message = "Installing %s%d\n"
@@ -198,6 +214,8 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	write_script(ReplicationTemplates, "clear_all", "clear_all_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "send_kill_all", "send_kill_all_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, "use_all", "use_all_template", sdef.SandboxDir, data, true)
+	write_script(ReplicationTemplates, "use_all_slaves", "use_all_slaves_template", sdef.SandboxDir, data, true)
+	write_script(ReplicationTemplates, "use_all_masters", "use_all_masters_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, initialize_slaves, "init_slaves_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, check_slaves, "check_slaves_template", sdef.SandboxDir, data, true)
 	write_script(ReplicationTemplates, master_abbr, "master_template", sdef.SandboxDir, data, true)

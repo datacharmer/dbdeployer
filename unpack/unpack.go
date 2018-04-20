@@ -121,7 +121,44 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 			}
 			return err
 		}
-		//fmt.Printf("%#v\n", header)
+		// cond_print(fmt.Sprintf("%#v\n", header), true, CHATTY)
+		/*
+		tar.Header{
+			Typeflag:0x30, 
+			Name:"mysql-8.0.11-macos10.13-x86_64/docs/INFO_SRC", 
+			Linkname:"", 
+			Size:185, 
+			Mode:420, 
+			Uid:7161, 
+			Gid:10, 
+			Uname:"pb2user", 
+			Gname:"owner", 
+			ModTime:time.Time{wall:0x0, ext:63658769207, loc:(*time.Location)(0x13730e0)}, 
+			AccessTime:time.Time{wall:0x0, ext:0, loc:(*time.Location)(nil)}, 
+			ChangeTime:time.Time{wall:0x0, ext:0, loc:(*time.Location)(nil)}, 
+			Devmajor:0, Devminor:0, 
+			Xattrs:map[string]string(nil), 
+			PAXRecords:map[string]string(nil), 
+			Format:0}
+		tar.Header{
+			Typeflag:0x32, 
+			Name:"mysql-8.0.11-macos10.13-x86_64/lib/libssl.dylib", 
+			Linkname:"libssl.1.0.0.dylib", 
+			Size:0, 
+			Mode:493, 
+			Uid:7161, 
+			Gid:10, 
+			Uname:"pb2user", 
+			Gname:"owner", 
+			ModTime:time.Time{wall:0x0, ext:63658772525, loc:(*time.Location)(0x13730e0)}, 
+			AccessTime:time.Time{wall:0x0, ext:0, loc:(*time.Location)(nil)}, 
+			ChangeTime:time.Time{wall:0x0, ext:0, loc:(*time.Location)(nil)}, 
+			Devmajor:0, 
+			Devminor:0, 
+			Xattrs:map[string]string(nil), 
+			PAXRecords:map[string]string(nil), 
+			Format:0}
+		*/
 		filemode := os.FileMode(header.Mode)
 		filename := sanitizedName(header.Name)
 		switch header.Typeflag {
@@ -151,6 +188,19 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 				if Verbose < CHATTY {
 					cond_print(mark, false, 1)
 				}
+			}
+		case tar.TypeSymlink:
+			if header.Linkname != "" {
+				cond_print(fmt.Sprintf ("%s -> %s",filename, header.Linkname), true, CHATTY)
+				err := os.Symlink( header.Linkname, filename)
+				if err != nil {
+					fmt.Printf("%#v\n",header)
+					fmt.Printf("# ERROR: %s\n",err)	
+					os.Exit(1)
+				}
+			} else {
+				fmt.Printf("File %s is a symlonk, but no link information was provided\n", filename)
+				os.Exit(1)
 			}
 		}
 	}

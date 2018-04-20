@@ -52,6 +52,39 @@ then
     rev_list=$rev_sparse
 fi
 
+function test_number_of_ports {
+    version=$1
+    dir_name=$2
+    mode=$3
+    nodes=$4
+    expected_ports=$5
+    version_name=$(echo $version | tr '.' '_')
+    deploy_command=$mode
+    case $mode in 
+        groupr)
+            deploy_command="replication --topology=group"
+            ;;
+        groupsp)
+            deploy_command="replication --topology=group --single-primary"
+            ;;
+        allmasters)
+            deploy_command="replication --topology=all-masters"
+            ;;
+        fanin)
+            deploy_command="replication --topology=fan-in"
+            ;;
+    esac
+    run dbdeployer deploy $deploy_command $version --disable-mysqlx
+    how_many_ports=$(sandbox_num_ports $version $dir_name)
+    ok_equal "ports in $dir_name $version (without mysqlx)" $how_many_ports $expected_ports
+    run dbdeployer delete $dir_name$version_name
+    expected_ports=$((expected_ports+nodes))
+    run dbdeployer deploy $deploy_command $version
+    how_many_ports=$(sandbox_num_ports $version $dir_name)
+    ok_equal "ports in $dir_name $version (with mysqlx)" $how_many_ports $expected_ports
+    run dbdeployer delete $dir_name$version_name
+}
+
 for rev in $rev_list
 do
     for vers in ${versions[*]}
@@ -85,6 +118,16 @@ do
     for vers in ${versions_mysqld_initialize[*]}
     do
         version=${vers}.${rev}
+        if [[ $vers == "8.0" && $rev -ge 11 ]]
+        then
+            test_number_of_ports $version msb_ single 1 1
+            test_number_of_ports $version rsandbox_ replication 3 3
+            test_number_of_ports $version multi_msb_ multiple 3 3
+            test_number_of_ports $version group_msb_ groupr 3 6
+            test_number_of_ports $version group_sp_msb_ groupsp 3 6
+            test_number_of_ports $version all_masters_msb_ allmasters 3 3
+            test_number_of_ports $version fan_in_msb_ fanin 3 3
+        fi
         version_name=$(echo $version | tr '.' '_')
         run dbdeployer deploy single $version
         run dbdeployer deploy multiple $version

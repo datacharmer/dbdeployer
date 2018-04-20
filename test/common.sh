@@ -39,6 +39,56 @@ function test_header {
     fi
 }
 
+function check_for_log_errors {
+    label=$1
+    skip_error_evaluation=$2
+    for log_file in $(find $SANDBOX_HOME -name msandbox.err)
+    do
+        has_errors=$(grep -w ERROR $log_file| wc -l | tr -d ' \t' )
+        if [ "$has_errors" != "0" ]
+        then
+            echo $dash_line
+            echo "# called from: $label"
+            echo "# log file:    $log_file"
+            echo $dash_line
+            grep -w ERROR $log_file
+            echo $dash_line
+        fi
+        if [ -z "$skip_error_evaluation" ]
+        then
+            ok_equal "Health check for errors in log file $log_file" "$has_errors" "0"
+        fi
+    done
+}
+
+function check_for_exit {
+    label=$1
+    skip_log_check=$2
+    echo "## >> Label for exit on demand : $label"
+    check_for_log_errors $label $skip_log_check
+    if [ "$exit_on_demand" == "$label" ]
+    then
+        echo "Exit on demand - label: $label"
+        echo "pass: $pass"
+        echo "fail: $fail"
+        exit 0
+    fi
+}
+
+
+function sandbox_num_ports {
+    running_version=$1
+    dir_name=$2
+    version_path=$(echo $running_version| tr '.' '_')
+    descr=$SANDBOX_HOME/$dir_name$version_path/sbdescription.json
+    if [ ! -f $descr ]
+    then
+        echo 0
+        return
+    fi
+    cat $descr | sed -n '/port/,/]/p' | grep '^\s*[0-9]\+' | wc -l | tr -d ' \t'
+}
+
 function start_timer {
     start=$(date)
     start_sec=$(date +%s)

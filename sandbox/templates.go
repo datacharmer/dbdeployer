@@ -368,9 +368,11 @@ log-error=msandbox.err
 			fi
 		}
 
+		mysqld_safe_pid=$(ps auxw | grep mysqld_safe | grep "defaults-file=$SBDIR" | awk '{print $2}')
 		if [ -n "$(is_running)" ]
 		then
 			MYPID=$(cat $PIDFILE)
+			kill -9 $mysqld_safe_pid
 			echo "Attempting normal termination --- kill -15 $MYPID"
 			kill -15 $MYPID
 			# give it a chance to exit peacefully

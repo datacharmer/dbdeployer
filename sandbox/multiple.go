@@ -59,6 +59,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Sma
 	if sdef.BasePort > 0 {
 		base_port = sdef.BasePort
 	}
+	base_mysqlx_port := get_base_mysqlx_port(base_port, sdef, nodes)
 	base_port = FindFreePort(base_port, sdef.InstalledPorts,  nodes)
 	for check_port := base_port + 1; check_port < base_port+nodes; check_port++ {
 		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
@@ -116,7 +117,13 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Sma
 		sb_item.Nodes = append(sb_item.Nodes, sdef.DirName)
 		sb_item.Port = append(sb_item.Port, sdef.Port)
 		sb_desc.Port = append(sb_desc.Port, sdef.Port)
-
+		if common.GreaterOrEqualVersion(sdef.Version, []int{8,0,11}) {
+			sdef.MysqlXPort = base_mysqlx_port + i
+			if !sdef.DisableMysqlX {
+				sb_desc.Port = append(sb_desc.Port, base_mysqlx_port + i)
+				sb_item.Port = append(sb_item.Port, base_mysqlx_port + i)
+			}
+		}
 		sdef.Multi = true
 		sdef.NodeNum = i
 		sdef.Prompt = fmt.Sprintf("%s%d",node_label, i)

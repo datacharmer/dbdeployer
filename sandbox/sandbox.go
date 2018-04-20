@@ -38,6 +38,7 @@ type SandboxDef struct {
 	SkipStart         bool
 	InstalledPorts    []int
 	Port              int
+	MysqlXPort        int
 	UserPort          int
 	BasePort          int
 	MorePorts         []int
@@ -61,6 +62,7 @@ type SandboxDef struct {
 	PostGrantsSqlFile string
 	MyCnfFile         string
 	NativeAuthPlugin  bool
+	DisableMysqlX     bool
 	KeepUuid          bool
 	SinglePrimary     bool
 	Force             bool
@@ -293,6 +295,19 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 			sdef.MyCnfOptions = append(sdef.MyCnfOptions, "default_authentication_plugin=mysql_native_password")
 		}
 	}
+	if common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 11}) {
+		if sdef.DisableMysqlX {
+			sdef.MyCnfOptions = append(sdef.MyCnfOptions, "mysqlx=OFF")
+		} else {
+			mysqlx_port := sdef.MysqlXPort
+			if mysqlx_port == 0 {
+				mysqlx_port = FindFreePort(sdef.Port + 10000, sdef.InstalledPorts, 1)
+			}
+			sdef.MyCnfOptions = append(sdef.MyCnfOptions, fmt.Sprintf("mysqlx-port=%d", mysqlx_port))
+			sdef.MyCnfOptions = append(sdef.MyCnfOptions, fmt.Sprintf("mysqlx-socket=%s/mysqlx-%d.sock", global_tmp_dir, mysqlx_port))
+			sdef.MorePorts = append(sdef.MorePorts, mysqlx_port)
+		}
+	}
 	if sdef.MyCnfFile != "" {
 		options := GetOptionsFromFile(sdef.MyCnfFile)
 		if len(options) > 0 {
@@ -338,7 +353,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 	if sdef.NodeNum != 0 {
 		data["ReportHost"] = fmt.Sprintf("report-host = node-%d", sdef.NodeNum) 
 	}
-	if sdef.SkipReportHost {
+	if sdef.SkipReportHost || sdef.SBType == "group-node" {
 		data["ReportHost"] = ""
 	}
 	if sdef.SkipReportPort {

@@ -42,6 +42,14 @@ mkdir -p $SANDBOX_BINARY
 mkdir $SANDBOX_HOME
 mkdir $SANDBOX_TARBALL
 
+function make_dir {
+    dir=$1
+    if [ ! -d $dir ]
+    then
+        mkdir -p $dir
+    fi
+}
+
 # A mock version is a collection of
 # fake MySQL executable that will create
 # empty sandboxes with no-op key executables.
@@ -59,9 +67,9 @@ function create_mock_version {
         echo "$SANDBOX_BINARY not found"
         exit 1
     fi
-    mkdir $SANDBOX_BINARY/$version_label
-    mkdir $SANDBOX_BINARY/$version_label/bin
-    mkdir $SANDBOX_BINARY/$version_label/scripts
+    make_dir $SANDBOX_BINARY/$version_label
+    make_dir $SANDBOX_BINARY/$version_label/bin
+    make_dir $SANDBOX_BINARY/$version_label/scripts
     dbdeployer defaults templates show no_op_mock_template > $SANDBOX_BINARY/$version_label/bin/mysqld
     dbdeployer defaults templates show no_op_mock_template > $SANDBOX_BINARY/$version_label/bin/mysql
     dbdeployer defaults templates show mysqld_safe_mock_template > $SANDBOX_BINARY/$version_label/bin/mysqld_safe

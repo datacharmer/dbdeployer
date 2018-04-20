@@ -30,6 +30,7 @@ import (
 func UnpackTarball(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	Basedir, _ := flags.GetString("sandbox-binary")
+	verbosity, _ := flags.GetInt("verbosity")
 	if !common.DirExists(Basedir) {
 		fmt.Printf("Directory %s does not exist.\n", Basedir)
 		fmt.Println("You should create it or provide an alternate base directory using --sandbox-binary")
@@ -70,8 +71,8 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Printf("Unpacking tarball %s to %s\n", tarball, common.ReplaceLiteralHome(destination))
-	verbosity_level := unpack.VERBOSE
-	err := unpack.UnpackTar(tarball, Basedir, verbosity_level)
+	//verbosity_level := unpack.VERBOSE
+	err := unpack.UnpackTar(tarball, Basedir, verbosity)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -115,6 +116,7 @@ If there is already an expanded tarball with the same version, a new one can be 
 func init() {
 	rootCmd.AddCommand(unpackCmd)
 
+	unpackCmd.PersistentFlags().Int("verbosity", 1, "Level of verbosity during unpack (0=none, 2=maximum)")
 	unpackCmd.PersistentFlags().String("unpack-version", "", "which version is contained in the tarball")
 	unpackCmd.PersistentFlags().String("prefix", "", "Prefix for the final expanded directory")
 }

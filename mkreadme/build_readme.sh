@@ -42,7 +42,7 @@ then
 fi
 
 dbdeployer-docs tree --bash-completion
-if [ !-f $completion_file ]
+if [ ! -f $completion_file ]
 then
     echo "# An error occurred: completion file '$completion_file' was not created"
     exit 1
