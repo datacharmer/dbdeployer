@@ -19,6 +19,9 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"sort"
+	"strings"
+	"strconv"
 )
 
 // Given a path starting at the HOME directory
@@ -81,3 +84,65 @@ func Includes(main_string, contained string) bool {
 	return re.MatchString(main_string)
 
 }
+
+// Given a list of version strings (in the format x.x.x)
+// this function returns an ordered list, taking into account the
+// components of the versions, so that 5.6.2 sorts lower than 5.6.11
+// while a text sort would put 5.6.11 before 5.6.2
+func SortVersions(versions []string ) (sorted []string) {
+	type version_list struct {
+		text string
+		maj_min_rev  []int
+	}
+	var vlist []version_list
+	for _, line := range versions {
+		vl := VersionToList(line)
+		rec := version_list {
+			text : line,
+			maj_min_rev : vl,
+		}
+		if vl[0] > 0 {
+			vlist = append(vlist, rec)
+		}
+	}
+	sort.Slice(vlist, func(a, b int) bool {
+		maj_a := vlist[a].maj_min_rev[0]
+		min_a := vlist[a].maj_min_rev[1]
+		rev_a := vlist[a].maj_min_rev[2]
+		maj_b := vlist[b].maj_min_rev[0]
+		min_b := vlist[b].maj_min_rev[1]
+		rev_b := vlist[b].maj_min_rev[2]
+		return maj_a < maj_b ||
+			( maj_a == maj_b && min_a < min_b) ||
+			( maj_a == maj_b && min_a == min_b && rev_a < rev_b)
+	})
+	for _, v := range vlist {
+		sorted = append(sorted, v.text)
+	}	
+	return
+}
+
+func LatestVersion(versions []string ) string {
+	sorted := SortVersions(versions)
+	return sorted[0]
+}
+
+func Atoi(val string) int {
+	numvalue, err := strconv.Atoi(val)
+	if err != nil {
+		fmt.Printf("Not a valid number: %s (%s)\n", val, err)
+		os.Exit(1)
+	}
+	return numvalue
+}
+
+
+func StringToIntSlice(val string) (num_list []int) {
+	list := strings.Split(val, ",")
+	for _, item := range list {
+		num_list = append(num_list, Atoi(strings.TrimSpace(item)))
+	}
+	return num_list
+}
+
+

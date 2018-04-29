@@ -3,7 +3,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.3.0 (20-Apr-2018 21:22 UTC)
+Documentation updated for version 1.4.0 (28-Apr-2018 12:56 UTC)
 
 ## Installation
 
@@ -13,7 +13,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.3.0
+    $ VERSION=1.4.0
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/$VERSION
     $ wget $origin/dbdeployer-$VERSION.linux.tar.gz
     $ tar -xzf dbdeployer-$VERSION.linux.tar.gz
@@ -47,7 +47,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.3.0
+    dbdeployer version 1.4.0
     
 
     $ dbdeployer -h
@@ -140,10 +140,13 @@ The easiest command is ``deploy single``, which installs a single sandbox.
       -u, --db-user string                database user (default "msandbox")
           --defaults strings              Change defaults on-the-fly (--defaults=label:value)
           --disable-mysqlx                Disable MySQLX plugin (8.0.11+)
+          --enable-general-log            Enables general log for the sandbox (MySQL 5.1+)
+          --enable-mysqlx                 Enables MySQLX plugin (5.7.12+)
           --expose-dd-tables              In MySQL 8.0+ shows data dictionary tables
           --force                         If a destination sandbox already exists, it will be overwritten
           --gtid                          enables GTID
       -h, --help                          help for deploy
+          --init-general-log              uses general log during initialization (MySQL 5.1+)
       -i, --init-options strings          mysqld options to run during initialization
           --keep-server-uuid              Does not change the server UUID
           --my-cnf-file string            Alternative source file for my.sandbox.cnf
@@ -256,11 +259,48 @@ If you want to deploy several instances of the same version and the same type (f
     $ dbdeployer deploy single 8.0.4
     # will deploy in msb_8_0_4 using port 8004
 
-    $ dbdeployer deploy single 8.0.4 --sandbox-directory=msb2_8_0_4 --port=8005
-    # will deploy in msb2_8_0_4 using port 8005
+    $ dbdeployer deploy single 8.0.4 --sandbox-directory=msb2_8_0_4
+    # will deploy in msb2_8_0_4 using port 8005 (which dbdeployer detects and uses)
 
     $ dbdeployer deploy replication 8.0.4 --sandbox-directory=rsandbox2_8_0_4 --base-port=18600
     # will deploy replication in rsandbox2_8_0_4 using ports 18601, 18602, 18603
+
+## Ports management
+
+dbdeployer will try using the default port for each sandbox whenever possible. For single sandboxes, the port will be the version number without dots: 5.7.22 will deploy on port 5722. For multiple sandboxes, the port number is defined by using a prefix number (visible in the defaults: ``dbdeployer defaults list``) + the port number + the revision number (for some topologies multiplied by 100.)
+For example, single-primary group replication with MySQL 8.0.11 will compute the ports like this:
+
+    base port = 8011 (version number) + 13000 (prefix) + 11 (revision) * 100  = 22111
+    node1 port = base port + 1 = 22112
+    node2 port = base port + 2 = 22113
+    node3 port = base port + 2 = 22114
+
+For group replication we need to calculate the group port, and we use the ``group-port-delta`` (= 125) to obtain it from the regular port:
+
+    node1 group port = 22112 + 125 = 22237
+    node2 group port = 22113 + 125 = 22238
+    node3 group port = 22114 + 125 = 22239
+
+For MySQL 8.0.11+, we also need to assign a port for the XPlugin, and we compute that using the regular port + the ``mysqlx-port-delta`` (=10000).
+
+Thus, for MySQL 8.0.11 group replication deployments, you would see this listing:
+
+    $ dbdeployer sandboxes --header
+    name                   type                  version  ports
+    ----------------       -------               -------  -----
+    group_msb_8_0_11     : group-multi-primary    8.0.11 [20023 20148 30023 20024 20149 30024 20025 20150 30025]
+    group_sp_msb_8_0_11  : group-single-primary   8.0.11 [22112 22237 32112 22113 22238 32113 22114 22239 32114]
+
+This method makes port clashes unlikely when using the same version in different deployments, but there is a risk of port clashes when deploying many multiple sandboxes of close-by versions.
+However, dbdeployer doesn't let the clash happen. Thanks to its central catalog of sandboxes, it knows which ports were already used, and will search for free ones whenever a potential clash is detected.
+Bear in mind that the concept of "used" is only related to sandboxes. dbdeployer does not know if ports may be used by other applications.
+You can minimize risks, however, by telling dbdeployer which ports may be occupied. The defaults have a field ``reserved-ports``, containing the ports that should not be used. You can add to that list by modifying the defaults. For example, if you want to exclude port 7001, 10000, and 15000 from being used, you can run
+
+    dbdeployer defaults update reserved-ports '7001,10000,15000'
+
+or, if you want to preserve the ones that are reserved by default:
+
+    dbdeployer defaults update reserved-ports '1186,3306,33060,7001,10000,15000'
 
 ## Concurrent deployment and deletion
 
@@ -328,6 +368,25 @@ Similarly, for group replication
 WARNING: running sandboxes with ``--skip-start`` is provided for advanced users and is not recommended.
 If the purpose of skipping the start is to inspect the server before the sandbox granting operations, you may consider using ``--pre-grants-sql`` and ``--pre-grants-sql-file`` to run the necessary SQL commands (see _Sandbox customization_ below.)
 
+## MySQL Document store, mysqlsh, and defaults.
+
+MySQL 5.7.12+ introduces the XPlugin (a.k.a. _mysqlx_) which enables operations using a separate port (33060 by default) on special tables that can be treated as NoSQL collections.
+In MySQL 8.0.11+ the XPlugin is enabled by default, giving dbdeployer the task of defining an additional port and socket for this service. When you deploy MySQL 8.0.11 or later, dbdeployer sets the ``mysqlx-port`` to the value of the regular port + ``mysqlx-delta-port`` (= 10000).
+
+If you want to avoid having the XPlugin enabled, you can deploy the sandbox with the option ``--disable-mysqlx``.
+
+For MySQL between 5.7.12 and 8.0.4, the approach is the opposite. By default, the XPlugin is disabled, and if you want to use it you will run the deployment using ``--enable-mysqlx``. In both cases the port and socket will be computed by dbdeployer.
+
+When the XPlugin is enabled, it makes sense to use [the MySQL shell](https://dev.mysql.com/doc/refman/8.0/en/mysql-shell.html) and dbdeployer will create a ``mysqlsh`` script for the sandboxes that use the plugin. Unfortunately, as of today (late April 2018) the MySQL shell is not released with the server tarball, and therefore we have to fix things manually. dbdeployer will look for ``mysqlsh`` in the same directory where the other clients are, so if you manually merge the mysql shell and the server tarballs, you will get the appropriate version of MySQL shell. If not, you will use the version of the shell that is available in ``$PATH``. If there is no MySQL shell available, you will get an error.
+
+## Logs management.
+
+Sometimes, when using sandboxes for testing, it makes sense to enable the general log, either during initialization or for regular operation. While you can do that with ``--my-cnf-options=general-log=1`` or ``--my-init-options=--general-log=1``, as of version 1.4.0 you have two easy boolean shortcuts: ``--init-general-log`` and ``--enable-general-log`` that will start the general log when requested.
+
+Additionally, each sandbox has a convenience script named ``show_log`` that can easily display either the error log or the general log. Run `./show_log -h` for usage info.
+
+For replication, you also have ``show_binlog`` and ``show_relaylog`` in every sandbox as a shortcut to display replication logs easily.
+
 ## Sandbox customization
 
 There are several ways of changing the default behavior of a sandbox.
@@ -371,7 +430,7 @@ Here's how:
     $ dbdeployer defaults show
     # Internal values:
     {
-     	"version": "1.3.0",
+     	"version": "1.4.0",
      	"sandbox-home": "$HOME/sandboxes",
      	"sandbox-binary": "$HOME/opt/mysql",
      	"use-sandbox-catalog": true,
@@ -382,6 +441,7 @@ Here's how:
      	"all-masters-replication-base-port": 15000,
      	"multiple-base-port": 16000,
      	"group-port-delta": 125,
+     	"mysqlx-port-delta": 10000,
      	"master-name": "master",
      	"master-abbr": "m",
      	"node-prefix": "node",
@@ -393,7 +453,13 @@ Here's how:
      	"group-sp-prefix": "group_sp_msb_",
      	"multiple-prefix": "multi_msb_",
      	"fan-in-prefix": "fan_in_msb_",
-     	"all-masters-prefix": "all_masters_msb_"
+     	"all-masters-prefix": "all_masters_msb_",
+     	"reserved-ports": [
+     		1186,
+     		3306,
+     		33060
+     	],
+     	"timestamp": "Sat Apr 28 14:56:12 CEST 2018"
      }
     
 
@@ -401,7 +467,7 @@ Here's how:
     # Updated master-slave-base-port -> "15000"
     # Configuration file: $HOME/.dbdeployer/config.json
     {
-     	"version": "1.3.0",
+     	"version": "1.4.0",
      	"sandbox-home": "$HOME/sandboxes",
      	"sandbox-binary": "$HOME/opt/mysql",
      	"use-sandbox-catalog": true,
@@ -412,6 +478,7 @@ Here's how:
      	"all-masters-replication-base-port": 15000,
      	"multiple-base-port": 16000,
      	"group-port-delta": 125,
+     	"mysqlx-port-delta": 10000,
      	"master-name": "master",
      	"master-abbr": "m",
      	"node-prefix": "node",
@@ -423,7 +490,13 @@ Here's how:
      	"group-sp-prefix": "group_sp_msb_",
      	"multiple-prefix": "multi_msb_",
      	"fan-in-prefix": "fan_in_msb_",
-     	"all-masters-prefix": "all_masters_msb_"
+     	"all-masters-prefix": "all_masters_msb_",
+     	"reserved-ports": [
+     		1186,
+     		3306,
+     		33060
+     	],
+     	"timestamp": "Sat Apr 28 14:56:12 CEST 2018"
      }
     
 
@@ -473,8 +546,21 @@ The command "usage" shows how to use the scripts that were installed with each s
         ./use -BN -e "select @@server_id"
         ./use -u root
     
-    "./clear" stops the server and removes everything from the data directory, 
+    "./clear" stops the server and removes everything from the data directory,
     letting you ready to start from scratch. (Warning! It's irreversible!)
+    
+    "./send_kill" does almost the same as "./stop", as it sends a SIGTERM (-15) kill
+    to shut down the server. Additionally, when the regular kill fails, it will
+    send an unfriendly SIGKILL (-9) to the unresponsive server.
+    
+    "./add_option" will add one or more options to my.sandbox.cnf, and restarts the
+    server to apply the changes.
+    
+    "init_db" and "load_grants" are used during the server initialization, and should not be used
+    in normal operations. They are nonetheless useful to see which operations were performed
+    to set up the server.
+    
+    "./show_binlog" and "./show_relaylog" will show the latest binary log or relay-log.
     
     "./my" is a prefix script to invoke any command named "my*" from the 
     MySQL /bin directory. It is important to use it rather than the 
@@ -485,6 +571,11 @@ The command "usage" shows how to use the scripts that were installed with each s
         ./my sqldump db_name
         ./my sqlbinlog somefile
     
+    "./mysqlsh" invokes the mysql shell. Unlike other commands, this one only works
+    if mysqlsh was installed, with preference to the binaries found in "basedir".
+    This script is created only if the X plugin was enabled (5.7.12+ with --enable-mysqlx
+    or 8.0.11+ without --disable-mysqlx)
+    
      USING MULTIPLE SERVER SANDBOX
     On a replication sandbox, you have the same commands (run "dbdeployer usage single"), 
     with an "_all" suffix, meaning that you propagate the command to all the members. 
@@ -494,16 +585,16 @@ The command "usage" shows how to use the scripts that were installed with each s
     In group sandboxes without a master slave relationship (group replication and 
     multiple sandboxes) the nodes can be accessed by ./n1, ./n2, ./n3, and so on.
     
-    start_all
-    status_all
-    restart_all
-    stop_all
-    use_all
-    use_all_masters
-    use_all_slaves
-    clear_all
-    m
-    s1, s2, n1, n2
+    start_all    [options] > starts all nodes
+    status_all             > get the status of all nodes
+    restart_all  [options] > restarts all nodes
+    stop_all               > stops all nodes
+    use_all         "SQL"  > runs a SQL statement in all nodes
+    use_all_masters "SQL"  > runs a SQL statement in all masters
+    use_all_slaves "SQL"   > runs a SQL statement in all slaves
+    clear_all              > stops all nodes and removes all data
+    m                      > invokes MySQL client in the master
+    s1, s2, n1, n2         > invokes MySQL client in slave 1, 2, node 1, 2
     
     The scripts "check_slaves" or "check_nodes" give the status of replication in the sandbox.
     
@@ -583,18 +674,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 2. Run ``go get github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
 4. From the folder ``./pflag``, copy the file ``string_slice.go`` to ``$GOPATH/src/github.com/spf13/pflag``.
-5. Run ``./build.sh {linux|OSX} 1.3.0``
-6. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.3.0``
+5. Run ``./build.sh {linux|OSX} 1.4.0``
+6. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.4.0``
 
 ## Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.3.0-docs.linux.tar.gz
-* dbdeployer-1.3.0-docs.osx.tar.gz
-* dbdeployer-1.3.0.linux.tar.gz
-* dbdeployer-1.3.0.osx.tar.gz
+* dbdeployer-1.4.0-docs.linux.tar.gz
+* dbdeployer-1.4.0-docs.osx.tar.gz
+* dbdeployer-1.4.0.linux.tar.gz
+* dbdeployer-1.4.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

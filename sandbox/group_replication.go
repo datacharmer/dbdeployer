@@ -46,7 +46,7 @@ loose-group-replication-single-primary-mode=off
 )
 
 func get_base_mysqlx_port(base_port int, sdef SandboxDef, nodes int) int {
-	base_mysqlx_port := base_port + 10000
+	base_mysqlx_port := base_port + defaults.Defaults().MysqlXPortDelta
 	if common.GreaterOrEqualVersion(sdef.Version, []int{8,0,11}) {
 		base_mysqlx_port = FindFreePort(base_mysqlx_port, sdef.InstalledPorts,  nodes)
 		for check_port := base_mysqlx_port + 1; check_port < base_mysqlx_port+nodes+1; check_port++ {

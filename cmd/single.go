@@ -93,6 +93,9 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.SandboxDir, _ = flags.GetString("sandbox-home")
 	common.CheckSandboxDir(sd.SandboxDir)
 	sd.InstalledPorts = common.GetInstalledPorts(sd.SandboxDir)
+	for _, p := range defaults.Defaults().ReservedPorts {
+		sd.InstalledPorts = append(sd.InstalledPorts, p)
+	}
 	sd.LoadGrants = true
 	sd.SkipStart, _ = flags.GetBool("skip-start")
 	skip_load_grants, _ := flags.GetBool("skip-load-grants")
@@ -102,6 +105,7 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.SkipReportHost, _ = flags.GetBool("skip-report-host")
 	sd.SkipReportPort, _ = flags.GetBool("skip-report-port")
 	sd.DisableMysqlX, _ = flags.GetBool("disable-mysqlx")
+	sd.EnableMysqlX, _ = flags.GetBool("enable-mysqlx")
 	sd.DbUser, _ = flags.GetString("db-user")
 	sd.DbPassword, _ = flags.GetString("db-password")
 	sd.RplUser, _ = flags.GetString("rpl-user")
@@ -120,7 +124,13 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.KeepUuid, _ = flags.GetBool("keep-server-uuid")
 	sd.Force, _ = flags.GetBool("force")
 	sd.ExposeDdTables, _ = flags.GetBool("expose-dd-tables")
+	sd.InitGeneralLog, _ = flags.GetBool("init-general-log")
+	sd.EnableGeneralLog, _ = flags.GetBool("enable-general-log")
 	
+	if sd.DisableMysqlX && sd.EnableMysqlX {
+		fmt.Printf("flags --enable-mysqlx and --disable-mysqlx cannot be used together\n")
+		os.Exit(1)
+	}
 	sd.RunConcurrently, _ = flags.GetBool("concurrent")
 	if os.Getenv("RUN_CONCURRENTLY") != "" {
 		sd.RunConcurrently = true

@@ -702,13 +702,13 @@ function main_deployment_methods {
         test_ports $V msb_ 1 1
         test_ports $V rsandbox_ 3 3
         test_ports $V multi_msb_ 3 3
-        test_start_restart $V msb_ single
-        test_start_restart $V rsandbox_ multiple
-        test_start_restart $V multi_msb_ multiple
         test_slave_hosts $V rsandbox_ 2
         test_use_masters_slaves $V rsandbox_ 1 2
         capture_test run dbdeployer global test
         capture_test run dbdeployer global test-replication
+        test_start_restart $V msb_ single
+        test_start_restart $V rsandbox_ multiple
+        test_start_restart $V multi_msb_ multiple
         echo "# processes $processes_before"
         test_deletion $V 3 $processes_before
     done

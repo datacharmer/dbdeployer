@@ -27,6 +27,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"time"
 )
 
 type SandboxUser struct {
@@ -43,6 +44,8 @@ type SandboxDescription struct {
 	Port    []int  `json:"port"`
 	Nodes   int    `json:"nodes"`
 	NodeNum int    `json:"node_num"`
+	DbDeployerVersion string `json:"dbdeployer-version"`
+	Timestamp string `json:"timestamp"`
 }
 
 type keyvalue struct {
@@ -89,6 +92,8 @@ func ParseConfigFile(filename string) configOptions {
 }
 
 func WriteSandboxDescription(destination string, sd SandboxDescription) {
+	sd.DbDeployerVersion = VersionDef
+	sd.Timestamp = time.Now().Format(time.UnixDate)
 	b, err := json.MarshalIndent(sd, " ", "\t")
 	if err != nil {
 		fmt.Println("error encoding sandbox description: ", err)
@@ -204,6 +209,11 @@ func Which(filename string) string {
 func ExecExists(filename string) bool {
 	_, err := exec.LookPath(filename)
 	return err == nil
+}
+
+func FindInPath(filename string) string {
+	path, _ := exec.LookPath(filename)
+    return path
 }
 
 func Run_cmd_with_args(c string, args []string) (error, string) {

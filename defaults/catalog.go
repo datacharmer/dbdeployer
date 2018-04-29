@@ -31,6 +31,8 @@ type SandboxItem struct {
 	Port    []int  `json:"port"`
 	Nodes   []string   `json:"nodes"`
 	Destination string  `json:"destination"`
+	DbDeployerVersion string `json:"dbdeployer-version"`
+	Timestamp string `json:"timestamp"`
 }
 
 type SandboxCatalog map[string]SandboxItem
@@ -103,6 +105,8 @@ func ReadCatalog() (sc SandboxCatalog) {
 }
 
 func UpdateCatalog(sb_name string, details SandboxItem) {
+	details.DbDeployerVersion = common.VersionDef
+	details.Timestamp = time.Now().Format(time.UnixDate)
 	if !enable_catalog_management {
 		return
 	}
