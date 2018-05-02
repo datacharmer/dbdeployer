@@ -17,11 +17,12 @@ package sandbox
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
-	"os"
-	"time"
 )
 
 type Slave struct {
@@ -39,13 +40,13 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	vList := common.VersionToList(sdef.Version)
 	rev := vList[2]
 	// base_port := sdef.Port + defaults.Defaults().MasterSlaveBasePort + (rev * 100)
-	base_port := sdef.Port + defaults.Defaults().MasterSlaveBasePort + rev 
+	base_port := sdef.Port + defaults.Defaults().MasterSlaveBasePort + rev
 	if sdef.BasePort > 0 {
 		base_port = sdef.BasePort
 	}
 	base_server_id := 0
 	sdef.DirName = defaults.Defaults().MasterName
-	base_port = FindFreePort(base_port, sdef.InstalledPorts,  nodes)
+	base_port = FindFreePort(base_port, sdef.InstalledPorts, nodes)
 	base_mysqlx_port := get_base_mysqlx_port(base_port, sdef, nodes)
 	for check_port := base_port + 1; check_port < base_port+nodes+1; check_port++ {
 		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
@@ -57,7 +58,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	sdef.LoadGrants = false
 	master_port := sdef.Port
 	change_master_extra := ""
-	if common.GreaterOrEqualVersion(sdef.Version, []int{8,0,4}) {
+	if common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 4}) {
 		if !sdef.NativeAuthPlugin {
 			change_master_extra = ", GET_MASTER_PUBLIC_KEY=1"
 		}
@@ -74,20 +75,20 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	timestamp := time.Now()
 
 	var data common.Smap = common.Smap{
-		"Copyright":  Copyright,
-		"AppVersion": common.VersionDef,
-		"DateTime":   timestamp.Format(time.UnixDate),
-		"SandboxDir": sdef.SandboxDir,
-		"MasterLabel": master_label,
-		"MasterPort": sdef.Port,
-		"SlaveLabel": slave_label,
-		"MasterAbbr": master_abbr,
-		"MasterIp":    master_ip,
-		"RplUser":     sdef.RplUser,
-		"RplPassword": sdef.RplPassword,
-		"SlaveAbbr": slave_abbr,
-		"ChangeMasterExtra" : change_master_extra,
-		"Slaves":     []common.Smap{},
+		"Copyright":         Copyright,
+		"AppVersion":        common.VersionDef,
+		"DateTime":          timestamp.Format(time.UnixDate),
+		"SandboxDir":        sdef.SandboxDir,
+		"MasterLabel":       master_label,
+		"MasterPort":        sdef.Port,
+		"SlaveLabel":        slave_label,
+		"MasterAbbr":        master_abbr,
+		"MasterIp":          master_ip,
+		"RplUser":           sdef.RplUser,
+		"RplPassword":       sdef.RplPassword,
+		"SlaveAbbr":         slave_abbr,
+		"ChangeMasterExtra": change_master_extra,
+		"Slaves":            []common.Smap{},
 	}
 
 	installation_message := "Installing and starting %s\n"
@@ -108,7 +109,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	}
 
 	sb_desc := common.SandboxDescription{
-		Basedir: sdef.Basedir 
+		Basedir: sdef.Basedir,
 		SBType:  "master-slave",
 		Version: sdef.Version,
 		Port:    []int{sdef.Port},
@@ -117,19 +118,19 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	}
 
 	sb_item := defaults.SandboxItem{
-		Origin : sb_desc.Basedir,
-		SBType : sb_desc.SBType,
-		Version: sdef.Version,
-		Port:    []int{sdef.Port},
-		Nodes:   []string{defaults.Defaults().MasterName},
+		Origin:      sb_desc.Basedir,
+		SBType:      sb_desc.SBType,
+		Version:     sdef.Version,
+		Port:        []int{sdef.Port},
+		Nodes:       []string{defaults.Defaults().MasterName},
 		Destination: sdef.SandboxDir,
 	}
 
-	if common.GreaterOrEqualVersion(sdef.Version, []int{8,0,11}) {
+	if common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 11}) {
 		sdef.MysqlXPort = base_mysqlx_port + 1
 		if !sdef.DisableMysqlX {
-			sb_desc.Port = append(sb_desc.Port, base_mysqlx_port + 1)
-			sb_item.Port = append(sb_item.Port, base_mysqlx_port + 1)
+			sb_desc.Port = append(sb_desc.Port, base_mysqlx_port+1)
+			sb_item.Port = append(sb_item.Port, base_mysqlx_port+1)
 		}
 	}
 
@@ -137,34 +138,34 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	for i := 1; i <= slaves; i++ {
 		sdef.Port = base_port + i + 1
 		data["Slaves"] = append(data["Slaves"].([]common.Smap), common.Smap{
-			"Copyright":   Copyright,
-			"AppVersion":  common.VersionDef,
-			"DateTime":    timestamp.Format(time.UnixDate),
-			"Node":        i,
-			"NodeLabel":   node_label,
-			"NodePort":   sdef.Port,
-			"SlaveLabel":  slave_label,
-			"MasterAbbr": master_abbr,
-			"SlaveAbbr": slave_abbr,
-			"SandboxDir":  sdef.SandboxDir,
-			"MasterPort":  master_port,
-			"MasterIp":    master_ip,
-			"ChangeMasterExtra" : change_master_extra,
-			"RplUser":     sdef.RplUser,
-			"RplPassword": sdef.RplPassword})
+			"Copyright":         Copyright,
+			"AppVersion":        common.VersionDef,
+			"DateTime":          timestamp.Format(time.UnixDate),
+			"Node":              i,
+			"NodeLabel":         node_label,
+			"NodePort":          sdef.Port,
+			"SlaveLabel":        slave_label,
+			"MasterAbbr":        master_abbr,
+			"SlaveAbbr":         slave_abbr,
+			"SandboxDir":        sdef.SandboxDir,
+			"MasterPort":        master_port,
+			"MasterIp":          master_ip,
+			"ChangeMasterExtra": change_master_extra,
+			"RplUser":           sdef.RplUser,
+			"RplPassword":       sdef.RplPassword})
 		sdef.LoadGrants = false
-		sdef.Prompt = fmt.Sprintf("%s%d",slave_label, i)
+		sdef.Prompt = fmt.Sprintf("%s%d", slave_label, i)
 		sdef.DirName = fmt.Sprintf("%s%d", node_label, i)
 		sdef.ServerId = (base_server_id + i + 1) * 100
 		sdef.NodeNum = i + 1
 		sb_item.Nodes = append(sb_item.Nodes, sdef.DirName)
 		sb_item.Port = append(sb_item.Port, sdef.Port)
 		sb_desc.Port = append(sb_desc.Port, sdef.Port)
-		if common.GreaterOrEqualVersion(sdef.Version, []int{8,0,11}) {
+		if common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 11}) {
 			sdef.MysqlXPort = base_mysqlx_port + i + 1
 			if !sdef.DisableMysqlX {
-				sb_desc.Port = append(sb_desc.Port, base_mysqlx_port + i + 1)
-				sb_item.Port = append(sb_item.Port, base_mysqlx_port + i + 1)
+				sb_desc.Port = append(sb_desc.Port, base_mysqlx_port+i+1)
+				sb_item.Port = append(sb_item.Port, base_mysqlx_port+i+1)
 			}
 		}
 		installation_message = "Installing and starting %s%d\n"
@@ -182,24 +183,24 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 			exec_lists = append(exec_lists, list)
 		}
 		var data_slave common.Smap = common.Smap{
-			"Copyright":  Copyright,
-			"AppVersion": common.VersionDef,
-			"DateTime":   timestamp.Format(time.UnixDate),
-			"Node":       i,
-			"NodeLabel":  node_label,
-			"NodePort":  sdef.Port,
-			"SlaveLabel":  slave_label,
-			"MasterAbbr": master_abbr,
-			"ChangeMasterExtra" : change_master_extra,
-			"SlaveAbbr": slave_abbr,
-			"SandboxDir": sdef.SandboxDir,
+			"Copyright":         Copyright,
+			"AppVersion":        common.VersionDef,
+			"DateTime":          timestamp.Format(time.UnixDate),
+			"Node":              i,
+			"NodeLabel":         node_label,
+			"NodePort":          sdef.Port,
+			"SlaveLabel":        slave_label,
+			"MasterAbbr":        master_abbr,
+			"ChangeMasterExtra": change_master_extra,
+			"SlaveAbbr":         slave_abbr,
+			"SandboxDir":        sdef.SandboxDir,
 		}
 		write_script(ReplicationTemplates, fmt.Sprintf("%s%d", slave_abbr, i), "slave_template", sdef.SandboxDir, data_slave, true)
 		write_script(ReplicationTemplates, fmt.Sprintf("n%d", i+1), "slave_template", sdef.SandboxDir, data_slave, true)
 	}
 	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)
 	defaults.UpdateCatalog(sdef.SandboxDir, sb_item)
-	
+
 	initialize_slaves := "initialize_" + slave_label + "s"
 	check_slaves := "check_" + slave_label + "s"
 
@@ -224,7 +225,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	concurrent.RunParallelTasksByPriority(exec_lists)
 	if !sdef.SkipStart {
 		fmt.Println(common.ReplaceLiteralHome(sdef.SandboxDir) + "/" + initialize_slaves)
-		common.Run_cmd(sdef.SandboxDir + "/" +initialize_slaves)
+		common.Run_cmd(sdef.SandboxDir + "/" + initialize_slaves)
 	}
 	fmt.Printf("Replication directory installed in %s\n", common.ReplaceLiteralHome(sdef.SandboxDir))
 	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
@@ -232,7 +233,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 
 func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, nodes int, master_ip, master_list, slave_list string) {
 
-	Basedir := sdef.Basedir 
+	Basedir := sdef.Basedir
 	if !common.DirExists(Basedir) {
 		fmt.Printf("Base directory %s does not exist\n", Basedir)
 		os.Exit(1)
