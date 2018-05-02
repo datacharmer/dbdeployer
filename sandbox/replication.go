@@ -108,7 +108,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	}
 
 	sb_desc := common.SandboxDescription{
-		Basedir: sdef.Basedir + "/" + sdef.Version,
+		Basedir: sdef.Basedir 
 		SBType:  "master-slave",
 		Version: sdef.Version,
 		Port:    []int{sdef.Port},
@@ -232,7 +232,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 
 func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, nodes int, master_ip, master_list, slave_list string) {
 
-	Basedir := sdef.Basedir + "/" + sdef.Version
+	Basedir := sdef.Basedir 
 	if !common.DirExists(Basedir) {
 		fmt.Printf("Base directory %s does not exist\n", Basedir)
 		os.Exit(1)

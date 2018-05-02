@@ -17,11 +17,12 @@ package sandbox
 
 import (
 	"fmt"
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/defaults"
-	"github.com/datacharmer/dbdeployer/concurrent"
 	"os"
 	"time"
+
+	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/concurrent"
+	"github.com/datacharmer/dbdeployer/defaults"
 )
 
 type SandboxDef struct {
@@ -53,7 +54,7 @@ type SandboxDef struct {
 	ServerId          int
 	ReplOptions       string
 	GtidOptions       string
-	SemiSyncOptions  string
+	SemiSyncOptions   string
 	InitOptions       []string
 	MyCnfOptions      []string
 	PreGrantsSql      []string
@@ -135,7 +136,7 @@ func CheckDirectory(sdef SandboxDef) SandboxDef {
 	return sdef
 }
 
-func FindFreePort(base_port int, installed_ports []int,  how_many int) int {
+func FindFreePort(base_port int, installed_ports []int, how_many int) int {
 	used_ports := make(map[int]bool)
 	for _, p := range installed_ports {
 		used_ports[p] = true
@@ -145,7 +146,7 @@ func FindFreePort(base_port int, installed_ports []int,  how_many int) int {
 	for free_port == 0 {
 		is_free := true
 		candidate_port := check_port
-		for N := check_port ; N < (check_port + how_many + 1) ; N++ {
+		for N := check_port; N < (check_port + how_many + 1); N++ {
 			_, exists := used_ports[N]
 			if exists {
 				is_free = false
@@ -165,7 +166,7 @@ func FindFreePort(base_port int, installed_ports []int,  how_many int) int {
 	// fmt.Printf("%v, %d\n",installed_ports, check_port)
 	if check_port != base_port {
 		if os.Getenv("SHOW_CHANGED_PORTS") != "" {
-			fmt.Printf("#port %d changed to %d\n",base_port, check_port)
+			fmt.Printf("#port %d changed to %d\n", base_port, check_port)
 		}
 	}
 	return check_port
@@ -178,11 +179,11 @@ func CheckPort(sandbox_type string, installed_ports []int, port int) {
 			conflict = p
 		}
 		/*
-		if sandbox_type == "group-node" {
-			if p == (port + defaults.Defaults().GroupPortDelta) {
-				conflict = p
+			if sandbox_type == "group-node" {
+				if p == (port + defaults.Defaults().GroupPortDelta) {
+					conflict = p
+				}
 			}
-		}
 		*/
 	}
 	if conflict > 0 {
@@ -203,7 +204,7 @@ func getmatch(key string, names []string, matches []string) string {
 	return ""
 }
 
-func FixServerUuid(sdef SandboxDef) (uuid_file, new_uuid string)  {
+func FixServerUuid(sdef SandboxDef) (uuid_file, new_uuid string) {
 	if !common.GreaterOrEqualVersion(sdef.Version, []int{5, 6, 9}) {
 		return
 	}
@@ -240,7 +241,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 
 	var sandbox_dir string
 
-	sdef.Basedir = sdef.Basedir + "/" + sdef.Version
+	sdef.Basedir = sdef.Basedir
 	if !common.DirExists(sdef.Basedir) {
 		fmt.Printf("Base directory %s does not exist\n", sdef.Basedir)
 		os.Exit(1)
@@ -301,7 +302,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 		} else {
 			mysqlx_port := sdef.MysqlXPort
 			if mysqlx_port == 0 {
-				mysqlx_port = FindFreePort(sdef.Port + 10000, sdef.InstalledPorts, 1)
+				mysqlx_port = FindFreePort(sdef.Port+10000, sdef.InstalledPorts, 1)
 			}
 			sdef.MyCnfOptions = append(sdef.MyCnfOptions, fmt.Sprintf("mysqlx-port=%d", mysqlx_port))
 			sdef.MyCnfOptions = append(sdef.MyCnfOptions, fmt.Sprintf("mysqlx-socket=%s/mysqlx-%d.sock", global_tmp_dir, mysqlx_port))
@@ -324,34 +325,34 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 	}
 	timestamp := time.Now()
 	var data common.Smap = common.Smap{"Basedir": sdef.Basedir,
-		"Copyright":    SingleTemplates["Copyright"].Contents,
-		"AppVersion":   common.VersionDef,
-		"DateTime":     timestamp.Format(time.UnixDate),
-		"SandboxDir":   sandbox_dir,
-		"CustomMysqld": sdef.CustomMysqld,
-		"Port":         sdef.Port,
-		"BasePort":     sdef.BasePort,
-		"Prompt":       sdef.Prompt,
-		"Version":      sdef.Version,
-		"Datadir":      datadir,
-		"Tmpdir":       tmpdir,
-		"GlobalTmpDir": global_tmp_dir,
-		"DbUser":       sdef.DbUser,
-		"DbPassword":   sdef.DbPassword,
-		"RplUser":      sdef.RplUser,
-		"RplPassword":  sdef.RplPassword,
-		"RemoteAccess": sdef.RemoteAccess,
-		"BindAddress":  sdef.BindAddress,
-		"OsUser":       os.Getenv("USER"),
-		"ReplOptions":  sdef.ReplOptions,
-		"GtidOptions":  sdef.GtidOptions,
-		"SemiSyncOptions":  sdef.SemiSyncOptions,
-		"ExtraOptions": slice_to_text(sdef.MyCnfOptions),
-		"ReportHost": fmt.Sprintf("report-host=single-%d", sdef.Port),
-		"ReportPort": fmt.Sprintf("report-port=%d", sdef.Port),
+		"Copyright":       SingleTemplates["Copyright"].Contents,
+		"AppVersion":      common.VersionDef,
+		"DateTime":        timestamp.Format(time.UnixDate),
+		"SandboxDir":      sandbox_dir,
+		"CustomMysqld":    sdef.CustomMysqld,
+		"Port":            sdef.Port,
+		"BasePort":        sdef.BasePort,
+		"Prompt":          sdef.Prompt,
+		"Version":         sdef.Version,
+		"Datadir":         datadir,
+		"Tmpdir":          tmpdir,
+		"GlobalTmpDir":    global_tmp_dir,
+		"DbUser":          sdef.DbUser,
+		"DbPassword":      sdef.DbPassword,
+		"RplUser":         sdef.RplUser,
+		"RplPassword":     sdef.RplPassword,
+		"RemoteAccess":    sdef.RemoteAccess,
+		"BindAddress":     sdef.BindAddress,
+		"OsUser":          os.Getenv("USER"),
+		"ReplOptions":     sdef.ReplOptions,
+		"GtidOptions":     sdef.GtidOptions,
+		"SemiSyncOptions": sdef.SemiSyncOptions,
+		"ExtraOptions":    slice_to_text(sdef.MyCnfOptions),
+		"ReportHost":      fmt.Sprintf("report-host=single-%d", sdef.Port),
+		"ReportPort":      fmt.Sprintf("report-port=%d", sdef.Port),
 	}
 	if sdef.NodeNum != 0 {
-		data["ReportHost"] = fmt.Sprintf("report-host = node-%d", sdef.NodeNum) 
+		data["ReportHost"] = fmt.Sprintf("report-host = node-%d", sdef.NodeNum)
 	}
 	if sdef.SkipReportHost || sdef.SBType == "group-node" {
 		data["ReportHost"] = ""
@@ -411,8 +412,8 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 	write_script(SingleTemplates, "init_db", "init_db_template", sandbox_dir, data, true)
 	if sdef.RunConcurrently {
 		var eCommand = concurrent.ExecCommand{
-			Cmd : sandbox_dir+"/init_db",
-			Args : []string{},
+			Cmd:  sandbox_dir + "/init_db",
+			Args: []string{},
 		}
 		exec_list = append(exec_list, concurrent.ExecutionList{0, eCommand})
 	} else {
@@ -431,11 +432,11 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 		sdef.SBType = "single"
 	}
 	sb_item := defaults.SandboxItem{
-		Origin : sdef.Basedir,
-		SBType : sdef.SBType,
-		Version: sdef.Version,
-		Port:    []int{sdef.Port},
-		Nodes:   []string{},
+		Origin:      sdef.Basedir,
+		SBType:      sdef.SBType,
+		Version:     sdef.Version,
+		Port:        []int{sdef.Port},
+		Nodes:       []string{},
 		Destination: sandbox_dir,
 	}
 	sb_desc := common.SandboxDescription{
@@ -481,7 +482,6 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 	}
 	write_script(SingleTemplates, "sb_include", "sb_include_template", sandbox_dir, data, false)
 
-
 	pre_grant_sql_file := sandbox_dir + "/pre_grants.sql"
 	post_grant_sql_file := sandbox_dir + "/post_grants.sql"
 	if sdef.PreGrantsSqlFile != "" {
@@ -508,22 +508,22 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 	//common.Run_cmd(sandbox_dir + "/start", []string{})
 	if !sdef.SkipStart && sdef.RunConcurrently {
 		var eCommand2 = concurrent.ExecCommand{
-			Cmd : sandbox_dir+"/start",
-			Args : []string{},
+			Cmd:  sandbox_dir + "/start",
+			Args: []string{},
 		}
 		exec_list = append(exec_list, concurrent.ExecutionList{2, eCommand2})
 		if sdef.LoadGrants {
 			var eCommand3 = concurrent.ExecCommand{
-				Cmd : sandbox_dir+"/load_grants",
-				Args : []string{"pre_grants.sql"},
+				Cmd:  sandbox_dir + "/load_grants",
+				Args: []string{"pre_grants.sql"},
 			}
 			var eCommand4 = concurrent.ExecCommand{
-				Cmd : sandbox_dir+"/load_grants",
-				Args : []string{},
+				Cmd:  sandbox_dir + "/load_grants",
+				Args: []string{},
 			}
 			var eCommand5 = concurrent.ExecCommand{
-				Cmd : sandbox_dir+"/load_grants",
-				Args : []string{"post_grants.sql"},
+				Cmd:  sandbox_dir + "/load_grants",
+				Args: []string{"post_grants.sql"},
 			}
 			exec_list = append(exec_list, concurrent.ExecutionList{3, eCommand3})
 			exec_list = append(exec_list, concurrent.ExecutionList{4, eCommand4})
