@@ -1,3 +1,18 @@
+1.4.0	28-Apr-2018
+	NEW FEATURES:
+	- Added option --enable-mysqlx (MySQL 5.7.12+)
+	- Added options --enable-general-log and --init-general-log
+	- Added list of "reserverd-ports" to defaults
+	- Increased documentation inside command "usage"
+	- Added dbdeployer version and timestamp to sandbox descriprtion files.
+	- Added "mysqlsh" script to sandboxes 5.7.12+ with Xplugin enabled
+	- Added "show_log" script to all sandboxes
+	- Improved interface of show_binlog and show_relaylog
+	TESTING
+	- Added tests for reserved-ports
+	- Added test for mysqlsh and show_* creation
+	VARIOUS
+	- Updated documentation
 1.3.0	21-Apr-2018
 	ADJUSTMENTS:
 	- Added support for mysqlx plugin being enabled by default (MySQL 8.0.11+)

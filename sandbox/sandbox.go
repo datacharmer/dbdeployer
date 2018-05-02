@@ -62,8 +62,11 @@ type SandboxDef struct {
 	PostGrantsSql     []string
 	PostGrantsSqlFile string
 	MyCnfFile         string
+	InitGeneralLog    bool
+	EnableGeneralLog  bool
 	NativeAuthPlugin  bool
 	DisableMysqlX     bool
+	EnableMysqlX      bool
 	KeepUuid          bool
 	SinglePrimary     bool
 	Force             bool
@@ -178,13 +181,6 @@ func CheckPort(sandbox_type string, installed_ports []int, port int) {
 		if p == port {
 			conflict = p
 		}
-		/*
-			if sandbox_type == "group-node" {
-				if p == (port + defaults.Defaults().GroupPortDelta) {
-					conflict = p
-				}
-			}
-		*/
 	}
 	if conflict > 0 {
 		fmt.Printf("Port conflict detected. Port %d is already used\n", conflict)
@@ -237,6 +233,18 @@ func slice_to_text(s_array []string) string {
 	return text
 }
 
+func set_mysqlx_properties(sdef SandboxDef, global_tmp_dir string) SandboxDef {
+	mysqlx_port := sdef.MysqlXPort
+	if mysqlx_port == 0 {
+		mysqlx_port = FindFreePort(sdef.Port+defaults.Defaults().MysqlXPortDelta, sdef.InstalledPorts, 1)
+	}
+	sdef.MyCnfOptions = append(sdef.MyCnfOptions, fmt.Sprintf("mysqlx-port=%d", mysqlx_port))
+	sdef.MyCnfOptions = append(sdef.MyCnfOptions, fmt.Sprintf("mysqlx-socket=%s/mysqlx-%d.sock", global_tmp_dir, mysqlx_port))
+	sdef.MorePorts = append(sdef.MorePorts, mysqlx_port)
+	sdef.MysqlXPort = mysqlx_port
+	return sdef
+}
+
 func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent.ExecutionList) {
 
 	var sandbox_dir string
@@ -269,6 +277,20 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 		fmt.Printf("TMP directory %s does not exist\n", global_tmp_dir)
 		os.Exit(1)
 	}
+	if sdef.NodeNum == 0 && !sdef.Force {
+		sdef.Port = FindFreePort(sdef.Port, sdef.InstalledPorts, 1)
+	}
+	if sdef.EnableMysqlX {
+		if !common.GreaterOrEqualVersion(sdef.Version, []int{5, 7, 12}) {
+			fmt.Printf("option --enable-mysqlx requires version 5.7.12+\n")
+			os.Exit(1)
+		}
+		// If the version is 8.0.11 or later, MySQL X is enabled already
+		if !common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 11}) {
+			sdef.MyCnfOptions = append(sdef.MyCnfOptions, "plugin_load=mysqlx=mysqlx.so")
+			sdef = set_mysqlx_properties(sdef, global_tmp_dir)
+		}
+	}
 	if sdef.ExposeDdTables {
 		if !common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 0}) {
 			fmt.Printf("--expose-dd-tables requires MySQL 8.0.0+\n")
@@ -290,6 +312,14 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 			os.Exit(1)
 		}
 	}
+	if common.GreaterOrEqualVersion(sdef.Version, []int{5, 1, 0}) {
+		if sdef.EnableGeneralLog {
+			sdef.MyCnfOptions = append(sdef.MyCnfOptions, "general_log=1")
+		}
+		if sdef.InitGeneralLog {
+			sdef.InitOptions = append(sdef.InitOptions, "--general_log=1")
+		}
+	}
 	if common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 4}) {
 		if sdef.NativeAuthPlugin == true {
 			sdef.InitOptions = append(sdef.InitOptions, "--default_authentication_plugin=mysql_native_password")
@@ -300,14 +330,12 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 		if sdef.DisableMysqlX {
 			sdef.MyCnfOptions = append(sdef.MyCnfOptions, "mysqlx=OFF")
 		} else {
-			mysqlx_port := sdef.MysqlXPort
-			if mysqlx_port == 0 {
-				mysqlx_port = FindFreePort(sdef.Port+10000, sdef.InstalledPorts, 1)
-			}
-			sdef.MyCnfOptions = append(sdef.MyCnfOptions, fmt.Sprintf("mysqlx-port=%d", mysqlx_port))
-			sdef.MyCnfOptions = append(sdef.MyCnfOptions, fmt.Sprintf("mysqlx-socket=%s/mysqlx-%d.sock", global_tmp_dir, mysqlx_port))
-			sdef.MorePorts = append(sdef.MorePorts, mysqlx_port)
+			sdef = set_mysqlx_properties(sdef, global_tmp_dir)
 		}
+	}
+	mysqlsh_executable := fmt.Sprintf("%s/bin/mysqlsh", sdef.Basedir)
+	if !common.ExecExists(mysqlsh_executable) {
+		mysqlsh_executable = "mysqlsh"
 	}
 	if sdef.MyCnfFile != "" {
 		options := GetOptionsFromFile(sdef.MyCnfFile)
@@ -319,10 +347,6 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 			sdef.MyCnfOptions = append(sdef.MyCnfOptions, option)
 		}
 	}
-	//fmt.Printf("%#v\n", sdef)
-	if sdef.NodeNum == 0 && !sdef.Force {
-		sdef.Port = FindFreePort(sdef.Port, sdef.InstalledPorts, 1)
-	}
 	timestamp := time.Now()
 	var data common.Smap = common.Smap{"Basedir": sdef.Basedir,
 		"Copyright":       SingleTemplates["Copyright"].Contents,
@@ -331,6 +355,8 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 		"SandboxDir":      sandbox_dir,
 		"CustomMysqld":    sdef.CustomMysqld,
 		"Port":            sdef.Port,
+		"MysqlXPort":      sdef.MysqlXPort,
+		"MysqlShell":      mysqlsh_executable,
 		"BasePort":        sdef.BasePort,
 		"Prompt":          sdef.Prompt,
 		"Version":         sdef.Version,
@@ -462,6 +488,10 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 	write_script(SingleTemplates, "stop", "stop_template", sandbox_dir, data, true)
 	write_script(SingleTemplates, "clear", "clear_template", sandbox_dir, data, true)
 	write_script(SingleTemplates, "use", "use_template", sandbox_dir, data, true)
+	if sdef.MysqlXPort != 0 {
+		write_script(SingleTemplates, "mysqlsh", "mysqlsh_template", sandbox_dir, data, true)
+	}
+	write_script(SingleTemplates, "show_log", "show_log_template", sandbox_dir, data, true)
 	write_script(SingleTemplates, "send_kill", "send_kill_template", sandbox_dir, data, true)
 	write_script(SingleTemplates, "restart", "restart_template", sandbox_dir, data, true)
 	write_script(SingleTemplates, "load_grants", "load_grants_template", sandbox_dir, data, true)

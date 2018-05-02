@@ -429,6 +429,27 @@ function ok_generic_exists {
     tests=$((tests+1))
 }
 
+function ok_generic_does_not_exist {
+    wanted=$1
+    label=$2
+    op=$3
+    if [ ! $op "$wanted" ]
+    then
+        echo "ok - $label $wanted does not exist"
+        pass=$((pass+1))
+    else
+        echo "NOT OK - $label $wanted exists"
+        fail=$((fail+1))
+        if [ -n "$EXIT_ON_FAILURE" ]
+        then
+            echo "pass: $pass - fail: $fail"
+            exit
+        fi
+    fi
+    tests=$((tests+1))
+}
+
+
 function ok_dir_exists {
     dir=$1
     ok_generic_exists $dir directory -d
@@ -444,6 +465,10 @@ function ok_executable_exists {
     ok_generic_exists $filename "file" -x
 }
 
+function ok_executable_does_not_exist {
+    filename=$1
+    ok_generic_does_not_exist $filename "file" "-x"
+}
 
 
 function run {

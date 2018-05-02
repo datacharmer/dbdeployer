@@ -84,6 +84,8 @@ function check_deployment_message {
     rm $output_file
 }
 
+create_mock_version 5.0.66
+create_mock_version 5.1.66
 create_mock_version 5.5.66
 create_mock_version 5.6.66
 create_mock_version 5.7.66
@@ -178,8 +180,55 @@ check_deployment_message 8.0.67 replication --topology=group --single-primary
 check_deployment_message 8.0.67 replication --topology=fan-in
 check_deployment_message 8.0.67 replication --topology=all-masters
 
-
 run dbdeployer delete ALL --skip-confirm
+
+dbdeployer defaults update reserved-ports '4500,9000,15000,30000'
+reserved_ports=$(dbdeployer defaults show| sed -n '/reserved-ports/,/]/p'| grep '^\s*[0-9]'| tr -d ', \t')
+how_many=$(echo $reserved_ports | wc -w)
+ok_equal "4 reserved ports found" $how_many 4
+
+for port in $reserved_ports 
+do
+    dbdeployer deploy single 5.7.66 --port=$port
+    port_plus_1=$((port+1))
+    sandbox_list=$(dbdeployer sandboxes)
+    ok_contains "Deployment for port $port contains $port_plus_1" "$sandbox_list" $port_plus_1
+    dbdeployer delete msb_5_7_66 
+done
+
+function mysqlsh_exists {
+    version=$1
+    wanted_ex=$2
+    option=$3
+    path_version=$(echo $version | tr '.' '_')
+    client=$SANDBOX_HOME/msb_${path_version}/mysqlsh
+    run dbdeployer deploy single $version $option
+    if [ "$wanted_ex" == "exists" ]
+    then
+        ls -l $client
+        ok_executable_exists $client
+    else
+        echo "START TESTING FOR ABSENCE"
+        ok_executable_does_not_exist $client
+        echo "END TESTING FOR ABSENCE"
+    fi
+
+    for log in log binlog relaylog
+    do
+        viewer=$SANDBOX_HOME/msb_${path_version}/show_$log
+        ok_executable_exists $viewer
+    done
+    run dbdeployer delete msb_${path_version} 
+    unset $option
+}
+
+mysqlsh_exists 5.0.66 does_not ""
+mysqlsh_exists 5.1.66 does_not ""
+mysqlsh_exists 5.5.66 does_not ""
+mysqlsh_exists 5.6.66 does_not ""
+mysqlsh_exists 5.7.66 does_not ""
+mysqlsh_exists 5.7.66 exists "--enable-mysqlx"
+mysqlsh_exists 8.0.66 exists ""
 
 cd $test_dir
 

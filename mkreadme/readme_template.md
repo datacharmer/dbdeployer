@@ -78,11 +78,48 @@ If you want to deploy several instances of the same version and the same type (f
     $ dbdeployer deploy single 8.0.4
     # will deploy in msb_8_0_4 using port 8004
 
-    $ dbdeployer deploy single 8.0.4 --sandbox-directory=msb2_8_0_4 --port=8005
-    # will deploy in msb2_8_0_4 using port 8005
+    $ dbdeployer deploy single 8.0.4 --sandbox-directory=msb2_8_0_4
+    # will deploy in msb2_8_0_4 using port 8005 (which dbdeployer detects and uses)
 
     $ dbdeployer deploy replication 8.0.4 --sandbox-directory=rsandbox2_8_0_4 --base-port=18600
     # will deploy replication in rsandbox2_8_0_4 using ports 18601, 18602, 18603
+
+## Ports management
+
+dbdeployer will try using the default port for each sandbox whenever possible. For single sandboxes, the port will be the version number without dots: 5.7.22 will deploy on port 5722. For multiple sandboxes, the port number is defined by using a prefix number (visible in the defaults: ``dbdeployer defaults list``) + the port number + the revision number (for some topologies multiplied by 100.)
+For example, single-primary group replication with MySQL 8.0.11 will compute the ports like this:
+
+    base port = 8011 (version number) + 13000 (prefix) + 11 (revision) * 100  = 22111
+    node1 port = base port + 1 = 22112
+    node2 port = base port + 2 = 22113
+    node3 port = base port + 2 = 22114
+
+For group replication we need to calculate the group port, and we use the ``group-port-delta`` (= 125) to obtain it from the regular port:
+
+    node1 group port = 22112 + 125 = 22237
+    node2 group port = 22113 + 125 = 22238
+    node3 group port = 22114 + 125 = 22239
+
+For MySQL 8.0.11+, we also need to assign a port for the XPlugin, and we compute that using the regular port + the ``mysqlx-port-delta`` (=10000).
+
+Thus, for MySQL 8.0.11 group replication deployments, you would see this listing:
+
+    $ dbdeployer sandboxes --header
+    name                   type                  version  ports
+    ----------------       -------               -------  -----
+    group_msb_8_0_11     : group-multi-primary    8.0.11 [20023 20148 30023 20024 20149 30024 20025 20150 30025]
+    group_sp_msb_8_0_11  : group-single-primary   8.0.11 [22112 22237 32112 22113 22238 32113 22114 22239 32114]
+
+This method makes port clashes unlikely when using the same version in different deployments, but there is a risk of port clashes when deploying many multiple sandboxes of close-by versions.
+However, dbdeployer doesn't let the clash happen. Thanks to its central catalog of sandboxes, it knows which ports were already used, and will search for free ones whenever a potential clash is detected.
+Bear in mind that the concept of "used" is only related to sandboxes. dbdeployer does not know if ports may be used by other applications.
+You can minimize risks, however, by telling dbdeployer which ports may be occupied. The defaults have a field ``reserved-ports``, containing the ports that should not be used. You can add to that list by modifying the defaults. For example, if you want to exclude port 7001, 10000, and 15000 from being used, you can run
+
+    dbdeployer defaults update reserved-ports '7001,10000,15000'
+
+or, if you want to preserve the ones that are reserved by default:
+
+    dbdeployer defaults update reserved-ports '1186,3306,33060,7001,10000,15000'
 
 ## Concurrent deployment and deletion
 
@@ -149,6 +186,25 @@ Similarly, for group replication
 
 WARNING: running sandboxes with ``--skip-start`` is provided for advanced users and is not recommended.
 If the purpose of skipping the start is to inspect the server before the sandbox granting operations, you may consider using ``--pre-grants-sql`` and ``--pre-grants-sql-file`` to run the necessary SQL commands (see _Sandbox customization_ below.)
+
+## MySQL Document store, mysqlsh, and defaults.
+
+MySQL 5.7.12+ introduces the XPlugin (a.k.a. _mysqlx_) which enables operations using a separate port (33060 by default) on special tables that can be treated as NoSQL collections.
+In MySQL 8.0.11+ the XPlugin is enabled by default, giving dbdeployer the task of defining an additional port and socket for this service. When you deploy MySQL 8.0.11 or later, dbdeployer sets the ``mysqlx-port`` to the value of the regular port + ``mysqlx-delta-port`` (= 10000).
+
+If you want to avoid having the XPlugin enabled, you can deploy the sandbox with the option ``--disable-mysqlx``.
+
+For MySQL between 5.7.12 and 8.0.4, the approach is the opposite. By default, the XPlugin is disabled, and if you want to use it you will run the deployment using ``--enable-mysqlx``. In both cases the port and socket will be computed by dbdeployer.
+
+When the XPlugin is enabled, it makes sense to use [the MySQL shell](https://dev.mysql.com/doc/refman/8.0/en/mysql-shell.html) and dbdeployer will create a ``mysqlsh`` script for the sandboxes that use the plugin. Unfortunately, as of today (late April 2018) the MySQL shell is not released with the server tarball, and therefore we have to fix things manually. dbdeployer will look for ``mysqlsh`` in the same directory where the other clients are, so if you manually merge the mysql shell and the server tarballs, you will get the appropriate version of MySQL shell. If not, you will use the version of the shell that is available in ``$PATH``. If there is no MySQL shell available, you will get an error.
+
+## Logs management.
+
+Sometimes, when using sandboxes for testing, it makes sense to enable the general log, either during initialization or for regular operation. While you can do that with ``--my-cnf-options=general-log=1`` or ``--my-init-options=--general-log=1``, as of version 1.4.0 you have two easy boolean shortcuts: ``--init-general-log`` and ``--enable-general-log`` that will start the general log when requested.
+
+Additionally, each sandbox has a convenience script named ``show_log`` that can easily display either the error log or the general log. Run `./show_log -h` for usage info.
+
+For replication, you also have ``show_binlog`` and ``show_relaylog`` in every sandbox as a shortcut to display replication logs easily.
 
 ## Sandbox customization
 
@@ -250,7 +306,7 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 
 ## Generating additional documentation
 
-Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API-1.1.md), you have all the existing documentation for dbdeployer.
+Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
 * dbdeployer-{{.Version}}-docs.linux.tar.gz
@@ -300,7 +356,7 @@ As of version 1.0.0, dbdeployer adheres to the principles of [semantic versionin
 * Backward-compatible new features increment the **Minor** number.
 * Backward incompatible changes (either features or bug fixes that break compatibility with the API) increment the **Major** number.
 
-The starting API is defined in [API-1.0.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API-1.0.md) (generated manually.)
-The file [API-1.1.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API-1.1.md) contains the same API definition, but was generated automatically and can be used to better compare the initial API with further version.
+The starting API is defined in [API-1.0.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.0.md) (generated manually.)
+The file [API-1.1.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md) contains the same API definition, but was generated automatically and can be used to better compare the initial API with further version.
 
 

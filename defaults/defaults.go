@@ -41,6 +41,7 @@ type DbdeployerDefaults struct {
 	// PXCBasePort                    int    `json:"pxc-base-port"`
 	// NdbBasePort                    int    `json:"ndb-base-port"`
 	GroupPortDelta                 int    `json:"group-port-delta"`
+	MysqlXPortDelta                int    `json:"mysqlx-port-delta"`
 	MasterName                     string `json:"master-name"`
 	MasterAbbr                     string `json:"master-abbr"`
 	NodePrefix                     string `json:"node-prefix"`
@@ -53,9 +54,11 @@ type DbdeployerDefaults struct {
 	MultiplePrefix                 string `json:"multiple-prefix"`
 	FanInPrefix                    string `json:"fan-in-prefix"`
 	AllMastersPrefix               string `json:"all-masters-prefix"`
+	ReservedPorts                  []int `json:"reserved-ports"`
 	// GaleraPrefix                   string `json:"galera-prefix"`
 	// PxcPrefix                      string `json:"pxc-prefix"`
 	// NdbPrefix                      string `json:"ndb-prefix"`
+	Timestamp					   string `json:"timestamp"`
 }
 
 const (
@@ -92,6 +95,7 @@ var (
 		// PxcBasePort:                   18000,
 		// NdbBasePort:                   19000,
 		GroupPortDelta:                125,
+		MysqlXPortDelta:               10000,
 		MasterName:                    "master",
 		MasterAbbr:                    "m",
 		NodePrefix:                    "node",
@@ -104,9 +108,11 @@ var (
 		MultiplePrefix:                "multi_msb_",
 		FanInPrefix:                   "fan_in_msb_",
 		AllMastersPrefix:              "all_masters_msb_",
+		ReservedPorts:				   []int{1186, 3306, 33060},
 		// GaleraPrefix:                  "galera_msb_",
 		// NdbPrefix:                     "ndb_msb_",
 		// PxcPrefix:                     "pxc_msb_",
+		Timestamp: time.Now().Format(time.UnixDate),
 	}
 	currentDefaults DbdeployerDefaults
 )
@@ -200,6 +206,7 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		// check_int("pxc-base-port", nd.PxcBasePort, min_port_value, max_port_value) &&
 		// check_int("ndb-base-port", nd.NdbBasePort, min_port_value, max_port_value) &&
 		check_int("group-port-delta", nd.GroupPortDelta, 101, 299)
+		check_int("mysqlx-port-delta", nd.MysqlXPortDelta, 2000, 15000)
 	if !all_ints {
 		return false
 	}
@@ -324,6 +331,8 @@ func UpdateDefaults(label, value string, store_defaults bool) {
 	//	 new_defaults.PxcBasePort = a_to_i(value)
 	case "group-port-delta":
 		new_defaults.GroupPortDelta = a_to_i(value)
+	case "mysqlx-port-delta":
+		new_defaults.MysqlXPortDelta = a_to_i(value)
 	case "master-name":
 		new_defaults.MasterName = value
 	case "master-abbr":
@@ -348,6 +357,8 @@ func UpdateDefaults(label, value string, store_defaults bool) {
 		new_defaults.FanInPrefix = value
 	case "all-masters-prefix":
 		new_defaults.AllMastersPrefix = value
+	case "reserved-ports":
+		new_defaults.ReservedPorts = common.StringToIntSlice(value)
 	// case "galera-prefix":
 	// 	new_defaults.GaleraPrefix = value
 	// case "pxc-prefix":

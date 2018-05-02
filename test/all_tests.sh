@@ -1,5 +1,8 @@
 #!/bin/bash
 
+export RUN_CONCURRENTLY=1
+[ -n "$SEQUENTIAL" ] && unset RUN_CONCURRENTLY
+
 if [ ! -d "./test" ]
 then
     echo "directory ./test not found"

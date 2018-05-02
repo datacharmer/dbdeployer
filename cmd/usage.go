@@ -46,8 +46,21 @@ Example:
     ./use -BN -e "select @@server_id"
     ./use -u root
 
-"./clear" stops the server and removes everything from the data directory, 
+"./clear" stops the server and removes everything from the data directory,
 letting you ready to start from scratch. (Warning! It's irreversible!)
+
+"./send_kill" does almost the same as "./stop", as it sends a SIGTERM (-15) kill
+to shut down the server. Additionally, when the regular kill fails, it will
+send an unfriendly SIGKILL (-9) to the unresponsive server.
+
+"./add_option" will add one or more options to my.sandbox.cnf, and restarts the
+server to apply the changes.
+
+"init_db" and "load_grants" are used during the server initialization, and should not be used
+in normal operations. They are nonetheless useful to see which operations were performed
+to set up the server.
+
+"./show_binlog" and "./show_relaylog" will show the latest binary log or relay-log.
 
 "./my" is a prefix script to invoke any command named "my*" from the 
 MySQL /bin directory. It is important to use it rather than the 
@@ -57,6 +70,11 @@ Examples:
 
     ./my sqldump db_name
     ./my sqlbinlog somefile
+
+"./mysqlsh" invokes the mysql shell. Unlike other commands, this one only works
+if mysqlsh was installed, with preference to the binaries found in "basedir".
+This script is created only if the X plugin was enabled (5.7.12+ with --enable-mysqlx
+or 8.0.11+ without --disable-mysqlx)
 `
 	const multiple_usage string = ` USING MULTIPLE SERVER SANDBOX
 On a replication sandbox, you have the same commands (run "dbdeployer usage single"), 
@@ -67,16 +85,16 @@ the slaves (and "s3", "s4" ... if you define more).
 In group sandboxes without a master slave relationship (group replication and 
 multiple sandboxes) the nodes can be accessed by ./n1, ./n2, ./n3, and so on.
 
-start_all
-status_all
-restart_all
-stop_all
-use_all
-use_all_masters
-use_all_slaves
-clear_all
-m
-s1, s2, n1, n2
+start_all    [options] > starts all nodes
+status_all             > get the status of all nodes
+restart_all  [options] > restarts all nodes
+stop_all               > stops all nodes
+use_all         "SQL"  > runs a SQL statement in all nodes
+use_all_masters "SQL"  > runs a SQL statement in all masters
+use_all_slaves "SQL"   > runs a SQL statement in all slaves
+clear_all              > stops all nodes and removes all data
+m                      > invokes MySQL client in the master
+s1, s2, n1, n2         > invokes MySQL client in slave 1, 2, node 1, 2
 
 The scripts "check_slaves" or "check_nodes" give the status of replication in the sandbox.
 `
