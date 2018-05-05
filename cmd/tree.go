@@ -19,7 +19,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
@@ -64,7 +63,7 @@ func WriteManPages() {
 func WriteMarkdownPages() {
 	md_dir := "markdown_pages"
 	if common.DirExists(md_dir) {
-		common.Exit(fmt.Sprintf("Markdown pages directory '%s' exists already.",md_dir))
+		common.Exit(1, fmt.Sprintf("Markdown pages directory '%s' exists already.",md_dir))
 	}
 	common.Mkdir(md_dir)
 	err := doc.GenMarkdownTree(rootCmd, md_dir)
@@ -97,7 +96,7 @@ func MakeDocumentation(cmd *cobra.Command, args []string) {
 	md_pages, _  := flags.GetBool("markdown-pages")
 	rst_pages, _  := flags.GetBool("rst-pages")
 	if (man_pages && api) || (api && bash_completion) || (api && md_pages) || (api && rst_pages) {
-		common,Exit(1, "Choose one option only")
+		common.Exit(1, "Choose one option only")
 	}
 	if rst_pages {
 		WriteRstPages()
