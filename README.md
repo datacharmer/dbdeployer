@@ -742,7 +742,7 @@ Then, you can use completion as follows:
 
 ## Using dbdeployer source for other projects
 
-If you need to create sandboxes from other Go apps, see  [dbdeployer-as-a-library.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/coding/dbdeployer-as-a-library.md).
+If you need to create sandboxes from other Go apps, see  [dbdeployer-as-library.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/coding/dbdeployer-as-library.md).
 
 ## Semantic versioning
 
