@@ -17,11 +17,12 @@ package sandbox
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
-	"os"
-	"time"
 )
 
 type Node struct {
@@ -38,7 +39,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Sma
 	if sb_type == "" {
 		sb_type = "multiple"
 	}
-	Basedir := sdef.Basedir + "/" + sdef.Version
+	Basedir := sdef.Basedir
 	if !common.DirExists(Basedir) {
 		fmt.Printf("Base directory %s does not exist\n", Basedir)
 		os.Exit(1)
@@ -60,7 +61,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Sma
 		base_port = sdef.BasePort
 	}
 	base_mysqlx_port := get_base_mysqlx_port(base_port, sdef, nodes)
-	base_port = FindFreePort(base_port, sdef.InstalledPorts,  nodes)
+	base_port = FindFreePort(base_port, sdef.InstalledPorts, nodes)
 	for check_port := base_port + 1; check_port < base_port+nodes; check_port++ {
 		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
 	}
@@ -91,11 +92,11 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Sma
 	}
 
 	sb_item := defaults.SandboxItem{
-		Origin : sb_desc.Basedir,
-		SBType : sb_desc.SBType,
-		Version: sdef.Version,
-		Port:    []int{},
-		Nodes:   []string{},
+		Origin:      sb_desc.Basedir,
+		SBType:      sb_desc.SBType,
+		Version:     sdef.Version,
+		Port:        []int{},
+		Nodes:       []string{},
 		Destination: sdef.SandboxDir,
 	}
 
@@ -107,7 +108,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Sma
 			"AppVersion": common.VersionDef,
 			"DateTime":   timestamp.Format(time.UnixDate),
 			"Node":       i,
-			"NodePort": sdef.Port,
+			"NodePort":   sdef.Port,
 			"NodeLabel":  node_label,
 			"SandboxDir": sdef.SandboxDir,
 		})
@@ -117,18 +118,18 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Sma
 		sb_item.Nodes = append(sb_item.Nodes, sdef.DirName)
 		sb_item.Port = append(sb_item.Port, sdef.Port)
 		sb_desc.Port = append(sb_desc.Port, sdef.Port)
-		if common.GreaterOrEqualVersion(sdef.Version, []int{8,0,11}) {
+		if common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 11}) {
 			sdef.MysqlXPort = base_mysqlx_port + i
 			if !sdef.DisableMysqlX {
-				sb_desc.Port = append(sb_desc.Port, base_mysqlx_port + i)
-				sb_item.Port = append(sb_item.Port, base_mysqlx_port + i)
+				sb_desc.Port = append(sb_desc.Port, base_mysqlx_port+i)
+				sb_item.Port = append(sb_item.Port, base_mysqlx_port+i)
 			}
 		}
 		sdef.Multi = true
 		sdef.NodeNum = i
-		sdef.Prompt = fmt.Sprintf("%s%d",node_label, i)
+		sdef.Prompt = fmt.Sprintf("%s%d", node_label, i)
 		sdef.SBType += "node"
-		if ! sdef.RunConcurrently {
+		if !sdef.RunConcurrently {
 			fmt.Printf("Installing and starting %s %d\n", node_label, i)
 		}
 		exec_list := CreateSingleSandbox(sdef, origin)
@@ -138,7 +139,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Sma
 
 		var data_node common.Smap = common.Smap{
 			"Node":       i,
-			"NodePort": sdef.Port,
+			"NodePort":   sdef.Port,
 			"NodeLabel":  node_label,
 			"SandboxDir": sdef.SandboxDir,
 			"Copyright":  Copyright,

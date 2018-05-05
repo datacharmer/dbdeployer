@@ -17,13 +17,15 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/sandbox"
-	"github.com/datacharmer/dbdeployer/defaults"
-	"github.com/spf13/cobra"
 	"os"
+	"path"
 	"regexp"
 	"strings"
+
+	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/sandbox"
+	"github.com/spf13/cobra"
 )
 
 func replace_template(template_name string, file_name string) {
@@ -89,7 +91,8 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	}
 
 	sd.Version = args[0]
-	sd.Basedir, _ = flags.GetString("sandbox-binary")
+	basedir, _ := flags.GetString("sandbox-binary")
+	sd.Basedir = path.Join(basedir, sd.Version)
 	sd.SandboxDir, _ = flags.GetString("sandbox-home")
 	common.CheckSandboxDir(sd.SandboxDir)
 	sd.InstalledPorts = common.GetInstalledPorts(sd.SandboxDir)
@@ -126,7 +129,7 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.ExposeDdTables, _ = flags.GetBool("expose-dd-tables")
 	sd.InitGeneralLog, _ = flags.GetBool("init-general-log")
 	sd.EnableGeneralLog, _ = flags.GetBool("enable-general-log")
-	
+
 	if sd.DisableMysqlX && sd.EnableMysqlX {
 		fmt.Printf("flags --enable-mysqlx and --disable-mysqlx cannot be used together\n")
 		os.Exit(1)
@@ -135,7 +138,7 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	if os.Getenv("RUN_CONCURRENTLY") != "" {
 		sd.RunConcurrently = true
 	}
- 
+
 	new_defaults, _ := flags.GetStringSlice("defaults")
 	process_defaults(new_defaults)
 

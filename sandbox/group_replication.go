@@ -17,12 +17,13 @@ package sandbox
 
 import (
 	"fmt"
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/concurrent"
-	"github.com/datacharmer/dbdeployer/defaults"
 	"os"
 	"regexp"
 	"time"
+
+	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/concurrent"
+	"github.com/datacharmer/dbdeployer/defaults"
 )
 
 const (
@@ -47,8 +48,8 @@ loose-group-replication-single-primary-mode=off
 
 func get_base_mysqlx_port(base_port int, sdef SandboxDef, nodes int) int {
 	base_mysqlx_port := base_port + defaults.Defaults().MysqlXPortDelta
-	if common.GreaterOrEqualVersion(sdef.Version, []int{8,0,11}) {
-		base_mysqlx_port = FindFreePort(base_mysqlx_port, sdef.InstalledPorts,  nodes)
+	if common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 11}) {
+		base_mysqlx_port = FindFreePort(base_mysqlx_port, sdef.InstalledPorts, nodes)
 		for check_port := base_mysqlx_port + 1; check_port < base_mysqlx_port+nodes+1; check_port++ {
 			CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
 		}
@@ -61,7 +62,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	vList := common.VersionToList(sdef.Version)
 	rev := vList[2]
 	// base_port := sdef.Port + defaults.Defaults().GroupReplicationBasePort + (rev * 100)
-	base_port := sdef.Port + defaults.Defaults().GroupReplicationBasePort + rev 
+	base_port := sdef.Port + defaults.Defaults().GroupReplicationBasePort + rev
 	if sdef.SinglePrimary {
 		base_port = sdef.Port + defaults.Defaults().GroupReplicationSpBasePort + (rev * 100)
 	}
@@ -77,10 +78,10 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	if common.DirExists(sdef.SandboxDir) {
 		sdef = CheckDirectory(sdef)
 	}
-	base_port = FindFreePort(base_port, sdef.InstalledPorts,  nodes)
+	base_port = FindFreePort(base_port, sdef.InstalledPorts, nodes)
 	base_mysqlx_port := get_base_mysqlx_port(base_port, sdef, nodes)
 	base_group_port := base_port + defaults.Defaults().GroupPortDelta
-	base_group_port = FindFreePort(base_group_port, sdef.InstalledPorts,  nodes)
+	base_group_port = FindFreePort(base_group_port, sdef.InstalledPorts, nodes)
 	for check_port := base_port + 1; check_port < base_port+nodes+1; check_port++ {
 		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
 	}
@@ -98,7 +99,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	if sdef.SinglePrimary {
 		master_list = "1"
 		slave_list = ""
-		for N := 2; N <= nodes ; N++ {
+		for N := 2; N <= nodes; N++ {
 			if slave_list != "" {
 				slave_list += " "
 			}
@@ -116,22 +117,22 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	//	}
 	//}
 	var data common.Smap = common.Smap{
-		"Copyright":  Copyright,
-		"AppVersion": common.VersionDef,
-		"DateTime":   timestamp.Format(time.UnixDate),
-		"SandboxDir": sdef.SandboxDir,
-		"MasterIp":    master_ip,
-		"MasterList": master_list,
-		"NodeLabel": node_label,
-		"SlaveList": slave_list,
-		"RplUser":     sdef.RplUser,
-		"RplPassword": sdef.RplPassword,
-		"SlaveLabel": slave_label,
-		"SlaveAbbr": slave_abbr,
-		"ChangeMasterExtra" : change_master_extra,
-		"MasterLabel": master_label,
-		"MasterAbbr": master_abbr,
-		"Nodes":      []common.Smap{},
+		"Copyright":         Copyright,
+		"AppVersion":        common.VersionDef,
+		"DateTime":          timestamp.Format(time.UnixDate),
+		"SandboxDir":        sdef.SandboxDir,
+		"MasterIp":          master_ip,
+		"MasterList":        master_list,
+		"NodeLabel":         node_label,
+		"SlaveList":         slave_list,
+		"RplUser":           sdef.RplUser,
+		"RplPassword":       sdef.RplPassword,
+		"SlaveLabel":        slave_label,
+		"SlaveAbbr":         slave_abbr,
+		"ChangeMasterExtra": change_master_extra,
+		"MasterLabel":       master_label,
+		"MasterAbbr":        master_abbr,
+		"Nodes":             []common.Smap{},
 	}
 	connection_string := ""
 	for i := 0; i < nodes; i++ {
@@ -150,7 +151,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	}
 
 	sb_desc := common.SandboxDescription{
-		Basedir: sdef.Basedir + "/" + sdef.Version,
+		Basedir: sdef.Basedir,
 		SBType:  sb_type,
 		Version: sdef.Version,
 		Port:    []int{},
@@ -159,31 +160,31 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	}
 
 	sb_item := defaults.SandboxItem{
-		Origin : sb_desc.Basedir,
-		SBType : sb_desc.SBType,
-		Version: sdef.Version,
-		Port:    []int{},
-		Nodes:   []string{},
+		Origin:      sb_desc.Basedir,
+		SBType:      sb_desc.SBType,
+		Version:     sdef.Version,
+		Port:        []int{},
+		Nodes:       []string{},
 		Destination: sdef.SandboxDir,
 	}
 
 	for i := 1; i <= nodes; i++ {
 		group_port := base_group_port + i
 		data["Nodes"] = append(data["Nodes"].([]common.Smap), common.Smap{
-			"Copyright":   Copyright,
-			"AppVersion":  common.VersionDef,
-			"DateTime":    timestamp.Format(time.UnixDate),
-			"Node":        i,
-			"MasterIp":    master_ip,
-			"NodeLabel":  node_label,
-			"SlaveLabel": slave_label,
-			"SlaveAbbr": slave_abbr,
-			"ChangeMasterExtra" : change_master_extra,
-			"MasterLabel": master_label,
-			"MasterAbbr": master_abbr,
-			"SandboxDir":  sdef.SandboxDir,
-			"RplUser":     sdef.RplUser,
-			"RplPassword": sdef.RplPassword})
+			"Copyright":         Copyright,
+			"AppVersion":        common.VersionDef,
+			"DateTime":          timestamp.Format(time.UnixDate),
+			"Node":              i,
+			"MasterIp":          master_ip,
+			"NodeLabel":         node_label,
+			"SlaveLabel":        slave_label,
+			"SlaveAbbr":         slave_abbr,
+			"ChangeMasterExtra": change_master_extra,
+			"MasterLabel":       master_label,
+			"MasterAbbr":        master_abbr,
+			"SandboxDir":        sdef.SandboxDir,
+			"RplUser":           sdef.RplUser,
+			"RplPassword":       sdef.RplPassword})
 
 		sdef.DirName = fmt.Sprintf("%s%d", node_label, i)
 		sdef.Port = base_port + i
@@ -192,27 +193,27 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 		sb_item.Nodes = append(sb_item.Nodes, sdef.DirName)
 		sb_item.Port = append(sb_item.Port, sdef.Port)
 		sb_desc.Port = append(sb_desc.Port, sdef.Port)
-		sb_item.Port = append(sb_item.Port, sdef.Port + defaults.Defaults().GroupPortDelta )
-		sb_desc.Port = append(sb_desc.Port, sdef.Port + defaults.Defaults().GroupPortDelta )
+		sb_item.Port = append(sb_item.Port, sdef.Port+defaults.Defaults().GroupPortDelta)
+		sb_desc.Port = append(sb_desc.Port, sdef.Port+defaults.Defaults().GroupPortDelta)
 
 		if !sdef.RunConcurrently {
 			installation_message := "Installing and starting %s %d\n"
 			if sdef.SkipStart {
-				installation_message="Installing %s %d\n"
+				installation_message = "Installing %s %d\n"
 			}
 			fmt.Printf(installation_message, node_label, i)
 		}
 		sdef.ReplOptions = SingleTemplates["replication_options"].Contents + fmt.Sprintf("\n%s\n%s\n", GroupReplOptions, single_multi_primary)
-		re_master_ip := regexp.MustCompile(`127\.0\.0\.1`) 
+		re_master_ip := regexp.MustCompile(`127\.0\.0\.1`)
 		sdef.ReplOptions = re_master_ip.ReplaceAllString(sdef.ReplOptions, master_ip)
 		sdef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["gtid_options"].Contents)
 		sdef.ReplOptions += fmt.Sprintf("\nloose-group-replication-local-address=%s:%d\n", master_ip, group_port)
 		sdef.ReplOptions += fmt.Sprintf("\nloose-group-replication-group-seeds=%s\n", connection_string)
-		if common.GreaterOrEqualVersion(sdef.Version, []int{8,0,11}) {
+		if common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 11}) {
 			sdef.MysqlXPort = base_mysqlx_port + i
 			if !sdef.DisableMysqlX {
-				sb_desc.Port = append(sb_desc.Port, base_mysqlx_port + i)
-				sb_item.Port = append(sb_item.Port, base_mysqlx_port + i)
+				sb_desc.Port = append(sb_desc.Port, base_mysqlx_port+i)
+				sb_item.Port = append(sb_item.Port, base_mysqlx_port+i)
 			}
 		}
 		sdef.Multi = true
@@ -226,17 +227,17 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 			exec_lists = append(exec_lists, list)
 		}
 		var data_node common.Smap = common.Smap{
-			"Copyright":  Copyright,
-			"AppVersion": common.VersionDef,
-			"DateTime":   timestamp.Format(time.UnixDate),
-			"Node":       i,
-			"NodeLabel":  node_label,
-			"MasterLabel": master_label,
-			"MasterAbbr": master_abbr,
-			"ChangeMasterExtra" : change_master_extra,
-			"SlaveLabel": slave_label,
-			"SlaveAbbr": slave_abbr,
-			"SandboxDir": sdef.SandboxDir,
+			"Copyright":         Copyright,
+			"AppVersion":        common.VersionDef,
+			"DateTime":          timestamp.Format(time.UnixDate),
+			"Node":              i,
+			"NodeLabel":         node_label,
+			"MasterLabel":       master_label,
+			"MasterAbbr":        master_abbr,
+			"ChangeMasterExtra": change_master_extra,
+			"SlaveLabel":        slave_label,
+			"SlaveAbbr":         slave_abbr,
+			"SandboxDir":        sdef.SandboxDir,
 		}
 		write_script(MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sdef.SandboxDir, data_node, true)
 	}
