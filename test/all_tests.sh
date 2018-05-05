@@ -1,7 +1,9 @@
 #!/bin/bash
 
 export RUN_CONCURRENTLY=1
+export EXIT_ON_FAILURE=1
 [ -n "$SEQUENTIAL" ] && unset RUN_CONCURRENTLY
+[ -n "$CONTINUE_ON_FAILURE" ] && unset EXIT_ON_FAILURE
 
 if [ ! -d "./test" ]
 then

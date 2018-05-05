@@ -20,6 +20,7 @@ delete command              | yes [^2]        | yes         |
 show data dictionary tables | yes             | yes         |
 lock/unlock sandboxes       | yes             | yes         |
 finding free ports          | yes             | yes         |
+semi-sync replication       | yes             | yes         |
 group replication  SP       | no              | yes         |
 group replication  MP       | no              | yes         |
 prevent port collision      | no              | yes  [^3]   |
@@ -35,6 +36,7 @@ custom abbreviations        | no              | yes  [^12]  |
 version flag                | no              | yes  [^13]  |
 sandboxes global catalog    | no              | yes         |
 concurrent deployment       | no              | yes         |
+command line completion     | no              | yes         |
 fan-in                      | no              | yes  [^14]  |
 all-masters                 | no              | yes  [^15]  |
 galera                      | no              | no          | yes [^16]
@@ -46,7 +48,7 @@ circular replication        | yes             | no          | no [^18]
 master-master  (circular)   | yes             | no          | no
 Windows support             | no              | no [^19]    |
 
-[^1]: It's achieved using --export_binaries and then abandoning the operation.
+[^1]: It's achieved using ``--export_binaries`` and then abandoning the operation.
 
 [^2]: Uses the sbtool command
 
@@ -74,7 +76,7 @@ Windows support             | no              | no [^19]    |
 
 [^14]: Uses the multi source technology introduced in MySQL 5.7.
 
-[^15]: Same as n. 13.
+[^15]: Same as n. 14.
 
 [^16]: I may need some help on those.
 

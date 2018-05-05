@@ -219,7 +219,7 @@ function mysqlsh_exists {
         ok_executable_exists $viewer
     done
     run dbdeployer delete msb_${path_version} 
-    unset $option
+    unset option
 }
 
 mysqlsh_exists 5.0.66 does_not ""
