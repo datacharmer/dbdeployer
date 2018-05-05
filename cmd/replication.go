@@ -16,9 +16,6 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
@@ -44,19 +41,16 @@ func ReplicationSandbox(cmd *cobra.Command, args []string) {
 	}
 	if semisync {
 		if topology != "master-slave" {
-			fmt.Println("--semi-sync is only available with master/slave topology")
-			os.Exit(1)
+			common.Exit(1, "--semi-sync is only available with master/slave topology")
 		}
 		if common.GreaterOrEqualVersion(sd.Version, []int{5, 5, 1}) {
 			sd.SemiSyncOptions = sandbox.SingleTemplates["semisync_master_options"].Contents
 		} else {
-			fmt.Println("--semi-sync requires version 5.5.1+")
-			os.Exit(1)
+			common.Exit(1, "--semi-sync requires version 5.5.1+")
 		}
 	}
 	if sd.SinglePrimary && topology != "group" {
-		fmt.Println("Option 'single-primary' can only be used with 'group' topology ")
-		os.Exit(1)
+		common.Exit(1, "Option 'single-primary' can only be used with 'group' topology ")
 	}
 	sandbox.CreateReplicationSandbox(sd, args[0], topology, nodes, master_ip, master_list, slave_list)
 }

@@ -17,7 +17,6 @@ package sandbox
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 	"strconv"
@@ -28,28 +27,24 @@ import (
 func check_node_lists(nodes int, mlist, slist []int) {
 	for _, N := range mlist {
 		if N > nodes {
-			fmt.Printf("Master num '%d' greater than number of nodes (%d)\n", N, nodes)
-			os.Exit(1)
+			common.Exit(1, fmt.Sprintf("Master num '%d' greater than number of nodes (%d)", N, nodes))
 		}
 	}
 	for _, N := range slist {
 		if N > nodes {
-			fmt.Printf("Slave num '%d' greater than number of nodes (%d)\n", N, nodes)
-			os.Exit(1)
+			common.Exit(1, fmt.Sprintf("Slave num '%d' greater than number of nodes (%d)", N, nodes))
 		}
 	}
 	for _, M := range mlist {
 		for _, S := range slist {
 			if S == M {
-				fmt.Printf("Overlapping values: %d is in both master and slave list\n",M)
-				os.Exit(1)
+				common.Exit(1, fmt.Sprintf("Overlapping values: %d is in both master and slave list",M))
 			}
 		}
 	}
 	total_nodes := len(mlist) + len(slist)
 	if total_nodes != nodes {
-		fmt.Printf("Mismatched values: masters (%d) + slaves (%d) = %d. Expected: %d \n",len(mlist), len(slist), total_nodes, nodes)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Mismatched values: masters (%d) + slaves (%d) = %d. Expected: %d",len(mlist), len(slist), total_nodes, nodes))
 	}
 }
 
@@ -69,15 +64,13 @@ func nodes_list_to_int_slice(nodes_list string, nodes int) (int_list []int) {
 	list := strings.Split(nodes_list, separator)
 	// fmt.Printf("# separator: <%s> %#v\n",separator, list)
 	if len(list) == 0 {
-		fmt.Printf("Empty nodes list given (%s)\n",nodes_list)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Empty nodes list given (%s)",nodes_list))
 	}
 	for _, s := range list {
 		if s != "" {
 			num, err := strconv.Atoi(s)
 			if err != nil {
-				fmt.Printf("Error converting node number '%s' to int\n",s)
-				os.Exit(1)
+				common.Exit(1, fmt.Sprintf("Error converting node number '%s' to int",s))
 			}
 			int_list = append(int_list, num)
 		}

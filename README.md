@@ -3,7 +3,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.4.0 (28-Apr-2018 12:56 UTC)
+Documentation updated for version 1.4.1 (05-May-2018 20:43 UTC)
 
 ## Installation
 
@@ -13,7 +13,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.4.0
+    $ VERSION=1.4.1
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/$VERSION
     $ wget $origin/dbdeployer-$VERSION.linux.tar.gz
     $ tar -xzf dbdeployer-$VERSION.linux.tar.gz
@@ -47,7 +47,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.4.0
+    dbdeployer version 1.4.1
     
 
     $ dbdeployer -h
@@ -459,7 +459,7 @@ Here's how:
      		3306,
      		33060
      	],
-     	"timestamp": "Sat Apr 28 14:56:12 CEST 2018"
+     	"timestamp": "Sat May  5 22:43:32 CEST 2018"
      }
     
 
@@ -496,7 +496,7 @@ Here's how:
      		3306,
      		33060
      	],
-     	"timestamp": "Sat Apr 28 14:56:12 CEST 2018"
+     	"timestamp": "Sat May  5 22:43:32 CEST 2018"
      }
     
 
@@ -674,18 +674,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 2. Run ``go get github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
 4. From the folder ``./pflag``, copy the file ``string_slice.go`` to ``$GOPATH/src/github.com/spf13/pflag``.
-5. Run ``./build.sh {linux|OSX} 1.4.0``
-6. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.4.0``
+5. Run ``./build.sh {linux|OSX} 1.4.1``
+6. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.4.1``
 
 ## Generating additional documentation
 
-Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API-1.1.md), you have all the existing documentation for dbdeployer.
+Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.4.0-docs.linux.tar.gz
-* dbdeployer-1.4.0-docs.osx.tar.gz
-* dbdeployer-1.4.0.linux.tar.gz
-* dbdeployer-1.4.0.osx.tar.gz
+* dbdeployer-1.4.1-docs.linux.tar.gz
+* dbdeployer-1.4.1-docs.osx.tar.gz
+* dbdeployer-1.4.1.linux.tar.gz
+* dbdeployer-1.4.1.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 
@@ -740,6 +740,10 @@ Then, you can use completion as follows:
     $ dbdeployer deploy single --b[tab][tab]
         --base-port=     --bind-address=
 
+## Using dbdeployer source for other projects
+
+If you need to create sandboxes from other Go apps, see  [dbdeployer-as-a-library.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/coding/dbdeployer-as-a-library.md).
+
 ## Semantic versioning
 
 As of version 1.0.0, dbdeployer adheres to the principles of [semantic versioning](https://semver.org/). A version number is made of Major, Minor, and Revision. When changes are applied, the following happens:
@@ -748,7 +752,7 @@ As of version 1.0.0, dbdeployer adheres to the principles of [semantic versionin
 * Backward-compatible new features increment the **Minor** number.
 * Backward incompatible changes (either features or bug fixes that break compatibility with the API) increment the **Major** number.
 
-The starting API is defined in [API-1.0.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API-1.0.md) (generated manually.)
-The file [API-1.1.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API-1.1.md) contains the same API definition, but was generated automatically and can be used to better compare the initial API with further version.
+The starting API is defined in [API-1.0.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.0.md) (generated manually.)
+The file [API-1.1.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md) contains the same API definition, but was generated automatically and can be used to better compare the initial API with further version.
 
 

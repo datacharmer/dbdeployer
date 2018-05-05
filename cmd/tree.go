@@ -47,8 +47,7 @@ func WriteBashCompletion() {
 func WriteManPages() {
 	man_dir := "man_pages"
 	if common.DirExists(man_dir) {
-		fmt.Printf("manual pages directory '%s' exists already.\n",man_dir)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("manual pages directory '%s' exists already.",man_dir))
 	}
 	common.Mkdir(man_dir)
 	header := &doc.GenManHeader{
@@ -57,8 +56,7 @@ func WriteManPages() {
 	}
 	err := doc.GenManTree(rootCmd, header, man_dir)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("%s", err))
 	}
 	fmt.Printf("Man pages generated in '%s'\n", man_dir)
 }
@@ -66,14 +64,12 @@ func WriteManPages() {
 func WriteMarkdownPages() {
 	md_dir := "markdown_pages"
 	if common.DirExists(md_dir) {
-		fmt.Printf("Markdown pages directory '%s' exists already.\n",md_dir)
-		os.Exit(1)
+		common.Exit(fmt.Sprintf("Markdown pages directory '%s' exists already.",md_dir))
 	}
 	common.Mkdir(md_dir)
 	err := doc.GenMarkdownTree(rootCmd, md_dir)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("%s", err))
 	}
 	err = doc.GenReSTTree(rootCmd, md_dir)
 	fmt.Printf("Markdown pages generated in '%s'\n", md_dir)
@@ -82,14 +78,12 @@ func WriteMarkdownPages() {
 func WriteRstPages() {
 	rst_dir := "rst_pages"
 	if common.DirExists(rst_dir) {
-		fmt.Printf("Restructured Text pages directory '%s' exists already.\n",rst_dir)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Restructured Text pages directory '%s' exists already.",rst_dir))
 	}
 	common.Mkdir(rst_dir)
 	err := doc.GenReSTTree(rootCmd, rst_dir)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("%s", err))
 	}
 	fmt.Printf("Restructured Text pages generated in '%s'\n", rst_dir)
 }
@@ -103,8 +97,7 @@ func MakeDocumentation(cmd *cobra.Command, args []string) {
 	md_pages, _  := flags.GetBool("markdown-pages")
 	rst_pages, _  := flags.GetBool("rst-pages")
 	if (man_pages && api) || (api && bash_completion) || (api && md_pages) || (api && rst_pages) {
-		fmt.Printf("Choose one option only\n")
-		os.Exit(1)
+		common,Exit(1, "Choose one option only")
 	}
 	if rst_pages {
 		WriteRstPages()

@@ -77,6 +77,7 @@ var (
 	StarLine                string = strings.Repeat("*", LineLength)
 	DashLine                string = strings.Repeat("-", LineLength)
 	HashLine                string = strings.Repeat("#", LineLength)
+	UsingDbDeployer			bool = false
 
 	factoryDefaults = DbdeployerDefaults{
 		Version:                       common.CompatibleVersion,
@@ -137,8 +138,7 @@ func ShowDefaults(defaults DbdeployerDefaults) {
 	}
 	b, err := json.MarshalIndent(defaults, " ", "\t")
 	if err != nil {
-		fmt.Println("error encoding defaults: ", err)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("error encoding defaults: %s", err))
 	}
 	fmt.Printf("%s\n", b)
 }
@@ -151,8 +151,7 @@ func WriteDefaultsFile(filename string, defaults DbdeployerDefaults) {
 	}
 	b, err := json.MarshalIndent(defaults, " ", "\t")
 	if err != nil {
-		fmt.Println("error encoding defaults: ", err)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("error encoding defaults: %s", err))
 	}
 	json_string := fmt.Sprintf("%s", b)
 	common.WriteString(json_string, filename)
@@ -179,8 +178,7 @@ func ReadDefaultsFile(filename string) (defaults DbdeployerDefaults) {
 
 	err := json.Unmarshal(defaults_blob, &defaults)
 	if err != nil {
-		fmt.Println("error decoding defaults: ", err)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("error decoding defaults: %s", err))
 	}
 	defaults = expand_environment_variables(defaults)
 	return
@@ -264,21 +262,18 @@ func RemoveDefaultsFile() {
 	if common.FileExists(ConfigurationFile) {
 		err := os.Remove(ConfigurationFile)
 		if err != nil {
-			fmt.Printf("%s\n", err)
-			os.Exit(1)
+			common.Exit(1, fmt.Sprintf("%s", err))
 		}
 		fmt.Printf("#File %s removed\n", ConfigurationFile)
 	} else {
-		fmt.Printf("Configuration file %s not found\n", ConfigurationFile)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Configuration file %s not found", ConfigurationFile))
 	}
 }
 
 func a_to_i(val string) int {
 	numvalue, err := strconv.Atoi(val)
 	if err != nil {
-		fmt.Printf("Not a valid number: %s\n", val)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Not a valid number: %s", val))
 	}
 	return numvalue
 }
@@ -366,8 +361,7 @@ func UpdateDefaults(label, value string, store_defaults bool) {
 	// case "ndb-prefix":
 	// 	new_defaults.NdbPrefix = value
 	default:
-		fmt.Printf("Unrecognized label %s\n", label)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Unrecognized label %s", label))
 	}
 	if ValidateDefaults(new_defaults) {
 		currentDefaults = new_defaults
@@ -376,8 +370,7 @@ func UpdateDefaults(label, value string, store_defaults bool) {
 			fmt.Printf("# Updated %s -> \"%s\"\n", label, value)
 		}
 	} else {
-		fmt.Printf("Invalid defaults data %s : %s\n", label, value)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Invalid defaults data %s : %s", label, value))
 	}
 }
 

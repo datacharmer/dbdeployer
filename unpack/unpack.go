@@ -43,6 +43,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"github.com/datacharmer/dbdeployer/common"
 )
 
 const (
@@ -194,13 +195,12 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 				cond_print(fmt.Sprintf ("%s -> %s",filename, header.Linkname), true, CHATTY)
 				err := os.Symlink( header.Linkname, filename)
 				if err != nil {
-					fmt.Printf("%#v\n",header)
-					fmt.Printf("# ERROR: %s\n",err)	
-					os.Exit(1)
+					common.Exit(1, 
+						fmt.Sprintf("%#v",header),
+						fmt.Sprintf("# ERROR: %s",err))
 				}
 			} else {
-				fmt.Printf("File %s is a symlonk, but no link information was provided\n", filename)
-				os.Exit(1)
+				common.Exit(1, fmt.Sprintf("File %s is a symlonk, but no link information was provided\n", filename))
 			}
 		}
 	}

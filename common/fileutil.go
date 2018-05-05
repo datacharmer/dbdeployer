@@ -96,8 +96,7 @@ func WriteSandboxDescription(destination string, sd SandboxDescription) {
 	sd.Timestamp = time.Now().Format(time.UnixDate)
 	b, err := json.MarshalIndent(sd, " ", "\t")
 	if err != nil {
-		fmt.Println("error encoding sandbox description: ", err)
-		os.Exit(1)
+		Exit(1, fmt.Sprintf("error encoding sandbox description: %s", err))
 	}
 	json_string := fmt.Sprintf("%s", b)
 	filename := destination + "/sbdescription.json"
@@ -110,8 +109,7 @@ func ReadSandboxDescription(sandbox_directory string) (sd SandboxDescription) {
 
 	err := json.Unmarshal(sb_blob, &sd)
 	if err != nil {
-		fmt.Println("error decoding sandbox description: ", err)
-		os.Exit(1)
+		Exit(1, fmt.Sprintf("error decoding sandbox description: %s", err))
 	}
 	return
 }
@@ -129,8 +127,7 @@ func SlurpAsLines(filename string) []string {
 		lines = append(lines, scanner.Text())
 	}
 	if err := scanner.Err(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		Exit(1, fmt.Sprintf("%s", err))
 	}
 	return lines
 }

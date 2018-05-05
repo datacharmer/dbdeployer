@@ -39,8 +39,7 @@ func get_cmd_output(cmdText string) string {
 	cmd := exec.Command(command, args...)
 	stdout, err := cmd.StdoutPipe()
 	if err = cmd.Start(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("# ERROR: %s",err))
 	}
 	slurp, _ := ioutil.ReadAll(stdout)
 	stdout.Close()
@@ -98,7 +97,6 @@ func main() {
 	}
 
 	if err := scanner.Err(); err != nil {
-		fmt.Fprintln(os.Stderr, "error:", err)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("# ERROR: %s",err))
 	}
 }

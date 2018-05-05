@@ -42,8 +42,7 @@ func GetInstalledSandboxes(sandbox_home string) (installed_sandboxes []SandboxIn
 	}
 	files, err := ioutil.ReadDir(sandbox_home)
 	if err != nil {
-		fmt.Printf("%s", err)
-		os.Exit(1)
+		Exit(1, fmt.Sprintf("%s", err))
 	}
 	for _, f := range files {
 		fname := f.Name()
@@ -111,18 +110,16 @@ func GetInstalledPorts(sandbox_home string) []int {
 
 func CheckOrigin(args []string) {
 	if len(args) < 1 {
-		fmt.Println("This command requires the MySQL version (x.xx.xx) as argument ")
-		os.Exit(1)
+		Exit(1, "This command requires the MySQL version (x.xx.xx) as argument ")
 	}
 	if len(args) > 1 {
-		fmt.Println("Extra argument detected. This command requires only the MySQL version (x.xx.xx) as argument ")
-		os.Exit(1)
+		Exit(1, "Extra argument detected. This command requires only the MySQL version (x.xx.xx) as argument ")
 	}
 	origin := args[0]
 	if FileExists(origin) && strings.HasSuffix(origin, ".tar.gz") {
-		fmt.Println("Tarball detected. - If you want to use a tarball to create a sandbox,")
-		fmt.Println("you should first use the 'unpack' command")
-		os.Exit(1)
+		Exit(1, 
+			"Tarball detected. - If you want to use a tarball to create a sandbox,",
+			"you should first use the 'unpack' command")
 	}
 
 }
@@ -132,8 +129,7 @@ func CheckSandboxDir(sandbox_home string) {
 		fmt.Printf("Creating directory %s\n", sandbox_home)
 		err := os.Mkdir(sandbox_home, 0755)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			Exit(1, fmt.Sprintf("%s", err))
 		}
 	}
 

@@ -26,52 +26,52 @@ import (
 )
 
 type SandboxDef struct {
-	DirName           string
-	SBType            string
-	Multi             bool
-	NodeNum           int
-	Version           string
-	Basedir           string
-	SandboxDir        string
-	LoadGrants        bool
-	SkipReportHost    bool
-	SkipReportPort    bool
-	SkipStart         bool
-	InstalledPorts    []int
-	Port              int
-	MysqlXPort        int
-	UserPort          int
-	BasePort          int
-	MorePorts         []int
-	Prompt            string
-	DbUser            string
-	RplUser           string
-	DbPassword        string
-	RplPassword       string
-	RemoteAccess      string
-	BindAddress       string
-	CustomMysqld      string
-	ServerId          int
-	ReplOptions       string
-	GtidOptions       string
-	SemiSyncOptions   string
-	InitOptions       []string
-	MyCnfOptions      []string
-	PreGrantsSql      []string
-	PreGrantsSqlFile  string
-	PostGrantsSql     []string
-	PostGrantsSqlFile string
-	MyCnfFile         string
-	InitGeneralLog    bool
-	EnableGeneralLog  bool
-	NativeAuthPlugin  bool
-	DisableMysqlX     bool
-	EnableMysqlX      bool
-	KeepUuid          bool
-	SinglePrimary     bool
-	Force             bool
-	ExposeDdTables    bool
-	RunConcurrently   bool
+	DirName           string    // name of the directory cointaining the sandbox
+	SBType            string    // Type of sandbox (single, multiple, replication-node, group-node)
+	Multi             bool      // either single or part of a multiple sandbox
+	NodeNum           int	    // in multiple sandboxes, which node is this
+	Version           string    // MySQL version
+	Basedir           string    // Where to get binaries from
+	SandboxDir        string    // Target directory for sandboxes
+	LoadGrants        bool      // Should we load grants?
+	SkipReportHost    bool      // Do not add report-host to my.sandbox.cnf
+	SkipReportPort    bool      // Do not add report-port to my.sandbox.cnf
+	SkipStart         bool	    // Do not start the server after deployment
+	InstalledPorts    []int     // Which ports should be skipped in port assignment for this SB
+	Port              int	    // port assigned to this sandbox
+	MysqlXPort        int	    // XPlugin port for thsi sandbox
+	UserPort          int	    // 
+	BasePort          int       // Base port for calculating more ports in multiple SB
+	MorePorts         []int     // Additional ports that belong to thos sandbox
+	Prompt            string    // Prompt to use in "mysql" client
+	DbUser            string    // Database user name
+	RplUser           string    // Replication user name
+	DbPassword        string    // Database password
+	RplPassword       string    // Replication password
+	RemoteAccess      string    // What access have the users created for this SB (127.%)
+	BindAddress       string    // Bind address for this sandbox (127.0.0.1)
+	CustomMysqld      string    // Use an alternative mysqld executable
+	ServerId          int       // Server ID (for replication)
+	ReplOptions       string    // Replication options, as string to append to my.sandbox.cnf
+	GtidOptions       string    // Options needed for GTID
+	SemiSyncOptions   string    // Options for semi-synchronous replication
+	InitOptions       []string  // Options to be added to the initialization command
+	MyCnfOptions      []string	// Options to be added to my.sandbox.cnf
+	PreGrantsSql      []string	// SQL statements to execute before grants assignment
+	PreGrantsSqlFile  string    // SQL file to load before grants assignment
+	PostGrantsSql     []string  // SQL statements to run after grants assignment
+	PostGrantsSqlFile string    // SQL file to load after grants assignment
+	MyCnfFile         string    // options file to merge with the SB my.sandbox.cnf
+	InitGeneralLog    bool      // enable general log during server initialization
+	EnableGeneralLog  bool		// enable general log after initialization
+	NativeAuthPlugin  bool	    // Use the native password plugin for MySQL 8.0.4+
+	DisableMysqlX     bool		// Disable Xplugin (MySQL 8.0.11+)
+	EnableMysqlX      bool		// Enable Xplugin (MySQL 5.7.12+)
+	KeepUuid          bool		// Do not change UUID
+	SinglePrimary     bool		// Use single primary for group replication
+	Force             bool		// Overwrite an existing sandbox with same target
+	ExposeDdTables    bool		// Show hidden data dictionary tables (MySQL 8.0.0+)
+	RunConcurrently   bool		// Run multiple sandbox creation concurrently
 }
 
 func GetOptionsFromFile(filename string) (options []string) {
@@ -121,8 +121,7 @@ func CheckDirectory(sdef SandboxDef) SandboxDef {
 			common.Run_cmd(stop_command)
 			err, _ := common.Run_cmd_with_args("rm", []string{"-rf", sandbox_dir})
 			if err != nil {
-				fmt.Printf("Error while deleting sandbox %s\n", sandbox_dir)
-				os.Exit(1)
+				common.Exit(1, fmt.Sprintf("Error while deleting sandbox %s", sandbox_dir))
 			}
 			var new_installed_ports []int
 			for _, port := range sdef.InstalledPorts {
@@ -132,8 +131,7 @@ func CheckDirectory(sdef SandboxDef) SandboxDef {
 			}
 			sdef.InstalledPorts = new_installed_ports
 		} else {
-			fmt.Printf("Directory %s already exists. Use --force to override.\n", sandbox_dir)
-			os.Exit(1)
+			common.Exit(1, fmt.Sprintf("Directory %s already exists. Use --force to override.", sandbox_dir))
 		}
 	}
 	return sdef
@@ -161,9 +159,8 @@ func FindFreePort(base_port int, installed_ports []int, how_many int) int {
 		} else {
 			check_port += how_many
 		}
-		if check_port > 60000 {
-			fmt.Printf("Could not find a free range for %d\n", base_port)
-			os.Exit(1)
+		if check_port > 64000 {
+			common.Exit(1, fmt.Sprintf("Could not find a free range for %d", base_port))
 		}
 	}
 	// fmt.Printf("%v, %d\n",installed_ports, check_port)
@@ -183,8 +180,7 @@ func CheckPort(sandbox_type string, installed_ports []int, port int) {
 		}
 	}
 	if conflict > 0 {
-		fmt.Printf("Port conflict detected. Port %d is already used\n", conflict)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Port conflict detected. Port %d is already used", conflict))
 	}
 }
 
@@ -207,20 +203,7 @@ func FixServerUuid(sdef SandboxDef) (uuid_file, new_uuid string) {
 	new_uuid = fmt.Sprintf("server-uuid=%s", common.MakeCustomizedUuid(sdef.Port, sdef.NodeNum))
 	operation_dir := sdef.SandboxDir + "/data"
 	uuid_file = operation_dir + "/auto.cnf"
-	//if !common.DirExists(operation_dir) {
-	//	fmt.Printf("Directory %s does not exist\n", operation_dir)
-	//	os.Exit(1)
-	//}
-	//uuid_string = []string{"[auto]", new_uuid}
 	return
-	//err := common.WriteStrings(uuid_string, uuid_file, "")
-	//if err != nil {
-	//	fmt.Printf("%s\n", err)
-	//	os.Exit(1)
-	//}
-	//check_uuid := common.SlurpAsString(uuid_file)
-	//fmt.Printf("UUID file (%s) updated : %s\n", uuid_file, new_uuid)
-	//fmt.Printf("new UUID : %s\n", check_uuid)
 }
 
 func slice_to_text(s_array []string) string {
@@ -245,19 +228,26 @@ func set_mysqlx_properties(sdef SandboxDef, global_tmp_dir string) SandboxDef {
 	return sdef
 }
 
-func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent.ExecutionList) {
+func debug_print(sdef SandboxDef) {
+	if os.Getenv("SBDEBUG") == "" {
+		return
+	}
+	fmt.Printf("%#v\n",sdef)
+}
+
+func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList) {
 
 	var sandbox_dir string
 
-	sdef.Basedir = sdef.Basedir
 	if !common.DirExists(sdef.Basedir) {
-		fmt.Printf("Base directory %s does not exist\n", sdef.Basedir)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Base directory %s does not exist", sdef.Basedir))
 	}
 
-	//fmt.Printf("origin: %s\n", origin)
-	//fmt.Printf("def: %#v\n", sdef)
-	// port = VersionToPort(sdef.Version)
+	if sdef.Port <= 1024 {
+		common.Exit(1, fmt.Sprintf("Port for sandbox must be > 1024 (given:%d)",sdef.Port))
+	}
+	debug_print(sdef)
+
 	version_fname := common.VersionToName(sdef.Version)
 	if sdef.Prompt == "" {
 		sdef.Prompt = "mysql"
@@ -274,16 +264,14 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 		global_tmp_dir = "/tmp"
 	}
 	if !common.DirExists(global_tmp_dir) {
-		fmt.Printf("TMP directory %s does not exist\n", global_tmp_dir)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("TMP directory %s does not exist", global_tmp_dir))
 	}
 	if sdef.NodeNum == 0 && !sdef.Force {
 		sdef.Port = FindFreePort(sdef.Port, sdef.InstalledPorts, 1)
 	}
 	if sdef.EnableMysqlX {
 		if !common.GreaterOrEqualVersion(sdef.Version, []int{5, 7, 12}) {
-			fmt.Printf("option --enable-mysqlx requires version 5.7.12+\n")
-			os.Exit(1)
+			common.Exit(1, "option --enable-mysqlx requires version 5.7.12+")
 		}
 		// If the version is 8.0.11 or later, MySQL X is enabled already
 		if !common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 11}) {
@@ -293,23 +281,22 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 	}
 	if sdef.ExposeDdTables {
 		if !common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 0}) {
-			fmt.Printf("--expose-dd-tables requires MySQL 8.0.0+\n")
-			os.Exit(1)
+			common.Exit(1, "--expose-dd-tables requires MySQL 8.0.0+")
 		}
 		sdef.PostGrantsSql = append(sdef.PostGrantsSql, SingleTemplates["expose_dd_tables"].Contents)
 		if sdef.CustomMysqld != "" && sdef.CustomMysqld != "mysqld-debug" {
-			fmt.Printf("--expose-dd-tables requires mysqld-debug. A different file was indicated (--custom-mysqld=%s)\n", sdef.CustomMysqld)
-			fmt.Println("Either use \"mysqld-debug\" or remove --custom-mysqld")
-			os.Exit(1)
+			common.Exit(1, 
+				fmt.Sprintf("--expose-dd-tables requires mysqld-debug. A different file was indicated (--custom-mysqld=%s)", sdef.CustomMysqld), 
+				"Either use \"mysqld-debug\" or remove --custom-mysqld")
 		}
 		sdef.CustomMysqld = "mysqld-debug"
 	}
 	if sdef.CustomMysqld != "" {
 		custom_mysqld := sdef.Basedir + "/bin/" + sdef.CustomMysqld
 		if !common.ExecExists(custom_mysqld) {
-			fmt.Printf("File %s not found or not executable\n", custom_mysqld)
-			fmt.Printf("The file \"%s\" (defined with --custom-mysqld) must be in the same directory as the regular mysqld\n", sdef.CustomMysqld)
-			os.Exit(1)
+			common.Exit(1,
+				fmt.Sprintf("File %s not found or not executable", custom_mysqld),
+				fmt.Sprintf("The file \"%s\" (defined with --custom-mysqld) must be in the same directory as the regular mysqld", sdef.CustomMysqld))
 		}
 	}
 	if common.GreaterOrEqualVersion(sdef.Version, []int{5, 1, 0}) {
@@ -410,8 +397,7 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 	}
 	// fmt.Printf("Script: %s\n", script)
 	if !common.ExecExists(script) {
-		fmt.Printf("Script '%s' not found\n", script)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Script '%s' not found", script))
 	}
 	if len(sdef.InitOptions) > 0 {
 		for _, op := range sdef.InitOptions {
@@ -446,8 +432,10 @@ func CreateSingleSandbox(sdef SandboxDef, origin string) (exec_list []concurrent
 		err, _ := common.Run_cmd_ctrl(sandbox_dir+"/init_db", true)
 		if err == nil {
 			if !sdef.Multi {
-				fmt.Printf("Database installed in %s\n", common.ReplaceLiteralHome(sandbox_dir))
-				fmt.Printf("run 'dbdeployer usage single' for basic instructions'\n")
+				if defaults.UsingDbDeployer {
+					fmt.Printf("Database installed in %s\n", common.ReplaceLiteralHome(sandbox_dir))
+					fmt.Printf("run 'dbdeployer usage single' for basic instructions'\n")
+				}
 			}
 		} else {
 			fmt.Printf("err: %s\n", err)
@@ -593,4 +581,69 @@ func write_regular_file(filename, text, directory string) string {
 	fname := directory + "/" + filename
 	common.WriteString(text, fname)
 	return fname
+}
+
+func RemoveSandbox(sandbox_dir, sandbox string, run_concurrently bool) (exec_list []concurrent.ExecutionList) {
+	full_path := sandbox_dir + "/" + sandbox
+	if !common.DirExists(full_path) {
+		common.Exit(1, fmt.Sprintf("Directory '%s' not found", full_path))
+	}
+	preserve := full_path + "/no_clear_all"
+	if !common.ExecExists(preserve) {
+		preserve = full_path + "/no_clear"
+	}
+	if common.ExecExists(preserve) {
+		fmt.Printf("The sandbox %s is locked\n",sandbox)
+		fmt.Printf("You need to unlock it with \"dbdeployer admin unlock\"\n",)
+		return
+	}
+	stop := full_path + "/stop_all"
+	if !common.ExecExists(stop) {
+		stop = full_path + "/stop"
+	}
+	if !common.ExecExists(stop) {
+		common.Exit(1, fmt.Sprintf("Executable '%s' not found", stop))
+	}
+
+	if run_concurrently {
+		var eCommand1 = concurrent.ExecCommand{
+			Cmd : stop,
+			Args : []string{},
+		}
+		exec_list = append(exec_list, concurrent.ExecutionList{0, eCommand1})
+	} else {
+		if defaults.UsingDbDeployer {
+			fmt.Printf("Running %s\n", stop)
+		}
+		err, _ := common.Run_cmd(stop)
+		if err != nil {
+			common.Exit(1, fmt.Sprintf("Error while stopping sandbox %s", full_path))
+		}
+	}
+
+	cmd_str := "rm"
+	rm_args := []string{"-rf", full_path}
+	if run_concurrently {
+		var eCommand2 = concurrent.ExecCommand{
+			Cmd : cmd_str,
+			Args : rm_args,
+		}
+		exec_list = append(exec_list, concurrent.ExecutionList{1, eCommand2})
+	} else {
+		for _, item := range rm_args {
+			cmd_str += " " + item
+		}
+		if defaults.UsingDbDeployer {
+			fmt.Printf("Running %s\n", cmd_str)
+		}
+		err, _ := common.Run_cmd_with_args("rm", rm_args)
+		if err != nil {
+			common.Exit(1, fmt.Sprintf("Error while deleting sandbox %s", full_path))
+		}
+		if defaults.UsingDbDeployer {
+			fmt.Printf("Sandbox %s deleted\n", full_path)
+		}
+	}
+	// fmt.Printf("%#v\n",exec_list)
+	return
 }

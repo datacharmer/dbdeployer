@@ -26,8 +26,7 @@ import (
 func UnpreserveSandbox(sandbox_dir, sandbox_name string) {
 	full_path := sandbox_dir + "/" + sandbox_name
 	if !common.DirExists(full_path) {
-		fmt.Printf("Directory '%s' not found\n", full_path)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Directory '%s' not found", full_path))
 	}
 	preserve := full_path + "/no_clear_all"
 	if !common.ExecExists(preserve) {
@@ -44,8 +43,7 @@ func UnpreserveSandbox(sandbox_dir, sandbox_name string) {
 		is_multiple = false
 	}
 	if !common.ExecExists(clear) {
-		fmt.Printf("Executable '%s' not found\n", clear)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Executable '%s' not found", clear))
 	}
 	no_clear := full_path + "/no_clear"
 	if is_multiple {
@@ -53,13 +51,11 @@ func UnpreserveSandbox(sandbox_dir, sandbox_name string) {
 	}
 	err := os.Remove(clear)
 	if err != nil {
-		fmt.Printf("Error while removing %s \n%s\n",clear, err)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Error while removing %s \n%s",clear, err))
 	}
 	err = os.Rename(no_clear, clear)
 	if err != nil {
-		fmt.Printf("Error while renaming  script\n%s\n", err)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Error while renaming  script\n%s", err))
 	}
 	fmt.Printf("Sandbox %s unlocked\n",sandbox_name)
 }
@@ -69,8 +65,7 @@ func UnpreserveSandbox(sandbox_dir, sandbox_name string) {
 func PreserveSandbox(sandbox_dir, sandbox_name string) {
 	full_path := sandbox_dir + "/" + sandbox_name
 	if !common.DirExists(full_path) {
-		fmt.Printf("Directory '%s' not found\n", full_path)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Directory '%s' not found", full_path))
 	}
 	preserve := full_path + "/no_clear_all"
 	if !common.ExecExists(preserve) {
@@ -87,8 +82,7 @@ func PreserveSandbox(sandbox_dir, sandbox_name string) {
 		is_multiple = false
 	}
 	if !common.ExecExists(clear) {
-		fmt.Printf("Executable '%s' not found\n", clear)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Executable '%s' not found", clear))
 	}
 	no_clear := full_path + "/no_clear"
 	clear_cmd := "clear"
@@ -100,8 +94,7 @@ func PreserveSandbox(sandbox_dir, sandbox_name string) {
 	}
 	err := os.Rename(clear, no_clear)
 	if err != nil {
-		fmt.Printf("Error while renaming script.\n%s\n",err)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf( "Error while renaming script.\n%s",err))
 	}
 	template := sandbox.SingleTemplates["sb_locked_template"].Contents
 	var data = common.Smap{
@@ -121,9 +114,9 @@ func PreserveSandbox(sandbox_dir, sandbox_name string) {
 
 func LockSandbox(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
-		fmt.Printf("'lock' requires the name of a sandbox (or ALL)")
-		fmt.Printf("Example: dbdeployer admin lock msb_5_7_21")
-		os.Exit(1)
+		common.Exit(1, 
+			"'lock' requires the name of a sandbox (or ALL)",
+			"Example: dbdeployer admin lock msb_5_7_21")
 	}
 	flags := cmd.Flags()
 	sandbox := args[0]
@@ -143,9 +136,9 @@ func LockSandbox(cmd *cobra.Command, args []string) {
 
 func UnlockSandbox(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
-		fmt.Printf("'unlock' requires the name of a sandbox (or ALL)")
-		fmt.Printf("Example: dbdeployer admin unlock msb_5_7_21")
-		os.Exit(1)
+		common.Exit(1, 
+			"'unlock' requires the name of a sandbox (or ALL)",
+			"Example: dbdeployer admin unlock msb_5_7_21")
 	}
 	flags := cmd.Flags()
 	sandbox := args[0]

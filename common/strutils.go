@@ -130,8 +130,7 @@ func LatestVersion(versions []string ) string {
 func Atoi(val string) int {
 	numvalue, err := strconv.Atoi(val)
 	if err != nil {
-		fmt.Printf("Not a valid number: %s (%s)\n", val, err)
-		os.Exit(1)
+		Exit(1, fmt.Sprintf("Not a valid number: %s (%s)", val, err))
 	}
 	return numvalue
 }
@@ -145,4 +144,10 @@ func StringToIntSlice(val string) (num_list []int) {
 	return num_list
 }
 
+func Exit(exit_code int, messages ...string) {
+	for _, msg := range messages {
+		fmt.Printf("%s\n",msg)
+	}
+	os.Exit(exit_code)
+}
 

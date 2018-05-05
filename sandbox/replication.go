@@ -17,7 +17,6 @@ package sandbox
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/datacharmer/dbdeployer/common"
@@ -64,8 +63,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		}
 	}
 	if nodes < 2 {
-		fmt.Println("Can't run replication with less than 2 nodes")
-		os.Exit(1)
+		common.Exit(1, "Can't run replication with less than 2 nodes")
 	}
 	slaves := nodes - 1
 	master_abbr := defaults.Defaults().MasterAbbr
@@ -103,7 +101,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	sdef.Prompt = master_label
 	sdef.NodeNum = 1
 	sdef.SBType = "replication-node"
-	exec_list := CreateSingleSandbox(sdef, origin)
+	exec_list := CreateSingleSandbox(sdef)
 	for _, list := range exec_list {
 		exec_lists = append(exec_lists, list)
 	}
@@ -178,7 +176,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		if sdef.SemiSyncOptions != "" {
 			sdef.SemiSyncOptions = SingleTemplates["semisync_slave_options"].Contents
 		}
-		exec_list_node := CreateSingleSandbox(sdef, origin)
+		exec_list_node := CreateSingleSandbox(sdef)
 		for _, list := range exec_list_node {
 			exec_lists = append(exec_lists, list)
 		}
@@ -235,8 +233,7 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 
 	Basedir := sdef.Basedir
 	if !common.DirExists(Basedir) {
-		fmt.Printf("Base directory %s does not exist\n", Basedir)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Base directory %s does not exist", Basedir))
 	}
 
 	sandbox_dir := sdef.SandboxDir
@@ -250,24 +247,20 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 			sdef.SandboxDir += "/" + defaults.Defaults().GroupPrefix + common.VersionToName(origin)
 		}
 		if !common.GreaterOrEqualVersion(sdef.Version, []int{5, 7, 17}) {
-			fmt.Println("Group replication requires MySQL 5.7.17 or greater")
-			os.Exit(1)
+			common.Exit(1, "Group replication requires MySQL 5.7.17 or greater")
 		}
 	case "fan-in":
 		if !common.GreaterOrEqualVersion(sdef.Version, []int{5, 7, 9}) {
-			fmt.Println("multi-source replication requires MySQL 5.7.9 or greater")
-			os.Exit(1)
+			common.Exit(1, "multi-source replication requires MySQL 5.7.9 or greater")
 		}
 		sdef.SandboxDir += "/" + defaults.Defaults().FanInPrefix + common.VersionToName(origin)
 	case "all-masters":
 		if !common.GreaterOrEqualVersion(sdef.Version, []int{5, 7, 9}) {
-			fmt.Println("multi-source replication requires MySQL 5.7.9 or greater")
-			os.Exit(1)
+			common.Exit(1, "multi-source replication requires MySQL 5.7.9 or greater")
 		}
 		sdef.SandboxDir += "/" + defaults.Defaults().AllMastersPrefix + common.VersionToName(origin)
 	default:
-		fmt.Println("Unrecognized topology. Accepted: 'master-slave', 'group', 'fan-in', 'all-masters'")
-		os.Exit(1)
+		common.Exit(1, "Unrecognized topology. Accepted: 'master-slave', 'group', 'fan-in', 'all-masters'")
 	}
 	if sdef.DirName != "" {
 		sdef.SandboxDir = sandbox_dir + "/" + sdef.DirName
@@ -284,11 +277,7 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 		CreateGroupReplication(sdef, origin, nodes, master_ip)
 	case "fan-in":
 		CreateFanInReplication(sdef, origin, nodes, master_ip, master_list, slave_list)
-		// fmt.Println("fan-in replication is not implemented yet")
-		// os.Exit(0)
 	case "all-masters":
 		CreateAllMastersReplication(sdef, origin, nodes, master_ip)
-		//fmt.Println("all-masters replication is not implemented yet")
-		//os.Exit(0)
 	}
 }

@@ -17,7 +17,6 @@ package sandbox
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/datacharmer/dbdeployer/common"
@@ -41,8 +40,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Sma
 	}
 	Basedir := sdef.Basedir
 	if !common.DirExists(Basedir) {
-		fmt.Printf("Base directory %s does not exist\n", Basedir)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Base directory %s does not exist", Basedir))
 	}
 	if sdef.DirName == "" {
 		sdef.SandboxDir += "/" + defaults.Defaults().MultiplePrefix + common.VersionToName(origin)
@@ -70,8 +68,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Sma
 	sdef.ReplOptions = SingleTemplates["replication_options"].Contents
 	base_server_id := 0
 	if nodes < 2 {
-		fmt.Println("For single sandbox deployment, use the 'single' command")
-		os.Exit(1)
+		common.Exit(1, "Only one node requested. For single sandbox deployment, use the 'single' command")
 	}
 	timestamp := time.Now()
 	var data common.Smap = common.Smap{
@@ -132,7 +129,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Sma
 		if !sdef.RunConcurrently {
 			fmt.Printf("Installing and starting %s %d\n", node_label, i)
 		}
-		exec_list := CreateSingleSandbox(sdef, origin)
+		exec_list := CreateSingleSandbox(sdef)
 		for _, list := range exec_list {
 			exec_lists = append(exec_lists, list)
 		}

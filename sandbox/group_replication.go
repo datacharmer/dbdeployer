@@ -222,7 +222,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 		sdef.SBType = "group-node"
 		sdef.NodeNum = i
 		// fmt.Printf("%#v\n",sdef)
-		exec_list := CreateSingleSandbox(sdef, origin)
+		exec_list := CreateSingleSandbox(sdef)
 		for _, list := range exec_list {
 			exec_lists = append(exec_lists, list)
 		}

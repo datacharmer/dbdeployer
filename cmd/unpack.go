@@ -32,9 +32,9 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	Basedir, _ := flags.GetString("sandbox-binary")
 	verbosity, _ := flags.GetInt("verbosity")
 	if !common.DirExists(Basedir) {
-		fmt.Printf("Directory %s does not exist.\n", Basedir)
-		fmt.Println("You should create it or provide an alternate base directory using --sandbox-binary")
-		os.Exit(1)
+		common.Exit(1,
+			fmt.Sprintf("Directory %s does not exist.", Basedir),
+			"You should create it or provide an alternate base directory using --sandbox-binary")
 	}
 	tarball := args[0]
 	re_version := regexp.MustCompile(`(\d+\.\d+\.\d+)`)
@@ -47,9 +47,9 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 		Version = detected_version
 	}
 	if Version == "" {
-		fmt.Println("unpack: No version was detected from tarball name. ")
-		fmt.Println("Flag --unpack-version becomes mandatory")
-		os.Exit(1)
+		common.Exit(1, 
+			"unpack: No version was detected from tarball name. ",
+			"Flag --unpack-version becomes mandatory")
 	}
 	// This call used to ensure that the port provided is in the right format
 	common.VersionToPort(Version)
@@ -57,8 +57,7 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 
 	destination := Basedir + "/" + Prefix + Version
 	if common.DirExists(destination) {
-		fmt.Printf("Destination directory %s exists already\n", destination)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Destination directory %s exists already\n", destination))
 	}
 	var extension string = ".tar.gz"
 	extracted := path.Base(tarball)
@@ -66,23 +65,20 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	if strings.HasSuffix(tarball, extension) {
 		barename = extracted[0 : len(extracted)-len(extension)]
 	} else {
-		fmt.Println("Tarball extension must be .tar.gz")
-		os.Exit(1)
+		common.Exit(1, "Tarball extension must be .tar.gz")
 	}
 
 	fmt.Printf("Unpacking tarball %s to %s\n", tarball, common.ReplaceLiteralHome(destination))
 	//verbosity_level := unpack.VERBOSE
 	err := unpack.UnpackTar(tarball, Basedir, verbosity)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("%s", err))
 	}
 	final_name := Basedir + "/" + barename
 	if final_name != destination {
 		err = os.Rename(final_name, destination)
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			common.Exit(1, fmt.Sprintf("%s", err))
 		}
 	}
 }

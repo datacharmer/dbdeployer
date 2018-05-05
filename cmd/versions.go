@@ -36,8 +36,6 @@ func ShowVersions(cmd *cobra.Command, args []string) {
 	var dirs []string
 	for _, f := range files {
 		fname := f.Name()
-		//fmt.Printf("%#v\n", f)
-		//os.Exit(0)
 		fmode := f.Mode()
 		//fmt.Printf("%#v\n", fmode)
 		if fmode.IsDir() {

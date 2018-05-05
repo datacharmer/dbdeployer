@@ -41,8 +41,7 @@ Runs single, multiple, and replicated sandboxes.`,
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("%s",err))
 	}
 }
 
@@ -68,8 +67,7 @@ func checkDefaultsFile() {
 		if common.FileExists(defaults.CustomConfigurationFile) {
 			defaults.ConfigurationFile = defaults.CustomConfigurationFile
 		} else {
-			fmt.Printf("*** File %s not found\n", defaults.CustomConfigurationFile)
-			os.Exit(1)
+			common.Exit(1, fmt.Sprintf("*** File %s not found", defaults.CustomConfigurationFile))
 		}
 	}
 	defaults.LoadConfiguration()
@@ -84,4 +82,5 @@ func init() {
 	set_pflag(rootCmd,"sandbox-binary", "", "SANDBOX_BINARY", defaults.Defaults().SandboxBinary, "Binary repository", false)
 
 	rootCmd.InitDefaultVersionFlag()
+	defaults.UsingDbDeployer = true
 }

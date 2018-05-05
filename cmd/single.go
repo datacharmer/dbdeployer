@@ -31,14 +31,12 @@ import (
 func replace_template(template_name string, file_name string) {
 	group, _, contents := FindTemplate(template_name)
 	if !common.FileExists(file_name) {
-		fmt.Printf("File %s not found\n", file_name)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("File %s not found\n", file_name))
 	}
 	fmt.Printf("Replacing template %s.%s [%d chars] with contents of file %s\n", group, template_name, len(contents), file_name)
 	new_contents := common.SlurpAsString(file_name)
 	if len(new_contents) == 0 {
-		fmt.Printf("File %s is empty\n", file_name)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("File %s is empty\n", file_name))
 	}
 	var new_rec sandbox.TemplateDesc = sandbox.TemplateDesc{
 		Description: sandbox.AllTemplates[group][template_name].Description,
@@ -52,9 +50,7 @@ func check_template_change_request(request string) (template_name, file_name str
 	re := regexp.MustCompile(`(\w+):(\S+)`)
 	reqList := re.FindAllStringSubmatch(request, -1)
 	if len(reqList) == 0 {
-		//fmt.Printf("%v\n", reqList)
-		fmt.Printf("request '%s' invalid. Required format is 'template_name:file_name'\n", request)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("request '%s' invalid. Required format is 'template_name:file_name'", request))
 	}
 	template_name = reqList[0][1]
 	file_name = reqList[0][2]
@@ -82,7 +78,9 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 		replace_template(tname, fname)
 	}
 	sd.Port = common.VersionToPort(args[0])
-
+	if sd.Port < 0 {
+		common.Exit(1, fmt.Sprintf("Unsupported version format (%s)",args[0]))
+	}
 	sd.UserPort, _ = flags.GetInt("port")
 	sd.BasePort, _ = flags.GetInt("base-port")
 	sd.DirName, _ = flags.GetString("sandbox-directory")
@@ -131,8 +129,7 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.EnableGeneralLog, _ = flags.GetBool("enable-general-log")
 
 	if sd.DisableMysqlX && sd.EnableMysqlX {
-		fmt.Printf("flags --enable-mysqlx and --disable-mysqlx cannot be used together\n")
-		os.Exit(1)
+		common.Exit(1, "flags --enable-mysqlx and --disable-mysqlx cannot be used together")
 	}
 	sd.RunConcurrently, _ = flags.GetBool("concurrent")
 	if os.Getenv("RUN_CONCURRENTLY") != "" {
@@ -156,8 +153,7 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 			sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 			sd.ServerId = sd.Port
 		} else {
-			fmt.Println("--gtid requires version 5.6.9+")
-			os.Exit(1)
+			common.Exit(1, "--gtid requires version 5.6.9+")
 		}
 	}
 	return sd
@@ -169,17 +165,8 @@ func SingleSandbox(cmd *cobra.Command, args []string) {
 	sd = FillSdef(cmd, args)
 	// When deploying a single sandbox, we disable concurrency
 	sd.RunConcurrently = false
-	sandbox.CreateSingleSandbox(sd, args[0])
+	sandbox.CreateSingleSandbox(sd)
 }
-
-/*
-func ReplacedCmd(cmd *cobra.Command, args []string) {
-	invoked := cmd.Use
-	fmt.Printf("The command \"%s\" has been replaced.\n",invoked)
-	fmt.Printf("Use \"dbdeployer deploy %s\" instead.\n",invoked)
-	os.Exit(0)
-}
-*/
 
 var singleCmd = &cobra.Command{
 	Use: "single MySQL-Version",
@@ -199,34 +186,7 @@ Use the "unpack" command to get the tarball into the right directory.
 	Run: SingleSandbox,
 }
 
-/*
-var (
-	hiddenSingleCmd = &cobra.Command{
-		Use: "single",
-		Short: "REMOVED: use 'deploy single' instead",
-		Hidden: true,
-		Run: ReplacedCmd,
-	}
-	hiddenReplicationCmd = &cobra.Command{
-		Use: "replication",
-		Short: "REMOVED: use 'deploy replication' instead",
-		Hidden: true,
-		Run: ReplacedCmd,
-	}
-
-	hiddenMultipleCmd = &cobra.Command{
-		Use: "multiple",
-		Short: "REMOVED: use 'deploy multiple' instead",
-		Hidden: true,
-		Run: ReplacedCmd,
-	}
-)
-*/
-
 func init() {
-	//rootCmd.AddCommand(hiddenSingleCmd)
-	//rootCmd.AddCommand(hiddenReplicationCmd)
-	//rootCmd.AddCommand(hiddenMultipleCmd)
 	deployCmd.AddCommand(singleCmd)
 	singleCmd.PersistentFlags().Bool("master", false, "Make the server replication ready")
 

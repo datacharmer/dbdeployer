@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, require_args bool, skip_missing bool) {
@@ -27,12 +26,10 @@ func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 	sandbox_dir, _ := flags.GetString("sandbox-home")
 	run_list := common.SandboxInfoToFileNames(common.GetInstalledSandboxes(sandbox_dir))
 	if len(run_list) == 0 {
-		fmt.Printf("No sandboxes found in %s\n", sandbox_dir)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("No sandboxes found in %s", sandbox_dir))
 	}
 	if require_args && len(args) < 1 {
-		fmt.Printf("Arguments required for command %s\n", executable)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("Arguments required for command %s", executable))
 	}
 	for _, sb := range run_list {
 		single_use := true
@@ -49,8 +46,7 @@ func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 				fmt.Printf("# Sandbox %s: executable %s not found\n",full_dir_path, executable)
 				continue
 			}
-			fmt.Printf("No %s or %s found in %s\n", executable, executable+"_all", full_dir_path)
-			os.Exit(1)
+			common.Exit(1, fmt.Sprintf("No %s or %s found in %s", executable, executable+"_all", full_dir_path))
 		}
 		var cmd_args []string
 
@@ -68,8 +64,7 @@ func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 			err, _ = common.Run_cmd(cmd_file)
 		}
 		if err != nil {
-			fmt.Printf("Error while running %s\n", cmd_file)
-			os.Exit(1)
+			common.Exit(1, fmt.Sprintf("Error while running %s\n", cmd_file))
 		}
 		fmt.Println("")
 	}

@@ -348,6 +348,10 @@ Then, you can use completion as follows:
     $ dbdeployer deploy single --b[tab][tab]
         --base-port=     --bind-address=
 
+## Using dbdeployer source for other projects
+
+If you need to create sandboxes from other Go apps, see  [dbdeployer-as-a-library.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/coding/dbdeployer-as-a-library.md).
+
 ## Semantic versioning
 
 As of version 1.0.0, dbdeployer adheres to the principles of [semantic versioning](https://semver.org/). A version number is made of Major, Minor, and Revision. When changes are applied, the following happens:

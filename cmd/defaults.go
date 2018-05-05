@@ -20,7 +20,6 @@ import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 func ShowDefaults(cmd *cobra.Command, args []string) {
@@ -38,8 +37,7 @@ func RemoveDefaults(cmd *cobra.Command, args []string) {
 
 func LoadDefaults(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
-		fmt.Printf("'load' requires a file name\n")
-		os.Exit(1)
+		common.Exit(1,"'load' requires a file name")
 	}
 	filename := args[0]
 	new_defaults := defaults.ReadDefaultsFile(filename)
@@ -53,13 +51,11 @@ func LoadDefaults(cmd *cobra.Command, args []string) {
 
 func ExportDefaults(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
-		fmt.Printf("'export' requires a file name\n")
-		os.Exit(1)
+		common.Exit(1,"'export' requires a file name")
 	}
 	filename := args[0]
 	if common.FileExists(filename) {
-		fmt.Printf("File %s already exists. Will not overwrite\n", filename)
-		os.Exit(1)
+		common.Exit(1, fmt.Sprintf("File %s already exists. Will not overwrite", filename))
 	}
 	defaults.WriteDefaultsFile(filename, defaults.Defaults())
 	fmt.Printf("# Defaults exported to file %s\n", filename)
@@ -67,9 +63,9 @@ func ExportDefaults(cmd *cobra.Command, args []string) {
 
 func UpdateDefaults(cmd *cobra.Command, args []string) {
 	if len(args) < 2 {
-		fmt.Printf("'update' requires a label and a value\n")
-		fmt.Printf("Example: dbdeployer defaults update master-slave-base-port 17500\n")
-		os.Exit(1)
+		common.Exit(1,
+			"'update' requires a label and a value",
+			"Example: dbdeployer defaults update master-slave-base-port 17500")
 	}
 	label := args[0]
 	value := args[1]
