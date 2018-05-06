@@ -77,6 +77,11 @@ var (
 	StarLine                string = strings.Repeat("*", LineLength)
 	DashLine                string = strings.Repeat("-", LineLength)
 	HashLine                string = strings.Repeat("#", LineLength)
+
+	// This variable is changed to true when the "cmd" package is activated,
+	// meaning that we're using the command line interface of dbdeployer.
+	// It is used to make decisions whether to write messages to the screen
+	// when calling sandbox creation functions from other apps.
 	UsingDbDeployer			bool = false
 
 	factoryDefaults = DbdeployerDefaults{

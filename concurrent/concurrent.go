@@ -68,6 +68,8 @@ func start_task (num int, w *sync.WaitGroup, tasks CommonChan) {
 	}
 }
 
+// Run several tasks in parallel
+
 func RunParallelTasks( priority_level int, operations ExecCommands ) {
     tasks := make(CommonChan, 64)
 
@@ -82,6 +84,43 @@ func RunParallelTasks( priority_level int, operations ExecCommands ) {
     	fmt.Printf("#%d\n", priority_level)
 	}
 }
+
+/*
+//  Given a list of tasks with different priorities
+// This function organizes the queued tasks by priority
+// and runs concurrently the tasks with the same priority
+// until no task is left in the queue.
+// For example we may have:
+	priority     command
+	1            /some/path/init_db
+	2            /some/path/start
+	3            /some/path/load_grants
+	1            /some/other/path/init_db
+	2            /some/other/path/start
+	3            /some/other/path/load_grants
+	1            /some/alternative/path/init_db
+	2            /some/alternative/path/start
+	3            /some/alternative/path/load_grants
+
+	This function will receive the commands, and re-arrange them as follows
+	run concurrently: {
+		1            /some/path/init_db
+		1            /some/other/path/init_db
+		1            /some/alternative/path/init_db
+	}
+
+	run concurrently: {
+		2            /some/path/start
+		2            /some/other/path/start
+		2            /some/alternative/path/start
+	}
+	
+	run concurrently: {
+		3            /some/path/load_grants
+		3            /some/other/path/load_grants
+		3            /some/alternative/path/load_grants
+	}
+*/
 
 func RunParallelTasksByPriority ( exec_lists []ExecutionList) {
 	maxPriority := 0

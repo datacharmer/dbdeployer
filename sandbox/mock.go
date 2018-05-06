@@ -28,12 +28,12 @@ import (
 
 const default_mock_dir string = "mock_dir"
 var (
-	save_home string 
+	save_home string
 	save_sandbox_home string
 	save_sandbox_binary string
 	save_sleep_time string
-	sandbox_binary string
-	sandbox_home string
+	mock_sandbox_binary string
+	mock_sandbox_home string
 )
 
 func set_mock_environment(mock_upper_dir string) {
@@ -46,16 +46,16 @@ func set_mock_environment(mock_upper_dir string) {
 	PWD := os.Getenv("PWD")
 	home := fmt.Sprintf("%s/%s/home", PWD, mock_upper_dir)
 	sandbox_binary_upper := fmt.Sprintf("%s/opt", home)
-	sandbox_binary = fmt.Sprintf("%s/opt/mysql", home)
-	sandbox_home = fmt.Sprintf("%s/sandboxes", home)
+	mock_sandbox_binary = fmt.Sprintf("%s/opt/mysql", home)
+	mock_sandbox_home = fmt.Sprintf("%s/sandboxes", home)
 	common.Mkdir(mock_upper_dir)
 	common.Mkdir(home)
 	common.Mkdir(sandbox_binary_upper)
-	common.Mkdir(sandbox_binary)
-	common.Mkdir(sandbox_home)
+	common.Mkdir(mock_sandbox_binary)
+	common.Mkdir(mock_sandbox_home)
 	os.Setenv("HOME", home)
-	os.Setenv("SANDBOX_HOME", sandbox_home)
-	os.Setenv("SANDBOX_BINARY", sandbox_binary)
+	os.Setenv("SANDBOX_HOME", mock_sandbox_home)
+	os.Setenv("SANDBOX_BINARY", mock_sandbox_binary)
 	os.Setenv("HOME", home)
 	os.Setenv("SLEEP_TIME", "0")
 	defaults.ConfigurationDir = home + ".dbdeployer"
@@ -72,33 +72,43 @@ func remove_mock_environment(mock_upper_dir string) {
 	os.Setenv("HOME", save_home)
 	os.Setenv("SANDBOX_HOME", save_sandbox_home)
 	os.Setenv("SANDBOX_BINARY", save_sandbox_binary)
+	os.Setenv("SLEEP_TIME", save_sleep_time)
 }
 
 func create_mock_version(version string) {
-	if sandbox_binary == "" {
+	if mock_sandbox_binary == "" {
 		common.Exit(1, "Mock directory not set yet. - Call set_mock_environment() first")
 	}
-	version_dir := fmt.Sprintf("%s/%s", sandbox_binary, version)
+	version_dir := fmt.Sprintf("%s/%s", mock_sandbox_binary, version)
 	common.Mkdir(version_dir)
-	common.Mkdir(version_dir+ "/bin")	
+	common.Mkdir(version_dir+ "/bin")
 	common.Mkdir(version_dir+ "/scripts")
-	write_script(MockTemplates, "mysqld", "no_op_mock_template", version_dir + "/bin", common.Smap{}, true) 
-	write_script(MockTemplates, "mysql", "no_op_mock_template", version_dir + "/bin", common.Smap{}, true) 
-	write_script(MockTemplates, "mysql_install_db", "no_op_mock_template", version_dir + "/scripts", common.Smap{}, true) 
-	write_script(MockTemplates, "mysqld_safe", "mysqld_safe_mock_template", version_dir + "/bin", common.Smap{}, true) 
+	var empty_data = common.Smap{}
+	write_script(MockTemplates, "mysqld", "no_op_mock_template",
+		version_dir + "/bin", empty_data, true)
+	write_script(MockTemplates, "mysql", "no_op_mock_template",
+		version_dir + "/bin", empty_data, true)
+	write_script(MockTemplates, "mysql_install_db", "no_op_mock_template",
+		version_dir + "/scripts", empty_data, true)
+	write_script(MockTemplates, "mysqld_safe", "mysqld_safe_mock_template",
+		version_dir + "/bin", empty_data, true)
 }
 
 func init() {
-	sandbox_binary = os.Getenv("SANDBOX_BINARY")
-	if sandbox_binary != "" {
-		save_sandbox_binary = sandbox_binary
+	mock_sandbox_binary = os.Getenv("SANDBOX_BINARY")
+	if mock_sandbox_binary != "" {
+		save_sandbox_binary = mock_sandbox_binary
 	}
-	sandbox_home = os.Getenv("SANDBOX_HOME")
-	if sandbox_home != "" {
-		save_sandbox_home = sandbox_home
+	mock_sandbox_home = os.Getenv("SANDBOX_HOME")
+	if mock_sandbox_home != "" {
+		save_sandbox_home = mock_sandbox_home
 	}
 	home := os.Getenv("HOME")
 	if home != "" {
 		save_home = home
+	}
+	sleep_time := os.Getenv("SLEEP_TIME")
+	if sleep_time != "" {
+		save_sleep_time = sleep_time
 	}
 }

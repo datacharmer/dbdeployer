@@ -1,3 +1,7 @@
+1.4.2	06-May-2018
+	- Code reformatting and minor refactoring 
+	- Fixed syntax error in code for tree.go
+	- Added coding sample minimal-sandbox2.go
 1.4.1	05-May-2018
 	- Merged pull request #11 from percona-csalguero/include_version_in_dir
 	- Fixed Issue #12 "deploying a sandbox with invalid version does not fail"

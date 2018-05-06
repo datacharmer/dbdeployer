@@ -29,8 +29,8 @@ func TestCreateSandbox(t *testing.T) {
 	create_mock_version("5.7.22")
 	var sdef =	SandboxDef{
 		 Version:"5.7.22",
-		 Basedir: sandbox_binary + "/5.7.22",
-		 SandboxDir: sandbox_home, 
+		 Basedir: mock_sandbox_binary + "/5.7.22",
+		 SandboxDir: mock_sandbox_home,
 		 LoadGrants:true,
 		 InstalledPorts:[]int{1186, 3306, 33060},
 		 Port:5722,

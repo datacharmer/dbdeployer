@@ -82,5 +82,8 @@ func init() {
 	set_pflag(rootCmd,"sandbox-binary", "", "SANDBOX_BINARY", defaults.Defaults().SandboxBinary, "Binary repository", false)
 
 	rootCmd.InitDefaultVersionFlag()
+
+	// Indicates that we're using dbdeployer command line interface
+	// rather than calling its sandbox creation functions from other apps.
 	defaults.UsingDbDeployer = true
 }

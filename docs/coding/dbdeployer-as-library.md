@@ -92,5 +92,43 @@ See the sample source file ``minimal-sandbox.go`` for a working example.
 
 If you want to create multiple sandboxes, things are a bit more complicated. ``dbdeployer`` uses a concurrent execution engine that needs to be used with care.
 
+Function ``CreateSingleSandbox`` returns a slice of ``concurrent.ExecutionList``, a structure made of a priority index and commands to run. When sandboxes are created with concurrency, ``CreateSingleSandbox`` will create the sandbox directory and all the scripts, but won't run any expensive tasks, such as database initialization and start. Instead, it will add those commands to the execution list. The calling function (replication or multiple sandbox call) will queue all the execution lists, and then pass the final list to ``defaults.RunParallelTasksByPriority`` which organizes the tasks by priorities and then runs concurrently the ones that have the same priority level until no task is left in the queue.
+
+For example, we may have:
+
+	priority     command
+	1            /some/path/init_db
+	2            /some/path/start
+	3            /some/path/load_grants
+	1            /some/other/path/init_db
+	2            /some/other/path/start
+	3            /some/other/path/load_grants
+	1            /some/alternative/path/init_db
+	2            /some/alternative/path/start
+	3            /some/alternative/path/load_grants
+
+``RunParallelTasksByPriority`` will receive the commands, and re-arrange them as follows
+
+```
+run concurrently: {
+	1            /some/path/init_db
+	1            /some/other/path/init_db
+	1            /some/alternative/path/init_db
+}
+
+run concurrently: {
+	2            /some/path/start
+	2            /some/other/path/start
+	2            /some/alternative/path/start
+}
+
+run concurrently: {
+	3            /some/path/load_grants
+	3            /some/other/path/load_grants
+	3            /some/alternative/path/load_grants
+}
+```
+Instead of having 9 commands running sequentially, we will have three groups of concurrent commands. Each group depends on the completion of the previous one (we can't run ``start`` if ``init_db`` did not finish.)
+
 Look at the invocation of the replication command in ``cmd/replication.go`` for an example of how to prepare the SandboxDef structure before calling the relevant function.
 
