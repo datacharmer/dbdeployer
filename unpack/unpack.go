@@ -162,19 +162,19 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 		*/
 		filemode := os.FileMode(header.Mode)
 		filename := sanitizedName(header.Name)
+		fileDir := path.Dir(filename)
+		if _, err := os.Stat(fileDir); os.IsNotExist(err) {
+			if err = os.MkdirAll(fileDir, 0755); err != nil {
+				return err
+			}
+			cond_print(" + "+fileDir+" ", true, CHATTY)
+		}
 		switch header.Typeflag {
 		case tar.TypeDir:
 			if err = os.MkdirAll(filename, 0755); err != nil {
 				return err
 			}
 		case tar.TypeReg:
-			fileDir := path.Dir(filename)
-			if _, err := os.Stat(fileDir); os.IsNotExist(err) {
-				if err = os.MkdirAll(fileDir, 0755); err != nil {
-					return err
-				}
-				cond_print(" + "+fileDir+" ", true, CHATTY)
-			}
 			if err = unpackTarFile(filename, header.Name, reader); err != nil {
 				return err
 			}
@@ -200,7 +200,7 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 						fmt.Sprintf("# ERROR: %s",err))
 				}
 			} else {
-				common.Exit(1, fmt.Sprintf("File %s is a symlonk, but no link information was provided\n", filename))
+				common.Exit(1, fmt.Sprintf("File %s is a symlink, but no link information was provided\n", filename))
 			}
 		}
 	}
