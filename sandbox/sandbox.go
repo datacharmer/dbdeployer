@@ -31,7 +31,8 @@ type SandboxDef struct {
 	Multi             bool      // either single or part of a multiple sandbox
 	NodeNum           int	    // in multiple sandboxes, which node is this
 	Version           string    // MySQL version
-	Basedir           string    // Where to get binaries from
+	Basedir           string    // Where to get binaries from (e.g. $HOME/opt/mysql/8.0.11)
+	BasedirName       string    // The ibare name of the directory containing the binaries (e.g. 8.0.11)
 	SandboxDir        string    // Target directory for sandboxes
 	LoadGrants        bool      // Should we load grants?
 	SkipReportHost    bool      // Do not add report-host to my.sandbox.cnf
@@ -253,7 +254,11 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 		sdef.Prompt = "mysql"
 	}
 	if sdef.DirName == "" {
-		sdef.DirName = defaults.Defaults().SandboxPrefix + version_fname
+		if sdef.Version != sdef.BasedirName {
+			sdef.DirName = defaults.Defaults().SandboxPrefix + sdef.BasedirName
+		} else {
+			sdef.DirName = defaults.Defaults().SandboxPrefix + version_fname
+		}
 	}
 	sandbox_dir = sdef.SandboxDir + "/" + sdef.DirName
 	sdef.SandboxDir = sandbox_dir

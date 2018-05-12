@@ -46,17 +46,20 @@ type SandboxDescription struct {
 	NodeNum int    `json:"node_num"`
 	DbDeployerVersion string `json:"dbdeployer-version"`
 	Timestamp string `json:"timestamp"`
+	CommandLine string `json:"command-line"`
 }
 
-type keyvalue struct {
+type KeyValue struct {
 	Key   string
 	Value string
 }
 
-type configOptions map[string][]keyvalue
+type ConfigOptions map[string][]KeyValue
 
-func ParseConfigFile(filename string) configOptions {
-	config := make(configOptions)
+var CommandLineArgs string
+
+func ParseConfigFile(filename string) ConfigOptions {
+	config := make(ConfigOptions)
 	lines := SlurpAsLines(filename)
 	re_comment := regexp.MustCompile(`^\s*#`)
 	re_empty := regexp.MustCompile(`^\s*$`)
@@ -74,7 +77,7 @@ func ParseConfigFile(filename string) configOptions {
 		}
 		kvList := re_k_v.FindAllStringSubmatch(line, -1)
 		if kvList != nil {
-			kv := keyvalue{
+			kv := KeyValue{
 				Key:   kvList[0][1],
 				Value: kvList[0][2],
 			}
@@ -94,6 +97,7 @@ func ParseConfigFile(filename string) configOptions {
 func WriteSandboxDescription(destination string, sd SandboxDescription) {
 	sd.DbDeployerVersion = VersionDef
 	sd.Timestamp = time.Now().Format(time.UnixDate)
+	sd.CommandLine = CommandLineArgs
 	b, err := json.MarshalIndent(sd, " ", "\t")
 	if err != nil {
 		Exit(1, fmt.Sprintf("error encoding sandbox description: %s", err))

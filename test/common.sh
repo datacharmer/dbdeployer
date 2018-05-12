@@ -3,6 +3,7 @@ export CATALOG=$HOME/.dbdeployer/sandboxes.json
 export dash_line="# ----------------------------------------------------------------"
 export dotted_line="# ................................................................"
 export double_dash_line="# ================================================================"
+[ -z "$SANDBOX_BINARY" ] && export SANDBOX_BINARY=$HOME/opt/mysql
 
 if [ -n "$SKIP_DBDEPLOYER_CATALOG" ]
 then

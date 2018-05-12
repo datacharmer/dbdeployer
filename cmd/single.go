@@ -77,20 +77,30 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 		tname, fname := check_template_change_request(request)
 		replace_template(tname, fname)
 	}
-	sd.Port = common.VersionToPort(args[0])
+	sd.BasedirName = args[0]
+	sd.Version, _ = flags.GetString("binary-version")
+	if sd.Version == "" {
+		sd.Version = args[0]
+	}
+
+	sd.Port = common.VersionToPort(sd.Version)
 	if sd.Port < 0 {
-		common.Exit(1, fmt.Sprintf("Unsupported version format (%s)",args[0]))
+		common.Exit(1, fmt.Sprintf("Unsupported version format (%s)",sd.Version))
 	}
 	sd.UserPort, _ = flags.GetInt("port")
 	sd.BasePort, _ = flags.GetInt("base-port")
 	sd.DirName, _ = flags.GetString("sandbox-directory")
+
 	if sd.UserPort > 0 {
 		sd.Port = sd.UserPort
 	}
 
-	sd.Version = args[0]
 	basedir, _ := flags.GetString("sandbox-binary")
-	sd.Basedir = path.Join(basedir, sd.Version)
+	// sd.Basedir = path.Join(basedir, sd.Version)
+	sd.Basedir = path.Join(basedir, args[0])
+	if !common.DirExists(sd.Basedir) {
+		common.Exit(1,fmt.Sprintf("basedir '%s' not found", sd.Basedir))
+	}
 	sd.SandboxDir, _ = flags.GetString("sandbox-home")
 	common.CheckSandboxDir(sd.SandboxDir)
 	sd.InstalledPorts = common.GetInstalledPorts(sd.SandboxDir)

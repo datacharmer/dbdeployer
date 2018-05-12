@@ -1,3 +1,19 @@
+1.5.0	12-May-2018
+	NEW FEATURES:
+	- Added option --binary-version, which allows the basedir to be other than
+	  {prefix}x.x.xx
+	- Added command line record to sbdescription.json, to the catalog,
+	  and to the defaults listing.
+	BUGS FIXED
+	- Fixed Issue #10 (again). The directory for symlinks was not created
+	  timely, resulting in errors with some tarballs.
+	VARIOUS
+	- Minor code refactoring
+	- Changes in templates for single sandbox scripts. Now almost all scripts
+	  source a file containing common code (sb_include). The behavior
+	  of the scripts is unchanged.
+	TESTING
+	- Added test for --binary-version
 1.4.2	06-May-2018
 	- Code reformatting and minor refactoring 
 	- Fixed syntax error in code for tree.go

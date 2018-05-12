@@ -735,17 +735,27 @@ function check_on_off_status {
 function skip_start_deployment {
     current_test=skip_start_deployment
     test_header skip_start_deployment "" double
+    latest=latest$$
     for V in ${all_versions[*]}
     do
         for stype in single multiple replication
         do
-            run dbdeployer deploy $stype $V --skip-start
+            if [ -L $SANDBOX_BINARY/$latest ]
+            then
+                rm -f $SANDBOX_BINARY/$latest
+            fi
+            # In addition to skip-start, this test also checks that we 
+            # can create sandboxes from basedir name not ending with
+            # the version number  x.x.xx
+            ln -s $SANDBOX_BINARY/$V $SANDBOX_BINARY/$latest
+            run dbdeployer deploy $stype $latest --skip-start --binary-version=$V
         done
         # all sandboxes OFF
         check_on_off_status 0 7
         version_path=$(echo $V| tr '.' '_')
-        singledir=msb_$version_path
-        repldir=rsandbox_$version_path
+        singledir=msb_$latest
+        multidir=multi_msb_$latest
+        repldir=rsandbox_$latest
 
         # One sandbox ON
         $SANDBOX_HOME/$singledir/start
@@ -760,11 +770,20 @@ function skip_start_deployment {
         $SANDBOX_HOME/$repldir/initialize_slaves
         check_on_off_status 4 3
 
+        # Three more sandboxes ON
+        $SANDBOX_HOME/$multidir/start_all
+        $SANDBOX_HOME/$multidir/node1/load_grants
+        $SANDBOX_HOME/$multidir/node2/load_grants
+        $SANDBOX_HOME/$multidir/node3/load_grants
+        check_on_off_status 7 0
+
         # Check that the manually started replication sandbox behaves as expected
         capture_test $SANDBOX_HOME/$repldir/test_sb_all
         capture_test $SANDBOX_HOME/$repldir/test_replication
+        capture_test $SANDBOX_HOME/$multidir/test_sb_all
         check_for_exit skip_start_deployment
         dbdeployer delete all --skip-confirm
+        rm -f $SANDBOX_BINARY/$latest
     done
 
     for V in ${group_versions[*]}

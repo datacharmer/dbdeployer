@@ -3,7 +3,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.4.2 (06-May-2018 14:42 UTC)
+Documentation updated for version 1.5.0 (12-May-2018 12:37 UTC)
 
 ## Installation
 
@@ -13,7 +13,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.4.2
+    $ VERSION=1.5.0
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/$VERSION
     $ wget $origin/dbdeployer-$VERSION.linux.tar.gz
     $ tar -xzf dbdeployer-$VERSION.linux.tar.gz
@@ -47,7 +47,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.4.2
+    dbdeployer version 1.5.0
     
 
     $ dbdeployer -h
@@ -133,6 +133,7 @@ The easiest command is ``deploy single``, which installs a single sandbox.
     
     Flags:
           --base-port int                 Overrides default base-port (for multiple sandboxes)
+          --binary-version string         Specifies the version when the basedir directory name does not contain it (i.e. it is not x.x.xx)
           --bind-address string           defines the database bind-address  (default "127.0.0.1")
           --concurrent                    Runs multiple sandbox deployments concurrently
           --custom-mysqld string          Uses an alternative mysqld (must be in the same directory as regular mysqld)
@@ -190,7 +191,7 @@ The easiest command is ``deploy single``, which installs a single sandbox.
     
     
 
-If you want more than one sandbox of the same version, without any replication relationship, use the ``deploy multiple`` command with an optional ``--node`` flag (default: 3).
+If you want more than one sandbox of the same version, without any replication relationship, use the ``deploy multiple`` command with an optional ``--nodes`` flag (default: 3).
 
     $ dbdeployer deploy multiple -h
     Creates several sandboxes of the same version,
@@ -252,6 +253,28 @@ The ``deploy replication`` command will install a master and two or more slaves,
     
     
 
+## Standard and non-standard basedir name
+
+dbdeployer expects to get the binaries from ``$HOME/opt/mysql/x.x.xx``. For example, when you run the command ``dbdeployer deploy single 8.0.11``, you must have the binaries for MySQL 8.0.11 expanded into a directory named ``$HOME/opt/mysql/8.0.11``.
+
+If you want to keep several directories with the same version, you can differentiate them using a **prefix**:
+
+    $HOME/opt/mysql/
+                8.0.11
+                lab_8.0.11
+                ps_8.0.11
+                myown_8.0.11
+
+In the above cases, running ``dbdeployer deploy single lab_8.0.11`` will do what you expect, i.e. dbdeployer will use the binaries in ``lab_8.0.11`` and recognize ``8.0.11`` as the version for the database.
+
+When the extracted tarball directory name that you want to use doesn't contain the version number (such as ``/home/dbuser/build/path/5.7-extra``) you need to provide the version using the option ``--binary-version``. For example:
+
+    dbdeployer deploy single 5.7-extra \
+        --sandbox-binary=/home/dbuser/build/path \
+        --binary-version=5.7.22
+
+In the above command, ``--sandbox-binary`` indicates where to search for the binaries, ``5.7-extra`` is where the binaries are, and ``--binary-version`` indicates which version should be used.
+
 ## Multiple sandboxes, same version and type
 
 If you want to deploy several instances of the same version and the same type (for example two single sandboxes of 8.0.4, or two group replication instances with different single-primary setting) you can specify the data directory name and the ports manually.
@@ -292,9 +315,9 @@ Thus, for MySQL 8.0.11 group replication deployments, you would see this listing
     group_sp_msb_8_0_11  : group-single-primary   8.0.11 [22112 22237 32112 22113 22238 32113 22114 22239 32114]
 
 This method makes port clashes unlikely when using the same version in different deployments, but there is a risk of port clashes when deploying many multiple sandboxes of close-by versions.
-However, dbdeployer doesn't let the clash happen. Thanks to its central catalog of sandboxes, it knows which ports were already used, and will search for free ones whenever a potential clash is detected.
+Furthermore, dbdeployer doesn't let the clash happen. Thanks to its central catalog of sandboxes, it knows which ports were already used, and will search for free ones whenever a potential clash is detected.
 Bear in mind that the concept of "used" is only related to sandboxes. dbdeployer does not know if ports may be used by other applications.
-You can minimize risks, however, by telling dbdeployer which ports may be occupied. The defaults have a field ``reserved-ports``, containing the ports that should not be used. You can add to that list by modifying the defaults. For example, if you want to exclude port 7001, 10000, and 15000 from being used, you can run
+You can minimize risks by telling dbdeployer which ports may be occupied. The defaults have a field ``reserved-ports``, containing the ports that should not be used. You can add to that list by modifying the defaults. For example, if you want to exclude port 7001, 10000, and 15000 from being used, you can run
 
     dbdeployer defaults update reserved-ports '7001,10000,15000'
 
@@ -381,7 +404,7 @@ When the XPlugin is enabled, it makes sense to use [the MySQL shell](https://dev
 
 ## Logs management.
 
-Sometimes, when using sandboxes for testing, it makes sense to enable the general log, either during initialization or for regular operation. While you can do that with ``--my-cnf-options=general-log=1`` or ``--my-init-options=--general-log=1``, as of version 1.4.0 you have two easy boolean shortcuts: ``--init-general-log`` and ``--enable-general-log`` that will start the general log when requested.
+Sometimes, when using sandboxes for testing, it makes sense to enable the general log, either during initialization or for regular operation. While you can do that with ``--my-cnf-options=general-log=1`` or ``--my-init-options=--general-log=1``, as of version 1.4.0 you have two simple boolean shortcuts: ``--init-general-log`` and ``--enable-general-log`` that will start the general log when requested.
 
 Additionally, each sandbox has a convenience script named ``show_log`` that can easily display either the error log or the general log. Run `./show_log -h` for usage info.
 
@@ -430,7 +453,7 @@ Here's how:
     $ dbdeployer defaults show
     # Internal values:
     {
-     	"version": "1.4.0",
+     	"version": "1.5.0",
      	"sandbox-home": "$HOME/sandboxes",
      	"sandbox-binary": "$HOME/opt/mysql",
      	"use-sandbox-catalog": true,
@@ -459,7 +482,7 @@ Here's how:
      		3306,
      		33060
      	],
-     	"timestamp": "Sun May  6 16:42:39 CEST 2018"
+     	"timestamp": "Sat May 12 14:37:53 CEST 2018"
      }
     
 
@@ -467,7 +490,7 @@ Here's how:
     # Updated master-slave-base-port -> "15000"
     # Configuration file: $HOME/.dbdeployer/config.json
     {
-     	"version": "1.4.0",
+     	"version": "1.5.0",
      	"sandbox-home": "$HOME/sandboxes",
      	"sandbox-binary": "$HOME/opt/mysql",
      	"use-sandbox-catalog": true,
@@ -496,7 +519,7 @@ Here's how:
      		3306,
      		33060
      	],
-     	"timestamp": "Sun May  6 16:42:39 CEST 2018"
+     	"timestamp": "Sat May 12 14:37:53 CEST 2018"
      }
     
 
@@ -517,7 +540,7 @@ Also "available" is a recognized alias for this command.
 
 And you can list which sandboxes were already installed
 
-    $ dbdeployer installed  # Aliases: sandboxes, deployed
+    $ dbdeployer sandboxes  # Aliases: installed, deployed
 
 The command "usage" shows how to use the scripts that were installed with each sandbox.
 
@@ -600,6 +623,42 @@ The command "usage" shows how to use the scripts that were installed with each s
     
     
 
+Every sandbox has a file named ``sbdescription.json``, containing important information on the sandbox. It is useful to determine where the binaries come from and on which conditions it was installed.
+
+For example, a description file for a single sandbox would show:
+
+    {
+        "basedir": "/home/dbuser/opt/mysql/5.7.22",
+        "type": "single",
+        "version": "5.7.22",
+        "port": [
+            5722
+        ],
+        "nodes": 0,
+        "node_num": 0,
+        "dbdeployer-version": "1.5.0",
+        "timestamp": "Sat May 12 14:26:41 CEST 2018",
+        "command-line": "dbdeployer deploy single 5.7.22"
+     }
+
+And for replication:
+
+    {
+        "basedir": "/home/dbuser/opt/mysql/5.7.22",
+        "type": "master-slave",
+        "version": "5.7.22",
+        "port": [
+            16745,
+            16746,
+            16747
+        ],
+        "nodes": 2,
+        "node_num": 0,
+        "dbdeployer-version": "1.5.0",
+        "timestamp": "Sat May 12 14:27:04 CEST 2018",
+ 	    "command-line": "dbdeployer deploy replication 5.7.22 --gtid --concurrent"
+     }
+
 ## Sandbox macro operations
 
 You can run a command in several sandboxes at once, using the ``global`` command, which propagates your command to all the installed sandboxes.
@@ -674,18 +733,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 2. Run ``go get github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
 4. From the folder ``./pflag``, copy the file ``string_slice.go`` to ``$GOPATH/src/github.com/spf13/pflag``.
-5. Run ``./build.sh {linux|OSX} 1.4.2``
-6. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.4.2``
+5. Run ``./build.sh {linux|OSX} 1.5.0``
+6. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.5.0``
 
 ## Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.4.2-docs.linux.tar.gz
-* dbdeployer-1.4.2-docs.osx.tar.gz
-* dbdeployer-1.4.2.linux.tar.gz
-* dbdeployer-1.4.2.osx.tar.gz
+* dbdeployer-1.5.0-docs.linux.tar.gz
+* dbdeployer-1.5.0-docs.osx.tar.gz
+* dbdeployer-1.5.0.linux.tar.gz
+* dbdeployer-1.5.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 
@@ -719,7 +778,7 @@ This is the command used to help generating the API documentation. In addition t
 
 ## Command line completion
 
-There is a file ``./docs/dbdeployer_completion.sh``, which is automatically generated with dbdeployer API documentation. If you want to use bash completion on the command line, simply copy the file to the bash completion directory. For example:
+There is a file ``./docs/dbdeployer_completion.sh``, which is automatically generated with dbdeployer API documentation. If you want to use bash completion on the command line, copy the file to the bash completion directory. For example:
 
     # Linux
     $ sudo cp ./docs/dbdeployer_completion.sh /etc/bash_completion.d

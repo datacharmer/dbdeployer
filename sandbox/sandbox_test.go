@@ -1,8 +1,8 @@
 package sandbox
 
 import (
-	"testing"
 	"github.com/datacharmer/dbdeployer/common"
+	"testing"
 )
 
 func ok_executable_exists(t *testing.T, dir, executable string) {
@@ -27,31 +27,31 @@ func ok_dir_exists(t *testing.T, dir string) {
 func TestCreateSandbox(t *testing.T) {
 	set_mock_environment("mock_dir")
 	create_mock_version("5.7.22")
-	var sdef =	SandboxDef{
-		 Version:"5.7.22",
-		 Basedir: mock_sandbox_binary + "/5.7.22",
-		 SandboxDir: mock_sandbox_home,
-		 LoadGrants:true,
-		 InstalledPorts:[]int{1186, 3306, 33060},
-		 Port:5722,
-		 DbUser:"msandbox",
-		 RplUser:"rsandbox",
-		 DbPassword:"msandbox",
-		 RplPassword:"rsandbox",
-		 RemoteAccess:"127.%",
-		 BindAddress:"127.0.0.1",
+	var sdef = SandboxDef{
+		Version:        "5.7.22",
+		Basedir:        mock_sandbox_binary + "/5.7.22",
+		SandboxDir:     mock_sandbox_home,
+		LoadGrants:     true,
+		InstalledPorts: []int{1186, 3306, 33060},
+		Port:           5722,
+		DbUser:         "msandbox",
+		RplUser:        "rsandbox",
+		DbPassword:     "msandbox",
+		RplPassword:    "rsandbox",
+		RemoteAccess:   "127.%",
+		BindAddress:    "127.0.0.1",
 	}
-	
+
 	exec_list := CreateSingleSandbox(sdef)
 	t.Logf("%#v", exec_list)
 	ok_dir_exists(t, sdef.Basedir)
-	sandbox_dir:= sdef.SandboxDir + "/msb_5_7_22"
+	sandbox_dir := sdef.SandboxDir + "/msb_5_7_22"
 	ok_dir_exists(t, sandbox_dir)
-	ok_dir_exists(t, sandbox_dir + "/data")
-	ok_dir_exists(t, sandbox_dir + "/tmp")
+	ok_dir_exists(t, sandbox_dir+"/data")
+	ok_dir_exists(t, sandbox_dir+"/tmp")
 	ok_executable_exists(t, sandbox_dir, "start")
 	ok_executable_exists(t, sandbox_dir, "use")
 	ok_executable_exists(t, sandbox_dir, "stop")
-	
+
 	remove_mock_environment("mock_dir")
 }

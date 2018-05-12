@@ -63,13 +63,35 @@ The easiest command is ``deploy single``, which installs a single sandbox.
 
 	{{dbdeployer deploy single -h}}
 
-If you want more than one sandbox of the same version, without any replication relationship, use the ``deploy multiple`` command with an optional ``--node`` flag (default: 3).
+If you want more than one sandbox of the same version, without any replication relationship, use the ``deploy multiple`` command with an optional ``--nodes`` flag (default: 3).
 
 	{{dbdeployer deploy multiple -h}}
 
 The ``deploy replication`` command will install a master and two or more slaves, with replication started. You can change the topology to *group* and get three nodes in peer replication, or compose multi-source topologies with *all-masters* or *fan-in*.
 
 	{{dbdeployer deploy replication -h}}
+
+## Standard and non-standard basedir name
+
+dbdeployer expects to get the binaries from ``$HOME/opt/mysql/x.x.xx``. For example, when you run the command ``dbdeployer deploy single 8.0.11``, you must have the binaries for MySQL 8.0.11 expanded into a directory named ``$HOME/opt/mysql/8.0.11``.
+
+If you want to keep several directories with the same version, you can differentiate them using a **prefix**:
+
+    $HOME/opt/mysql/
+                8.0.11
+                lab_8.0.11
+                ps_8.0.11
+                myown_8.0.11
+
+In the above cases, running ``dbdeployer deploy single lab_8.0.11`` will do what you expect, i.e. dbdeployer will use the binaries in ``lab_8.0.11`` and recognize ``8.0.11`` as the version for the database.
+
+When the extracted tarball directory name that you want to use doesn't contain the version number (such as ``/home/dbuser/build/path/5.7-extra``) you need to provide the version using the option ``--binary-version``. For example:
+
+    dbdeployer deploy single 5.7-extra \
+        --sandbox-binary=/home/dbuser/build/path \
+        --binary-version=5.7.22
+
+In the above command, ``--sandbox-binary`` indicates where to search for the binaries, ``5.7-extra`` is where the binaries are, and ``--binary-version`` indicates which version should be used.
 
 ## Multiple sandboxes, same version and type
 
@@ -111,9 +133,9 @@ Thus, for MySQL 8.0.11 group replication deployments, you would see this listing
     group_sp_msb_8_0_11  : group-single-primary   8.0.11 [22112 22237 32112 22113 22238 32113 22114 22239 32114]
 
 This method makes port clashes unlikely when using the same version in different deployments, but there is a risk of port clashes when deploying many multiple sandboxes of close-by versions.
-However, dbdeployer doesn't let the clash happen. Thanks to its central catalog of sandboxes, it knows which ports were already used, and will search for free ones whenever a potential clash is detected.
+Furthermore, dbdeployer doesn't let the clash happen. Thanks to its central catalog of sandboxes, it knows which ports were already used, and will search for free ones whenever a potential clash is detected.
 Bear in mind that the concept of "used" is only related to sandboxes. dbdeployer does not know if ports may be used by other applications.
-You can minimize risks, however, by telling dbdeployer which ports may be occupied. The defaults have a field ``reserved-ports``, containing the ports that should not be used. You can add to that list by modifying the defaults. For example, if you want to exclude port 7001, 10000, and 15000 from being used, you can run
+You can minimize risks by telling dbdeployer which ports may be occupied. The defaults have a field ``reserved-ports``, containing the ports that should not be used. You can add to that list by modifying the defaults. For example, if you want to exclude port 7001, 10000, and 15000 from being used, you can run
 
     dbdeployer defaults update reserved-ports '7001,10000,15000'
 
@@ -200,7 +222,7 @@ When the XPlugin is enabled, it makes sense to use [the MySQL shell](https://dev
 
 ## Logs management.
 
-Sometimes, when using sandboxes for testing, it makes sense to enable the general log, either during initialization or for regular operation. While you can do that with ``--my-cnf-options=general-log=1`` or ``--my-init-options=--general-log=1``, as of version 1.4.0 you have two easy boolean shortcuts: ``--init-general-log`` and ``--enable-general-log`` that will start the general log when requested.
+Sometimes, when using sandboxes for testing, it makes sense to enable the general log, either during initialization or for regular operation. While you can do that with ``--my-cnf-options=general-log=1`` or ``--my-init-options=--general-log=1``, as of version 1.4.0 you have two simple boolean shortcuts: ``--init-general-log`` and ``--enable-general-log`` that will start the general log when requested.
 
 Additionally, each sandbox has a convenience script named ``show_log`` that can easily display either the error log or the general log. Run `./show_log -h` for usage info.
 
@@ -267,11 +289,47 @@ Also "available" is a recognized alias for this command.
 
 And you can list which sandboxes were already installed
 
-    $ dbdeployer installed  # Aliases: sandboxes, deployed
+    $ dbdeployer sandboxes  # Aliases: installed, deployed
 
 The command "usage" shows how to use the scripts that were installed with each sandbox.
 
     {{dbdeployer usage}}
+
+Every sandbox has a file named ``sbdescription.json``, containing important information on the sandbox. It is useful to determine where the binaries come from and on which conditions it was installed.
+
+For example, a description file for a single sandbox would show:
+
+    {
+        "basedir": "/home/dbuser/opt/mysql/5.7.22",
+        "type": "single",
+        "version": "5.7.22",
+        "port": [
+            5722
+        ],
+        "nodes": 0,
+        "node_num": 0,
+        "dbdeployer-version": "1.5.0",
+        "timestamp": "Sat May 12 14:26:41 CEST 2018",
+        "command-line": "dbdeployer deploy single 5.7.22"
+     }
+
+And for replication:
+
+    {
+        "basedir": "/home/dbuser/opt/mysql/5.7.22",
+        "type": "master-slave",
+        "version": "5.7.22",
+        "port": [
+            16745,
+            16746,
+            16747
+        ],
+        "nodes": 2,
+        "node_num": 0,
+        "dbdeployer-version": "1.5.0",
+        "timestamp": "Sat May 12 14:27:04 CEST 2018",
+ 	    "command-line": "dbdeployer deploy replication 5.7.22 --gtid --concurrent"
+     }
 
 ## Sandbox macro operations
 
@@ -327,7 +385,7 @@ This is the command used to help generating the API documentation. In addition t
 
 ## Command line completion
 
-There is a file ``./docs/dbdeployer_completion.sh``, which is automatically generated with dbdeployer API documentation. If you want to use bash completion on the command line, simply copy the file to the bash completion directory. For example:
+There is a file ``./docs/dbdeployer_completion.sh``, which is automatically generated with dbdeployer API documentation. If you want to use bash completion on the command line, copy the file to the bash completion directory. For example:
 
     # Linux
     $ sudo cp ./docs/dbdeployer_completion.sh /etc/bash_completion.d

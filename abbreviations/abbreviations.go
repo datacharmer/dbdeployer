@@ -170,6 +170,12 @@ func LoadAbbreviations() {
 			fmt.Printf("# %s\n", os.Args)
 		}
 	}
+	for _, arg := range os.Args {
+		if common.CommandLineArgs != "" {
+			common.CommandLineArgs += " "
+		}
+		common.CommandLineArgs += arg
+	}
 }
 
 func init() {

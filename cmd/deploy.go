@@ -47,6 +47,7 @@ func init() {
 	set_pflag(deployCmd,"remote-access", "", "", "127.%", "defines the database access ", false)
 	set_pflag(deployCmd,"bind-address", "", "", "127.0.0.1", "defines the database bind-address ", false)
 	set_pflag(deployCmd,"custom-mysqld", "", "", "", "Uses an alternative mysqld (must be in the same directory as regular mysqld)", false)
+	set_pflag(deployCmd,"binary-version", "", "", "", "Specifies the version when the basedir directory name does not contain it (i.e. it is not x.x.xx)", false)
 	set_pflag(deployCmd,"defaults", "", "", "", "Change defaults on-the-fly (--defaults=label:value)", true)
 	set_pflag(deployCmd,"init-options", "i", "INIT_OPTIONS", "", "mysqld options to run during initialization", true)
 	set_pflag(deployCmd,"my-cnf-options", "c", "MY_CNF_OPTIONS", "", "mysqld options to add to my.sandbox.cnf", true)
