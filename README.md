@@ -253,7 +253,7 @@ The ``deploy replication`` command will install a master and two or more slaves,
     
     
 
-## Standard and non-standard basedir name
+## Standard and non-standard basedir names
 
 dbdeployer expects to get the binaries from ``$HOME/opt/mysql/x.x.xx``. For example, when you run the command ``dbdeployer deploy single 8.0.11``, you must have the binaries for MySQL 8.0.11 expanded into a directory named ``$HOME/opt/mysql/8.0.11``.
 
@@ -267,7 +267,7 @@ If you want to keep several directories with the same version, you can different
 
 In the above cases, running ``dbdeployer deploy single lab_8.0.11`` will do what you expect, i.e. dbdeployer will use the binaries in ``lab_8.0.11`` and recognize ``8.0.11`` as the version for the database.
 
-When the extracted tarball directory name that you want to use doesn't contain the version number (such as ``/home/dbuser/build/path/5.7-extra``) you need to provide the version using the option ``--binary-version``. For example:
+When the extracted tarball directory name that you want to use doesn't contain the full version number (such as ``/home/dbuser/build/path/5.7-extra``) you need to provide the version using the option ``--binary-version``. For example:
 
     dbdeployer deploy single 5.7-extra \
         --sandbox-binary=/home/dbuser/build/path \
