@@ -3,7 +3,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.5.0 (12-May-2018 12:37 UTC)
+Documentation updated for version 1.5.1 (05-Jun-2018 19:56 UTC)
 
 ## Installation
 
@@ -13,7 +13,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.5.0
+    $ VERSION=1.5.1
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/$VERSION
     $ wget $origin/dbdeployer-$VERSION.linux.tar.gz
     $ tar -xzf dbdeployer-$VERSION.linux.tar.gz
@@ -47,7 +47,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.5.0
+    dbdeployer version 1.5.1
     
 
     $ dbdeployer -h
@@ -452,76 +452,78 @@ Here's how:
 
     $ dbdeployer defaults show
     # Internal values:
-    {
-     	"version": "1.5.0",
-     	"sandbox-home": "$HOME/sandboxes",
-     	"sandbox-binary": "$HOME/opt/mysql",
-     	"use-sandbox-catalog": true,
-     	"master-slave-base-port": 11000,
-     	"group-replication-base-port": 12000,
-     	"group-replication-sp-base-port": 13000,
-     	"fan-in-replication-base-port": 14000,
-     	"all-masters-replication-base-port": 15000,
-     	"multiple-base-port": 16000,
-     	"group-port-delta": 125,
-     	"mysqlx-port-delta": 10000,
-     	"master-name": "master",
-     	"master-abbr": "m",
-     	"node-prefix": "node",
-     	"slave-prefix": "slave",
-     	"slave-abbr": "s",
-     	"sandbox-prefix": "msb_",
-     	"master-slave-prefix": "rsandbox_",
-     	"group-prefix": "group_msb_",
-     	"group-sp-prefix": "group_sp_msb_",
-     	"multiple-prefix": "multi_msb_",
-     	"fan-in-prefix": "fan_in_msb_",
-     	"all-masters-prefix": "all_masters_msb_",
-     	"reserved-ports": [
-     		1186,
-     		3306,
-     		33060
-     	],
-     	"timestamp": "Sat May 12 14:37:53 CEST 2018"
-     }
-    
+```json
+{
+    "version": "1.5.0",
+    "sandbox-home": "$HOME/sandboxes",
+    "sandbox-binary": "$HOME/opt/mysql",
+    "use-sandbox-catalog": true,
+    "master-slave-base-port": 11000,
+    "group-replication-base-port": 12000,
+    "group-replication-sp-base-port": 13000,
+    "fan-in-replication-base-port": 14000,
+    "all-masters-replication-base-port": 15000,
+    "multiple-base-port": 16000,
+    "group-port-delta": 125,
+    "mysqlx-port-delta": 10000,
+    "master-name": "master",
+    "master-abbr": "m",
+    "node-prefix": "node",
+    "slave-prefix": "slave",
+    "slave-abbr": "s",
+    "sandbox-prefix": "msb_",
+    "master-slave-prefix": "rsandbox_",
+    "group-prefix": "group_msb_",
+    "group-sp-prefix": "group_sp_msb_",
+    "multiple-prefix": "multi_msb_",
+    "fan-in-prefix": "fan_in_msb_",
+    "all-masters-prefix": "all_masters_msb_",
+    "reserved-ports": [
+        1186,
+        3306,
+        33060
+    ],
+    "timestamp": "Sat May 12 14:37:53 CEST 2018"
+ }
+```
 
     $ dbdeployer defaults update master-slave-base-port 15000
     # Updated master-slave-base-port -> "15000"
     # Configuration file: $HOME/.dbdeployer/config.json
-    {
-     	"version": "1.5.0",
-     	"sandbox-home": "$HOME/sandboxes",
-     	"sandbox-binary": "$HOME/opt/mysql",
-     	"use-sandbox-catalog": true,
-     	"master-slave-base-port": 15000,
-     	"group-replication-base-port": 12000,
-     	"group-replication-sp-base-port": 13000,
-     	"fan-in-replication-base-port": 14000,
-     	"all-masters-replication-base-port": 15000,
-     	"multiple-base-port": 16000,
-     	"group-port-delta": 125,
-     	"mysqlx-port-delta": 10000,
-     	"master-name": "master",
-     	"master-abbr": "m",
-     	"node-prefix": "node",
-     	"slave-prefix": "slave",
-     	"slave-abbr": "s",
-     	"sandbox-prefix": "msb_",
-     	"master-slave-prefix": "rsandbox_",
-     	"group-prefix": "group_msb_",
-     	"group-sp-prefix": "group_sp_msb_",
-     	"multiple-prefix": "multi_msb_",
-     	"fan-in-prefix": "fan_in_msb_",
-     	"all-masters-prefix": "all_masters_msb_",
-     	"reserved-ports": [
-     		1186,
-     		3306,
-     		33060
-     	],
-     	"timestamp": "Sat May 12 14:37:53 CEST 2018"
-     }
-    
+```json
+{
+    "version": "1.5.0",
+    "sandbox-home": "$HOME/sandboxes",
+    "sandbox-binary": "$HOME/opt/mysql",
+    "use-sandbox-catalog": true,
+    "master-slave-base-port": 15000,
+    "group-replication-base-port": 12000,
+    "group-replication-sp-base-port": 13000,
+    "fan-in-replication-base-port": 14000,
+    "all-masters-replication-base-port": 15000,
+    "multiple-base-port": 16000,
+    "group-port-delta": 125,
+    "mysqlx-port-delta": 10000,
+    "master-name": "master",
+    "master-abbr": "m",
+    "node-prefix": "node",
+    "slave-prefix": "slave",
+    "slave-abbr": "s",
+    "sandbox-prefix": "msb_",
+    "master-slave-prefix": "rsandbox_",
+    "group-prefix": "group_msb_",
+    "group-sp-prefix": "group_sp_msb_",
+    "multiple-prefix": "multi_msb_",
+    "fan-in-prefix": "fan_in_msb_",
+    "all-masters-prefix": "all_masters_msb_",
+    "reserved-ports": [
+        1186,
+        3306,
+        33060
+    ],
+    "timestamp": "Sat May 12 14:37:53 CEST 2018"
+}
+```
 
 Another way of modifying the defaults, which does not store the new values in dbdeployer's configuration file, is through the ``--defaults`` flag. The above change could be done like this:
 
@@ -627,37 +629,41 @@ Every sandbox has a file named ``sbdescription.json``, containing important info
 
 For example, a description file for a single sandbox would show:
 
-    {
-        "basedir": "/home/dbuser/opt/mysql/5.7.22",
-        "type": "single",
-        "version": "5.7.22",
-        "port": [
-            5722
-        ],
-        "nodes": 0,
-        "node_num": 0,
-        "dbdeployer-version": "1.5.0",
-        "timestamp": "Sat May 12 14:26:41 CEST 2018",
-        "command-line": "dbdeployer deploy single 5.7.22"
-     }
+```json
+{
+    "basedir": "/home/dbuser/opt/mysql/5.7.22",
+    "type": "single",
+    "version": "5.7.22",
+    "port": [
+        5722
+    ],
+    "nodes": 0,
+    "node_num": 0,
+    "dbdeployer-version": "1.5.0",
+    "timestamp": "Sat May 12 14:26:41 CEST 2018",
+    "command-line": "dbdeployer deploy single 5.7.22"
+}
+```
 
 And for replication:
 
-    {
-        "basedir": "/home/dbuser/opt/mysql/5.7.22",
-        "type": "master-slave",
-        "version": "5.7.22",
-        "port": [
-            16745,
-            16746,
-            16747
-        ],
-        "nodes": 2,
-        "node_num": 0,
-        "dbdeployer-version": "1.5.0",
-        "timestamp": "Sat May 12 14:27:04 CEST 2018",
- 	    "command-line": "dbdeployer deploy replication 5.7.22 --gtid --concurrent"
-     }
+```json
+{
+    "basedir": "/home/dbuser/opt/mysql/5.7.22",
+    "type": "master-slave",
+    "version": "5.7.22",
+    "port": [
+        16745,
+        16746,
+        16747
+    ],
+    "nodes": 2,
+    "node_num": 0,
+    "dbdeployer-version": "1.5.0",
+    "timestamp": "Sat May 12 14:27:04 CEST 2018",
+    "command-line": "dbdeployer deploy replication 5.7.22 --gtid --concurrent"
+}
+```
 
 ## Sandbox macro operations
 
@@ -733,18 +739,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 2. Run ``go get github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
 4. From the folder ``./pflag``, copy the file ``string_slice.go`` to ``$GOPATH/src/github.com/spf13/pflag``.
-5. Run ``./build.sh {linux|OSX} 1.5.0``
-6. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.5.0``
+5. Run ``./build.sh {linux|OSX} 1.5.1``
+6. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.5.1``
 
 ## Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.5.0-docs.linux.tar.gz
-* dbdeployer-1.5.0-docs.osx.tar.gz
-* dbdeployer-1.5.0.linux.tar.gz
-* dbdeployer-1.5.0.osx.tar.gz
+* dbdeployer-1.5.1-docs.linux.tar.gz
+* dbdeployer-1.5.1-docs.osx.tar.gz
+* dbdeployer-1.5.1.linux.tar.gz
+* dbdeployer-1.5.1.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

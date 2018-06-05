@@ -20,14 +20,14 @@ import (
 	"os"
 	"regexp"
 	"sort"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 // Given a path starting at the HOME directory
 // returns a string where the literal value for $HOME
 // is replaced by the string "$HOME"
-func ReplaceLiteralHome( path string) string {
+func ReplaceLiteralHome(path string) string {
 	// home := os.Getenv("HOME")
 	// re := regexp.MustCompile(`^` + home)
 	// return re.ReplaceAllString(path, "$$HOME")
@@ -37,12 +37,12 @@ func ReplaceLiteralHome( path string) string {
 func ReplaceLiteralEnvVar(name string, env_var string) string {
 	value := os.Getenv(env_var)
 	re := regexp.MustCompile(value)
-	return re.ReplaceAllString(name, "$$" + env_var)
+	return re.ReplaceAllString(name, "$$"+env_var)
 }
 
 func ReplaceEnvVar(name string, env_var string) string {
 	value := os.Getenv(env_var)
-	re := regexp.MustCompile(`\$` + env_var+ `\b`)
+	re := regexp.MustCompile(`\$` + env_var + `\b`)
 	return re.ReplaceAllString(name, value)
 }
 
@@ -55,25 +55,25 @@ func ReplaceHomeVar(path string) string {
 	return ReplaceEnvVar(path, "HOME")
 }
 
-func MakeCustomizedUuid(port , node_num int ) string {
+func MakeCustomizedUuid(port, node_num int) string {
 	re_digit := regexp.MustCompile(`\d`)
 	group1 := fmt.Sprintf("%08d", port)
 	group2 := fmt.Sprintf("%04d-%04d-%04d", node_num, node_num, node_num)
 	group3 := fmt.Sprintf("%012d", port)
 	//              12345678 1234 1234 1234 123456789012
 	//    new_uuid="00000000-0000-0000-0000-000000000000"
-	switch  {
+	switch {
 	case node_num > 0 && node_num <= 9:
 		group2 = re_digit.ReplaceAllString(group2, fmt.Sprintf("%d", node_num))
 		group3 = re_digit.ReplaceAllString(group3, fmt.Sprintf("%d", node_num))
 	// Number greater than 10 make little sense for this purpose.
 	// But we keep the rule so that a valid UUID will be formatted in any case.
 	case node_num >= 10000 && node_num <= 99999:
-		group2 = fmt.Sprintf("%04d-%04d-%04d", 0, int(node_num / 10000), node_num - 10000 * int(node_num / 10000))
+		group2 = fmt.Sprintf("%04d-%04d-%04d", 0, int(node_num/10000), node_num-10000*int(node_num/10000))
 	case node_num >= 100000:
-		group2 = fmt.Sprintf("%04d-%04d-%04d", int(node_num / 10000), 0, 0)
+		group2 = fmt.Sprintf("%04d-%04d-%04d", int(node_num/10000), 0, 0)
 	case node_num >= 1000000:
-		fmt.Printf("Node num out of boundaries: %d\n",node_num)
+		fmt.Printf("Node num out of boundaries: %d\n", node_num)
 		os.Exit(1)
 	}
 	return fmt.Sprintf("%s-%s-%s", group1, group2, group3)
@@ -89,17 +89,17 @@ func Includes(main_string, contained string) bool {
 // this function returns an ordered list, taking into account the
 // components of the versions, so that 5.6.2 sorts lower than 5.6.11
 // while a text sort would put 5.6.11 before 5.6.2
-func SortVersions(versions []string ) (sorted []string) {
+func SortVersions(versions []string) (sorted []string) {
 	type version_list struct {
-		text string
-		maj_min_rev  []int
+		text        string
+		maj_min_rev []int
 	}
 	var vlist []version_list
 	for _, line := range versions {
 		vl := VersionToList(line)
-		rec := version_list {
-			text : line,
-			maj_min_rev : vl,
+		rec := version_list{
+			text:        line,
+			maj_min_rev: vl,
 		}
 		if vl[0] > 0 {
 			vlist = append(vlist, rec)
@@ -113,16 +113,16 @@ func SortVersions(versions []string ) (sorted []string) {
 		min_b := vlist[b].maj_min_rev[1]
 		rev_b := vlist[b].maj_min_rev[2]
 		return maj_a < maj_b ||
-			( maj_a == maj_b && min_a < min_b) ||
-			( maj_a == maj_b && min_a == min_b && rev_a < rev_b)
+			(maj_a == maj_b && min_a < min_b) ||
+			(maj_a == maj_b && min_a == min_b && rev_a < rev_b)
 	})
 	for _, v := range vlist {
 		sorted = append(sorted, v.text)
-	}	
+	}
 	return
 }
 
-func LatestVersion(versions []string ) string {
+func LatestVersion(versions []string) string {
 	sorted := SortVersions(versions)
 	return sorted[0]
 }
@@ -135,6 +135,20 @@ func Atoi(val string) int {
 	return numvalue
 }
 
+func TextToBool(value string) (result bool) {
+	value = strings.ToLower(value)
+	switch value {
+	case "yes":
+		result = true
+	case "true":
+		result = true
+	case "1":
+		result = true
+	default:
+		result = false
+	}
+	return
+}
 
 func StringToIntSlice(val string) (num_list []int) {
 	list := strings.Split(val, ",")
@@ -146,8 +160,7 @@ func StringToIntSlice(val string) (num_list []int) {
 
 func Exit(exit_code int, messages ...string) {
 	for _, msg := range messages {
-		fmt.Printf("%s\n",msg)
+		fmt.Printf("%s\n", msg)
 	}
 	os.Exit(exit_code)
 }
-

@@ -283,21 +283,6 @@ func a_to_i(val string) int {
 	return numvalue
 }
 
-func text_to_bool(value string ) (result bool) {
-	value = strings.ToLower(value)	
-	switch value {
-		case "yes": 
-			result = true
-		case "true":
-			result = true
-		case "1":
-			result = true
-		default:
-			result = false
-	}
-	return
-}
-
 func UpdateDefaults(label, value string, store_defaults bool) {
 	new_defaults := Defaults()
 	switch label {
@@ -308,9 +293,9 @@ func UpdateDefaults(label, value string, store_defaults bool) {
 	case "sandbox-binary":
 		new_defaults.SandboxBinary = value
 	case "use-sandbox-catalog":
-		new_defaults.UseSandboxCatalog = text_to_bool(value)
+		new_defaults.UseSandboxCatalog = common.TextToBool(value)
 	//case "use-concurrency":
-	//	new_defaults.UseConcurrency = text_to_bool(value)
+	//	new_defaults.UseConcurrency = common.TextToBool(value)
 	case "master-slave-base-port":
 		new_defaults.MasterSlaveBasePort = a_to_i(value)
 	case "group-replication-base-port":

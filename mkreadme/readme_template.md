@@ -268,9 +268,80 @@ Warning: modifying templates may block the regular work of the sandboxes. Use th
 
 Here's how:
 
-	{{dbdeployer defaults show}}
+    $ dbdeployer defaults show
+    # Internal values:
+```json
+{
+    "version": "1.5.0",
+    "sandbox-home": "$HOME/sandboxes",
+    "sandbox-binary": "$HOME/opt/mysql",
+    "use-sandbox-catalog": true,
+    "master-slave-base-port": 11000,
+    "group-replication-base-port": 12000,
+    "group-replication-sp-base-port": 13000,
+    "fan-in-replication-base-port": 14000,
+    "all-masters-replication-base-port": 15000,
+    "multiple-base-port": 16000,
+    "group-port-delta": 125,
+    "mysqlx-port-delta": 10000,
+    "master-name": "master",
+    "master-abbr": "m",
+    "node-prefix": "node",
+    "slave-prefix": "slave",
+    "slave-abbr": "s",
+    "sandbox-prefix": "msb_",
+    "master-slave-prefix": "rsandbox_",
+    "group-prefix": "group_msb_",
+    "group-sp-prefix": "group_sp_msb_",
+    "multiple-prefix": "multi_msb_",
+    "fan-in-prefix": "fan_in_msb_",
+    "all-masters-prefix": "all_masters_msb_",
+    "reserved-ports": [
+        1186,
+        3306,
+        33060
+    ],
+    "timestamp": "Sat May 12 14:37:53 CEST 2018"
+ }
+```
 
-	{{dbdeployer defaults update master-slave-base-port 15000}}
+    $ dbdeployer defaults update master-slave-base-port 15000
+    # Updated master-slave-base-port -> "15000"
+    # Configuration file: $HOME/.dbdeployer/config.json
+```json
+{
+    "version": "1.5.0",
+    "sandbox-home": "$HOME/sandboxes",
+    "sandbox-binary": "$HOME/opt/mysql",
+    "use-sandbox-catalog": true,
+    "master-slave-base-port": 15000,
+    "group-replication-base-port": 12000,
+    "group-replication-sp-base-port": 13000,
+    "fan-in-replication-base-port": 14000,
+    "all-masters-replication-base-port": 15000,
+    "multiple-base-port": 16000,
+    "group-port-delta": 125,
+    "mysqlx-port-delta": 10000,
+    "master-name": "master",
+    "master-abbr": "m",
+    "node-prefix": "node",
+    "slave-prefix": "slave",
+    "slave-abbr": "s",
+    "sandbox-prefix": "msb_",
+    "master-slave-prefix": "rsandbox_",
+    "group-prefix": "group_msb_",
+    "group-sp-prefix": "group_sp_msb_",
+    "multiple-prefix": "multi_msb_",
+    "fan-in-prefix": "fan_in_msb_",
+    "all-masters-prefix": "all_masters_msb_",
+    "reserved-ports": [
+        1186,
+        3306,
+        33060
+    ],
+    "timestamp": "Sat May 12 14:37:53 CEST 2018"
+}
+```
 
 Another way of modifying the defaults, which does not store the new values in dbdeployer's configuration file, is through the ``--defaults`` flag. The above change could be done like this:
 
@@ -299,37 +370,41 @@ Every sandbox has a file named ``sbdescription.json``, containing important info
 
 For example, a description file for a single sandbox would show:
 
-    {
-        "basedir": "/home/dbuser/opt/mysql/5.7.22",
-        "type": "single",
-        "version": "5.7.22",
-        "port": [
-            5722
-        ],
-        "nodes": 0,
-        "node_num": 0,
-        "dbdeployer-version": "1.5.0",
-        "timestamp": "Sat May 12 14:26:41 CEST 2018",
-        "command-line": "dbdeployer deploy single 5.7.22"
-     }
+```json
+{
+    "basedir": "/home/dbuser/opt/mysql/5.7.22",
+    "type": "single",
+    "version": "5.7.22",
+    "port": [
+        5722
+    ],
+    "nodes": 0,
+    "node_num": 0,
+    "dbdeployer-version": "1.5.0",
+    "timestamp": "Sat May 12 14:26:41 CEST 2018",
+    "command-line": "dbdeployer deploy single 5.7.22"
+}
+```
 
 And for replication:
 
-    {
-        "basedir": "/home/dbuser/opt/mysql/5.7.22",
-        "type": "master-slave",
-        "version": "5.7.22",
-        "port": [
-            16745,
-            16746,
-            16747
-        ],
-        "nodes": 2,
-        "node_num": 0,
-        "dbdeployer-version": "1.5.0",
-        "timestamp": "Sat May 12 14:27:04 CEST 2018",
- 	    "command-line": "dbdeployer deploy replication 5.7.22 --gtid --concurrent"
-     }
+```json
+{
+    "basedir": "/home/dbuser/opt/mysql/5.7.22",
+    "type": "master-slave",
+    "version": "5.7.22",
+    "port": [
+        16745,
+        16746,
+        16747
+    ],
+    "nodes": 2,
+    "node_num": 0,
+    "dbdeployer-version": "1.5.0",
+    "timestamp": "Sat May 12 14:27:04 CEST 2018",
+    "command-line": "dbdeployer deploy replication 5.7.22 --gtid --concurrent"
+}
+```
 
 ## Sandbox macro operations
 
