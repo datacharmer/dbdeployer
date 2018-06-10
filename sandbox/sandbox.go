@@ -26,53 +26,53 @@ import (
 )
 
 type SandboxDef struct {
-	DirName           string    // name of the directory cointaining the sandbox
-	SBType            string    // Type of sandbox (single, multiple, replication-node, group-node)
-	Multi             bool      // either single or part of a multiple sandbox
-	NodeNum           int	    // in multiple sandboxes, which node is this
-	Version           string    // MySQL version
-	Basedir           string    // Where to get binaries from (e.g. $HOME/opt/mysql/8.0.11)
-	BasedirName       string    // The ibare name of the directory containing the binaries (e.g. 8.0.11)
-	SandboxDir        string    // Target directory for sandboxes
-	LoadGrants        bool      // Should we load grants?
-	SkipReportHost    bool      // Do not add report-host to my.sandbox.cnf
-	SkipReportPort    bool      // Do not add report-port to my.sandbox.cnf
-	SkipStart         bool	    // Do not start the server after deployment
-	InstalledPorts    []int     // Which ports should be skipped in port assignment for this SB
-	Port              int	    // port assigned to this sandbox
-	MysqlXPort        int	    // XPlugin port for thsi sandbox
-	UserPort          int	    // 
-	BasePort          int       // Base port for calculating more ports in multiple SB
-	MorePorts         []int     // Additional ports that belong to thos sandbox
-	Prompt            string    // Prompt to use in "mysql" client
-	DbUser            string    // Database user name
-	RplUser           string    // Replication user name
-	DbPassword        string    // Database password
-	RplPassword       string    // Replication password
-	RemoteAccess      string    // What access have the users created for this SB (127.%)
-	BindAddress       string    // Bind address for this sandbox (127.0.0.1)
-	CustomMysqld      string    // Use an alternative mysqld executable
-	ServerId          int       // Server ID (for replication)
-	ReplOptions       string    // Replication options, as string to append to my.sandbox.cnf
-	GtidOptions       string    // Options needed for GTID
-	SemiSyncOptions   string    // Options for semi-synchronous replication
-	InitOptions       []string  // Options to be added to the initialization command
-	MyCnfOptions      []string	// Options to be added to my.sandbox.cnf
-	PreGrantsSql      []string	// SQL statements to execute before grants assignment
-	PreGrantsSqlFile  string    // SQL file to load before grants assignment
-	PostGrantsSql     []string  // SQL statements to run after grants assignment
-	PostGrantsSqlFile string    // SQL file to load after grants assignment
-	MyCnfFile         string    // options file to merge with the SB my.sandbox.cnf
-	InitGeneralLog    bool      // enable general log during server initialization
-	EnableGeneralLog  bool		// enable general log after initialization
-	NativeAuthPlugin  bool	    // Use the native password plugin for MySQL 8.0.4+
-	DisableMysqlX     bool		// Disable Xplugin (MySQL 8.0.11+)
-	EnableMysqlX      bool		// Enable Xplugin (MySQL 5.7.12+)
-	KeepUuid          bool		// Do not change UUID
-	SinglePrimary     bool		// Use single primary for group replication
-	Force             bool		// Overwrite an existing sandbox with same target
-	ExposeDdTables    bool		// Show hidden data dictionary tables (MySQL 8.0.0+)
-	RunConcurrently   bool		// Run multiple sandbox creation concurrently
+	DirName           string   // name of the directory cointaining the sandbox
+	SBType            string   // Type of sandbox (single, multiple, replication-node, group-node)
+	Multi             bool     // either single or part of a multiple sandbox
+	NodeNum           int      // in multiple sandboxes, which node is this
+	Version           string   // MySQL version
+	Basedir           string   // Where to get binaries from (e.g. $HOME/opt/mysql/8.0.11)
+	BasedirName       string   // The ibare name of the directory containing the binaries (e.g. 8.0.11)
+	SandboxDir        string   // Target directory for sandboxes
+	LoadGrants        bool     // Should we load grants?
+	SkipReportHost    bool     // Do not add report-host to my.sandbox.cnf
+	SkipReportPort    bool     // Do not add report-port to my.sandbox.cnf
+	SkipStart         bool     // Do not start the server after deployment
+	InstalledPorts    []int    // Which ports should be skipped in port assignment for this SB
+	Port              int      // port assigned to this sandbox
+	MysqlXPort        int      // XPlugin port for thsi sandbox
+	UserPort          int      //
+	BasePort          int      // Base port for calculating more ports in multiple SB
+	MorePorts         []int    // Additional ports that belong to thos sandbox
+	Prompt            string   // Prompt to use in "mysql" client
+	DbUser            string   // Database user name
+	RplUser           string   // Replication user name
+	DbPassword        string   // Database password
+	RplPassword       string   // Replication password
+	RemoteAccess      string   // What access have the users created for this SB (127.%)
+	BindAddress       string   // Bind address for this sandbox (127.0.0.1)
+	CustomMysqld      string   // Use an alternative mysqld executable
+	ServerId          int      // Server ID (for replication)
+	ReplOptions       string   // Replication options, as string to append to my.sandbox.cnf
+	GtidOptions       string   // Options needed for GTID
+	SemiSyncOptions   string   // Options for semi-synchronous replication
+	InitOptions       []string // Options to be added to the initialization command
+	MyCnfOptions      []string // Options to be added to my.sandbox.cnf
+	PreGrantsSql      []string // SQL statements to execute before grants assignment
+	PreGrantsSqlFile  string   // SQL file to load before grants assignment
+	PostGrantsSql     []string // SQL statements to run after grants assignment
+	PostGrantsSqlFile string   // SQL file to load after grants assignment
+	MyCnfFile         string   // options file to merge with the SB my.sandbox.cnf
+	InitGeneralLog    bool     // enable general log during server initialization
+	EnableGeneralLog  bool     // enable general log after initialization
+	NativeAuthPlugin  bool     // Use the native password plugin for MySQL 8.0.4+
+	DisableMysqlX     bool     // Disable Xplugin (MySQL 8.0.11+)
+	EnableMysqlX      bool     // Enable Xplugin (MySQL 5.7.12+)
+	KeepUuid          bool     // Do not change UUID
+	SinglePrimary     bool     // Use single primary for group replication
+	Force             bool     // Overwrite an existing sandbox with same target
+	ExposeDdTables    bool     // Show hidden data dictionary tables (MySQL 8.0.0+)
+	RunConcurrently   bool     // Run multiple sandbox creation concurrently
 }
 
 func GetOptionsFromFile(filename string) (options []string) {
@@ -233,7 +233,7 @@ func debug_print(sdef SandboxDef) {
 	if os.Getenv("SBDEBUG") == "" {
 		return
 	}
-	fmt.Printf("%#v\n",sdef)
+	fmt.Printf("%#v\n", sdef)
 }
 
 func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList) {
@@ -245,7 +245,7 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 	}
 
 	if sdef.Port <= 1024 {
-		common.Exit(1, fmt.Sprintf("Port for sandbox must be > 1024 (given:%d)",sdef.Port))
+		common.Exit(1, fmt.Sprintf("Port for sandbox must be > 1024 (given:%d)", sdef.Port))
 	}
 	debug_print(sdef)
 
@@ -274,6 +274,8 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 	if sdef.NodeNum == 0 && !sdef.Force {
 		sdef.Port = FindFreePort(sdef.Port, sdef.InstalledPorts, 1)
 	}
+	using_plugins := false
+	right_plugin_dir := true // Assuming we can use the right plugin directory
 	if sdef.EnableMysqlX {
 		if !common.GreaterOrEqualVersion(sdef.Version, []int{5, 7, 12}) {
 			common.Exit(1, "option --enable-mysqlx requires version 5.7.12+")
@@ -283,6 +285,10 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 			sdef.MyCnfOptions = append(sdef.MyCnfOptions, "plugin_load=mysqlx=mysqlx.so")
 			sdef = set_mysqlx_properties(sdef, global_tmp_dir)
 		}
+		using_plugins = true
+	}
+	if common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 11}) && !sdef.DisableMysqlX {
+		using_plugins = true
 	}
 	if sdef.ExposeDdTables {
 		if !common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 0}) {
@@ -290,8 +296,8 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 		}
 		sdef.PostGrantsSql = append(sdef.PostGrantsSql, SingleTemplates["expose_dd_tables"].Contents)
 		if sdef.CustomMysqld != "" && sdef.CustomMysqld != "mysqld-debug" {
-			common.Exit(1, 
-				fmt.Sprintf("--expose-dd-tables requires mysqld-debug. A different file was indicated (--custom-mysqld=%s)", sdef.CustomMysqld), 
+			common.Exit(1,
+				fmt.Sprintf("--expose-dd-tables requires mysqld-debug. A different file was indicated (--custom-mysqld=%s)", sdef.CustomMysqld),
 				"Either use \"mysqld-debug\" or remove --custom-mysqld")
 		}
 		sdef.CustomMysqld = "mysqld-debug"
@@ -302,6 +308,12 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 			common.Exit(1,
 				fmt.Sprintf("File %s not found or not executable", custom_mysqld),
 				fmt.Sprintf("The file \"%s\" (defined with --custom-mysqld) must be in the same directory as the regular mysqld", sdef.CustomMysqld))
+		}
+		plugin_debug_dir := fmt.Sprintf("%s/lib/plugin/debug", sdef.Basedir)
+		if sdef.CustomMysqld == "mysqld-debug" && common.DirExists(plugin_debug_dir) {
+			sdef.MyCnfOptions = append(sdef.MyCnfOptions, fmt.Sprintf("plugin-dir=%s", plugin_debug_dir))
+		} else {
+			right_plugin_dir = false
 		}
 	}
 	if common.GreaterOrEqualVersion(sdef.Version, []int{5, 1, 0}) {
@@ -337,6 +349,20 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 		for _, option := range options {
 			// fmt.Printf("[%s]\n", option)
 			sdef.MyCnfOptions = append(sdef.MyCnfOptions, option)
+		}
+	}
+	if common.Includes(slice_to_text(sdef.MyCnfOptions), "plugin.load") {
+		using_plugins = true
+	}
+	if common.Includes(sdef.SemiSyncOptions, "plugin.load") {
+		using_plugins = true
+	}
+	if using_plugins {
+		if !right_plugin_dir {
+			common.Exit(1,
+				"The request of using mysqld-debug can't be honored.",
+				"This deployment is using a plugin, but the debug",
+				"directory for plugins was not found")
 		}
 	}
 	timestamp := time.Now()
@@ -598,8 +624,8 @@ func RemoveSandbox(sandbox_dir, sandbox string, run_concurrently bool) (exec_lis
 		preserve = full_path + "/no_clear"
 	}
 	if common.ExecExists(preserve) {
-		fmt.Printf("The sandbox %s is locked\n",sandbox)
-		fmt.Printf("You need to unlock it with \"dbdeployer admin unlock\"\n",)
+		fmt.Printf("The sandbox %s is locked\n", sandbox)
+		fmt.Printf("You need to unlock it with \"dbdeployer admin unlock\"\n")
 		return
 	}
 	stop := full_path + "/stop_all"
@@ -612,8 +638,8 @@ func RemoveSandbox(sandbox_dir, sandbox string, run_concurrently bool) (exec_lis
 
 	if run_concurrently {
 		var eCommand1 = concurrent.ExecCommand{
-			Cmd : stop,
-			Args : []string{},
+			Cmd:  stop,
+			Args: []string{},
 		}
 		exec_list = append(exec_list, concurrent.ExecutionList{0, eCommand1})
 	} else {
@@ -630,8 +656,8 @@ func RemoveSandbox(sandbox_dir, sandbox string, run_concurrently bool) (exec_lis
 	rm_args := []string{"-rf", full_path}
 	if run_concurrently {
 		var eCommand2 = concurrent.ExecCommand{
-			Cmd : cmd_str,
-			Args : rm_args,
+			Cmd:  cmd_str,
+			Args: rm_args,
 		}
 		exec_list = append(exec_list, concurrent.ExecutionList{1, eCommand2})
 	} else {

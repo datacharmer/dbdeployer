@@ -307,5 +307,15 @@ func Mkdir(dir_name string) {
 	err := os.Mkdir(dir_name, 0755)
 	if err != nil {
 		fmt.Printf("Error creating directory %s\n%s\n", dir_name, err)
+		os.Exit(1)
 	}
 }
+
+func Rmdir(dir_name string) {
+	err := os.Remove(dir_name)
+	if err != nil {
+		fmt.Printf("Error removing directory %s\n%s\n", dir_name, err)
+		os.Exit(1)
+	}
+}
+

@@ -3,7 +3,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.5.1 (05-Jun-2018 19:56 UTC)
+Documentation updated for version 1.5.2 (10-Jun-2018 15:50 UTC)
 
 ## Installation
 
@@ -13,7 +13,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.5.1
+    $ VERSION=1.5.2
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/$VERSION
     $ wget $origin/dbdeployer-$VERSION.linux.tar.gz
     $ tar -xzf dbdeployer-$VERSION.linux.tar.gz
@@ -47,7 +47,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.5.1
+    dbdeployer version 1.5.2
     
 
     $ dbdeployer -h
@@ -87,8 +87,8 @@ If you don't have any tarballs installed in your system, you should first ``unpa
     $ dbdeployer unpack -h
     If you want to create a sandbox from a tarball, you first need to unpack it
     into the sandbox-binary directory. This command carries out that task, so that afterwards 
-    you can call 'single', 'multiple', and 'replication' commands with only the MySQL version
-    for that tarball.
+    you can call 'deploy single', 'deploy multiple', and 'deploy replication' commands with only 
+    the MySQL version for that tarball.
     If the version is not contained in the tarball name, it should be supplied using --unpack-version.
     If there is already an expanded tarball with the same version, a new one can be differentiated with --prefix.
     
@@ -739,18 +739,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 2. Run ``go get github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
 4. From the folder ``./pflag``, copy the file ``string_slice.go`` to ``$GOPATH/src/github.com/spf13/pflag``.
-5. Run ``./build.sh {linux|OSX} 1.5.1``
-6. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.5.1``
+5. Run ``./build.sh {linux|OSX} 1.5.2``
+6. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.5.2``
 
 ## Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.5.1-docs.linux.tar.gz
-* dbdeployer-1.5.1-docs.osx.tar.gz
-* dbdeployer-1.5.1.linux.tar.gz
-* dbdeployer-1.5.1.osx.tar.gz
+* dbdeployer-1.5.2-docs.linux.tar.gz
+* dbdeployer-1.5.2-docs.osx.tar.gz
+* dbdeployer-1.5.2.linux.tar.gz
+* dbdeployer-1.5.2.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

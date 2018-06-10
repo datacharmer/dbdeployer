@@ -27,13 +27,14 @@ import (
 // the testing of sandboxes without having MySQL packages.
 
 const default_mock_dir string = "mock_dir"
+
 var (
-	save_home string
-	save_sandbox_home string
+	save_home           string
+	save_sandbox_home   string
 	save_sandbox_binary string
-	save_sleep_time string
+	save_sleep_time     string
 	mock_sandbox_binary string
-	mock_sandbox_home string
+	mock_sandbox_home   string
 )
 
 func set_mock_environment(mock_upper_dir string) {
@@ -41,7 +42,7 @@ func set_mock_environment(mock_upper_dir string) {
 		mock_upper_dir = default_mock_dir
 	}
 	if common.DirExists(mock_upper_dir) {
-		common.Exit(1, fmt.Sprintf("Mock directory %s already exists. Aborting",mock_upper_dir))
+		common.Exit(1, fmt.Sprintf("Mock directory %s already exists. Aborting", mock_upper_dir))
 	}
 	PWD := os.Getenv("PWD")
 	home := fmt.Sprintf("%s/%s/home", PWD, mock_upper_dir)
@@ -66,7 +67,7 @@ func set_mock_environment(mock_upper_dir string) {
 
 func remove_mock_environment(mock_upper_dir string) {
 	if !common.DirExists(mock_upper_dir) {
-		common.Exit(1, fmt.Sprintf("Mock directory %s doesn't exist. Aborting",mock_upper_dir))
+		common.Exit(1, fmt.Sprintf("Mock directory %s doesn't exist. Aborting", mock_upper_dir))
 	}
 	os.RemoveAll(mock_upper_dir)
 	os.Setenv("HOME", save_home)
@@ -81,17 +82,17 @@ func create_mock_version(version string) {
 	}
 	version_dir := fmt.Sprintf("%s/%s", mock_sandbox_binary, version)
 	common.Mkdir(version_dir)
-	common.Mkdir(version_dir+ "/bin")
-	common.Mkdir(version_dir+ "/scripts")
+	common.Mkdir(version_dir + "/bin")
+	common.Mkdir(version_dir + "/scripts")
 	var empty_data = common.Smap{}
 	write_script(MockTemplates, "mysqld", "no_op_mock_template",
-		version_dir + "/bin", empty_data, true)
+		version_dir+"/bin", empty_data, true)
 	write_script(MockTemplates, "mysql", "no_op_mock_template",
-		version_dir + "/bin", empty_data, true)
+		version_dir+"/bin", empty_data, true)
 	write_script(MockTemplates, "mysql_install_db", "no_op_mock_template",
-		version_dir + "/scripts", empty_data, true)
+		version_dir+"/scripts", empty_data, true)
 	write_script(MockTemplates, "mysqld_safe", "mysqld_safe_mock_template",
-		version_dir + "/bin", empty_data, true)
+		version_dir+"/bin", empty_data, true)
 }
 
 func init() {

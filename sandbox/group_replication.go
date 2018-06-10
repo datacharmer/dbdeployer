@@ -89,6 +89,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
 	}
 	common.Mkdir(sdef.SandboxDir)
+	common.AddToCleanupStack(common.Rmdir, "Rmdir", sdef.SandboxDir)
 	timestamp := time.Now()
 	slave_label := defaults.Defaults().SlavePrefix
 	slave_abbr := defaults.Defaults().SlaveAbbr

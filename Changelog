@@ -1,3 +1,13 @@
+1.5.2	09-Jun-2018
+	BUGS FIXED
+	- Added a stack of cleanup operations for group sandboxes when a depending 
+	  sandbox installation fails
+	- Fixed help message of "unpack" command.
+	ADJUSTMENTS
+	- When using mysqld-debug, plugins are loaded from
+	  $BASEDIR/lib/plugin/debug (https://bugs.mysql.com/bug.php?id=89688)
+	TESTING
+	- Added test for data dictionary tables exposure
 1.5.1	05-Jun-2018
 	- Improved documentation.
 	- Minor code refactoring

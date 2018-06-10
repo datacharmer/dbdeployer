@@ -52,6 +52,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	}
 
 	common.Mkdir(sdef.SandboxDir)
+	common.AddToCleanupStack(common.Rmdir, "Rmdir", sdef.SandboxDir)
 	sdef.Port = base_port + 1
 	sdef.ServerId = (base_server_id + 1) * 100
 	sdef.LoadGrants = false

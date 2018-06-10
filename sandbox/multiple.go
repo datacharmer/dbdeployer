@@ -64,6 +64,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Sma
 		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
 	}
 	common.Mkdir(sdef.SandboxDir)
+	common.AddToCleanupStack(common.Rmdir, "Rmdir", sdef.SandboxDir)
 
 	sdef.ReplOptions = SingleTemplates["replication_options"].Contents
 	base_server_id := 0

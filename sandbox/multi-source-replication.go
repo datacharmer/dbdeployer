@@ -17,11 +17,11 @@ package sandbox
 
 import (
 	"fmt"
-	"regexp"
-	"strings"
-	"strconv"
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"regexp"
+	"strconv"
+	"strings"
 )
 
 func check_node_lists(nodes int, mlist, slist []int) {
@@ -38,13 +38,13 @@ func check_node_lists(nodes int, mlist, slist []int) {
 	for _, M := range mlist {
 		for _, S := range slist {
 			if S == M {
-				common.Exit(1, fmt.Sprintf("Overlapping values: %d is in both master and slave list",M))
+				common.Exit(1, fmt.Sprintf("Overlapping values: %d is in both master and slave list", M))
 			}
 		}
 	}
 	total_nodes := len(mlist) + len(slist)
 	if total_nodes != nodes {
-		common.Exit(1, fmt.Sprintf("Mismatched values: masters (%d) + slaves (%d) = %d. Expected: %d",len(mlist), len(slist), total_nodes, nodes))
+		common.Exit(1, fmt.Sprintf("Mismatched values: masters (%d) + slaves (%d) = %d. Expected: %d", len(mlist), len(slist), total_nodes, nodes))
 	}
 }
 
@@ -64,13 +64,13 @@ func nodes_list_to_int_slice(nodes_list string, nodes int) (int_list []int) {
 	list := strings.Split(nodes_list, separator)
 	// fmt.Printf("# separator: <%s> %#v\n",separator, list)
 	if len(list) == 0 {
-		common.Exit(1, fmt.Sprintf("Empty nodes list given (%s)",nodes_list))
+		common.Exit(1, fmt.Sprintf("Empty nodes list given (%s)", nodes_list))
 	}
 	for _, s := range list {
 		if s != "" {
 			num, err := strconv.Atoi(s)
 			if err != nil {
-				common.Exit(1, fmt.Sprintf("Error converting node number '%s' to int",s))
+				common.Exit(1, fmt.Sprintf("Error converting node number '%s' to int", s))
 			}
 			int_list = append(int_list, num)
 		}
@@ -85,14 +85,14 @@ func nodes_list_to_int_slice(nodes_list string, nodes int) (int_list []int) {
 }
 
 func make_nodes_list(nodes int) (nodes_list string) {
-	for N := 1 ; N<= nodes; N++ {
+	for N := 1; N <= nodes; N++ {
 		nodes_list += fmt.Sprintf("%d ", N)
 	}
 	return nodes_list
 }
 
 func CreateAllMastersReplication(sdef SandboxDef, origin string, nodes int, master_ip string) {
-	sdef.SBType= "all-masters"
+	sdef.SBType = "all-masters"
 	sdef.GtidOptions = SingleTemplates["gtid_options"].Contents
 	if sdef.DirName == "" {
 		sdef.DirName += defaults.Defaults().AllMastersPrefix + common.VersionToName(origin)
@@ -139,10 +139,10 @@ func normalize_node_list(list string) string {
 }
 
 func CreateFanInReplication(sdef SandboxDef, origin string, nodes int, master_ip, master_list, slave_list string) {
-	sdef.SBType= "fan-in"
+	sdef.SBType = "fan-in"
 	sdef.GtidOptions = SingleTemplates["gtid_options"].Contents
 	if sdef.DirName == "" {
-		sdef.DirName =  defaults.Defaults().FanInPrefix + common.VersionToName(origin)
+		sdef.DirName = defaults.Defaults().FanInPrefix + common.VersionToName(origin)
 	}
 	sdef.BasePort = defaults.Defaults().FanInReplicationBasePort
 	sandbox_dir := sdef.SandboxDir
@@ -183,5 +183,3 @@ func CreateFanInReplication(sdef SandboxDef, origin string, nodes int, master_ip
 		common.Run_cmd(sandbox_dir + "/initialize_ms_nodes")
 	}
 }
-
-

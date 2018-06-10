@@ -36,6 +36,7 @@ then
     export skip_pre_post_operations=1
     export skip_semisync_operations=1
     export skip_group_operations=1
+    export skip_dd_operations=1
     export skip_multi_source_operations=1
     export no_tests=1
 fi
@@ -66,6 +67,7 @@ do
             unset skip_pre_post_operations
             unset skip_semisync_operations
             unset skip_group_operations
+            unset skip_dd_operations
             unset skip_multi_source_operations
             unset no_tests
             echo "# Enabling all tests"
@@ -95,6 +97,11 @@ do
             unset no_tests
             echo "# Enabling pre/post tests"
             ;;
+        dd)
+            unset skip_dd_operations
+            unset no_tests
+            echo "# Enabling dd operations tests"
+            ;;
         group)
             unset skip_group_operations
             unset no_tests
@@ -112,6 +119,7 @@ do
             echo "  pre/post : pre/post grants operations"
             echo "  semi     : semisync operations"
             echo "  group    : group replication operations "
+            echo "  dd       : data dictionary operations "
             echo "  multi    : multi-source operations (fan-in, all-masters)"
             echo "  all      : enable all the above tests"
             echo ""
@@ -337,6 +345,28 @@ function test_semi_sync {
     check_for_exit test_semi_sync skip_log_check
 }
 
+function test_expose_dd {
+    running_version=$1
+    dir_name=msb_
+    version_path=$(echo $running_version| tr '.' '_')
+    test_header test_expose_dd "${dir_name}$version_path"
+    sandbox_dir=$dir_name$version_path
+    # run dbdeployer deploy single $running_version --expose-dd-tables
+
+    capture_test $SANDBOX_HOME/$sandbox_dir/test_sb
+    using_debug1=$($SANDBOX_HOME/$sandbox_dir/use -BN -e "select version() REGEXP 'debug'" )
+    using_debug2=$($SANDBOX_HOME/$sandbox_dir/use -BN -e "select @@debug is not null" )
+    tables_found1=$($SANDBOX_HOME/$sandbox_dir/use -BN -e "select count(*) from information_schema.tables where table_name ='tables' and table_schema='mysql'" )
+    tables_found2=$($SANDBOX_HOME/$sandbox_dir/use -BN -e "select count(*) from mysql.tables where name ='tables' and schema_id=1" )
+    ok_equal "using debug" $using_debug1 1
+    ok_equal "debug variable not null" $using_debug2 1
+    ok_equal "table 'tables' found in information_schema " $tables_found1 1
+    ok_equal "table 'tables' found in mysql " $tables_found2 1
+    check_for_exit test_expose_dd
+    #run dbdeployer delete ${dir_name}${version_path}
+}
+
+
 function test_force_single {
     running_version=$1
     dir_name=msb_
@@ -556,11 +586,13 @@ fi
 [ -z "$short_versions" ] && short_versions=(5.0 5.1 5.5 5.6 5.7 8.0)
 
 [ -z "$group_short_versions" ] && group_short_versions=(5.7 8.0)
+[ -z "$dd_short_versions" ] && dd_short_versions=(8.0)
 [ -z "$semisync_short_versions" ] && semisync_short_versions=(5.5 5.6 5.7 8.0)
 count=0
 all_versions=()
 group_versions=()
 semisync_versions=()
+dd_versions=()
 
 OS=$(uname | tr '[A-Z]' '[a-z]')
 if [ -x "sort_versions.$OS" ]
@@ -618,6 +650,18 @@ do
         count=$((count+1))
     fi
 done
+
+count=0
+for v in ${dd_short_versions[*]}
+do
+    latest=$(ls $BINARY_DIR | grep "^$v" | ./sort_versions | tail -n 1)
+    if [ -n "$latest" ]
+    then
+        dd_versions[$count]=$latest
+        count=$((count+1))
+    fi
+done
+
 
 unset will_fail
 for V in ${all_versions[*]}
@@ -864,6 +908,21 @@ function semisync_operations {
     done
 }
 
+function dd_operations {
+    current_test=dd_operations
+    test_header dd_operations "" double
+    for V in ${dd_versions[*]}
+    do
+        echo "# data dictionary operations $V"
+        run dbdeployer deploy single $V --expose-dd-tables --disable-mysqlx
+        results "dd $V"
+        capture_test run dbdeployer global test
+        test_expose_dd $V msb_
+        dbdeployer delete ALL --skip-confirm
+        results "dd $V - after deletion"
+    done
+}
+
 function group_operations {
     current_test=group_operations
     test_header group_operations "" double
@@ -871,9 +930,17 @@ function group_operations {
     for V in ${group_versions[*]}
     do
         echo "# Group operations $V"
+        mysqld_debug=$SANDBOX_BINARY/$V/bin/mysqld-debug
+        plugin_debug=$SANDBOX_BINARY/$V/lib/plugin/debug
+        if [ -x $mysqld_debug -a -d $plugin_debug ]
+        then
+            WITH_DEBUG=--custom-mysqld=mysqld-debug
+        else
+            WITH_DEBUG=""
+        fi
         run dbdeployer deploy replication $V --topology=group
         run dbdeployer deploy replication $V --topology=group \
-            --single-primary
+            --single-primary $WITH_DEBUG
         results "group $V"
 
         capture_test run dbdeployer global test
@@ -941,6 +1008,10 @@ fi
 if [ -z "$skip_group_operations" ]
 then
     group_operations
+fi
+if [ -z "$skip_dd_operations" ]
+then
+    dd_operations
 fi
 if [ -z "$skip_multi_source_operations" ]
 then

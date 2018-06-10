@@ -24,6 +24,18 @@ import (
 	"strings"
 )
 
+type CleanupFunc func(target string)
+type CleanupRec struct {
+	target string
+	label string
+	f CleanupFunc
+}
+
+type CleanupStack []CleanupRec
+
+// var cleanup_actions CleanupStack
+var cleanup_actions = new(Stack)
+
 // Given a path starting at the HOME directory
 // returns a string where the literal value for $HOME
 // is replaced by the string "$HOME"
@@ -158,7 +170,21 @@ func StringToIntSlice(val string) (num_list []int) {
 	return num_list
 }
 
+func AddToCleanupStack(cf CleanupFunc, func_name, arg string ) {
+	cleanup_actions.Push( CleanupRec{f: cf, label: func_name, target : arg})
+}
+
 func Exit(exit_code int, messages ...string) {
+	if cleanup_actions.Len() > 0 {
+		fmt.Printf("# Pre-exit cleanup. \n")
+	}
+	count := 0
+	for cleanup_actions.Len() > 0 {
+		count++
+		cr := cleanup_actions.Pop().(CleanupRec)
+		fmt.Printf("#%d - Executing %s( %s)\n",count, cr.label, cr.target)
+		cr.f(cr.target)
+	}
 	for _, msg := range messages {
 		fmt.Printf("%s\n", msg)
 	}

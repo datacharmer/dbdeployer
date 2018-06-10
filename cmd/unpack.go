@@ -91,8 +91,8 @@ var unpackCmd = &cobra.Command{
 	Short: "unpack a tarball into the binary directory",
 	Long: `If you want to create a sandbox from a tarball, you first need to unpack it
 into the sandbox-binary directory. This command carries out that task, so that afterwards 
-you can call 'single', 'multiple', and 'replication' commands with only the MySQL version
-for that tarball.
+you can call 'deploy single', 'deploy multiple', and 'deploy replication' commands with only 
+the MySQL version for that tarball.
 If the version is not contained in the tarball name, it should be supplied using --unpack-version.
 If there is already an expanded tarball with the same version, a new one can be differentiated with --prefix.
 `,
