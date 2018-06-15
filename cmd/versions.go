@@ -27,8 +27,7 @@ import (
 // Shows the MySQL versions available in $SANDBOX_BINARY
 // (default $HOME/opt/mysql)
 func ShowVersions(cmd *cobra.Command, args []string) {
-	flags := cmd.Flags()
-	Basedir, _ := flags.GetString("sandbox-binary")
+	Basedir := GetAbsolutePathFromFlag(cmd, "sandbox-binary")
 	files, err := ioutil.ReadDir(Basedir)
 	if err != nil {
 		log.Fatal(err)

@@ -1,3 +1,6 @@
+1.5.3	10-Jun-2018
+	- Fixed Issue #16 "Rename during unpack command fails" by making
+	  sure the path for sandbox-home and sandbox-binary are absolute ones.
 1.5.2	09-Jun-2018
 	BUGS FIXED
 	- Added a stack of cleanup operations for group sandboxes when a depending 

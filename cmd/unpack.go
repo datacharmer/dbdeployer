@@ -29,7 +29,7 @@ import (
 
 func UnpackTarball(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
-	Basedir, _ := flags.GetString("sandbox-binary")
+	Basedir := GetAbsolutePathFromFlag(cmd, "sandbox-binary")
 	verbosity, _ := flags.GetInt("verbosity")
 	if !common.DirExists(Basedir) {
 		common.Exit(1,
@@ -76,6 +76,7 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	}
 	final_name := Basedir + "/" + barename
 	if final_name != destination {
+        fmt.Printf("Renaming directory %s to %s\n",final_name, destination)
 		err = os.Rename(final_name, destination)
 		if err != nil {
 			common.Exit(1, fmt.Sprintf("%s", err))

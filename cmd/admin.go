@@ -118,9 +118,8 @@ func LockSandbox(cmd *cobra.Command, args []string) {
 			"'lock' requires the name of a sandbox (or ALL)",
 			"Example: dbdeployer admin lock msb_5_7_21")
 	}
-	flags := cmd.Flags()
 	sandbox := args[0]
-	sandbox_dir, _ := flags.GetString("sandbox-home")
+	sandbox_dir := GetAbsolutePathFromFlag(cmd, "sandbox-home")
 	lock_list := []string{sandbox}
 	if sandbox == "ALL" || sandbox == "all" {
 		lock_list = common.SandboxInfoToFileNames(common.GetInstalledSandboxes(sandbox_dir))
@@ -140,9 +139,8 @@ func UnlockSandbox(cmd *cobra.Command, args []string) {
 			"'unlock' requires the name of a sandbox (or ALL)",
 			"Example: dbdeployer admin unlock msb_5_7_21")
 	}
-	flags := cmd.Flags()
 	sandbox := args[0]
-	sandbox_dir, _ := flags.GetString("sandbox-home")
+	sandbox_dir := GetAbsolutePathFromFlag(cmd, "sandbox-home")
 	lock_list := []string{sandbox}
 	if sandbox == "ALL" || sandbox == "all" {
 		lock_list = common.SandboxInfoToFileNames(common.GetInstalledSandboxes(sandbox_dir))

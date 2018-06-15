@@ -22,8 +22,7 @@ import (
 )
 
 func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, require_args bool, skip_missing bool) {
-	flags := cmd.Flags()
-	sandbox_dir, _ := flags.GetString("sandbox-home")
+	sandbox_dir := GetAbsolutePathFromFlag(cmd, "sandbox-home")
 	run_list := common.SandboxInfoToFileNames(common.GetInstalledSandboxes(sandbox_dir))
 	if len(run_list) == 0 {
 		common.Exit(1, fmt.Sprintf("No sandboxes found in %s", sandbox_dir))

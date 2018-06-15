@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -68,6 +69,19 @@ func process_defaults(new_defaults []string) {
 	}
 }
 
+func GetAbsolutePathFromFlag(cmd *cobra.Command, name string) string {
+	flags := cmd.Flags()
+	value, err := flags.GetString(name)
+	if err != nil {
+		common.Exit(1, fmt.Sprintf("Error getting flag value for --%s", name))
+	}
+	value, err = filepath.Abs(value)
+	if err != nil {
+		common.Exit(1, fmt.Sprintf("Error getting absolute path for %s", value))
+	}
+	return value
+}
+
 func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	var sd sandbox.SandboxDef
 
@@ -85,7 +99,7 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 
 	sd.Port = common.VersionToPort(sd.Version)
 	if sd.Port < 0 {
-		common.Exit(1, fmt.Sprintf("Unsupported version format (%s)",sd.Version))
+		common.Exit(1, fmt.Sprintf("Unsupported version format (%s)", sd.Version))
 	}
 	sd.UserPort, _ = flags.GetInt("port")
 	sd.BasePort, _ = flags.GetInt("base-port")
@@ -95,13 +109,15 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 		sd.Port = sd.UserPort
 	}
 
-	basedir, _ := flags.GetString("sandbox-binary")
+	basedir := GetAbsolutePathFromFlag(cmd, "sandbox-binary")
+
 	// sd.Basedir = path.Join(basedir, sd.Version)
 	sd.Basedir = path.Join(basedir, args[0])
 	if !common.DirExists(sd.Basedir) {
-		common.Exit(1,fmt.Sprintf("basedir '%s' not found", sd.Basedir))
+		common.Exit(1, fmt.Sprintf("basedir '%s' not found", sd.Basedir))
 	}
-	sd.SandboxDir, _ = flags.GetString("sandbox-home")
+	sd.SandboxDir = GetAbsolutePathFromFlag(cmd, "sandbox-home")
+
 	common.CheckSandboxDir(sd.SandboxDir)
 	sd.InstalledPorts = common.GetInstalledPorts(sd.SandboxDir)
 	for _, p := range defaults.Defaults().ReservedPorts {
