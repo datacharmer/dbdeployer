@@ -93,6 +93,18 @@ When the extracted tarball directory name that you want to use doesn't contain t
 
 In the above command, ``--sandbox-binary`` indicates where to search for the binaries, ``5.7-extra`` is where the binaries are, and ``--binary-version`` indicates which version should be used.
 
+## Using short version numbers
+
+You can use, instead of a full version number (e.g. ``8.0.11``,) a short one, such as ``8.0``. This shortcut works starting with version 1.6.0.
+When you invoke dbdeployer with a short number, it will look for the highest revision number within that version, and use it for deployment.
+
+For example, if your sandbox binary directory contains the following:
+
+    5.7.19    5.7.20    5.7.22    8.0.1    8.0.11    8.0.4
+
+You can issue the command ``dbdeployer deploy single 8.0``, and it will use 8.0.11 for a single deployment. Or ``dbdeployer deploy replication 5.7`` and it will result in a replication system using 5.7.22 (the latest one.)
+
+
 ## Multiple sandboxes, same version and type
 
 If you want to deploy several instances of the same version and the same type (for example two single sandboxes of 8.0.4, or two group replication instances with different single-primary setting) you can specify the data directory name and the ports manually.

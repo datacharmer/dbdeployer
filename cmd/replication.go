@@ -19,6 +19,7 @@ import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
+	//"fmt"
 )
 
 func ReplicationSandbox(cmd *cobra.Command, args []string) {
@@ -52,7 +53,12 @@ func ReplicationSandbox(cmd *cobra.Command, args []string) {
 	if sd.SinglePrimary && topology != "group" {
 		common.Exit(1, "Option 'single-primary' can only be used with 'group' topology ")
 	}
-	sandbox.CreateReplicationSandbox(sd, args[0], topology, nodes, master_ip, master_list, slave_list)
+	origin := args[0]
+	if args[0] != sd.BasedirName {
+		origin = sd.BasedirName
+	}
+	//fmt.Printf("%#v\n",sd)
+	sandbox.CreateReplicationSandbox(sd, origin, topology, nodes, master_ip, master_list, slave_list)
 }
 
 // replicationCmd represents the replication command
@@ -71,16 +77,17 @@ Use the "unpack" command to get the tarball into the right directory.
 	//"fan-in" and "all-msters" (require 5.7.9+)
 	Run: ReplicationSandbox,
 	Example: `
-		$ dbdeployer deploy replication 5.7.21
+		$ dbdeployer deploy replication 5.7    # deploys highest revision for 5.7
+		$ dbdeployer deploy replication 5.7.21 # deploys a specific revision
 		# (implies topology = master-slave)
 
-		$ dbdeployer deploy --topology=master-slave replication 5.7.21
+		$ dbdeployer deploy --topology=master-slave replication 5.7
 		# (explicitly setting topology)
 
-		$ dbdeployer deploy --topology=group replication 5.7.21
-		$ dbdeployer deploy --topology=group replication 8.0.4 --single-primary
-		$ dbdeployer deploy --topology=all-masters replication 5.7.21
-		$ dbdeployer deploy --topology=fan-in replication 5.7.21
+		$ dbdeployer deploy --topology=group replication 5.7
+		$ dbdeployer deploy --topology=group replication 8.0 --single-primary
+		$ dbdeployer deploy --topology=all-masters replication 5.7
+		$ dbdeployer deploy --topology=fan-in replication 5.7
 	`,
 }
 

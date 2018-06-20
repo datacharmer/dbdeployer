@@ -17,6 +17,7 @@ package common
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"regexp"
 	"sort"
@@ -27,8 +28,8 @@ import (
 type CleanupFunc func(target string)
 type CleanupRec struct {
 	target string
-	label string
-	f CleanupFunc
+	label  string
+	f      CleanupFunc
 }
 
 type CleanupStack []CleanupRec
@@ -134,9 +135,33 @@ func SortVersions(versions []string) (sorted []string) {
 	return
 }
 
-func LatestVersion(versions []string) string {
-	sorted := SortVersions(versions)
-	return sorted[0]
+func LatestVersion(search_dir, pattern string) string {
+	files, err := ioutil.ReadDir(search_dir)
+	// fmt.Printf("<%s> <%s>\n",search_dir, pattern)
+	if err != nil {
+		Exit(1, fmt.Sprintf("ERROR reading directory %s: %s", search_dir, err))
+	}
+	var matching_list []string
+	valid_pattern := regexp.MustCompile(`\d+\.\d+$`)
+	if !valid_pattern.MatchString(pattern) {
+		Exit(1, "Invalid pattern. Must be '#.#'")
+	}
+	re := regexp.MustCompile(fmt.Sprintf(`^%s\.\d+$`, pattern))
+	for _, f := range files {
+		fmode := f.Mode()
+		// fmt.Printf("<%s> %#v\n",f.Name(), fmode.IsDir())
+		if fmode.IsDir() && re.MatchString(f.Name()) {
+			matching_list = append(matching_list, f.Name())
+		}
+	}
+	// fmt.Printf("%s\n",matching_list)
+	sorted_list := SortVersions(matching_list)
+	// fmt.Printf("%s\n",sorted_list)
+	if len(sorted_list) > 0 {
+		latest := sorted_list[len(sorted_list)-1]
+		return latest
+	}
+	return ""
 }
 
 func Atoi(val string) int {
@@ -170,8 +195,8 @@ func StringToIntSlice(val string) (num_list []int) {
 	return num_list
 }
 
-func AddToCleanupStack(cf CleanupFunc, func_name, arg string ) {
-	cleanup_actions.Push( CleanupRec{f: cf, label: func_name, target : arg})
+func AddToCleanupStack(cf CleanupFunc, func_name, arg string) {
+	cleanup_actions.Push(CleanupRec{f: cf, label: func_name, target: arg})
 }
 
 func Exit(exit_code int, messages ...string) {
@@ -182,7 +207,7 @@ func Exit(exit_code int, messages ...string) {
 	for cleanup_actions.Len() > 0 {
 		count++
 		cr := cleanup_actions.Pop().(CleanupRec)
-		fmt.Printf("#%d - Executing %s( %s)\n",count, cr.label, cr.target)
+		fmt.Printf("#%d - Executing %s( %s)\n", count, cr.label, cr.target)
 		cr.f(cr.target)
 	}
 	for _, msg := range messages {

@@ -1,3 +1,13 @@
+1.6.0	19-Jun-2018
+	NEW FEATURES
+	  Now it is possible to invoke dbdeployer with a short version number,
+	  such as 5.7 or 8.0. In this case, dbdeployer will look for the latest
+	  release of that MySQL version and use it.
+	BUGS FIXED
+	- Command line was not saved to dbdeployer catalog
+	TESTING
+	- Added test for short versions
+	- Added test for command line in catalog
 1.5.3	10-Jun-2018
 	- Fixed Issue #16 "Rename during unpack command fails" by making
 	  sure the path for sandbox-home and sandbox-binary are absolute ones.
@@ -15,7 +25,7 @@
 	- Improved documentation.
 	- Minor code refactoring
 1.5.0	12-May-2018
-	NEW FEATURES:
+	NEW FEATURES
 	- Added option --binary-version, which allows the basedir to be other than
 	  {prefix}x.x.xx
 	- Added command line record to sbdescription.json, to the catalog,

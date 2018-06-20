@@ -82,6 +82,25 @@ func GetAbsolutePathFromFlag(cmd *cobra.Command, name string) string {
 	return value
 }
 
+func check_if_abridged_version(version, basedir string) string {
+	full_pattern := regexp.MustCompile(`\d\.\d+\.\d+$`)
+	if full_pattern.MatchString(version) {
+		return version
+	}
+	valid_pattern := regexp.MustCompile(`\d+\.\d+$`)
+	if !valid_pattern.MatchString(version) {
+		return version
+	}
+	full_version := common.LatestVersion(basedir, version)
+	if full_version == "" {
+		common.Exit(1, fmt.Sprintf("FATAL: no full version found for %s in %s\n", version, basedir))
+	} else {
+		fmt.Printf("# %s => %s\n", version, full_version)
+		version = full_version
+	}
+	return version
+}
+
 func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	var sd sandbox.SandboxDef
 
@@ -91,10 +110,18 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 		tname, fname := check_template_change_request(request)
 		replace_template(tname, fname)
 	}
+
+	basedir := GetAbsolutePathFromFlag(cmd, "sandbox-binary")
+
 	sd.BasedirName = args[0]
 	sd.Version, _ = flags.GetString("binary-version")
 	if sd.Version == "" {
 		sd.Version = args[0]
+		old_version := sd.Version
+		sd.Version = check_if_abridged_version(sd.Version, basedir)
+		if old_version != sd.Version {
+			sd.BasedirName = sd.Version
+		}
 	}
 
 	sd.Port = common.VersionToPort(sd.Version)
@@ -109,10 +136,8 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 		sd.Port = sd.UserPort
 	}
 
-	basedir := GetAbsolutePathFromFlag(cmd, "sandbox-binary")
-
-	// sd.Basedir = path.Join(basedir, sd.Version)
-	sd.Basedir = path.Join(basedir, args[0])
+	sd.Basedir = path.Join(basedir, sd.Version)
+	// sd.Basedir = path.Join(basedir, args[0])
 	if !common.DirExists(sd.Basedir) {
 		common.Exit(1, fmt.Sprintf("basedir '%s' not found", sd.Basedir))
 	}
@@ -203,7 +228,8 @@ MySQL-Version is in the format x.x.xx, and it refers to a directory named after 
 containing an unpacked tarball. The place where these directories are found is defined by 
 --sandbox-binary (default: $HOME/opt/mysql.)
 For example:
-	dbdeployer deploy single 5.7.21
+	dbdeployer deploy single 5.7     # deploys the latest release of 5.7.x
+	dbdeployer deploy single 5.7.21  # deploys a specific release
 
 For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
 the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz

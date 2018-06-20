@@ -12,7 +12,7 @@ then
 fi
 
 version=$1
-if [ -z $version ] 
+if [ -z $version ]
 then
     echo "version needed"
     exit 1
@@ -94,16 +94,17 @@ function run_test {
 function all_tests {
     run_test ./test/functional-test.sh
     run_test ./test/docker-test.sh $version
-    run_test ./test/mock/defaults-change.sh 
+    run_test ./test/mock/defaults-change.sh
+    run_test ./test/mock/short-versions.sh
     if [ -n "$COMPLETE_PORT_TEST" ]
     then
-        run_test ./test/mock/port-clash.sh 
+        run_test ./test/mock/port-clash.sh
     else
         run_test ./test/mock/port-clash.sh sparse
     fi
-} 
+}
 
-all_tests 
+all_tests
 
 echo $dash_line
 echo $dash_line >> $log_summary

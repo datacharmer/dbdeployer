@@ -40,6 +40,14 @@ Runs single, multiple, and replicated sandboxes.`,
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	cl := ""
+	for _, item := range os.Args {
+		if cl != "" {
+			cl += " "
+		}
+		cl += item
+	}
+	common.CommandLineArgs = cl
 	if err := rootCmd.Execute(); err != nil {
 		common.Exit(1, fmt.Sprintf("%s",err))
 	}

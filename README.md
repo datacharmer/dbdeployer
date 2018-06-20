@@ -3,7 +3,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.5.2 (10-Jun-2018 15:50 UTC)
+Documentation updated for version 1.6.0 (19-Jun-2018 21:14 UTC)
 
 ## Installation
 
@@ -13,7 +13,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.5.2
+    $ VERSION=1.6.0
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/$VERSION
     $ wget $origin/dbdeployer-$VERSION.linux.tar.gz
     $ tar -xzf dbdeployer-$VERSION.linux.tar.gz
@@ -47,7 +47,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.5.2
+    dbdeployer version 1.6.0
     
 
     $ dbdeployer -h
@@ -176,7 +176,8 @@ The easiest command is ``deploy single``, which installs a single sandbox.
     containing an unpacked tarball. The place where these directories are found is defined by 
     --sandbox-binary (default: $HOME/opt/mysql.)
     For example:
-    	dbdeployer deploy single 5.7.21
+    	dbdeployer deploy single 5.7     # deploys the latest release of 5.7.x
+    	dbdeployer deploy single 5.7.21  # deploys a specific release
     
     For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
     the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
@@ -229,16 +230,17 @@ The ``deploy replication`` command will install a master and two or more slaves,
     
     Examples:
     
-    		$ dbdeployer deploy replication 5.7.21
+    		$ dbdeployer deploy replication 5.7    # deploys highest revision for 5.7
+    		$ dbdeployer deploy replication 5.7.21 # deploys a specific revision
     		# (implies topology = master-slave)
     
-    		$ dbdeployer deploy --topology=master-slave replication 5.7.21
+    		$ dbdeployer deploy --topology=master-slave replication 5.7
     		# (explicitly setting topology)
     
-    		$ dbdeployer deploy --topology=group replication 5.7.21
-    		$ dbdeployer deploy --topology=group replication 8.0.4 --single-primary
-    		$ dbdeployer deploy --topology=all-masters replication 5.7.21
-    		$ dbdeployer deploy --topology=fan-in replication 5.7.21
+    		$ dbdeployer deploy --topology=group replication 5.7
+    		$ dbdeployer deploy --topology=group replication 8.0 --single-primary
+    		$ dbdeployer deploy --topology=all-masters replication 5.7
+    		$ dbdeployer deploy --topology=fan-in replication 5.7
     	
     
     Flags:
@@ -274,6 +276,18 @@ When the extracted tarball directory name that you want to use doesn't contain t
         --binary-version=5.7.22
 
 In the above command, ``--sandbox-binary`` indicates where to search for the binaries, ``5.7-extra`` is where the binaries are, and ``--binary-version`` indicates which version should be used.
+
+## Using short version numbers
+
+You can use, instead of a full version number (e.g. ``8.0.11``,) a short one, such as ``8.0``. This shortcut works starting with version 1.6.0.
+When you invoke dbdeployer with a short number, it will look for the highest revision number within that version, and use it for deployment.
+
+For example, if your sandbox binary directory contains the following:
+
+    5.7.19    5.7.20    5.7.22    8.0.1    8.0.11    8.0.4
+
+You can issue the command ``dbdeployer deploy single 8.0``, and it will use 8.0.11 for a single deployment. Or ``dbdeployer deploy replication 5.7`` and it will result in a replication system using 5.7.22 (the latest one.)
+
 
 ## Multiple sandboxes, same version and type
 
@@ -739,18 +753,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 2. Run ``go get github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
 4. From the folder ``./pflag``, copy the file ``string_slice.go`` to ``$GOPATH/src/github.com/spf13/pflag``.
-5. Run ``./build.sh {linux|OSX} 1.5.2``
-6. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.5.2``
+5. Run ``./build.sh {linux|OSX} 1.6.0``
+6. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.6.0``
 
 ## Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.5.2-docs.linux.tar.gz
-* dbdeployer-1.5.2-docs.osx.tar.gz
-* dbdeployer-1.5.2.linux.tar.gz
-* dbdeployer-1.5.2.osx.tar.gz
+* dbdeployer-1.6.0-docs.linux.tar.gz
+* dbdeployer-1.6.0-docs.osx.tar.gz
+* dbdeployer-1.6.0.linux.tar.gz
+* dbdeployer-1.6.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 
