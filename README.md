@@ -14,11 +14,12 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 For example:
 
     $ VERSION=1.6.0
+    $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/$VERSION
-    $ wget $origin/dbdeployer-$VERSION.linux.tar.gz
-    $ tar -xzf dbdeployer-$VERSION.linux.tar.gz
-    $ chmod +x dbdeployer-$VERSION.linux
-    $ sudo mv dbdeployer-$VERSION.linux /usr/local/bin/dbdeployer
+    $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
+    $ tar -xzf dbdeployer-$VERSION.$OS.tar.gz
+    $ chmod +x dbdeployer-$VERSION.$OS
+    $ sudo mv dbdeployer-$VERSION.$OS /usr/local/bin/dbdeployer
 
 Of course, there are **prerequisites**: your machine must be able to run the MySQL server. Be aware that version 5.6+ and higher require some libraries that are not installed by default in all flavors of Linux (libnuma, libaio.)
 
