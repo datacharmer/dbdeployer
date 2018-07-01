@@ -461,14 +461,16 @@ Should you need additional formats, though, dbdeployer is able to generate them 
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 
-This is the command used to help generating the API documentation. In addition to the API template, the ``tree`` command can produce:
+This is the command used to help generating the API documentation. 
+
+{{dbdeployer-docs tree -h}}
+
+In addition to the API template, the ``tree`` command can produce:
 
 * man pages;
 * Markdown documentation;
 * Restructured Text pages;
 * Command line completion script (see next section).
-
-{{dbdeployer-docs tree -h}}
 
 ## Command line completion
 
@@ -508,4 +510,8 @@ As of version 1.0.0, dbdeployer adheres to the principles of [semantic versionin
 The starting API is defined in [API-1.0.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.0.md) (generated manually.)
 The file [API-1.1.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md) contains the same API definition, but was generated automatically and can be used to better compare the initial API with further version.
 
+
+## Do not edit
+
+``README.md`` is **generated** by processing ``./mkreadme/readme_template.md``. Do not edit it directly, as its contents will be overwritten.
 

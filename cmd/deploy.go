@@ -64,4 +64,5 @@ func init() {
 	set_pflag(deployCmd,"rpl-password", "", "", "rsandbox", "replication password", false)
 	set_pflag(deployCmd,"use-template", "", "", "", "[template_name:file_name] Replace existing template with one from file", true)
 	set_pflag(deployCmd,"sandbox-directory", "", "", "", "Changes the default sandbox directory", false)
+	set_pflag(deployCmd,"history-dir", "", "", "", "Where to store mysql client history (default: in sandbox directory)", false)
 }

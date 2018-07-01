@@ -63,6 +63,7 @@ type SandboxDef struct {
 	PostGrantsSql     []string // SQL statements to run after grants assignment
 	PostGrantsSqlFile string   // SQL file to load after grants assignment
 	MyCnfFile         string   // options file to merge with the SB my.sandbox.cnf
+	HistoryDir        string   // Where to store the MySQL client history
 	InitGeneralLog    bool     // enable general log during server initialization
 	EnableGeneralLog  bool     // enable general log after initialization
 	NativeAuthPlugin  bool     // Use the native password plugin for MySQL 8.0.4+
@@ -394,6 +395,7 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 		"ExtraOptions":    slice_to_text(sdef.MyCnfOptions),
 		"ReportHost":      fmt.Sprintf("report-host=single-%d", sdef.Port),
 		"ReportPort":      fmt.Sprintf("report-port=%d", sdef.Port),
+		"HistoryDir":      sdef.HistoryDir,
 	}
 	if sdef.NodeNum != 0 {
 		data["ReportHost"] = fmt.Sprintf("report-host = node-%d", sdef.NodeNum)

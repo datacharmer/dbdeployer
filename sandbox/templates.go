@@ -167,9 +167,9 @@ var (
 				exit 1
 			fi
 		fi
-		HISTDIR=
-		[ -z "$HISTDIR" ] && HISTDIR=$SBDIR
-		export MYSQL_HISTFILE="$HISTDIR/.mysql_history"
+		HISTDIR={{.HistoryDir}}
+		[ -z "$HISTDIR" ] && export HISTDIR=$SBDIR
+		[ -z "$MYSQL_HISTFILE" ] && export MYSQL_HISTFILE="$HISTDIR/.mysql_history"
 		MY_CNF=$SBDIR/my.sandbox.cnf
 		MY_CNF_NO_PASSWORD=$SBDIR/my.sandbox_np.cnf
 		if [ -n "$NOPASSWORD" ]
@@ -190,12 +190,13 @@ var (
 source {{.SandboxDir}}/sb_include
 [ -z "$MYSQL_SHELL" ] && MYSQL_SHELL="{{.MysqlShell}}"
 
-URI="{{.DbUser}}:{{.DbPassword}}@127.0.0.1:{{.MysqlXPort}}"
+[ -z "$URI" ] && URI="root:{{.DbPassword}}@127.0.0.1:{{.MysqlXPort}}"
 
 if [ -f $PIDFILE ]
 then
-	$MYSQL_SHELL --uri="$URI" "$@"
+	$MYSQL_SHELL --uri="$URI" "$*"
 else
+	echo "# $0 pidfile not found"
 	exit 1
 fi
 `

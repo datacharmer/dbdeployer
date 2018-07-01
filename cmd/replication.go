@@ -36,6 +36,10 @@ func ReplicationSandbox(cmd *cobra.Command, args []string) {
 	master_list, _ := flags.GetString("master-list")
 	slave_list, _ := flags.GetString("slave-list")
 	sd.SinglePrimary, _ = flags.GetBool("single-primary")
+	repl_history_dir, _ := flags.GetBool("repl-history-dir")
+	if repl_history_dir {
+		sd.HistoryDir = "REPL_DIR"
+	}
 	if topology != "fan-in" && topology != "all-masters" {
 		master_list = ""
 		slave_list = ""
@@ -105,4 +109,5 @@ func init() {
 	replicationCmd.PersistentFlags().IntP("nodes", "n", 3, "How many nodes will be installed")
 	replicationCmd.PersistentFlags().BoolP("single-primary", "", false, "Using single primary for group replication")
 	replicationCmd.PersistentFlags().BoolP("semi-sync", "", false, "Use semi-synchronous plugin")
+	replicationCmd.PersistentFlags().Bool("repl-history-dir", false, "uses the replication directory to store mysql client history")
 }

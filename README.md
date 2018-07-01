@@ -3,7 +3,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.6.0 (19-Jun-2018 21:14 UTC)
+Documentation updated for version 1.7.0 (30-Jun-2018 20:44 UTC)
 
 ## Installation
 
@@ -13,7 +13,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.6.0
+    $ VERSION=1.7.0
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/$VERSION
     $ wget $origin/dbdeployer-$VERSION.linux.tar.gz
     $ tar -xzf dbdeployer-$VERSION.linux.tar.gz
@@ -47,7 +47,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.6.0
+    dbdeployer version 1.7.0
     
 
     $ dbdeployer -h
@@ -147,6 +147,7 @@ The easiest command is ``deploy single``, which installs a single sandbox.
           --force                         If a destination sandbox already exists, it will be overwritten
           --gtid                          enables GTID
       -h, --help                          help for deploy
+          --history-dir string            Where to store mysql client history (default: in sandbox directory)
           --init-general-log              uses general log during initialization (MySQL 5.1+)
       -i, --init-options strings          mysqld options to run during initialization
           --keep-server-uuid              Does not change the server UUID
@@ -248,6 +249,7 @@ The ``deploy replication`` command will install a master and two or more slaves,
           --master-ip string     Which IP the slaves will connect to (default "127.0.0.1")
           --master-list string   Which nodes are masters in a multi-source deployment (default "1,2")
       -n, --nodes int            How many nodes will be installed (default 3)
+          --repl-history-dir     uses the replication directory to store mysql client history
           --semi-sync            Use semi-synchronous plugin
           --single-primary       Using single primary for group replication
           --slave-list string    Which nodes are slaves in a multi-source deployment (default "3")
@@ -753,27 +755,22 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 2. Run ``go get github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
 4. From the folder ``./pflag``, copy the file ``string_slice.go`` to ``$GOPATH/src/github.com/spf13/pflag``.
-5. Run ``./build.sh {linux|OSX} 1.6.0``
-6. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.6.0``
+5. Run ``./build.sh {linux|OSX} 1.7.0``
+6. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.7.0``
 
 ## Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.6.0-docs.linux.tar.gz
-* dbdeployer-1.6.0-docs.osx.tar.gz
-* dbdeployer-1.6.0.linux.tar.gz
-* dbdeployer-1.6.0.osx.tar.gz
+* dbdeployer-1.7.0-docs.linux.tar.gz
+* dbdeployer-1.7.0-docs.osx.tar.gz
+* dbdeployer-1.7.0.linux.tar.gz
+* dbdeployer-1.7.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 
-This is the command used to help generating the API documentation. In addition to the API template, the ``tree`` command can produce:
-
-* man pages;
-* Markdown documentation;
-* Restructured Text pages;
-* Command line completion script (see next section).
+This is the command used to help generating the API documentation. 
 
     $ dbdeployer-docs tree -h
     This command is only used to create API documentation. 
@@ -795,6 +792,13 @@ This is the command used to help generating the API documentation. In addition t
           --show-hidden       Shows also hidden commands
     
     
+
+In addition to the API template, the ``tree`` command can produce:
+
+* man pages;
+* Markdown documentation;
+* Restructured Text pages;
+* Command line completion script (see next section).
 
 ## Command line completion
 
@@ -834,4 +838,8 @@ As of version 1.0.0, dbdeployer adheres to the principles of [semantic versionin
 The starting API is defined in [API-1.0.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.0.md) (generated manually.)
 The file [API-1.1.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md) contains the same API definition, but was generated automatically and can be used to better compare the initial API with further version.
 
+
+## Do not edit
+
+``README.md`` is **generated** by processing ``./mkreadme/readme_template.md``. Do not edit it directly, as its contents will be overwritten.
 

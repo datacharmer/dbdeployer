@@ -69,11 +69,15 @@ func main() {
 	re_home := regexp.MustCompile(home)
 	time_format := "02-Jan-2006 15:04 MST"
 	timestamp := time.Now().UTC().Format(time_format)
+	// An user defined timestamp could be used instead of the generated one.
 	if os.Getenv("DBDEPLOYER_TIMESTAMP") != "" {
 		timestamp = os.Getenv("DBDEPLOYER_TIMESTAMP")
 	}
 	for scanner.Scan() {
 		line := scanner.Text()
+		// Replacement for version and date must occur BEFORE 
+		// we search for commands, as the regexp for commands would
+		// match version and date as well.
 		line = re_version.ReplaceAllString(line, common.VersionDef)
 		line = re_date.ReplaceAllString(line, timestamp)
 		// Find a placeholder for a {{command}}

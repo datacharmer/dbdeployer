@@ -271,6 +271,9 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 		sdef = CheckDirectory(sdef)
 	}
 
+	if sdef.HistoryDir == "REPL_DIR" {
+		sdef.HistoryDir = sdef.SandboxDir
+	}
 	switch topology {
 	case "master-slave":
 		CreateMasterSlaveReplication(sdef, origin, nodes, master_ip)
