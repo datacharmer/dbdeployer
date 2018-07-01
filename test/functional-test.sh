@@ -152,7 +152,7 @@ tests=0
 [ -z "$SANDBOX_HOME" ] && SANDBOX_HOME=$HOME/sandboxes
 if [ ! -d "$BINARY_DIR" ]
 then
-    echo "Directory (\$BINARY_DIR) "$BINARY_DIR" not found"
+    echo "Directory (\$BINARY_DIR) '$BINARY_DIR' not found"
     exit 1
 fi
 
@@ -162,7 +162,7 @@ then
 fi
 if [ ! -d "$SANDBOX_HOME" ]
 then
-    echo "Directory (\$SANDBOX_HOME) "$SANDBOX_HOME" could not be created"
+    echo "Directory (\$SANDBOX_HOME) '$SANDBOX_HOME' could not be created"
     exit 1
 fi
 
@@ -196,20 +196,20 @@ function test_completeness {
     else
         sbdir=$SANDBOX_HOME/$dir_name$version_path
     fi
-    base_scripts=(use start stop restart add_options send_kill clear test_sb status)
+    base_scripts=(use start stop restart add_option send_kill clear test_sb status)
     script_postfix=""
     folders=(data tmp)
     case  "$mode" in
         single)
-            scripts=$base_scripts
+            scripts=( "${base_scripts[@]}" )
             ;;
         multiple)
-            scripts=$base_scripts
+            scripts=( "${base_scripts[@]}" )
             script_postfix="_all"
             folders=(node1 node2 node3)
             ;;
         replication)
-            scripts=$base_scripts
+            scripts=( "${base_scripts[@]}" )
             script_postfix="_all"
             folders=(master node1 node2)
             ;;
@@ -223,6 +223,11 @@ function test_completeness {
     done
     for f in ${scripts[*]}
     do
+        if [ "$f" == "add_option" ]
+        then
+            # There is no "add_option_all" script
+            continue
+        fi
         fname=$f$script_postfix
         ok_executable_exists $sbdir/$fname
         if [ "$mode" != "single" ]
@@ -256,8 +261,8 @@ function test_use_masters_slaves {
     version_path=$(echo $running_version| tr '.' '_')
     test_header test_use_masters_slaves "$dir_name$version_path"
     sbdir=$SANDBOX_HOME/$dir_name$version_path
-    found_masters=$($sbdir/use_all_masters 'select @@server_id' | grep '^[0-9]\+$' | wc -l | tr -d ' ')
-    found_slaves=$($sbdir/use_all_slaves 'select @@server_id' | grep '^[0-9]\+$'  | wc -l | tr -d ' ')
+    found_masters=$($sbdir/use_all_masters 'select @@server_id' | grep -c '^[0-9]\+$')
+    found_slaves=$($sbdir/use_all_slaves 'select @@server_id' | grep -c '^[0-9]\+$')
     ok_equal "master hosts" $found_masters $expected_masters
     ok_equal "slave hosts" $found_slaves $expected_slaves
     check_for_exit test_use_masters_slaves skip_log_check
@@ -519,7 +524,7 @@ function test_deletion {
 }
 
 function capture_test {
-    cmd="$@"
+    cmd="$*"
     output=/tmp/capture_test$$
     # echo "# cmd: <$cmd>"
     $cmd > $output 2>&1
@@ -535,9 +540,9 @@ function capture_test {
         rm -f $output
         exit 1
     fi
-    tmp_pass=$(grep '^ok' $output | wc -l | tr -d ' ')
+    tmp_pass=$(grep -c '^ok' $output)
     pass=$((pass+tmp_pass))
-    tmp_fail=$(grep -i '^not ok' $output | wc -l | tr -d ' ')
+    tmp_fail=$(grep -c -i '^not ok' $output)
     fail=$((fail+tmp_fail))
     tests=$((tests+tmp_fail+tmp_pass))
     cat $output
@@ -594,7 +599,7 @@ group_versions=()
 semisync_versions=()
 dd_versions=()
 
-OS=$(uname | tr '[A-Z]' '[a-z]')
+OS=$(uname | tr '[:upper:]' '[:lower:]')
 if [ -x "sort_versions.$OS" ]
 then
     cp "sort_versions.$OS" sort_versions
@@ -759,11 +764,11 @@ function main_deployment_methods {
 }
 
 function global_status_count_on {
-    dbdeployer global status | grep 'on  -\|on$' | wc -l | tr -d ' '
+    dbdeployer global status | grep -c 'on  -\|on$'
 }
 
 function global_status_count_off {
-    dbdeployer global status | grep -w off | wc -l | tr -d ' '
+    dbdeployer global status | grep -c -w off
 }
 
 function check_on_off_status {
