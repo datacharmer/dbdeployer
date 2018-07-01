@@ -15,7 +15,7 @@
 # limitations under the License.
 
 test_dir=$(dirname $0)
-cd $test_dir
+cd $test_dir || (echo "error changing directory to $mock_dir" ; exit 1)
 test_dir=$PWD
 exit_code=0
 
@@ -83,7 +83,7 @@ done
 run dbdeployer delete ALL --skip-confirm
 
 results "After deletion"
-cd $test_dir
+cd $test_dir || (echo "error changing directory to $mock_dir" ; exit 1)
 
 run du -sh $mock_dir
 run rm -rf $mock_dir

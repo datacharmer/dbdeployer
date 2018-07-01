@@ -75,9 +75,9 @@ function run_test {
     printf "%-30s %-9s - time: %4ds (%10s) - exit code: %d\n" $test_base_name $test_arg ${elapsed} $(minutes_seconds $elapsed) $exit_code >> $log_summary
     if [ "$test_base_name" == "port-clash" ]
     then
-        sandboxes=$(grep catalog $test_log | wc -l)
+        sandboxes=$(grep -c catalog $test_log)
         ports=$(grep "Total ports installed" $test_log | awk '{print $NF}')
-        changed=$(grep changed $test_log | wc -l)
+        changed=$(grep -c changed $test_log)
         echo "# Deployed: $sandboxes sandboxes ($ports total ports) - Changed: $changed" >> $log_summary
     fi
     if [ "$exit_code" != "0" ]
@@ -113,8 +113,8 @@ do
     fname=$(basename $logfile .log)
     if [ "$fname" != "all_tests-summary" ]
     then
-        lf_pass=$(grep '^ok' $logfile | wc -l | tr -d ' ')
-        lf_fail=$(grep '^not ok' $logfile | wc -l | tr -d ' ')
+        lf_pass=$(grep -c '^ok' $logfile)
+        lf_fail=$(grep -i -c '^not ok' $logfile)
         lf_tests=$((lf_pass+lf_fail))
         printf "# %-20s - tests: %4d - pass: %4d - fail: %4d\n" $fname $lf_tests $lf_pass $lf_fail
         printf "# %-20s - tests: %4d - pass: %4d - fail: %4d\n" $fname $lf_tests $lf_pass $lf_fail >> $log_summary
@@ -122,12 +122,17 @@ do
 done
 echo $dash_line
 echo $dash_line >> $log_summary
-pass=$(grep '^ok' ./test/logs/$timestamp/*.log | wc -l | tr -d ' ')
-fail=$(grep -i '^not ok' ./test/logs/$timestamp/*.log | wc -l | tr -d ' ')
+pass=$(grep '^ok' ./test/logs/$timestamp/*.log| wc -l | tr -d ' ' )
+fail=$(grep -i '^not ok' ./test/logs/$timestamp/*.log| wc -l | tr -d ' ' )
 tests=$((pass+fail))
+exit_code=0
+if [ "$fail"  != "0" ]
+then
+    exit_code=1
+fi
 echo $dash_line >> $log_summary
 echo "# Total tests: $tests"              >> $log_summary
 echo "#       pass : $pass"               >> $log_summary
 echo "#       fail : $fail"               >> $log_summary
 echo $dash_line >> $log_summary
-summary 0
+summary $exit_code

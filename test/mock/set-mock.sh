@@ -1,3 +1,4 @@
+#!/bin/bash
 # DBDeployer - The MySQL Sandbox
 # Copyright © 2006-2018 Giuseppe Maxia
 #
@@ -21,7 +22,7 @@ then
 fi
 
 mkdir $mock_dir
-cd $mock_dir
+cd $mock_dir || (echo "error changing directorty to $mock_dir"; exit 1)
 mock_dir=$PWD
 export HOME=$mock_dir/home
 export CATALOG=$HOME/.dbdeployer/sandboxes.json
@@ -88,7 +89,7 @@ function create_mock_tarball {
     # will create the mock directory in the tarball place.
     SANDBOX_BINARY=$tarball_dir
     create_mock_version $version_label
-    cd $tarball_dir
+    cd $tarball_dir || (echo "error changing directory to $tarball_dir"; exit 1)
     if [ ! -d $version_label ]
     then
         echo "$version_label not found in $PWD"
@@ -99,7 +100,7 @@ function create_mock_tarball {
     mv $version_label mysql-${version_label}
     tar -c mysql-${version_label} | gzip -c > mysql-${version_label}.tar.gz
     rm -rf mysql-$version_label
-    cd -
+    cd - || (echo "error returning to previous directory"; exit 1 )
     export SANDBOX_BINARY=$save_sandbox_binary
 }
 

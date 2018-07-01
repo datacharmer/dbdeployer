@@ -16,9 +16,9 @@
 
 
 test_dir=$(dirname $0)
-cd $test_dir
+cd $test_dir || (echo "error changing directory to $test_dir"; exit 1)
 test_dir=$PWD
-exit_code=0
+#exit_code=0
 
 if [ ! -f set-mock.sh ]
 then
@@ -74,7 +74,7 @@ function check_deployment {
 function check_deployment_message {
     version=$1
     shift
-    args="$@"
+    args="$*"
     path_version=$(echo $version | tr '.' '_')
     output_file=deployment$$.txt
     dbdeployer deploy $args $version > $output_file 2>&1
@@ -230,7 +230,7 @@ mysqlsh_exists 5.7.66 does_not ""
 mysqlsh_exists 5.7.66 exists "--enable-mysqlx"
 mysqlsh_exists 8.0.66 exists ""
 
-cd $test_dir
+cd $test_dir || (echo "error changing directory to $test_dir" ; exit 1)
 
 run du -sh $mock_dir
 run rm -rf $mock_dir
