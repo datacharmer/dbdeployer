@@ -9,27 +9,25 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+1. Run the command '...'
+2. Run the command '...'
+3. See error '....'
 
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+**NO Screenshots**
+If applicable, copy and paste the command and the output. Do not use screen shots, unless they add value to the report.  Text that can be edited is preferred to graphics.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+**Environment:**
+ - OS: [e.g. MacOs 10.12.6, Ubuntu 16.04]
+ - dbdeployer version
+ - tarball full name (e.g. mysql-5.6.40-linux-glibc2.12-x86_64.tar.gz)
+ - tarball origin (from where it was downloaded) 
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+**Hardware: (if applicable)**
+ - Free storage
+ - Total RAM
 
 **Additional context**
 Add any other context about the problem here.
