@@ -19,14 +19,16 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 )
 
 type SandboxInfo struct {
 	SandboxName string
-	Locked bool
+	Locked      bool
 }
 
 func SandboxInfoToFileNames(sb_list []SandboxInfo) (file_names []string) {
@@ -55,7 +57,7 @@ func GetInstalledSandboxes(sandbox_home string) (installed_sandboxes []SandboxIn
 			no_clear_all := sandbox_home + "/" + fname + "/no_clear_all"
 			if FileExists(sbdesc) || FileExists(start) || FileExists(start_all) {
 				if FileExists(no_clear_all) || FileExists(no_clear) {
-					installed_sandboxes = append(installed_sandboxes, SandboxInfo{ fname, true})
+					installed_sandboxes = append(installed_sandboxes, SandboxInfo{fname, true})
 				} else {
 					installed_sandboxes = append(installed_sandboxes, SandboxInfo{fname, false})
 				}
@@ -108,6 +110,59 @@ func GetInstalledPorts(sandbox_home string) []int {
 	return port_collection
 }
 
+
+func CheckTarballOperatingSystem(basedir string) {
+	currentOs := runtime.GOOS
+	// fmt.Printf("<%s>\n",currentOs)
+	type OSFinding struct {
+		Dir      string
+		OS       string
+		flavor   string
+		isBinary bool
+	}
+	var finding_list = map[string]OSFinding{
+		"libmysqlclient.so":            OSFinding{"lib", "linux", "mysql", true},
+		"libperconaserverclient.so":    OSFinding{"lib", "linux", "percona", true},
+		"libperconaserverclient.dylib": OSFinding{"lib", "darwin", "percona", true},
+		"libmysqlclient.dylib":         OSFinding{"lib", "darwin", "mysql", true},
+		"table.h":                      OSFinding{"sql", "source", "any", false},
+		"mysqlprovision.zip":           OSFinding{"share/mysqlsh", "shell", "any", false},
+	}
+	wanted_os_found := false
+	var found_list = make(map[string]OSFinding)
+	var wanted_files []string
+	for fname, rec := range finding_list {
+		full_name := path.Join(basedir, rec.Dir, fname)
+		if rec.OS == currentOs && rec.isBinary {
+			wanted_files = append(wanted_files, path.Join(rec.Dir, fname))
+		}
+		if FileExists(full_name) {
+			if rec.OS == currentOs && rec.isBinary {
+				wanted_os_found = true
+			}
+			found_list[fname] = rec
+		}
+	}
+	if !wanted_os_found {
+		dash_line := strings.Repeat("-", 80)
+		fmt.Println(dash_line)
+		fmt.Printf("Looking for *%s* binaries\n", currentOs)
+		fmt.Println(dash_line)
+		if len(found_list) > 0 {
+			fmt.Printf("# Found the following:\n")
+		}
+		for fname, rec := range found_list {
+			full_name := path.Join(basedir, rec.Dir, fname)
+			fmt.Printf("%-20s - tarball type: '%s' (flavor: %s)\n", full_name, rec.OS, rec.flavor)
+			if rec.OS == "source" {
+				fmt.Printf("THIS IS A SOURCE TARBALL. YOU NEED TO USE A *BINARY* TARBALL\n")
+			}
+			fmt.Println(dash_line)
+		}
+		Exit(1, fmt.Sprintf("Could not find any of the expected files for %s server: %s", currentOs, wanted_files), dash_line)
+	}
+}
+
 func CheckOrigin(args []string) {
 	if len(args) < 1 {
 		Exit(1, "This command requires the MySQL version (x.xx.xx) as argument ")
@@ -117,11 +172,10 @@ func CheckOrigin(args []string) {
 	}
 	origin := args[0]
 	if FileExists(origin) && strings.HasSuffix(origin, ".tar.gz") {
-		Exit(1, 
+		Exit(1,
 			"Tarball detected. - If you want to use a tarball to create a sandbox,",
 			"you should first use the 'unpack' command")
 	}
-
 }
 
 func CheckSandboxDir(sandbox_home string) {
@@ -133,6 +187,14 @@ func CheckSandboxDir(sandbox_home string) {
 		}
 	}
 
+}
+
+func IsVersion(version string) bool {
+	re1 := regexp.MustCompile(`(\d+)\.(\d+)\.(\d+)$`)
+	if re1.MatchString(version) {
+		return true
+	}
+	return false
 }
 
 // Gets three integers for a version string
@@ -198,8 +260,8 @@ func VersionToPort(version string) int {
 // "5.6.33" >= []{5.7.0}  = false
 // "5.7.21" >= []{5.7.0}  = true
 // "10.1.21" >= []{5.7.0}  = false (!)
-// Note: MariaDB versions are skipped. The function returns false for MariaDB 10+ 
-// So far (2018-02-19) this comparison holds, because MariaDB behaves like 5.5+ for 
+// Note: MariaDB versions are skipped. The function returns false for MariaDB 10+
+// So far (2018-02-19) this comparison holds, because MariaDB behaves like 5.5+ for
 // the purposes of sandbox deployment
 func GreaterOrEqualVersion(version string, compared_to []int) bool {
 	var cmajor, cminor, crev int = compared_to[0], compared_to[1], compared_to[2]
