@@ -489,4 +489,60 @@ function run {
     fi
 }
 
+function test_completeness {
+    running_version=$1
+    dir_name=$2
+    mode=$3
+    test_header test_completeness "$running_version $mode"
+    version_path=$(echo $running_version| tr '.' '_')
+    if [ -d $SANDBOX_HOME/$dir_name ]
+    then
+        sbdir=$SANDBOX_HOME/$dir_name
+    else
+        sbdir=$SANDBOX_HOME/$dir_name$version_path
+    fi
+    base_scripts=(use start stop restart add_option send_kill clear test_sb status)
+    script_postfix=""
+    folders=(data tmp)
+    case  "$mode" in
+        single)
+            scripts=( "${base_scripts[@]}" )
+            ;;
+        multiple)
+            scripts=( "${base_scripts[@]}" )
+            script_postfix="_all"
+            folders=(node1 node2 node3)
+            ;;
+        replication)
+            scripts=( "${base_scripts[@]}" )
+            script_postfix="_all"
+            folders=(master node1 node2)
+            ;;
+        *)
+        echo "Unknown mode '$mode'"
+        exit 1
+    esac
+    for dir in ${folders[*]}
+    do
+        ok_dir_exists $sbdir/$dir
+    done
+    for f in ${scripts[*]}
+    do
+        if [ "$f" == "add_option" ]
+        then
+            # There is no "add_option_all" script
+            continue
+        fi
+        fname=$f$script_postfix
+        ok_executable_exists $sbdir/$fname
+        if [ "$mode" != "single" ]
+        then
+            for dir in ${folders[*]}
+            do
+                ok_executable_exists $sbdir/$dir/$f
+            done
+        fi
+    done
+    check_for_exit test_completeness
+}
 

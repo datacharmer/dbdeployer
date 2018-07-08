@@ -21,6 +21,7 @@ import (
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"runtime"
 )
 
 // Code in this module creates a fake directory structure that allows
@@ -84,13 +85,27 @@ func create_mock_version(version string) {
 	common.Mkdir(version_dir)
 	common.Mkdir(version_dir + "/bin")
 	common.Mkdir(version_dir + "/scripts")
+	common.Mkdir(version_dir + "/lib")
 	var empty_data = common.Smap{}
+	currentOs := runtime.GOOS
+	extension := ""
+	switch currentOs {
+	case "linux":
+		extension = "so"
+	case "darwin":
+		extension = "dylib"
+	default:
+		common.Exit(1, fmt.Sprintf("unhandled operating system %s", currentOs))
+	}
+	libmysqlclient_file_name := fmt.Sprintf("libmysqlclient.%s", extension)
 	write_script(MockTemplates, "mysqld", "no_op_mock_template",
 		version_dir+"/bin", empty_data, true)
 	write_script(MockTemplates, "mysql", "no_op_mock_template",
 		version_dir+"/bin", empty_data, true)
 	write_script(MockTemplates, "mysql_install_db", "no_op_mock_template",
 		version_dir+"/scripts", empty_data, true)
+	write_script(MockTemplates, libmysqlclient_file_name, "no_op_mock_template",
+		version_dir+"/lib", empty_data, true)
 	write_script(MockTemplates, "mysqld_safe", "mysqld_safe_mock_template",
 		version_dir+"/bin", empty_data, true)
 }

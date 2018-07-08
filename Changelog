@@ -1,3 +1,15 @@
+1.8.0	08-Jul-2018
+	NEW FEATURES
+	- Implemented Issue 21 "Add support for directly using path to binaries"
+
+	BUGS FIXED
+	- unpack would not act on old tarball where files were not 
+	  explicitly marked as regular.
+	- Fixed Issue 22 "dbdeployer should check whether the binaries are for the
+	current OS"
+	TESTING
+	- Added test for Issue 21
+
 1.7.0	01-Jul-2018
 	NEW FEATURES
 	- Added option for custom history file for each sandbox

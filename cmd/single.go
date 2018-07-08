@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -75,11 +74,7 @@ func GetAbsolutePathFromFlag(cmd *cobra.Command, name string) string {
 	if err != nil {
 		common.Exit(1, fmt.Sprintf("Error getting flag value for --%s", name))
 	}
-	value, err = filepath.Abs(value)
-	if err != nil {
-		common.Exit(1, fmt.Sprintf("Error getting absolute path for %s", value))
-	}
-	return value
+	return common.AbsolutePath(value)
 }
 
 func check_if_abridged_version(version, basedir string) string {
@@ -114,6 +109,7 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	basedir := GetAbsolutePathFromFlag(cmd, "sandbox-binary")
 
 	sd.BasedirName = args[0]
+	version_from_option := false
 	sd.Version, _ = flags.GetString("binary-version")
 	if sd.Version == "" {
 		sd.Version = args[0]
@@ -122,6 +118,34 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 		if old_version != sd.Version {
 			sd.BasedirName = sd.Version
 		}
+	} else {
+		version_from_option = true
+	}
+
+	if common.DirExists(sd.BasedirName) {
+		sd.BasedirName = common.RemoveTrailingSlash(sd.BasedirName)
+		sd.BasedirName = common.AbsolutePath(sd.BasedirName)
+		// fmt.Printf("OLD bd <%s> - v: <%s>\n",basedir, sd.Version )
+		target := sd.BasedirName
+		old_basedir := basedir
+		basedir = common.DirName(sd.BasedirName)
+		if old_basedir != defaults.Defaults().SandboxBinary {
+			// basedir was set using either an environment variable
+			// or a command line option
+			if old_basedir != basedir {
+				// The new basedir is different from the one given by command line or env
+				common.Exit(1, "The Sandbox Binary directory was set twice,",
+					fmt.Sprintf(" using conflicting values: '%s' and '%s' ", old_basedir, basedir))
+			}
+		}
+		sd.BasedirName = common.BaseName(sd.BasedirName)
+		if !version_from_option {
+			sd.Version = sd.BasedirName
+		}
+		if !common.IsVersion(sd.Version) {
+			common.Exit(1, fmt.Sprintf("No version detected for directory %s", target))
+		}
+		// fmt.Printf("NEW bd <%s> - v: <%s>\n",basedir, sd.Version )
 	}
 
 	sd.Port = common.VersionToPort(sd.Version)
@@ -136,11 +160,14 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 		sd.Port = sd.UserPort
 	}
 
-	sd.Basedir = path.Join(basedir, sd.Version)
+	sd.Basedir = path.Join(basedir, sd.BasedirName)
 	// sd.Basedir = path.Join(basedir, args[0])
 	if !common.DirExists(sd.Basedir) {
 		common.Exit(1, fmt.Sprintf("basedir '%s' not found", sd.Basedir))
 	}
+
+	common.CheckTarballOperatingSystem(sd.Basedir)
+
 	sd.SandboxDir = GetAbsolutePathFromFlag(cmd, "sandbox-home")
 
 	common.CheckSandboxDir(sd.SandboxDir)
@@ -231,6 +258,7 @@ containing an unpacked tarball. The place where these directories are found is d
 For example:
 	dbdeployer deploy single 5.7     # deploys the latest release of 5.7.x
 	dbdeployer deploy single 5.7.21  # deploys a specific release
+	dbdeployer deploy single /path/to/5.7.21  # deploys a specific release in a given path
 
 For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
 the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz

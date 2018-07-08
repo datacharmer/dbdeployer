@@ -215,3 +215,8 @@ func Exit(exit_code int, messages ...string) {
 	}
 	os.Exit(exit_code)
 }
+
+func RemoveTrailingSlash(s string) string {
+    re := regexp.MustCompile(`/$`)
+	return re.ReplaceAllString(s, "")
+}

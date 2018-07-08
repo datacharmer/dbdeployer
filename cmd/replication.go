@@ -83,6 +83,7 @@ Use the "unpack" command to get the tarball into the right directory.
 	Example: `
 		$ dbdeployer deploy replication 5.7    # deploys highest revision for 5.7
 		$ dbdeployer deploy replication 5.7.21 # deploys a specific revision
+		$ dbdeployer deploy replication /path/to/5.7.21 # deploys a specific revision in a given path
 		# (implies topology = master-slave)
 
 		$ dbdeployer deploy --topology=master-slave replication 5.7

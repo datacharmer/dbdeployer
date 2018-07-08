@@ -68,13 +68,28 @@ function create_mock_version {
         echo "$SANDBOX_BINARY not found"
         exit 1
     fi
+    OS=$(uname)
+    case $OS in
+        Darwin)
+            OS_extension=dylib
+            ;;
+        Linux)
+            OS_extension=so
+            ;;
+        *)
+            echo "Unhandled operating system $OS"
+            exit 1
+            ;;
+    esac
     make_dir $SANDBOX_BINARY/$version_label
     make_dir $SANDBOX_BINARY/$version_label/bin
     make_dir $SANDBOX_BINARY/$version_label/scripts
+    make_dir $SANDBOX_BINARY/$version_label/lib
     dbdeployer defaults templates show no_op_mock_template > $SANDBOX_BINARY/$version_label/bin/mysqld
     dbdeployer defaults templates show no_op_mock_template > $SANDBOX_BINARY/$version_label/bin/mysql
     dbdeployer defaults templates show mysqld_safe_mock_template > $SANDBOX_BINARY/$version_label/bin/mysqld_safe
     dbdeployer defaults templates show no_op_mock_template > $SANDBOX_BINARY/$version_label/scripts/mysql_install_db
+    dbdeployer defaults templates show no_op_mock_template > $SANDBOX_BINARY/$version_label/lib/libmysqlclient.$OS_extension
     chmod +x $SANDBOX_BINARY/$version_label/bin/*
     chmod +x $SANDBOX_BINARY/$version_label/scripts/*
 }

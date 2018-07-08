@@ -107,7 +107,7 @@ You can issue the command ``dbdeployer deploy single 8.0``, and it will use 8.0.
 
 ## Multiple sandboxes, same version and type
 
-If you want to deploy several instances of the same version and the same type (for example two single sandboxes of 8.0.4, or two group replication instances with different single-primary setting) you can specify the data directory name and the ports manually.
+If you want to deploy several instances of the same version and the same type (for example two single sandboxes of 8.0.4, or two replication instances with different settings) you can specify the data directory name and the ports manually.
 
     $ dbdeployer deploy single 8.0.4
     # will deploy in msb_8_0_4 using port 8004
@@ -115,8 +115,53 @@ If you want to deploy several instances of the same version and the same type (f
     $ dbdeployer deploy single 8.0.4 --sandbox-directory=msb2_8_0_4
     # will deploy in msb2_8_0_4 using port 8005 (which dbdeployer detects and uses)
 
-    $ dbdeployer deploy replication 8.0.4 --sandbox-directory=rsandbox2_8_0_4 --base-port=18600
+    $ dbdeployer deploy replication 8.0.4 --concurrent
+    # will deploy replication in rsandbox_8_0_4 using default calculated ports 19009, 19010, 19011
+
+    $ dbdeployer deploy replication 8.0.4 \
+        --gtid \
+        --sandbox-directory=rsandbox2_8_0_4 \
+        --base-port=18600 --concurrent
     # will deploy replication in rsandbox2_8_0_4 using ports 18601, 18602, 18603
+
+## Using the direct path to the expanded tarball
+
+If you have a custom organization of expanded tarballs, you may want to use the direct path to the binaries, instead of a combination of ``--sandbox-binary`` and the version name.
+
+For example, let's assume your binaries are organized as follows:
+
+    $HOME/opt/
+             /percona/
+                     /5.7.21
+                     /5.7.22
+                     /8.0.11
+            /mysql/
+                  /5.7.21
+                  /5.7.22
+                  /8.0.11
+
+You can deploy a single sandbox for a Percona server version 5.7.22 using any of the following approaches:
+
+    #1
+    dbdeployer deploy single --sandbox-binary=$HOME/opt/percona 5.7.22
+
+    #2
+    dbdeployer deploy single $HOME/opt/percona/5.7.22
+
+    #3
+    dbdeployer defaults update sandbox-binary $HOME/opt/percona 
+    dbdeployer deploy single 5.7.22
+
+    #4
+    export SANDBOX_BINARY=$HOME/opt/percona 
+    dbdeployer deploy single 5.7.22
+
+Methods #1 and #2 are equivalent. They set the sandbox binary directory temporarily to a new one, and use it for the current deployement
+
+Methods #3 and #4  will set the sandbox binary directory permanently, with the difference that #3 is set for any invocation of dbdeployer system-wide (in a different terminal window, it will use the new value,) while #4 is set only for the current session (in a different terminal window, it will still use the default.)
+
+Be aware that, using this kind of organization may see conflicts during deployment. For example, after installing Percona Server 5.7.22, if you want to install MySQL 5.7.22 you will need to specify a ``--sandbox-directory`` explicitly.
+Instead, if you use the prefix approach defined in the "standard and non-standard basedir names," conflicts should be avoided.
 
 ## Ports management
 

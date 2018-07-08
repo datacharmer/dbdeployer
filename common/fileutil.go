@@ -303,6 +303,14 @@ func DirName(filename string) string {
 	return filepath.Dir(filename)
 }
 
+func AbsolutePath(value string) string {
+	filename, err := filepath.Abs(value)
+	if err != nil {
+		Exit(1, fmt.Sprintf("Error getting absolute path for %s", value))
+	}
+	return filename
+}
+
 func Mkdir(dir_name string) {
 	err := os.Mkdir(dir_name, 0755)
 	if err != nil {

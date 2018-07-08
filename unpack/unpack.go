@@ -169,6 +169,9 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 			}
 			cond_print(" + "+fileDir+" ", true, CHATTY)
 		}
+		if header.Typeflag == 0 {
+			header.Typeflag = tar.TypeReg
+		}
 		switch header.Typeflag {
 		case tar.TypeDir:
 			if err = os.MkdirAll(filename, 0755); err != nil {

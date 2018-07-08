@@ -69,6 +69,7 @@ function run_test {
     echo "# Running $test_name $test_arg"
     $test_name $test_arg > $test_log
     exit_code=$?
+    fail_count=$(grep -i -c '^not ok' $test_log)
     end_test=$(date +%s)
     elapsed=$((end_test-start_test))
     test_arg="[$test_arg]"
@@ -80,10 +81,12 @@ function run_test {
         changed=$(grep -c changed $test_log)
         echo "# Deployed: $sandboxes sandboxes ($ports total ports) - Changed: $changed" >> $log_summary
     fi
-    if [ "$exit_code" != "0" ]
+    if [ "$exit_code" != "0" -o "$fail_count"  != "0" ]
     then
         echo $dash_line
         echo "# Error detected: $test_base_name "
+        echo "# exit_code     : $exit_code"
+        echo "# fail count    : $fail_count"
         echo $dash_line
         tail -n 20 $test_log
         echo $dash_line
@@ -96,6 +99,7 @@ function all_tests {
     run_test ./test/docker-test.sh $version
     run_test ./test/mock/defaults-change.sh
     run_test ./test/mock/short-versions.sh
+    run_test ./test/mock/direct-paths.sh
     if [ -n "$COMPLETE_PORT_TEST" ]
     then
         run_test ./test/mock/port-clash.sh
