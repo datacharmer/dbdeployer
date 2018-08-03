@@ -22,15 +22,24 @@ then
     exit 1
 fi
 dependencies=(github.com/spf13/cobra github.com/spf13/pflag)
+if [ -n "$MKDOCS" ]
+then
+    dependencies=(github.com/spf13/cobra github.com/spf13/pflag github.com/spf13/cobra/doc)
+fi
+
 local_items=(cmd defaults main.go common unpack abbreviations concurrent pflag sandbox)
 
+dashline="--------------------------------------------------------------------------------"
 all_ok=yes
 for dep in ${dependencies[*]}
 do
     if [ ! -d $GOPATH/src/$dep ]
     then
+        echo $dashline
         echo "Needed package $dep not installed"
-        unset all_ok
+        echo "run 'go get $dep'"
+        echo $dashline
+        all_ok=no
     fi
 done
 
@@ -39,15 +48,16 @@ do
     if [ ! -e ./$item ]
     then
         echo "item $item not found"
-        unset all_ok
+        all_ok=no
     fi
 done
 
-if [ -z "$all_ok" ]
+if [ "$all_ok" == "no" ]
 then
     echo "Missing dependencies or essential code"
-    echo "Use this command to gather the needed dependencies:"
-    echo "   go get github.com/datacharmer/dbdeployer"
+    echo "Use the above 'go get' commands to gather the needed dependencies"
+    #echo "Then run:"
+    #echo "   go get -u github.com/datacharmer/dbdeployer"
     echo "Also be sure to read pflag/README.md"
     exit 1
 fi
