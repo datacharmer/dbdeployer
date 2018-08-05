@@ -27,7 +27,7 @@ then
     dependencies=(github.com/spf13/cobra github.com/spf13/pflag github.com/spf13/cobra/doc)
 fi
 
-local_items=(cmd defaults main.go common unpack abbreviations concurrent pflag sandbox)
+local_items=(cmd defaults main.go common unpack abbreviations concurrent sandbox)
 
 dashline="--------------------------------------------------------------------------------"
 all_ok=yes
@@ -59,7 +59,6 @@ then
     echo "Use the above 'go get' commands to gather the needed dependencies"
     #echo "Then run:"
     #echo "   go get -u github.com/datacharmer/dbdeployer"
-    echo "Also be sure to read pflag/README.md"
     exit 1
 fi
 

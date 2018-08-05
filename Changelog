@@ -1,9 +1,10 @@
+1.8.2	05-Aug-2018
+	- Added ./vendor folder (simplifies dependencies)
 1.8.1	03-Aug-2018
 	- Fixed Issue #27 "undetected deps when building with MKDOCS"
 	  No binary releases for this issue, as only build.sh is affected.
 1.8.1	12-Jul-2018
 	- Improved naming of error log for each sandbox
-
 1.8.0	08-Jul-2018
 	NEW FEATURES
 	- Implemented Issue 21 "Add support for directly using path to binaries"
@@ -15,7 +16,6 @@
 	current OS"
 	TESTING
 	- Added test for Issue 21
-
 1.7.0	01-Jul-2018
 	NEW FEATURES
 	- Added option for custom history file for each sandbox
