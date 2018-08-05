@@ -33,7 +33,8 @@ dashline="----------------------------------------------------------------------
 all_ok=yes
 for dep in ${dependencies[*]}
 do
-    if [ ! -d $GOPATH/src/$dep ]
+    #if [ ! -d $GOPATH/src/$dep ]
+    if [ ! -d ./vendor/$dep ]
     then
         echo $dashline
         echo "Needed package $dep not installed"
