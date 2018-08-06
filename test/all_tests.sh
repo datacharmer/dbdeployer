@@ -100,6 +100,7 @@ function all_tests {
     run_test ./test/mock/defaults-change.sh
     run_test ./test/mock/short-versions.sh
     run_test ./test/mock/direct-paths.sh
+    run_test ./test/mock/expected_ports.sh
     if [ -n "$COMPLETE_PORT_TEST" ]
     then
         run_test ./test/mock/port-clash.sh

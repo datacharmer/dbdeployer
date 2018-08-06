@@ -99,7 +99,9 @@ func CreateAllMastersReplication(sdef SandboxDef, origin string, nodes int, mast
 	}
 	sandbox_dir := sdef.SandboxDir
 	sdef.SandboxDir = common.DirName(sdef.SandboxDir)
-	sdef.BasePort = defaults.Defaults().AllMastersReplicationBasePort
+	if sdef.BasePort == 0 {
+		sdef.BasePort = defaults.Defaults().AllMastersReplicationBasePort
+	}
 	master_abbr := defaults.Defaults().MasterAbbr
 	slave_abbr := defaults.Defaults().SlaveAbbr
 	master_label := defaults.Defaults().MasterName
@@ -144,7 +146,9 @@ func CreateFanInReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	if sdef.DirName == "" {
 		sdef.DirName = defaults.Defaults().FanInPrefix + common.VersionToName(origin)
 	}
-	sdef.BasePort = defaults.Defaults().FanInReplicationBasePort
+	if sdef.BasePort == 0 {
+		sdef.BasePort = defaults.Defaults().FanInReplicationBasePort
+	}
 	sandbox_dir := sdef.SandboxDir
 	sdef.SandboxDir = common.DirName(sdef.SandboxDir)
 	mlist := nodes_list_to_int_slice(master_list, nodes)

@@ -49,9 +49,14 @@ loose-group-replication-single-primary-mode=off
 func get_base_mysqlx_port(base_port int, sdef SandboxDef, nodes int) int {
 	base_mysqlx_port := base_port + defaults.Defaults().MysqlXPortDelta
 	if common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 11}) {
-		base_mysqlx_port = FindFreePort(base_mysqlx_port, sdef.InstalledPorts, nodes)
-		for check_port := base_mysqlx_port + 1; check_port < base_mysqlx_port+nodes+1; check_port++ {
-			CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
+		// FindFreePort returns the first free port, but base_port will be used
+		// with a counter. Thus the availability will be checked using
+		// "base_port + 1"
+		first_group_port := common.FindFreePort(base_mysqlx_port+1, sdef.InstalledPorts, nodes)
+		base_mysqlx_port = first_group_port - 1
+		for N := 1; N <= nodes; N++ {
+			check_port := base_mysqlx_port + N
+			CheckPort("get_base_mysqlx_port", sdef.SandboxDir, sdef.InstalledPorts, check_port)
 		}
 	}
 	return base_mysqlx_port
@@ -61,8 +66,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	var exec_lists []concurrent.ExecutionList
 	vList := common.VersionToList(sdef.Version)
 	rev := vList[2]
-	// base_port := sdef.Port + defaults.Defaults().GroupReplicationBasePort + (rev * 100)
-	base_port := sdef.Port + defaults.Defaults().GroupReplicationBasePort + rev
+	base_port := sdef.Port + defaults.Defaults().GroupReplicationBasePort + (rev * 100)
 	if sdef.SinglePrimary {
 		base_port = sdef.Port + defaults.Defaults().GroupReplicationSpBasePort + (rev * 100)
 	}
@@ -78,16 +82,21 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	if common.DirExists(sdef.SandboxDir) {
 		sdef = CheckDirectory(sdef)
 	}
-	base_port = FindFreePort(base_port, sdef.InstalledPorts, nodes)
-	base_mysqlx_port := get_base_mysqlx_port(base_port, sdef, nodes)
+	// FindFreePort returns the first free port, but base_port will be used
+	// with a counter. Thus the availability will be checked using
+	// "base_port + 1"
+	first_group_port := common.FindFreePort(base_port+1, sdef.InstalledPorts, nodes)
+	base_port = first_group_port - 1
 	base_group_port := base_port + defaults.Defaults().GroupPortDelta
-	base_group_port = FindFreePort(base_group_port, sdef.InstalledPorts, nodes)
+	first_group_port = common.FindFreePort(base_group_port+1, sdef.InstalledPorts, nodes)
+	base_group_port = first_group_port - 1
 	for check_port := base_port + 1; check_port < base_port+nodes+1; check_port++ {
-		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
+		CheckPort("CreateGroupReplication", sdef.SandboxDir, sdef.InstalledPorts, check_port)
 	}
 	for check_port := base_group_port + 1; check_port < base_group_port+nodes+1; check_port++ {
-		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
+		CheckPort("CreateGroupReplication-group", sdef.SandboxDir, sdef.InstalledPorts, check_port)
 	}
+	base_mysqlx_port := get_base_mysqlx_port(base_port, sdef, nodes)
 	common.Mkdir(sdef.SandboxDir)
 	common.AddToCleanupStack(common.Rmdir, "Rmdir", sdef.SandboxDir)
 	timestamp := time.Now()

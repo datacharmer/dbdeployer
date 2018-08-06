@@ -1,3 +1,5 @@
+1.8.3	05-Aug-2018
+	- Fixed Issue #26 "Port management glitch"
 1.8.2	05-Aug-2018
 	- Added ./vendor folder (simplifies dependencies)
 1.8.1	03-Aug-2018

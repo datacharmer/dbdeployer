@@ -148,7 +148,7 @@ do
                  --slave-list='3:4:5'
             run dbdeployer deploy replication $version --topology=fan-in \
                  --sandbox-directory=fan_in_msb3_$version_name \
-                 --base-port=25000 \
+                 --base-port=35000 \
                  --nodes=5 \
                  --master-list='1.2.3' \
                  --slave-list='4,5'

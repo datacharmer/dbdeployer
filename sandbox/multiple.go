@@ -53,16 +53,19 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Sma
 
 	vList := common.VersionToList(sdef.Version)
 	rev := vList[2]
-	// base_port := sdef.Port + defaults.Defaults().MultipleBasePort + (rev * 100)
-	base_port := sdef.Port + defaults.Defaults().MultipleBasePort + rev
+	base_port := sdef.Port + defaults.Defaults().MultipleBasePort + (rev * 100)
 	if sdef.BasePort > 0 {
 		base_port = sdef.BasePort
 	}
-	base_mysqlx_port := get_base_mysqlx_port(base_port, sdef, nodes)
-	base_port = FindFreePort(base_port, sdef.InstalledPorts, nodes)
+	// FindFreePort returns the first free port, but base_port will be used
+	// with a counter. Thus the availability will be checked using
+	// "base_port + 1"
+	first_port := common.FindFreePort(base_port+1, sdef.InstalledPorts, nodes)
+	base_port = first_port - 1
 	for check_port := base_port + 1; check_port < base_port+nodes; check_port++ {
-		CheckPort(sdef.SandboxDir, sdef.InstalledPorts, check_port)
+		CheckPort("CreateMultipleSandbox", sdef.SandboxDir, sdef.InstalledPorts, check_port)
 	}
+	base_mysqlx_port := get_base_mysqlx_port(base_port, sdef, nodes)
 	common.Mkdir(sdef.SandboxDir)
 	common.AddToCleanupStack(common.Rmdir, "Rmdir", sdef.SandboxDir)
 

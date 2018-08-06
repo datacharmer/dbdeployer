@@ -139,42 +139,7 @@ func CheckDirectory(sdef SandboxDef) SandboxDef {
 	return sdef
 }
 
-func FindFreePort(base_port int, installed_ports []int, how_many int) int {
-	used_ports := make(map[int]bool)
-	for _, p := range installed_ports {
-		used_ports[p] = true
-	}
-	free_port := 0
-	check_port := base_port
-	for free_port == 0 {
-		is_free := true
-		candidate_port := check_port
-		for N := check_port; N < (check_port + how_many + 1); N++ {
-			_, exists := used_ports[N]
-			if exists {
-				is_free = false
-			}
-			// fmt.Printf("+%d(%v) ", N, is_free )
-		}
-		if is_free {
-			free_port = candidate_port
-		} else {
-			check_port += how_many
-		}
-		if check_port > 64000 {
-			common.Exit(1, fmt.Sprintf("Could not find a free range for %d", base_port))
-		}
-	}
-	// fmt.Printf("%v, %d\n",installed_ports, check_port)
-	if check_port != base_port {
-		if os.Getenv("SHOW_CHANGED_PORTS") != "" {
-			fmt.Printf("#port %d changed to %d\n", base_port, check_port)
-		}
-	}
-	return check_port
-}
-
-func CheckPort(sandbox_type string, installed_ports []int, port int) {
+func CheckPort(caller string, sandbox_type string, installed_ports []int, port int) {
 	conflict := 0
 	for _, p := range installed_ports {
 		if p == port {
@@ -182,7 +147,7 @@ func CheckPort(sandbox_type string, installed_ports []int, port int) {
 		}
 	}
 	if conflict > 0 {
-		common.Exit(1, fmt.Sprintf("Port conflict detected. Port %d is already used", conflict))
+		common.Exit(1, fmt.Sprintf("Port conflict detected for %s (%s). Port %d is already used", sandbox_type, caller, conflict))
 	}
 }
 
@@ -221,7 +186,7 @@ func slice_to_text(s_array []string) string {
 func set_mysqlx_properties(sdef SandboxDef, global_tmp_dir string) SandboxDef {
 	mysqlx_port := sdef.MysqlXPort
 	if mysqlx_port == 0 {
-		mysqlx_port = FindFreePort(sdef.Port+defaults.Defaults().MysqlXPortDelta, sdef.InstalledPorts, 1)
+		mysqlx_port = common.FindFreePort(sdef.Port+defaults.Defaults().MysqlXPortDelta, sdef.InstalledPorts, 1)
 	}
 	sdef.MyCnfOptions = append(sdef.MyCnfOptions, fmt.Sprintf("mysqlx-port=%d", mysqlx_port))
 	sdef.MyCnfOptions = append(sdef.MyCnfOptions, fmt.Sprintf("mysqlx-socket=%s/mysqlx-%d.sock", global_tmp_dir, mysqlx_port))
@@ -273,7 +238,7 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 		common.Exit(1, fmt.Sprintf("TMP directory %s does not exist", global_tmp_dir))
 	}
 	if sdef.NodeNum == 0 && !sdef.Force {
-		sdef.Port = FindFreePort(sdef.Port, sdef.InstalledPorts, 1)
+		sdef.Port = common.FindFreePort(sdef.Port, sdef.InstalledPorts, 1)
 	}
 	using_plugins := false
 	right_plugin_dir := true // Assuming we can use the right plugin directory
@@ -414,7 +379,7 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 	if common.DirExists(sandbox_dir) {
 		sdef = CheckDirectory(sdef)
 	}
-	CheckPort(sdef.SBType, sdef.InstalledPorts, sdef.Port)
+	CheckPort("CreateSingleSandbox", sdef.SBType, sdef.InstalledPorts, sdef.Port)
 
 	//fmt.Printf("creating: %s\n", sandbox_dir)
 	common.Mkdir(sandbox_dir)

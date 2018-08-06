@@ -31,6 +31,12 @@ type SandboxInfo struct {
 	Locked      bool
 }
 
+var port_debug bool = os.Getenv("PORT_DEBUG") != ""
+
+type PortMap map[int]bool
+
+var MaxAllowedPort int = 64000
+
 func SandboxInfoToFileNames(sb_list []SandboxInfo) (file_names []string) {
 	for _, sbinfo := range sb_list {
 		file_names = append(file_names, sbinfo.SandboxName)
@@ -38,6 +44,7 @@ func SandboxInfoToFileNames(sb_list []SandboxInfo) (file_names []string) {
 	return
 }
 
+// Gets a list of installed sandboxes from the $SANDBOX_HOME directory
 func GetInstalledSandboxes(sandbox_home string) (installed_sandboxes []SandboxInfo) {
 	if !DirExists(sandbox_home) {
 		return
@@ -67,6 +74,7 @@ func GetInstalledSandboxes(sandbox_home string) (installed_sandboxes []SandboxIn
 	return
 }
 
+// Collects a list of used ports from deployed sandboxes
 func GetInstalledPorts(sandbox_home string) []int {
 	files := SandboxInfoToFileNames(GetInstalledSandboxes(sandbox_home))
 	// If there is a file sbdescription.json in the top directory
@@ -110,7 +118,13 @@ func GetInstalledPorts(sandbox_home string) []int {
 	return port_collection
 }
 
-
+/* Checks that the extracted tarball directory
+   contains one or more files expected for the current 
+   operating system.
+   It prevents simple errors like :
+   * using a Linux tarball on a Mac or vice-versa
+   * using a source or test tarball instead of a binaries one. 
+*/
 func CheckTarballOperatingSystem(basedir string) {
 	currentOs := runtime.GOOS
 	// fmt.Printf("<%s>\n",currentOs)
@@ -163,6 +177,7 @@ func CheckTarballOperatingSystem(basedir string) {
 	}
 }
 
+// Checks the initial argument for a sandbox deployment
 func CheckOrigin(args []string) {
 	if len(args) < 1 {
 		Exit(1, "This command requires the MySQL version (x.xx.xx) as argument ")
@@ -178,6 +193,7 @@ func CheckOrigin(args []string) {
 	}
 }
 
+// Creates a sandbox directory if it does not exist
 func CheckSandboxDir(sandbox_home string) {
 	if !DirExists(sandbox_home) {
 		fmt.Printf("Creating directory %s\n", sandbox_home)
@@ -189,6 +205,8 @@ func CheckSandboxDir(sandbox_home string) {
 
 }
 
+// Returns true if a given string looks contains a version
+// number (major.minor.rev)
 func IsVersion(version string) bool {
 	re1 := regexp.MustCompile(`(\d+)\.(\d+)\.(\d+)$`)
 	if re1.MatchString(version) {
@@ -280,4 +298,95 @@ func GreaterOrEqualVersion(version string, compared_to []int) bool {
 	scompare := fmt.Sprintf("%02d%02d%02d", cmajor, cminor, crev)
 	// fmt.Printf("<%s><%s>\n", sversion, scompare)
 	return sversion >= scompare
+}
+
+// Finds the first free port available, starting at 
+// requested_port.
+// used_ports is a map of ports already used by other sandboxes.
+// This function should not be used alone, but through FindFreePort
+// Returns the first free port
+func FindFreePortSingle(requested_port int, used_ports PortMap) int {
+	found_port := 0
+	candidate_port := requested_port
+	for found_port == 0 {
+		_, exists := used_ports[candidate_port]
+		if exists {
+			if port_debug {
+				fmt.Printf("- port %d not free\n", candidate_port)
+			}
+		} else {
+			found_port = candidate_port
+		}
+		candidate_port += 1
+		if candidate_port > MaxAllowedPort {
+			Exit(1, fmt.Sprintf("FATAL (FindFreePortSingle): Could not find a free port starting at %d.", requested_port),
+				fmt.Sprintf("Maximum limit for port value (%d) reached", MaxAllowedPort))
+		}
+	}
+	return found_port
+}
+
+// Finds the a range of how_many free ports available, starting at 
+// base_port.
+// used_ports is a map of ports already used by other sandboxes.
+// This function should not be used alone, but through FindFreePort
+// Returns the first port of the requested range
+func FindFreePortRange(base_port int, used_ports PortMap, how_many int) int {
+	var found_port int = 0
+	requested_port := base_port
+	candidate_port := requested_port
+	counter := 0
+	for found_port == 0 {
+		num_ports := 0
+		for counter < how_many {
+			_, exists := used_ports[candidate_port+counter]
+			if exists {
+				if port_debug {
+					fmt.Printf("- port %d is not free\n", candidate_port+counter)
+				}
+				candidate_port += 1
+				counter = 0
+				num_ports = 0
+				continue
+			} else {
+				if port_debug {
+					fmt.Printf("+ port %d is free\n", candidate_port+counter)
+				}
+				num_ports += 1
+			}
+			counter++
+			if candidate_port > MaxAllowedPort {
+				Exit(1, fmt.Sprintf("FATAL (FindFreePortRange): Could not find a free range of %d ports starting at %d.", how_many, requested_port),
+					fmt.Sprintf("Maximum limit for port value (%d) reached", MaxAllowedPort))
+			}
+		}
+		if num_ports == how_many {
+			found_port = candidate_port
+		} else {
+			Exit(1, "FATAL: FindFreePortRange should never reach this point",
+				fmt.Sprintf("requested: %d - used: %v - candidate: %d", requested_port, used_ports, candidate_port))
+		}
+	}
+	return found_port
+}
+
+// Finds the a range of how_many free ports available, starting at 
+// base_port.
+// installed_ports is a slice of ports already used by other sandboxes.
+// Calls either FindFreePortRange or FindFreePortSingle, depending on the 
+// amount of ports requested
+// Returns the first port of the requested range
+func FindFreePort(base_port int, installed_ports []int, how_many int) int {
+	if port_debug {
+		fmt.Printf("FindFreePort: requested: %d - used: %v - how_many: %d\n", base_port, installed_ports, how_many)
+	}
+	used_ports := make(PortMap)
+
+	for _, p := range installed_ports {
+		used_ports[p] = true
+	}
+	if how_many == 1 {
+		return FindFreePortSingle(base_port, used_ports)
+	}
+	return FindFreePortRange(base_port, used_ports, how_many)
 }
