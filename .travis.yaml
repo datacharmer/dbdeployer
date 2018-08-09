@@ -1,0 +1,14 @@
+language: go
+
+go:
+  - "1.10.x"
+  - master
+
+sudo: false
+install:
+    - go get -t
+
+after_success:
+    - figlet "Build Successful!" | /usr/games/cowsay -n -e "^^"
+after_failure:
+    - figlet "Build Failed!" | /usr/games/cowsay -n -s
