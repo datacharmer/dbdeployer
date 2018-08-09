@@ -3,7 +3,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.8.2 (05-Aug-2018 11:25 UTC)
+Documentation updated for version 1.8.3 (09-Aug-2018 07:52 UTC)
 
 ## Installation
 
@@ -13,12 +13,13 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.8.2
+    $ VERSION=1.8.3
+    $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/$VERSION
-    $ wget $origin/dbdeployer-$VERSION.linux.tar.gz
-    $ tar -xzf dbdeployer-$VERSION.linux.tar.gz
-    $ chmod +x dbdeployer-$VERSION.linux
-    $ sudo mv dbdeployer-$VERSION.linux /usr/local/bin/dbdeployer
+    $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
+    $ tar -xzf dbdeployer-$VERSION.$OS.tar.gz
+    $ chmod +x dbdeployer-$VERSION.$OS
+    $ sudo mv dbdeployer-$VERSION.$OS /usr/local/bin/dbdeployer
 
 Of course, there are **prerequisites**: your machine must be able to run the MySQL server. Be aware that version 5.6+ and higher require some libraries that are not installed by default in all flavors of Linux (libnuma, libaio.)
 
@@ -47,7 +48,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.8.2
+    dbdeployer version 1.8.3
     
 
     $ dbdeployer -h
@@ -801,18 +802,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 1. Make sure you have go installed in your system, and that the ``$GOPATH`` variable is set.
 2. Run ``go get -u github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
-4. Run ``./build.sh {linux|OSX} 1.8.2``
-5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.8.2``
+4. Run ``./build.sh {linux|OSX} 1.8.3``
+5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.8.3``
 
 ## Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.8.2-docs.linux.tar.gz
-* dbdeployer-1.8.2-docs.osx.tar.gz
-* dbdeployer-1.8.2.linux.tar.gz
-* dbdeployer-1.8.2.osx.tar.gz
+* dbdeployer-1.8.3-docs.linux.tar.gz
+* dbdeployer-1.8.3-docs.osx.tar.gz
+* dbdeployer-1.8.3.linux.tar.gz
+* dbdeployer-1.8.3.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 
