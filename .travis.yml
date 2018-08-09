@@ -10,7 +10,7 @@ install:
 
 script: 
     - go build .
-    - ./test/gotest.sh
+    - ./test/go-unit-tests.sh
 
 after_success:
     - figlet "Build Successful!" | /usr/games/cowsay -n -e "^^"
