@@ -95,6 +95,7 @@ function run_test {
 }
 
 function all_tests {
+    run_test ./test/go-unit-tests.sh
     run_test ./test/functional-test.sh
     run_test ./test/docker-test.sh $version
     run_test ./test/mock/defaults-change.sh

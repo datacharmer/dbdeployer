@@ -9,7 +9,8 @@ install:
     - go get -t
 
 script: 
-    - go test ./...
+    - go build .
+    - ./test/gotest.sh
 
 after_success:
     - figlet "Build Successful!" | /usr/games/cowsay -n -e "^^"
