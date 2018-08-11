@@ -70,7 +70,7 @@ func set_pflag(cmd *cobra.Command, key string, abbr string, env_var string, defa
 
 func checkDefaultsFile() {
 	flags := rootCmd.Flags()
-	defaults.CustomConfigurationFile, _ = flags.GetString("config")
+	defaults.CustomConfigurationFile, _ = flags.GetString(defaults.ConfigLabel)
 	if defaults.CustomConfigurationFile != defaults.ConfigurationFile {
 		if common.FileExists(defaults.CustomConfigurationFile) {
 			defaults.ConfigurationFile = defaults.CustomConfigurationFile
@@ -85,9 +85,9 @@ func checkDefaultsFile() {
 func init() {
 	cobra.OnInitialize(checkDefaultsFile)
 	// spew.Dump(rootCmd)
-	rootCmd.PersistentFlags().StringVar(&defaults.CustomConfigurationFile, "config", defaults.ConfigurationFile, "configuration file")
-	set_pflag(rootCmd,"sandbox-home", "", "SANDBOX_HOME", defaults.Defaults().SandboxHome, "Sandbox deployment directory", false)
-	set_pflag(rootCmd,"sandbox-binary", "", "SANDBOX_BINARY", defaults.Defaults().SandboxBinary, "Binary repository", false)
+	rootCmd.PersistentFlags().StringVar(&defaults.CustomConfigurationFile, defaults.ConfigLabel, defaults.ConfigurationFile, "configuration file")
+	set_pflag(rootCmd, defaults.SandboxHomeLabel, "", "SANDBOX_HOME", defaults.Defaults().SandboxHome, "Sandbox deployment directory", false)
+	set_pflag(rootCmd, defaults.SandboxBinaryLabel, "", "SANDBOX_BINARY", defaults.Defaults().SandboxBinary, "Binary repository", false)
 
 	rootCmd.InitDefaultVersionFlag()
 

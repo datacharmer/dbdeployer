@@ -37,12 +37,12 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 	}
 	flags := cmd.Flags()
 	sandbox_name := args[0]
-	confirm, _ := flags.GetBool("confirm")
-	run_concurrently, _ := flags.GetBool("concurrent")
+	confirm, _ := flags.GetBool(defaults.ConfirmLabel)
+	run_concurrently, _ := flags.GetBool(defaults.ConcurrentLabel)
 	if os.Getenv("RUN_CONCURRENTLY") != "" {
 		run_concurrently = true
 	}
-	skip_confirm, _ := flags.GetBool("skip-confirm")
+	skip_confirm, _ := flags.GetBool(defaults.SkipConfirmLabel)
 	sandbox_dir := GetAbsolutePathFromFlag(cmd, "sandbox-home")
 
 	deletion_list := []common.SandboxInfo{common.SandboxInfo{sandbox_name, false}}
@@ -127,7 +127,7 @@ Warning: this command is irreversible!`,
 func init() {
 	rootCmd.AddCommand(deleteCmd)
 
-	deleteCmd.Flags().BoolP("skip-confirm", "", false, "Skips confirmation with multiple deletions.")
-	deleteCmd.Flags().BoolP("confirm", "", false, "Requires confirmation.")
-	deleteCmd.Flags().BoolP("concurrent", "", false, "Runs multiple deletion tasks concurrently.")
+	deleteCmd.Flags().BoolP(defaults.SkipConfirmLabel, "", false, "Skips confirmation with multiple deletions.")
+	deleteCmd.Flags().BoolP(defaults.ConfirmLabel, "", false, "Requires confirmation.")
+	deleteCmd.Flags().BoolP(defaults.ConcurrentLabel, "", false, "Runs multiple deletion tasks concurrently.")
 }

@@ -52,9 +52,9 @@ func ShowSandboxesFromCatalog(current_sandbox_home string, header bool) {
 // Shows installed sandboxes
 func ShowSandboxes(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
-	SandboxHome, _ := flags.GetString("sandbox-home")
-	read_catalog, _ := flags.GetBool("catalog")
-	use_header, _ := flags.GetBool("header")
+	SandboxHome, _ := flags.GetString(defaults.SandboxHomeLabel)
+	read_catalog, _ := flags.GetBool(defaults.CatalogLabel)
+	use_header, _ := flags.GetBool(defaults.HeaderLabel)
 	if read_catalog {
 		ShowSandboxesFromCatalog(SandboxHome, use_header)
 		return
@@ -160,6 +160,6 @@ they were deployed.
 func init() {
 	rootCmd.AddCommand(sandboxesCmd)
 
-	sandboxesCmd.Flags().BoolP("catalog", "", false, "Use sandboxes catalog instead of scanning directory")
-	sandboxesCmd.Flags().BoolP("header", "", false, "Shows header with catalog output")
+	sandboxesCmd.Flags().BoolP(defaults.CatalogLabel, "", false, "Use sandboxes catalog instead of scanning directory")
+	sandboxesCmd.Flags().BoolP(defaults.HeaderLabel, "", false, "Shows header with catalog output")
 }

@@ -90,7 +90,7 @@ func ListTemplates(cmd *cobra.Command, args []string) {
 		wanted = args[0]
 	}
 	flags := cmd.Flags()
-	simple_list, _ := flags.GetBool("simple")
+	simple_list, _ := flags.GetBool(defaults.SimpleLabel)
 
 	templates := GetTemplatesList(wanted)
 	for _, template := range templates {
@@ -112,7 +112,7 @@ func RunDescribeTemplate(cmd *cobra.Command, args []string) {
 	}
 	requested := args[0]
 	flags := cmd.Flags()
-	complete_listing, _ := flags.GetBool("with-contents")
+	complete_listing, _ := flags.GetBool(defaults.WithContentsLabel)
 	DescribeTemplate(requested, complete_listing)
 }
 
@@ -370,6 +370,6 @@ func init() {
 	templatesCmd.AddCommand(templatesImportCmd)
 	templatesCmd.AddCommand(templatesResetCmd)
 
-	templatesListCmd.Flags().BoolP("simple", "s", false, "Shows only the template names, without description")
-	templatesDescribeCmd.Flags().BoolP("with-contents", "", false, "Shows complete structure and contents")
+	templatesListCmd.Flags().BoolP(defaults.SimpleLabel, "s", false, "Shows only the template names, without description")
+	templatesDescribeCmd.Flags().BoolP(defaults.WithContentsLabel, "", false, "Shows complete structure and contents")
 }

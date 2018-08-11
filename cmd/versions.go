@@ -78,6 +78,4 @@ var versionsCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(versionsCmd)
-
-	// versionsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

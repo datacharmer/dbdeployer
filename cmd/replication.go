@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
 	//"fmt"
@@ -29,23 +30,23 @@ func ReplicationSandbox(cmd *cobra.Command, args []string) {
 	sd = FillSdef(cmd, args)
 	sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 	flags := cmd.Flags()
-	semisync, _ = flags.GetBool("semi-sync")
-	nodes, _ := flags.GetInt("nodes")
-	topology, _ := flags.GetString("topology")
-	master_ip, _ := flags.GetString("master-ip")
-	master_list, _ := flags.GetString("master-list")
-	slave_list, _ := flags.GetString("slave-list")
-	sd.SinglePrimary, _ = flags.GetBool("single-primary")
-	repl_history_dir, _ := flags.GetBool("repl-history-dir")
+	semisync, _ = flags.GetBool(defaults.SemiSyncLabel)
+	nodes, _ := flags.GetInt(defaults.NodesLabel)
+	topology, _ := flags.GetString(defaults.TopologyLabel)
+	master_ip, _ := flags.GetString(defaults.MasterIpLabel)
+	master_list, _ := flags.GetString(defaults.MasterListLabel)
+	slave_list, _ := flags.GetString(defaults.SlaveListLabel)
+	sd.SinglePrimary, _ = flags.GetBool(defaults.SinglePrimaryLabel)
+	repl_history_dir, _ := flags.GetBool(defaults.ReplHistoryDirLabel)
 	if repl_history_dir {
 		sd.HistoryDir = "REPL_DIR"
 	}
-	if topology != "fan-in" && topology != "all-masters" {
+	if topology != defaults.FanInLabel && topology != defaults.AllMastersLabel {
 		master_list = ""
 		slave_list = ""
 	}
 	if semisync {
-		if topology != "master-slave" {
+		if topology != defaults.MasterSlaveLabel {
 			common.Exit(1, "--semi-sync is only available with master/slave topology")
 		}
 		if common.GreaterOrEqualVersion(sd.Version, []int{5, 5, 1}) {
@@ -54,7 +55,7 @@ func ReplicationSandbox(cmd *cobra.Command, args []string) {
 			common.Exit(1, "--semi-sync requires version 5.5.1+")
 		}
 	}
-	if sd.SinglePrimary && topology != "group" {
+	if sd.SinglePrimary && topology != defaults.GroupLabel {
 		common.Exit(1, "Option 'single-primary' can only be used with 'group' topology ")
 	}
 	origin := args[0]
@@ -103,12 +104,12 @@ func init() {
 	//replicationCmd.PersistentFlags().StringSliceP("slave-options", "", "", "Extra options for the slaves")
 	//replicationCmd.PersistentFlags().StringSliceP("node-options", "", "", "Extra options for all nodes")
 	//replicationCmd.PersistentFlags().StringSliceP("one-node-options", "", "", "Extra options for one node (format #:option)")
-	replicationCmd.PersistentFlags().StringP("master-list", "", "1,2", "Which nodes are masters in a multi-source deployment")
-	replicationCmd.PersistentFlags().StringP("slave-list", "", "3", "Which nodes are slaves in a multi-source deployment")
-	replicationCmd.PersistentFlags().StringP("master-ip", "", "127.0.0.1", "Which IP the slaves will connect to")
-	replicationCmd.PersistentFlags().StringP("topology", "t", "master-slave", "Which topology will be installed")
-	replicationCmd.PersistentFlags().IntP("nodes", "n", 3, "How many nodes will be installed")
-	replicationCmd.PersistentFlags().BoolP("single-primary", "", false, "Using single primary for group replication")
-	replicationCmd.PersistentFlags().BoolP("semi-sync", "", false, "Use semi-synchronous plugin")
-	replicationCmd.PersistentFlags().Bool("repl-history-dir", false, "uses the replication directory to store mysql client history")
+	replicationCmd.PersistentFlags().StringP(defaults.MasterListLabel, "", defaults.MasterListValue, "Which nodes are masters in a multi-source deployment")
+	replicationCmd.PersistentFlags().StringP(defaults.SlaveListLabel, "", defaults.SlaveListValue, "Which nodes are slaves in a multi-source deployment")
+	replicationCmd.PersistentFlags().StringP(defaults.MasterIpLabel, "", defaults.MasterIpValue, "Which IP the slaves will connect to")
+	replicationCmd.PersistentFlags().StringP(defaults.TopologyLabel, "t", defaults.TopologyValue, "Which topology will be installed")
+	replicationCmd.PersistentFlags().IntP(defaults.NodesLabel, "n", defaults.NodesValue, "How many nodes will be installed")
+	replicationCmd.PersistentFlags().BoolP(defaults.SinglePrimaryLabel, "", false, "Using single primary for group replication")
+	replicationCmd.PersistentFlags().BoolP(defaults.SemiSyncLabel, "", false, "Use semi-synchronous plugin")
+	replicationCmd.PersistentFlags().Bool(defaults.ReplHistoryDirLabel, false, "uses the replication directory to store mysql client history")
 }

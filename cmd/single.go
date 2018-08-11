@@ -100,17 +100,17 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	var sd sandbox.SandboxDef
 
 	flags := cmd.Flags()
-	template_requests, _ := flags.GetStringSlice("use-template")
+	template_requests, _ := flags.GetStringSlice(defaults.UseTemplateLabel)
 	for _, request := range template_requests {
 		tname, fname := check_template_change_request(request)
 		replace_template(tname, fname)
 	}
 
-	basedir := GetAbsolutePathFromFlag(cmd, "sandbox-binary")
+	basedir := GetAbsolutePathFromFlag(cmd, defaults.SandboxBinaryLabel)
 
 	sd.BasedirName = args[0]
 	version_from_option := false
-	sd.Version, _ = flags.GetString("binary-version")
+	sd.Version, _ = flags.GetString(defaults.BinaryVersionLabel)
 	if sd.Version == "" {
 		sd.Version = args[0]
 		old_version := sd.Version
@@ -152,9 +152,9 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	if sd.Port < 0 {
 		common.Exit(1, fmt.Sprintf("Unsupported version format (%s)", sd.Version))
 	}
-	sd.UserPort, _ = flags.GetInt("port")
-	sd.BasePort, _ = flags.GetInt("base-port")
-	sd.DirName, _ = flags.GetString("sandbox-directory")
+	sd.UserPort, _ = flags.GetInt(defaults.PortLabel)
+	sd.BasePort, _ = flags.GetInt(defaults.BasePortLabel)
+	sd.DirName, _ = flags.GetString(defaults.SandboxDirectoryLabel)
 
 	if sd.UserPort > 0 {
 		sd.Port = sd.UserPort
@@ -168,7 +168,7 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 
 	common.CheckTarballOperatingSystem(sd.Basedir)
 
-	sd.SandboxDir = GetAbsolutePathFromFlag(cmd, "sandbox-home")
+	sd.SandboxDir = GetAbsolutePathFromFlag(cmd, defaults.SandboxHomeLabel)
 
 	common.CheckSandboxDir(sd.SandboxDir)
 	sd.InstalledPorts = common.GetInstalledPorts(sd.SandboxDir)
@@ -176,52 +176,53 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 		sd.InstalledPorts = append(sd.InstalledPorts, p)
 	}
 	sd.LoadGrants = true
-	sd.SkipStart, _ = flags.GetBool("skip-start")
-	skip_load_grants, _ := flags.GetBool("skip-load-grants")
+	sd.SkipStart, _ = flags.GetBool(defaults.SkipStartLabel)
+	skip_load_grants, _ := flags.GetBool(defaults.SkipLoadGrantsLabel)
 	if skip_load_grants || sd.SkipStart {
 		sd.LoadGrants = false
 	}
-	sd.SkipReportHost, _ = flags.GetBool("skip-report-host")
-	sd.SkipReportPort, _ = flags.GetBool("skip-report-port")
-	sd.DisableMysqlX, _ = flags.GetBool("disable-mysqlx")
-	sd.EnableMysqlX, _ = flags.GetBool("enable-mysqlx")
-	sd.HistoryDir, _ = flags.GetString("history-dir")
-	sd.DbUser, _ = flags.GetString("db-user")
-	sd.DbPassword, _ = flags.GetString("db-password")
-	sd.RplUser, _ = flags.GetString("rpl-user")
-	sd.RplPassword, _ = flags.GetString("rpl-password")
-	sd.RemoteAccess, _ = flags.GetString("remote-access")
-	sd.BindAddress, _ = flags.GetString("bind-address")
-	sd.CustomMysqld, _ = flags.GetString("custom-mysqld")
-	sd.InitOptions, _ = flags.GetStringSlice("init-options")
-	sd.MyCnfOptions, _ = flags.GetStringSlice("my-cnf-options")
-	sd.PreGrantsSqlFile, _ = flags.GetString("pre-grants-sql-file")
-	sd.PreGrantsSql, _ = flags.GetStringSlice("pre-grants-sql")
-	sd.PostGrantsSql, _ = flags.GetStringSlice("post-grants-sql")
-	sd.PostGrantsSqlFile, _ = flags.GetString("post-grants-sql-file")
-	sd.MyCnfFile, _ = flags.GetString("my-cnf-file")
-	sd.NativeAuthPlugin, _ = flags.GetBool("native-auth-plugin")
-	sd.KeepUuid, _ = flags.GetBool("keep-server-uuid")
-	sd.Force, _ = flags.GetBool("force")
-	sd.ExposeDdTables, _ = flags.GetBool("expose-dd-tables")
-	sd.InitGeneralLog, _ = flags.GetBool("init-general-log")
-	sd.EnableGeneralLog, _ = flags.GetBool("enable-general-log")
+	sd.SkipReportHost, _ = flags.GetBool(defaults.SkipReportHostLabel)
+	sd.SkipReportPort, _ = flags.GetBool(defaults.SkipReportPortLabel)
+	sd.DisableMysqlX, _ = flags.GetBool(defaults.DisableMysqlXLabel)
+	sd.EnableMysqlX, _ = flags.GetBool(defaults.EnableMysqlXLabel)
+	sd.HistoryDir, _ = flags.GetString(defaults.HistoryDirLabel)
+	sd.DbUser, _ = flags.GetString(defaults.DbUserLabel)
+	sd.DbPassword, _ = flags.GetString(defaults.DbPasswordLabel)
+	sd.RplUser, _ = flags.GetString(defaults.RplUserLabel)
+
+	sd.RplPassword, _ = flags.GetString(defaults.RplPasswordLabel)
+	sd.RemoteAccess, _ = flags.GetString(defaults.RemoteAccessLabel)
+	sd.BindAddress, _ = flags.GetString(defaults.BindAddressLabel)
+	sd.CustomMysqld, _ = flags.GetString(defaults.CustomMysqldLabel)
+	sd.InitOptions, _ = flags.GetStringSlice(defaults.InitOptionsLabel)
+	sd.MyCnfOptions, _ = flags.GetStringSlice(defaults.MyCnfOptionsLabel)
+	sd.PreGrantsSqlFile, _ = flags.GetString(defaults.PreGrantsSqlFileLabel)
+	sd.PreGrantsSql, _ = flags.GetStringSlice(defaults.PreGrantsSqlLabel)
+	sd.PostGrantsSql, _ = flags.GetStringSlice(defaults.PostGrantsSqlLabel)
+	sd.PostGrantsSqlFile, _ = flags.GetString(defaults.PostGrantsSqlFileLabel)
+	sd.MyCnfFile, _ = flags.GetString(defaults.MyCnfFileLabel)
+	sd.NativeAuthPlugin, _ = flags.GetBool(defaults.NativeAuthPluginLabel)
+	sd.KeepUuid, _ = flags.GetBool(defaults.KeepServerUuidLabel)
+	sd.Force, _ = flags.GetBool(defaults.ForceLabel)
+	sd.ExposeDdTables, _ = flags.GetBool(defaults.ExposeDdTablesLabel)
+	sd.InitGeneralLog, _ = flags.GetBool(defaults.InitGeneralLogLabel)
+	sd.EnableGeneralLog, _ = flags.GetBool(defaults.EnableGeneralLogLabel)
 
 	if sd.DisableMysqlX && sd.EnableMysqlX {
 		common.Exit(1, "flags --enable-mysqlx and --disable-mysqlx cannot be used together")
 	}
-	sd.RunConcurrently, _ = flags.GetBool("concurrent")
+	sd.RunConcurrently, _ = flags.GetBool(defaults.ConcurrentLabel)
 	if os.Getenv("RUN_CONCURRENTLY") != "" {
 		sd.RunConcurrently = true
 	}
 
-	new_defaults, _ := flags.GetStringSlice("defaults")
+	new_defaults, _ := flags.GetStringSlice(defaults.DefaultsLabel)
 	process_defaults(new_defaults)
 
 	var gtid bool
 	var master bool
-	master, _ = flags.GetBool("master")
-	gtid, _ = flags.GetBool("gtid")
+	master, _ = flags.GetBool(defaults.MasterLabel)
+	gtid, _ = flags.GetBool(defaults.GtidLabel)
 	if master {
 		sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 		sd.ServerId = sd.Port
@@ -269,6 +270,6 @@ Use the "unpack" command to get the tarball into the right directory.
 
 func init() {
 	deployCmd.AddCommand(singleCmd)
-	singleCmd.PersistentFlags().Bool("master", false, "Make the server replication ready")
+	singleCmd.PersistentFlags().Bool(defaults.MasterLabel, false, "Make the server replication ready")
 
 }

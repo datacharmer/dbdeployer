@@ -122,6 +122,4 @@ var usageCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(usageCmd)
-
-	// usageCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

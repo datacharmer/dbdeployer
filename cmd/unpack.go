@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/unpack"
 	"github.com/spf13/cobra"
 )
@@ -30,7 +31,7 @@ import (
 func UnpackTarball(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	Basedir := GetAbsolutePathFromFlag(cmd, "sandbox-binary")
-	verbosity, _ := flags.GetInt("verbosity")
+	verbosity, _ := flags.GetInt(defaults.VerbosityLabel)
 	if !common.DirExists(Basedir) {
 		common.Exit(1,
 			fmt.Sprintf("Directory %s does not exist.", Basedir),
@@ -41,19 +42,19 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	verList := re_version.FindAllStringSubmatch(tarball, -1)
 	detected_version := verList[0][0]
 	// fmt.Printf(">> %#v %s\n",verList, detected_version)
-	
-	Version, _ := flags.GetString("unpack-version")
+
+	Version, _ := flags.GetString(defaults.UnpackVersionLabel)
 	if Version == "" {
 		Version = detected_version
 	}
 	if Version == "" {
-		common.Exit(1, 
+		common.Exit(1,
 			"unpack: No version was detected from tarball name. ",
 			"Flag --unpack-version becomes mandatory")
 	}
 	// This call used to ensure that the port provided is in the right format
 	common.VersionToPort(Version)
-	Prefix, _ := flags.GetString("prefix")
+	Prefix, _ := flags.GetString(defaults.PrefixLabel)
 
 	destination := Basedir + "/" + Prefix + Version
 	if common.DirExists(destination) {
@@ -76,7 +77,7 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	}
 	final_name := Basedir + "/" + barename
 	if final_name != destination {
-        fmt.Printf("Renaming directory %s to %s\n",final_name, destination)
+		fmt.Printf("Renaming directory %s to %s\n", final_name, destination)
 		err = os.Rename(final_name, destination)
 		if err != nil {
 			common.Exit(1, fmt.Sprintf("%s", err))
@@ -86,10 +87,10 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 
 // unpackCmd represents the unpack command
 var unpackCmd = &cobra.Command{
-	Use:   "unpack MySQL-tarball",
-	Args:  cobra.ExactArgs(1),
+	Use:     "unpack MySQL-tarball",
+	Args:    cobra.ExactArgs(1),
 	Aliases: []string{"extract", "untar", "unzip", "inflate", "expand"},
-	Short: "unpack a tarball into the binary directory",
+	Short:   "unpack a tarball into the binary directory",
 	Long: `If you want to create a sandbox from a tarball, you first need to unpack it
 into the sandbox-binary directory. This command carries out that task, so that afterwards 
 you can call 'deploy single', 'deploy multiple', and 'deploy replication' commands with only 
@@ -113,7 +114,7 @@ If there is already an expanded tarball with the same version, a new one can be 
 func init() {
 	rootCmd.AddCommand(unpackCmd)
 
-	unpackCmd.PersistentFlags().Int("verbosity", 1, "Level of verbosity during unpack (0=none, 2=maximum)")
-	unpackCmd.PersistentFlags().String("unpack-version", "", "which version is contained in the tarball")
-	unpackCmd.PersistentFlags().String("prefix", "", "Prefix for the final expanded directory")
+	unpackCmd.PersistentFlags().Int(defaults.VerbosityLabel, 1, "Level of verbosity during unpack (0=none, 2=maximum)")
+	unpackCmd.PersistentFlags().String(defaults.UnpackVersionLabel, "", "which version is contained in the tarball")
+	unpackCmd.PersistentFlags().String(defaults.PrefixLabel, "", "Prefix for the final expanded directory")
 }
