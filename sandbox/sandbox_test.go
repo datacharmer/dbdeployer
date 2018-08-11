@@ -1,7 +1,23 @@
+// DBDeployer - The MySQL Sandbox
+// Copyright © 2006-2018 Giuseppe Maxia
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package sandbox
 
 import (
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/defaults"
 	"testing"
 )
 
@@ -22,6 +38,28 @@ func ok_dir_exists(t *testing.T, dir string) {
 		t.Logf("not ok - %s does not exist\n", dir)
 		t.Fail()
 	}
+}
+
+func ok_port_exists(t *testing.T, dir_name string, port int) {
+	sandbox_list := defaults.ReadCatalog()
+	// In the sandbox catalog (a map of sandbox structures),
+	// each entry is indexed with the full path of the sandbox
+	// directory.
+	for name, sb := range sandbox_list {
+		if name == dir_name {
+			// A sandbox can have more than one port
+			// We loop through it to find the requested one
+			for _, p := range sb.Port {
+				if p == port {
+					t.Logf("ok - port %d found in %s\n", port, dir_name)
+					return
+				}
+			}
+		}
+	}
+	// If we reach this point, the port was not found
+	t.Logf("not ok - port %d not found in %s\n", port, dir_name)
+	t.Fail()
 }
 
 type version_rec struct {
@@ -73,6 +111,7 @@ func TestCreateSandbox(t *testing.T) {
 		ok_executable_exists(t, sandbox_dir, "start")
 		ok_executable_exists(t, sandbox_dir, "use")
 		ok_executable_exists(t, sandbox_dir, "stop")
+		ok_port_exists(t, sandbox_dir, sdef.Port)
 	}
 	remove_mock_environment("mock_dir")
 }

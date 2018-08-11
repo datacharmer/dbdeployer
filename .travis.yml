@@ -13,6 +13,7 @@ script:
     - ./test/go-unit-tests.sh
 
 after_success:
-    - figlet "Build Successful!" | /usr/games/cowsay -n -e "^^"
+    - echo "Build Successful!"
+
 after_failure:
-    - figlet "Build Failed!" | /usr/games/cowsay -n -s
+    - echo "Build Failed!"
