@@ -3,7 +3,6 @@ testdir=$(dirname $0)
 cd $testdir
 cd ..
 maindir=$PWD
-ls
 
 function check_exit_code {
     exit_code=$?

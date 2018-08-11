@@ -96,6 +96,15 @@ func check_if_abridged_version(version, basedir string) string {
 	return version
 }
 
+func check_for_root_value(value, label, default_val string) {
+	if value == "root" {
+		common.Exit(1, fmt.Sprintf("option --%s cannot be 'root'", label),
+			"The 'root' user will be initialized regardless,",
+			"using the same password defined for the default db-user.",
+			fmt.Sprintf("The default user for this option is '%s'.", default_val))
+	}
+}
+
 func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	var sd sandbox.SandboxDef
 
@@ -189,6 +198,9 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.DbUser, _ = flags.GetString(defaults.DbUserLabel)
 	sd.DbPassword, _ = flags.GetString(defaults.DbPasswordLabel)
 	sd.RplUser, _ = flags.GetString(defaults.RplUserLabel)
+
+	check_for_root_value(sd.DbUser, defaults.DbUserLabel, defaults.DbUserValue)
+	check_for_root_value(sd.RplUser, defaults.RplUserLabel, defaults.RplUserValue)
 
 	sd.RplPassword, _ = flags.GetString(defaults.RplPasswordLabel)
 	sd.RemoteAccess, _ = flags.GetString(defaults.RemoteAccessLabel)

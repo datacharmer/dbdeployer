@@ -1,3 +1,5 @@
+1.8.4	11-Aug-2018
+	- Fixed Issue #30 "--rpl-user and --db-user should not allow root"
 1.8.3	05-Aug-2018
 	- Fixed Issue #26 "Port management glitch"
 1.8.2	05-Aug-2018
