@@ -90,6 +90,8 @@ const (
 	VerbosityLabel     = "verbosity"
 	UnpackVersionLabel = "unpack-version"
 	PrefixLabel        = "prefix"
+	ShellLabel         = "shell"
+	TargetServerLabel  = "target-server"
 
 	// Instantiated in cmd/delete.go
 	SkipConfirmLabel = "skip-confirm"

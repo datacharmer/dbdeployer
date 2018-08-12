@@ -3,7 +3,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.8.3 (09-Aug-2018 07:52 UTC)
+Documentation updated for version 1.9.0 (12-Aug-2018 19:46 UTC)
 
 ## Installation
 
@@ -13,7 +13,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.8.3
+    $ VERSION=1.9.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -48,7 +48,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.8.3
+    dbdeployer version 1.9.0
     
 
     $ dbdeployer -h
@@ -114,6 +114,8 @@ If you don't have any tarballs installed in your system, you should first ``unpa
     Flags:
       -h, --help                    help for unpack
           --prefix string           Prefix for the final expanded directory
+          --shell                   Unpack a shell tarball into the corresponding server directory
+          --target-server string    Uses a different server to unpack a shell tarball
           --unpack-version string   which version is contained in the tarball
           --verbosity int           Level of verbosity during unpack (0=none, 2=maximum) (default 1)
     
@@ -464,7 +466,27 @@ If you want to avoid having the XPlugin enabled, you can deploy the sandbox with
 
 For MySQL between 5.7.12 and 8.0.4, the approach is the opposite. By default, the XPlugin is disabled, and if you want to use it you will run the deployment using ``--enable-mysqlx``. In both cases the port and socket will be computed by dbdeployer.
 
-When the XPlugin is enabled, it makes sense to use [the MySQL shell](https://dev.mysql.com/doc/refman/8.0/en/mysql-shell.html) and dbdeployer will create a ``mysqlsh`` script for the sandboxes that use the plugin. Unfortunately, as of today (late April 2018) the MySQL shell is not released with the server tarball, and therefore we have to fix things manually. dbdeployer will look for ``mysqlsh`` in the same directory where the other clients are, so if you manually merge the mysql shell and the server tarballs, you will get the appropriate version of MySQL shell. If not, you will use the version of the shell that is available in ``$PATH``. If there is no MySQL shell available, you will get an error.
+When the XPlugin is enabled, it makes sense to use [the MySQL shell](https://dev.mysql.com/doc/refman/8.0/en/mysql-shell.html) and dbdeployer will create a ``mysqlsh`` script for the sandboxes that use the plugin. Unfortunately, as of today (late April 2018) the MySQL shell is not released with the server tarball, and therefore we have to fix things manually (see next section.) dbdeployer will look for ``mysqlsh`` in the same directory where the other clients are, so if you manually merge the mysql shell and the server tarballs, you will get the appropriate version of MySQL shell. If not, you will use the version of the shell that is available in ``$PATH``. If there is no MySQL shell available, you will get an error.
+
+## Installing MySQL shell
+
+The MySQL shell is distributed as a tarball. You can install it within the server binaries directory, using dbdeployer (as of version 1.9.0.)
+
+The simplest operation is:
+
+    $ dbdeployer unpack --shell \
+        mysql-shell-8.0.12-$YOUR_OS.tar.gz
+
+This command will work if MySQL 8.0.12 was already unpacked in ``$SANDBOX_BINARY/8.0.12``. dbdeployer recognizes the version (from the tarball name) and looks for the corresponding server. If it is found, the shell package will be temporarily expanded, and the necessary files moved into the server directory tree.
+
+If the corresponding server directory does not exist, you can specify the wanted target:
+
+    $ dbdeployer unpack --shell \
+        mysql-shell-8.0.12-$YOUR_OS.tar.gz \
+        --target-server=5.7.23
+
+Since the MySQL team recommends using the latest shell even for older versions of MySQL, we can insert the shell from 8.0.12 into the 5.7 server, and it will work as expected, as the shell brings with it all needed files.
+Using the option ``--verbosity=2`` we can see which files were extracted and where each component was copied or moved. Notice that the unpacked MySQL shell directory is deleted after the operation is completed.
 
 ## Logs management.
 
@@ -802,18 +824,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 1. Make sure you have go installed in your system, and that the ``$GOPATH`` variable is set.
 2. Run ``go get -u github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
-4. Run ``./build.sh {linux|OSX} 1.8.3``
-5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.8.3``
+4. Run ``./build.sh {linux|OSX} 1.9.0``
+5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.9.0``
 
 ## Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.8.3-docs.linux.tar.gz
-* dbdeployer-1.8.3-docs.osx.tar.gz
-* dbdeployer-1.8.3.linux.tar.gz
-* dbdeployer-1.8.3.osx.tar.gz
+* dbdeployer-1.9.0-docs.linux.tar.gz
+* dbdeployer-1.9.0-docs.osx.tar.gz
+* dbdeployer-1.9.0.linux.tar.gz
+* dbdeployer-1.9.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

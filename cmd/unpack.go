@@ -43,6 +43,13 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	detected_version := verList[0][0]
 	// fmt.Printf(">> %#v %s\n",verList, detected_version)
 
+	is_shell, _ := flags.GetBool(defaults.ShellLabel)
+	target, _ := flags.GetString(defaults.TargetServerLabel)
+	if !is_shell && target != "" {
+		common.Exit(1,
+			"unpack: Option --target-server can only be used with --shell")
+	}
+
 	Version, _ := flags.GetString(defaults.UnpackVersionLabel)
 	if Version == "" {
 		Version = detected_version
@@ -57,7 +64,10 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	Prefix, _ := flags.GetString(defaults.PrefixLabel)
 
 	destination := Basedir + "/" + Prefix + Version
-	if common.DirExists(destination) {
+	if target != "" {
+		destination = Basedir + "/" + target
+	}
+	if common.DirExists(destination) && !is_shell {
 		common.Exit(1, fmt.Sprintf("Destination directory %s exists already\n", destination))
 	}
 	var extension string = ".tar.gz"
@@ -67,6 +77,14 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 		barename = extracted[0 : len(extracted)-len(extension)]
 	} else {
 		common.Exit(1, "Tarball extension must be .tar.gz")
+	}
+	if is_shell {
+		fmt.Printf("Merging shell tarball %s to %s\n", common.ReplaceLiteralHome(tarball), common.ReplaceLiteralHome(destination))
+		err := unpack.MergeShell(tarball, Basedir, destination, barename, verbosity)
+		if err != nil {
+			common.Exit(1, fmt.Sprintf("Error while unpacking mysql shell tarball : %s", err))
+		}
+		return
 	}
 
 	fmt.Printf("Unpacking tarball %s to %s\n", tarball, common.ReplaceLiteralHome(destination))
@@ -117,4 +135,6 @@ func init() {
 	unpackCmd.PersistentFlags().Int(defaults.VerbosityLabel, 1, "Level of verbosity during unpack (0=none, 2=maximum)")
 	unpackCmd.PersistentFlags().String(defaults.UnpackVersionLabel, "", "which version is contained in the tarball")
 	unpackCmd.PersistentFlags().String(defaults.PrefixLabel, "", "Prefix for the final expanded directory")
+	unpackCmd.PersistentFlags().Bool(defaults.ShellLabel, false, "Unpack a shell tarball into the corresponding server directory")
+	unpackCmd.PersistentFlags().String(defaults.TargetServerLabel, "", "Uses a different server to unpack a shell tarball")
 }

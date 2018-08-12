@@ -1230,6 +1230,8 @@ _dbdeployer_unpack()
     flags_completion=()
 
     flags+=("--prefix=")
+    flags+=("--shell")
+    flags+=("--target-server=")
     flags+=("--unpack-version=")
     flags+=("--verbosity=")
     flags+=("--config=")

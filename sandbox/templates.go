@@ -194,7 +194,12 @@ source {{.SandboxDir}}/sb_include
 
 if [ -f $PIDFILE ]
 then
-	$MYSQL_SHELL --uri="$URI" "$*"
+    if [ "$1" != "" ]
+	then
+	    $MYSQL_SHELL --uri="$URI" "$*"
+	else
+	    $MYSQL_SHELL --uri="$URI"
+	fi
 else
 	echo "# $0 pidfile not found"
 	exit 1
@@ -704,6 +709,7 @@ mysqlbug
 mysqldumpslow
 mysqlhotcopy
 mysqltest
+mysqlsh
 mysqltest_embedded)
 
 DEFAULTSFILE="--defaults-file=$SBDIR/my.sandbox.cnf"

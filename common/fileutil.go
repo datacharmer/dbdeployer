@@ -32,21 +32,21 @@ import (
 
 type SandboxUser struct {
 	Description string `json:"description"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Privileges string `json:"privileges"`
+	Username    string `json:"username"`
+	Password    string `json:"password"`
+	Privileges  string `json:"privileges"`
 }
 
 type SandboxDescription struct {
-	Basedir string `json:"basedir"`
-	SBType  string `json:"type"` // single multi master-slave group
-	Version string `json:"version"`
-	Port    []int  `json:"port"`
-	Nodes   int    `json:"nodes"`
-	NodeNum int    `json:"node_num"`
+	Basedir           string `json:"basedir"`
+	SBType            string `json:"type"` // single multi master-slave group
+	Version           string `json:"version"`
+	Port              []int  `json:"port"`
+	Nodes             int    `json:"nodes"`
+	NodeNum           int    `json:"node_num"`
 	DbDeployerVersion string `json:"dbdeployer-version"`
-	Timestamp string `json:"timestamp"`
-	CommandLine string `json:"command-line"`
+	Timestamp         string `json:"timestamp"`
+	CommandLine       string `json:"command-line"`
 }
 
 type KeyValue struct {
@@ -214,7 +214,7 @@ func ExecExists(filename string) bool {
 
 func FindInPath(filename string) string {
 	path, _ := exec.LookPath(filename)
-    return path
+	return path
 }
 
 func Run_cmd_with_args(c string, args []string) (error, string) {
@@ -327,3 +327,10 @@ func Rmdir(dir_name string) {
 	}
 }
 
+func RmdirAll(dir_name string) {
+	err := os.RemoveAll(dir_name)
+	if err != nil {
+		fmt.Printf("Error deep-removing directory %s\n%s\n", dir_name, err)
+		os.Exit(1)
+	}
+}

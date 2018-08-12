@@ -1,3 +1,6 @@
+1.9.0	12-Aug-2018
+	- Implemented Issue#31 "Add feature to extract and merge a mysql-shell
+	  tarball into a regular one"
 1.8.4	11-Aug-2018
 	- Fixed Issue #30 "--rpl-user and --db-user should not allow root"
 1.8.3	05-Aug-2018
