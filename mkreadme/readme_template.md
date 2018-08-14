@@ -5,6 +5,8 @@ This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox),
 
 Documentation updated for version {{.Version}} ({{.Date}})
 
+[![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
+
 ## Installation
 
 The installation is simple, as the only thing you will need is a binary executable for your operating system.
