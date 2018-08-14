@@ -38,12 +38,12 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"fmt"
+	"github.com/datacharmer/dbdeployer/common"
 	"io"
 	"os"
 	"path"
 	"strconv"
 	"strings"
-	"github.com/datacharmer/dbdeployer/common"
 )
 
 const (
@@ -124,41 +124,41 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 		}
 		// cond_print(fmt.Sprintf("%#v\n", header), true, CHATTY)
 		/*
-		tar.Header{
-			Typeflag:0x30, 
-			Name:"mysql-8.0.11-macos10.13-x86_64/docs/INFO_SRC", 
-			Linkname:"", 
-			Size:185, 
-			Mode:420, 
-			Uid:7161, 
-			Gid:10, 
-			Uname:"pb2user", 
-			Gname:"owner", 
-			ModTime:time.Time{wall:0x0, ext:63658769207, loc:(*time.Location)(0x13730e0)}, 
-			AccessTime:time.Time{wall:0x0, ext:0, loc:(*time.Location)(nil)}, 
-			ChangeTime:time.Time{wall:0x0, ext:0, loc:(*time.Location)(nil)}, 
-			Devmajor:0, Devminor:0, 
-			Xattrs:map[string]string(nil), 
-			PAXRecords:map[string]string(nil), 
-			Format:0}
-		tar.Header{
-			Typeflag:0x32, 
-			Name:"mysql-8.0.11-macos10.13-x86_64/lib/libssl.dylib", 
-			Linkname:"libssl.1.0.0.dylib", 
-			Size:0, 
-			Mode:493, 
-			Uid:7161, 
-			Gid:10, 
-			Uname:"pb2user", 
-			Gname:"owner", 
-			ModTime:time.Time{wall:0x0, ext:63658772525, loc:(*time.Location)(0x13730e0)}, 
-			AccessTime:time.Time{wall:0x0, ext:0, loc:(*time.Location)(nil)}, 
-			ChangeTime:time.Time{wall:0x0, ext:0, loc:(*time.Location)(nil)}, 
-			Devmajor:0, 
-			Devminor:0, 
-			Xattrs:map[string]string(nil), 
-			PAXRecords:map[string]string(nil), 
-			Format:0}
+			tar.Header{
+				Typeflag:0x30,
+				Name:"mysql-8.0.11-macos10.13-x86_64/docs/INFO_SRC",
+				Linkname:"",
+				Size:185,
+				Mode:420,
+				Uid:7161,
+				Gid:10,
+				Uname:"pb2user",
+				Gname:"owner",
+				ModTime:time.Time{wall:0x0, ext:63658769207, loc:(*time.Location)(0x13730e0)},
+				AccessTime:time.Time{wall:0x0, ext:0, loc:(*time.Location)(nil)},
+				ChangeTime:time.Time{wall:0x0, ext:0, loc:(*time.Location)(nil)},
+				Devmajor:0, Devminor:0,
+				Xattrs:map[string]string(nil),
+				PAXRecords:map[string]string(nil),
+				Format:0}
+			tar.Header{
+				Typeflag:0x32,
+				Name:"mysql-8.0.11-macos10.13-x86_64/lib/libssl.dylib",
+				Linkname:"libssl.1.0.0.dylib",
+				Size:0,
+				Mode:493,
+				Uid:7161,
+				Gid:10,
+				Uname:"pb2user",
+				Gname:"owner",
+				ModTime:time.Time{wall:0x0, ext:63658772525, loc:(*time.Location)(0x13730e0)},
+				AccessTime:time.Time{wall:0x0, ext:0, loc:(*time.Location)(nil)},
+				ChangeTime:time.Time{wall:0x0, ext:0, loc:(*time.Location)(nil)},
+				Devmajor:0,
+				Devminor:0,
+				Xattrs:map[string]string(nil),
+				PAXRecords:map[string]string(nil),
+				Format:0}
 		*/
 		filemode := os.FileMode(header.Mode)
 		filename := sanitizedName(header.Name)
@@ -195,12 +195,12 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 			}
 		case tar.TypeSymlink:
 			if header.Linkname != "" {
-				cond_print(fmt.Sprintf ("%s -> %s",filename, header.Linkname), true, CHATTY)
-				err := os.Symlink( header.Linkname, filename)
+				cond_print(fmt.Sprintf("%s -> %s", filename, header.Linkname), true, CHATTY)
+				err := os.Symlink(header.Linkname, filename)
 				if err != nil {
-					common.Exit(1, 
-						fmt.Sprintf("%#v",header),
-						fmt.Sprintf("# ERROR: %s",err))
+					common.Exit(1,
+						fmt.Sprintf("%#v", header),
+						fmt.Sprintf("# ERROR: %s", err))
 				}
 			} else {
 				common.Exit(1, fmt.Sprintf("File %s is a symlink, but no link information was provided\n", filename))

@@ -26,39 +26,39 @@ import (
 )
 
 type DbdeployerDefaults struct {
-	Version                        string `json:"version"`
-	SandboxHome                    string `json:"sandbox-home"`
-	SandboxBinary                  string `json:"sandbox-binary"`
-	UseSandboxCatalog			   bool   `json:"use-sandbox-catalog"`
+	Version           string `json:"version"`
+	SandboxHome       string `json:"sandbox-home"`
+	SandboxBinary     string `json:"sandbox-binary"`
+	UseSandboxCatalog bool   `json:"use-sandbox-catalog"`
 	//UseConcurrency    			   bool   `json:"use-concurrency"`
-	MasterSlaveBasePort            int    `json:"master-slave-base-port"`
-	GroupReplicationBasePort       int    `json:"group-replication-base-port"`
-	GroupReplicationSpBasePort     int    `json:"group-replication-sp-base-port"`
-	FanInReplicationBasePort       int    `json:"fan-in-replication-base-port"`
-	AllMastersReplicationBasePort  int    `json:"all-masters-replication-base-port"`
-	MultipleBasePort               int    `json:"multiple-base-port"`
+	MasterSlaveBasePort           int `json:"master-slave-base-port"`
+	GroupReplicationBasePort      int `json:"group-replication-base-port"`
+	GroupReplicationSpBasePort    int `json:"group-replication-sp-base-port"`
+	FanInReplicationBasePort      int `json:"fan-in-replication-base-port"`
+	AllMastersReplicationBasePort int `json:"all-masters-replication-base-port"`
+	MultipleBasePort              int `json:"multiple-base-port"`
 	// GaleraBasePort                 int    `json:"galera-base-port"`
 	// PXCBasePort                    int    `json:"pxc-base-port"`
 	// NdbBasePort                    int    `json:"ndb-base-port"`
-	GroupPortDelta                 int    `json:"group-port-delta"`
-	MysqlXPortDelta                int    `json:"mysqlx-port-delta"`
-	MasterName                     string `json:"master-name"`
-	MasterAbbr                     string `json:"master-abbr"`
-	NodePrefix                     string `json:"node-prefix"`
-	SlavePrefix                    string `json:"slave-prefix"`
-	SlaveAbbr                      string `json:"slave-abbr"`
-	SandboxPrefix                  string `json:"sandbox-prefix"`
-	MasterSlavePrefix              string `json:"master-slave-prefix"`
-	GroupPrefix                    string `json:"group-prefix"`
-	GroupSpPrefix                  string `json:"group-sp-prefix"`
-	MultiplePrefix                 string `json:"multiple-prefix"`
-	FanInPrefix                    string `json:"fan-in-prefix"`
-	AllMastersPrefix               string `json:"all-masters-prefix"`
-	ReservedPorts                  []int `json:"reserved-ports"`
+	GroupPortDelta    int    `json:"group-port-delta"`
+	MysqlXPortDelta   int    `json:"mysqlx-port-delta"`
+	MasterName        string `json:"master-name"`
+	MasterAbbr        string `json:"master-abbr"`
+	NodePrefix        string `json:"node-prefix"`
+	SlavePrefix       string `json:"slave-prefix"`
+	SlaveAbbr         string `json:"slave-abbr"`
+	SandboxPrefix     string `json:"sandbox-prefix"`
+	MasterSlavePrefix string `json:"master-slave-prefix"`
+	GroupPrefix       string `json:"group-prefix"`
+	GroupSpPrefix     string `json:"group-sp-prefix"`
+	MultiplePrefix    string `json:"multiple-prefix"`
+	FanInPrefix       string `json:"fan-in-prefix"`
+	AllMastersPrefix  string `json:"all-masters-prefix"`
+	ReservedPorts     []int  `json:"reserved-ports"`
 	// GaleraPrefix                   string `json:"galera-prefix"`
 	// PxcPrefix                      string `json:"pxc-prefix"`
 	// NdbPrefix                      string `json:"ndb-prefix"`
-	Timestamp					   string `json:"timestamp"`
+	Timestamp string `json:"timestamp"`
 }
 
 const (
@@ -72,8 +72,8 @@ var (
 	ConfigurationDir        string = home_dir + "/.dbdeployer"
 	ConfigurationFile       string = ConfigurationDir + "/config.json"
 	CustomConfigurationFile string = ""
-	SandboxRegistry			string = ConfigurationDir + "/sandboxes.json"
-	SandboxRegistryLock		string = ConfigurationDir + "/sandboxes.lock"
+	SandboxRegistry         string = ConfigurationDir + "/sandboxes.json"
+	SandboxRegistryLock     string = ConfigurationDir + "/sandboxes.lock"
 	StarLine                string = strings.Repeat("*", LineLength)
 	DashLine                string = strings.Repeat("-", LineLength)
 	HashLine                string = strings.Repeat("#", LineLength)
@@ -82,14 +82,14 @@ var (
 	// meaning that we're using the command line interface of dbdeployer.
 	// It is used to make decisions whether to write messages to the screen
 	// when calling sandbox creation functions from other apps.
-	UsingDbDeployer			bool = false
+	UsingDbDeployer bool = false
 
 	factoryDefaults = DbdeployerDefaults{
-		Version:                       common.CompatibleVersion,
-		SandboxHome:                   home_dir + "/sandboxes",
-		SandboxBinary:                 home_dir + "/opt/mysql",
+		Version:       common.CompatibleVersion,
+		SandboxHome:   home_dir + "/sandboxes",
+		SandboxBinary: home_dir + "/opt/mysql",
 
-		UseSandboxCatalog:			   true,
+		UseSandboxCatalog: true,
 		//UseConcurrency :			   true,
 		MasterSlaveBasePort:           11000,
 		GroupReplicationBasePort:      12000,
@@ -100,21 +100,21 @@ var (
 		// GaleraBasePort:                17000,
 		// PxcBasePort:                   18000,
 		// NdbBasePort:                   19000,
-		GroupPortDelta:                125,
-		MysqlXPortDelta:               10000,
-		MasterName:                    "master",
-		MasterAbbr:                    "m",
-		NodePrefix:                    "node",
-		SlavePrefix:                   "slave",
-		SlaveAbbr:                     "s",
-		SandboxPrefix:                 "msb_",
-		MasterSlavePrefix:             "rsandbox_",
-		GroupPrefix:                   "group_msb_",
-		GroupSpPrefix:                 "group_sp_msb_",
-		MultiplePrefix:                "multi_msb_",
-		FanInPrefix:                   "fan_in_msb_",
-		AllMastersPrefix:              "all_masters_msb_",
-		ReservedPorts:				   []int{1186, 3306, 33060},
+		GroupPortDelta:    125,
+		MysqlXPortDelta:   10000,
+		MasterName:        "master",
+		MasterAbbr:        "m",
+		NodePrefix:        "node",
+		SlavePrefix:       "slave",
+		SlaveAbbr:         "s",
+		SandboxPrefix:     "msb_",
+		MasterSlavePrefix: "rsandbox_",
+		GroupPrefix:       "group_msb_",
+		GroupSpPrefix:     "group_sp_msb_",
+		MultiplePrefix:    "multi_msb_",
+		FanInPrefix:       "fan_in_msb_",
+		AllMastersPrefix:  "all_masters_msb_",
+		ReservedPorts:     []int{1186, 3306, 33060},
 		// GaleraPrefix:                  "galera_msb_",
 		// NdbPrefix:                     "ndb_msb_",
 		// PxcPrefix:                     "pxc_msb_",
@@ -163,18 +163,18 @@ func WriteDefaultsFile(filename string, defaults DbdeployerDefaults) {
 }
 
 func expand_environment_variables(defaults DbdeployerDefaults) DbdeployerDefaults {
-    defaults.SandboxHome = common.ReplaceEnvVar(defaults.SandboxHome, "HOME")
-    defaults.SandboxHome = common.ReplaceEnvVar(defaults.SandboxHome, "PWD")
-    defaults.SandboxBinary = common.ReplaceEnvVar(defaults.SandboxBinary, "HOME")
-    defaults.SandboxBinary = common.ReplaceEnvVar(defaults.SandboxBinary, "PWD")
+	defaults.SandboxHome = common.ReplaceEnvVar(defaults.SandboxHome, "HOME")
+	defaults.SandboxHome = common.ReplaceEnvVar(defaults.SandboxHome, "PWD")
+	defaults.SandboxBinary = common.ReplaceEnvVar(defaults.SandboxBinary, "HOME")
+	defaults.SandboxBinary = common.ReplaceEnvVar(defaults.SandboxBinary, "PWD")
 	return defaults
 }
 
 func replace_literal_env_values(defaults DbdeployerDefaults) DbdeployerDefaults {
-    defaults.SandboxHome = common.ReplaceLiteralEnvVar(defaults.SandboxHome, "HOME")
-    defaults.SandboxHome = common.ReplaceLiteralEnvVar(defaults.SandboxHome, "PWD")
-    defaults.SandboxBinary = common.ReplaceLiteralEnvVar(defaults.SandboxBinary, "HOME")
-    defaults.SandboxBinary = common.ReplaceLiteralEnvVar(defaults.SandboxBinary, "PWD")
+	defaults.SandboxHome = common.ReplaceLiteralEnvVar(defaults.SandboxHome, "HOME")
+	defaults.SandboxHome = common.ReplaceLiteralEnvVar(defaults.SandboxHome, "PWD")
+	defaults.SandboxBinary = common.ReplaceLiteralEnvVar(defaults.SandboxBinary, "HOME")
+	defaults.SandboxBinary = common.ReplaceLiteralEnvVar(defaults.SandboxBinary, "PWD")
 	return defaults
 }
 
@@ -209,7 +209,7 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		// check_int("pxc-base-port", nd.PxcBasePort, min_port_value, max_port_value) &&
 		// check_int("ndb-base-port", nd.NdbBasePort, min_port_value, max_port_value) &&
 		check_int("group-port-delta", nd.GroupPortDelta, 101, 299)
-		check_int("mysqlx-port-delta", nd.MysqlXPortDelta, 2000, 15000)
+	check_int("mysqlx-port-delta", nd.MysqlXPortDelta, 2000, 15000)
 	if !all_ints {
 		return false
 	}

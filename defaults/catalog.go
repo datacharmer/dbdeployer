@@ -19,24 +19,25 @@ import (
 	"fmt"
 	"os"
 	//"strings"
-	"time"
 	"encoding/json"
 	"github.com/datacharmer/dbdeployer/common"
+	"time"
 )
 
 type SandboxItem struct {
-	Origin string `json:"origin"`
-	SBType  string `json:"type"` // single multi master-slave group all-masters fan-in
-	Version string `json:"version"`
-	Port    []int  `json:"port"`
-	Nodes   []string   `json:"nodes"`
-	Destination string  `json:"destination"`
-	DbDeployerVersion string `json:"dbdeployer-version"`
-	Timestamp string `json:"timestamp"`
-	CommandLine string `json:"command-line"`
+	Origin            string   `json:"origin"`
+	SBType            string   `json:"type"` // single multi master-slave group all-masters fan-in
+	Version           string   `json:"version"`
+	Port              []int    `json:"port"`
+	Nodes             []string `json:"nodes"`
+	Destination       string   `json:"destination"`
+	DbDeployerVersion string   `json:"dbdeployer-version"`
+	Timestamp         string   `json:"timestamp"`
+	CommandLine       string   `json:"command-line"`
 }
 
 type SandboxCatalog map[string]SandboxItem
+
 const (
 	timeout = 5
 )
@@ -56,7 +57,7 @@ func setLock(label string) bool {
 		elapsed += 1
 		time.Sleep(1000 * time.Millisecond)
 		if elapsed > timeout {
-			return false	
+			return false
 		}
 	}
 	common.WriteString(label, lock_file)
@@ -117,13 +118,13 @@ func UpdateCatalog(sb_name string, details SandboxItem) {
 		if current == nil {
 			current = make(SandboxCatalog)
 		}
-		current[sb_name] = details	
+		current[sb_name] = details
 		WriteCatalog(current)
 		releaseLock()
 		// fmt.Printf("+unlocked\n")
 	} else {
 		fmt.Printf("%s\n", HashLine)
-		fmt.Printf("# Could not get lock on %s\n", SandboxRegistryLock)	
+		fmt.Printf("# Could not get lock on %s\n", SandboxRegistryLock)
 		fmt.Printf("%s\n", HashLine)
 	}
 }
@@ -148,7 +149,7 @@ func DeleteFromCatalog(sb_name string) {
 		releaseLock()
 	} else {
 		fmt.Printf("%s\n", HashLine)
-		fmt.Printf("# Could not get lock on %s\n", SandboxRegistryLock)	
+		fmt.Printf("# Could not get lock on %s\n", SandboxRegistryLock)
 		fmt.Printf("%s\n", HashLine)
 	}
 }

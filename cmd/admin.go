@@ -33,8 +33,8 @@ func UnpreserveSandbox(sandbox_dir, sandbox_name string) {
 		preserve = full_path + "/no_clear"
 	}
 	if !common.ExecExists(preserve) {
-		fmt.Printf("Sandbox %s is not locked\n",sandbox_name)
-		return	
+		fmt.Printf("Sandbox %s is not locked\n", sandbox_name)
+		return
 	}
 	is_multiple := true
 	clear := full_path + "/clear_all"
@@ -51,16 +51,14 @@ func UnpreserveSandbox(sandbox_dir, sandbox_name string) {
 	}
 	err := os.Remove(clear)
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("Error while removing %s \n%s",clear, err))
+		common.Exit(1, fmt.Sprintf("Error while removing %s \n%s", clear, err))
 	}
 	err = os.Rename(no_clear, clear)
 	if err != nil {
 		common.Exit(1, fmt.Sprintf("Error while renaming  script\n%s", err))
 	}
-	fmt.Printf("Sandbox %s unlocked\n",sandbox_name)
+	fmt.Printf("Sandbox %s unlocked\n", sandbox_name)
 }
-
-
 
 func PreserveSandbox(sandbox_dir, sandbox_name string) {
 	full_path := sandbox_dir + "/" + sandbox_name
@@ -72,8 +70,8 @@ func PreserveSandbox(sandbox_dir, sandbox_name string) {
 		preserve = full_path + "/no_clear"
 	}
 	if common.ExecExists(preserve) {
-		fmt.Printf("Sandbox %s is already locked\n",sandbox_name)
-		return	
+		fmt.Printf("Sandbox %s is already locked\n", sandbox_name)
+		return
 	}
 	is_multiple := true
 	clear := full_path + "/clear_all"
@@ -94,27 +92,27 @@ func PreserveSandbox(sandbox_dir, sandbox_name string) {
 	}
 	err := os.Rename(clear, no_clear)
 	if err != nil {
-		common.Exit(1, fmt.Sprintf( "Error while renaming script.\n%s",err))
+		common.Exit(1, fmt.Sprintf("Error while renaming script.\n%s", err))
 	}
 	template := sandbox.SingleTemplates["sb_locked_template"].Contents
 	var data = common.Smap{
-		"TemplateName" : "sb_locked_template",
-		"SandboxDir" : sandbox_name,
-		"AppVersion" : common.VersionDef,
-		"Copyright" : sandbox.Copyright,
-		"ClearCmd" : clear_cmd,
-		"NoClearCmd" : no_clear_cmd,
+		"TemplateName": "sb_locked_template",
+		"SandboxDir":   sandbox_name,
+		"AppVersion":   common.VersionDef,
+		"Copyright":    sandbox.Copyright,
+		"ClearCmd":     clear_cmd,
+		"NoClearCmd":   no_clear_cmd,
 	}
 	template = common.TrimmedLines(template)
 	new_clear_message := common.Tprintf(template, data)
 	common.WriteString(new_clear_message, clear)
 	os.Chmod(clear, 0744)
-	fmt.Printf("Sandbox %s locked\n",sandbox_name)
+	fmt.Printf("Sandbox %s locked\n", sandbox_name)
 }
 
 func LockSandbox(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
-		common.Exit(1, 
+		common.Exit(1,
 			"'lock' requires the name of a sandbox (or ALL)",
 			"Example: dbdeployer admin lock msb_5_7_21")
 	}
@@ -135,7 +133,7 @@ func LockSandbox(cmd *cobra.Command, args []string) {
 
 func UnlockSandbox(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
-		common.Exit(1, 
+		common.Exit(1,
 			"'unlock' requires the name of a sandbox (or ALL)",
 			"Example: dbdeployer admin unlock msb_5_7_21")
 	}
@@ -154,13 +152,12 @@ func UnlockSandbox(cmd *cobra.Command, args []string) {
 	}
 }
 
-
 var (
 	adminCmd = &cobra.Command{
-		Use:   "admin",
-		Short: "sandbox management tasks",
+		Use:     "admin",
+		Short:   "sandbox management tasks",
 		Aliases: []string{"manage"},
-		Long: `Runs commands related to the administration of sandboxes.`,
+		Long:    `Runs commands related to the administration of sandboxes.`,
 	}
 
 	adminLockCmd = &cobra.Command{
@@ -177,8 +174,8 @@ Users can still delete locked sandboxes manually.`,
 		Use:     "unlock sandbox_name",
 		Aliases: []string{"unpreserve"},
 		Short:   "Unlocks a sandbox",
-		Long: `Removes lock, allowing deletion of a given sandbox`,
-		Run: UnlockSandbox,
+		Long:    `Removes lock, allowing deletion of a given sandbox`,
+		Run:     UnlockSandbox,
 	}
 )
 

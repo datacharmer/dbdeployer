@@ -17,12 +17,12 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"strings"
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
+	"os"
+	"strings"
 )
 
 type TemplateInfo struct {
@@ -35,7 +35,7 @@ type TemplateInfo struct {
 func FindTemplate(requested string) (group, template_name, contents string) {
 	for name, tvar := range sandbox.AllTemplates {
 		for k, v := range tvar {
-			if k == requested || k == requested + "_template" {
+			if k == requested || k == requested+"_template" {
 				contents = v.Contents
 				group = name
 				template_name = k
@@ -142,7 +142,7 @@ func DescribeTemplate(requested string, complete_listing bool) {
 
 func ExportTemplates(cmd *cobra.Command, args []string) {
 	if len(args) < 2 {
-		common.Exit(1, 
+		common.Exit(1,
 			"The export command requires two arguments: group_name and directory_name",
 			"If group_name is 'all', it will export all groups")
 	}
@@ -159,7 +159,7 @@ func ExportTemplates(cmd *cobra.Command, args []string) {
 		common.Exit(1, fmt.Sprintf("# Directory <%s> already exists", dir_name))
 	}
 	common.Mkdir(dir_name)
-	common.WriteString(common.VersionDef, dir_name + "/version.txt")
+	common.WriteString(common.VersionDef, dir_name+"/version.txt")
 
 	found_group := false
 	found_template := false
@@ -174,7 +174,7 @@ func ExportTemplates(cmd *cobra.Command, args []string) {
 				if template_name == "" || common.Includes(name, template_name) {
 					file_name := group_dir + "/" + name
 					common.WriteString(common.TrimmedLines(template.Contents), file_name)
-					fmt.Printf("%s/%s exported\n",group_name, name)
+					fmt.Printf("%s/%s exported\n", group_name, name)
 					found_template = true
 				}
 			}
@@ -235,16 +235,16 @@ func ImportTemplates(cmd *cobra.Command, args []string) {
 	}
 	version_file := dir_name + "/version.txt"
 	if !common.FileExists(version_file) {
-		common.Exit(1, fmt.Sprintf("File %s not found. Unable to validate templates.",version_file))
+		common.Exit(1, fmt.Sprintf("File %s not found. Unable to validate templates.", version_file))
 	}
 	template_version := strings.TrimSpace(common.SlurpAsString(version_file))
 	version_list := common.VersionToList(template_version)
 	// fmt.Printf("%v\n",version_list)
 	compatible_version_list := common.VersionToList(common.CompatibleVersion)
 	if version_list[0] < 0 {
-		common.Exit(1, fmt.Sprintf("Invalid version (%s) found in %s",template_version, version_file))
+		common.Exit(1, fmt.Sprintf("Invalid version (%s) found in %s", template_version, version_file))
 	}
-	if !common.GreaterOrEqualVersion( template_version, compatible_version_list) {
+	if !common.GreaterOrEqualVersion(template_version, compatible_version_list) {
 		common.Exit(1, fmt.Sprintf("Templates are for version %s. The minimum compatible version is %s", template_version, common.CompatibleVersion))
 	}
 	found_group := false

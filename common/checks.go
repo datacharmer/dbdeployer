@@ -119,11 +119,11 @@ func GetInstalledPorts(sandbox_home string) []int {
 }
 
 /* Checks that the extracted tarball directory
-   contains one or more files expected for the current 
+   contains one or more files expected for the current
    operating system.
    It prevents simple errors like :
    * using a Linux tarball on a Mac or vice-versa
-   * using a source or test tarball instead of a binaries one. 
+   * using a source or test tarball instead of a binaries one.
 */
 func CheckTarballOperatingSystem(basedir string) {
 	currentOs := runtime.GOOS
@@ -300,7 +300,7 @@ func GreaterOrEqualVersion(version string, compared_to []int) bool {
 	return sversion >= scompare
 }
 
-// Finds the first free port available, starting at 
+// Finds the first free port available, starting at
 // requested_port.
 // used_ports is a map of ports already used by other sandboxes.
 // This function should not be used alone, but through FindFreePort
@@ -326,7 +326,7 @@ func FindFreePortSingle(requested_port int, used_ports PortMap) int {
 	return found_port
 }
 
-// Finds the a range of how_many free ports available, starting at 
+// Finds the a range of how_many free ports available, starting at
 // base_port.
 // used_ports is a map of ports already used by other sandboxes.
 // This function should not be used alone, but through FindFreePort
@@ -370,10 +370,10 @@ func FindFreePortRange(base_port int, used_ports PortMap, how_many int) int {
 	return found_port
 }
 
-// Finds the a range of how_many free ports available, starting at 
+// Finds the a range of how_many free ports available, starting at
 // base_port.
 // installed_ports is a slice of ports already used by other sandboxes.
-// Calls either FindFreePortRange or FindFreePortSingle, depending on the 
+// Calls either FindFreePortRange or FindFreePortSingle, depending on the
 // amount of ports requested
 // Returns the first port of the requested range
 func FindFreePort(base_port int, installed_ports []int, how_many int) int {

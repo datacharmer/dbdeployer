@@ -21,15 +21,15 @@ import (
 )
 
 type path_info struct {
-	value string
-	env_var string
+	value    string
+	env_var  string
 	expected string
 }
 
 func TestReplaceLiteralHome(t *testing.T) {
 	os.Setenv("HOME", "/home/Groucho")
 	os.Setenv("PWD", "/var/lib/MarxBrothers")
-	var  paths = []path_info{
+	var paths = []path_info{
 		{"/home/Groucho/", "HOME", "$HOME/"},
 		{"/home/Groucho/path1/path2", "HOME", "$HOME/path1/path2"},
 		{"/home/Harpo/path1/path2", "HOME", "/home/Harpo/path1/path2"},
@@ -42,9 +42,9 @@ func TestReplaceLiteralHome(t *testing.T) {
 		expected := p.expected
 		canary := ReplaceLiteralEnvVar(value, env_var)
 		if expected == canary {
-			t.Logf("ok    %-35s %-10s =--> %-25s\n", value, "(" + env_var + ")", expected)
+			t.Logf("ok    %-35s %-10s =--> %-25s\n", value, "("+env_var+")", expected)
 		} else {
-			t.Logf("NOT OK %-35s %-10s =--> %-25s\n", value, "(" + env_var + ")", expected)
+			t.Logf("NOT OK %-35s %-10s =--> %-25s\n", value, "("+env_var+")", expected)
 			t.Fail()
 		}
 	}
@@ -54,9 +54,9 @@ func TestReplaceLiteralHome(t *testing.T) {
 		expected := p.value
 		canary := ReplaceEnvVar(value, env_var)
 		if expected == canary {
-			t.Logf("ok    %-35s %-10s --=> %-25s\n", value, "(" + env_var + ")", expected)
+			t.Logf("ok    %-35s %-10s --=> %-25s\n", value, "("+env_var+")", expected)
 		} else {
-			t.Logf("NOT OK %-35s %-10s --=> %-25s\n", value, "(" + env_var + ")", expected)
+			t.Logf("NOT OK %-35s %-10s --=> %-25s\n", value, "("+env_var+")", expected)
 			t.Fail()
 		}
 	}

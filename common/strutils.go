@@ -217,6 +217,6 @@ func Exit(exit_code int, messages ...string) {
 }
 
 func RemoveTrailingSlash(s string) string {
-    re := regexp.MustCompile(`/$`)
+	re := regexp.MustCompile(`/$`)
 	return re.ReplaceAllString(s, "")
 }

@@ -19,10 +19,10 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
+	"github.com/datacharmer/dbdeployer/common"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
-	"github.com/datacharmer/dbdeployer/common"
+	"strings"
 )
 
 func WriteApi(show_hidden bool) {
@@ -39,18 +39,18 @@ func WriteApi(show_hidden bool) {
 func WriteBashCompletion() {
 	completion_file := "dbdeployer_completion.sh"
 	rootCmd.GenBashCompletionFile(completion_file)
-	fmt.Printf("Copy %s to the completion directory (/etc/bash_completion.d or /usr/local/etc/bash_completion.d)\n",completion_file)
+	fmt.Printf("Copy %s to the completion directory (/etc/bash_completion.d or /usr/local/etc/bash_completion.d)\n", completion_file)
 
 }
 
 func WriteManPages() {
 	man_dir := "man_pages"
 	if common.DirExists(man_dir) {
-		common.Exit(1, fmt.Sprintf("manual pages directory '%s' exists already.",man_dir))
+		common.Exit(1, fmt.Sprintf("manual pages directory '%s' exists already.", man_dir))
 	}
 	common.Mkdir(man_dir)
 	header := &doc.GenManHeader{
-		Title: "dbdeployer",
+		Title:   "dbdeployer",
 		Section: "1",
 	}
 	err := doc.GenManTree(rootCmd, header, man_dir)
@@ -63,7 +63,7 @@ func WriteManPages() {
 func WriteMarkdownPages() {
 	md_dir := "markdown_pages"
 	if common.DirExists(md_dir) {
-		common.Exit(1, fmt.Sprintf("Markdown pages directory '%s' exists already.",md_dir))
+		common.Exit(1, fmt.Sprintf("Markdown pages directory '%s' exists already.", md_dir))
 	}
 	common.Mkdir(md_dir)
 	err := doc.GenMarkdownTree(rootCmd, md_dir)
@@ -77,7 +77,7 @@ func WriteMarkdownPages() {
 func WriteRstPages() {
 	rst_dir := "rst_pages"
 	if common.DirExists(rst_dir) {
-		common.Exit(1, fmt.Sprintf("Restructured Text pages directory '%s' exists already.",rst_dir))
+		common.Exit(1, fmt.Sprintf("Restructured Text pages directory '%s' exists already.", rst_dir))
 	}
 	common.Mkdir(rst_dir)
 	err := doc.GenReSTTree(rootCmd, rst_dir)
@@ -89,12 +89,12 @@ func WriteRstPages() {
 
 func MakeDocumentation(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
-	api, _  := flags.GetBool("api")
-	show_hidden, _  := flags.GetBool("show-hidden")
-	bash_completion, _  := flags.GetBool("bash-completion")
-	man_pages, _  := flags.GetBool("man-pages")
-	md_pages, _  := flags.GetBool("markdown-pages")
-	rst_pages, _  := flags.GetBool("rst-pages")
+	api, _ := flags.GetBool("api")
+	show_hidden, _ := flags.GetBool("show-hidden")
+	bash_completion, _ := flags.GetBool("bash-completion")
+	man_pages, _ := flags.GetBool("man-pages")
+	md_pages, _ := flags.GetBool("markdown-pages")
+	rst_pages, _ := flags.GetBool("rst-pages")
 	if (man_pages && api) || (api && bash_completion) || (api && md_pages) || (api && rst_pages) {
 		common.Exit(1, "Choose one option only")
 	}
@@ -135,27 +135,27 @@ func traverse(cmd *cobra.Command, parent string, level int, api, show_hidden boo
 		}
 		size := len(c.Commands())
 		if api {
-			if size > 0  || level == 0 {
-				fmt.Printf("\n##%s%s\n", parent + " " + c.Name(), hidden_flag)
+			if size > 0 || level == 0 {
+				fmt.Printf("\n##%s%s\n", parent+" "+c.Name(), hidden_flag)
 			}
 			fmt.Printf("{{dbdeployer%s %s -h}}\n", parent, c.Name())
 		} else {
 			fmt.Printf("%s %-20s%s\n", indent, c.Name(), hidden_flag)
 		}
 		if size > 0 {
-			traverse(c, parent + " " + c.Name(), level + 1, api, show_hidden)
+			traverse(c, parent+" "+c.Name(), level+1, api, show_hidden)
 		}
 	}
 }
 
 var treeCmd = &cobra.Command{
-	Use:   "tree",
-	Short: "shows command tree and other docs",
+	Use:     "tree",
+	Short:   "shows command tree and other docs",
 	Aliases: []string{"docs"},
 	Long: `This command is only used to create API documentation. 
 You can, however, use it to show the command structure at a glance.`,
-	Hidden : true,
-	Run: MakeDocumentation,
+	Hidden: true,
+	Run:    MakeDocumentation,
 }
 
 func init() {

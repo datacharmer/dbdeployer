@@ -48,7 +48,7 @@ func TrimmedLines(s string) string {
 // Spaces are added between operands when neither is a string.
 // Based on code from https://play.golang.org/p/COHKlB2RML
 func Tprintf(tmpl string, data Smap) string {
-	
+
 	// Adds timestamp and version info
 	timestamp := time.Now()
 	_, time_stamp_exists := data["DateTime"]

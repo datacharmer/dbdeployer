@@ -26,12 +26,10 @@ import (
 	"os"
 )
 
-
-
 func DeleteSandbox(cmd *cobra.Command, args []string) {
 	var exec_lists []concurrent.ExecutionList
 	if len(args) < 1 {
-		common.Exit(1, 
+		common.Exit(1,
 			"Sandbox name (or \"ALL\") required.",
 			"You can run 'dbdeployer sandboxes for a list of available deployments'")
 	}
@@ -72,10 +70,10 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 		}
 		fmt.Printf("%s/%s %s\n", sandbox_dir, sb.SandboxName, locked)
 	}
-	 if !unlocked_found {
-	 	fmt.Printf("No unlocked sandboxes found.\n")
+	if !unlocked_found {
+		fmt.Printf("No unlocked sandboxes found.\n")
 		return
-	 }
+	}
 	if confirm {
 		fmt.Printf("Do you confirm? y/[N] ")
 
@@ -94,7 +92,7 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 	}
 	for _, sb := range deletion_list {
 		if sb.Locked {
-			fmt.Printf("Sandbox %s is locked\n",sb.SandboxName)
+			fmt.Printf("Sandbox %s is locked\n", sb.SandboxName)
 		} else {
 			exec_list := sandbox.RemoveSandbox(sandbox_dir, sb.SandboxName, run_concurrently)
 			for _, list := range exec_list {

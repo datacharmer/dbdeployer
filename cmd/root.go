@@ -49,7 +49,7 @@ func Execute() {
 	}
 	common.CommandLineArgs = cl
 	if err := rootCmd.Execute(); err != nil {
-		common.Exit(1, fmt.Sprintf("%s",err))
+		common.Exit(1, fmt.Sprintf("%s", err))
 	}
 }
 

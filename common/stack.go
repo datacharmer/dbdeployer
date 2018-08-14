@@ -3,13 +3,13 @@ package common
 // Taken from https://gist.github.com/bemasher/1777766
 
 type Stack struct {
-	top *Element
+	top  *Element
 	size int
 }
 
 type Element struct {
 	value interface{} // All types satisfy the empty interface, so we can store anything here.
-	next *Element
+	next  *Element
 }
 
 // Return the stack's length
@@ -34,4 +34,3 @@ func (s *Stack) Pop() (value interface{}) {
 	}
 	return nil
 }
-

@@ -16,16 +16,16 @@
 package concurrent
 
 import (
-    "fmt"
-    "os"
-    "os/exec"
-    "sync"
+	"fmt"
+	"os"
+	"os/exec"
+	"sync"
 )
 
 type CommonChan chan *exec.Cmd
 
 type ExecCommand struct {
-	Cmd string
+	Cmd  string
 	Args []string
 }
 
@@ -33,20 +33,19 @@ type ExecCommands []ExecCommand
 
 type ExecutionList struct {
 	Priority int
-	Command ExecCommand
+	Command  ExecCommand
 }
 
-var DebugConcurrency bool 
-var VerboseConcurrency bool 
+var DebugConcurrency bool
+var VerboseConcurrency bool
 
-
-func add_task (num int, wg *sync.WaitGroup, tasks CommonChan, cmd string, args []string) {
+func add_task(num int, wg *sync.WaitGroup, tasks CommonChan, cmd string, args []string) {
 	wg.Add(1)
 	go start_task(num, wg, tasks)
-    tasks <- exec.Command(cmd, args...)
+	tasks <- exec.Command(cmd, args...)
 }
 
-func start_task (num int, w *sync.WaitGroup, tasks CommonChan) {
+func start_task(num int, w *sync.WaitGroup, tasks CommonChan) {
 	defer w.Done()
 	var (
 		out []byte
@@ -55,14 +54,14 @@ func start_task (num int, w *sync.WaitGroup, tasks CommonChan) {
 	for cmd := range tasks { // this will exit the loop when the channel closes
 		out, err = cmd.Output()
 		if err != nil {
-			fmt.Printf("Error executing goroutine %d : %s", num,  err)
+			fmt.Printf("Error executing goroutine %d : %s", num, err)
 			//os.Exit(1)
 		}
 		if DebugConcurrency {
 			fmt.Printf("goroutine %d command output: %s", num, string(out))
 		} else {
 			if VerboseConcurrency {
-				fmt.Printf("%s",string(out))
+				fmt.Printf("%s", string(out))
 			}
 		}
 	}
@@ -70,18 +69,18 @@ func start_task (num int, w *sync.WaitGroup, tasks CommonChan) {
 
 // Run several tasks in parallel
 
-func RunParallelTasks( priority_level int, operations ExecCommands ) {
-    tasks := make(CommonChan, 64)
+func RunParallelTasks(priority_level int, operations ExecCommands) {
+	tasks := make(CommonChan, 64)
 
-    var wg sync.WaitGroup
-	
+	var wg sync.WaitGroup
+
 	for N, ec := range operations {
-    	add_task(N, &wg, tasks, ec.Cmd, ec.Args)
+		add_task(N, &wg, tasks, ec.Cmd, ec.Args)
 	}
-    close(tasks)
-    wg.Wait()
+	close(tasks)
+	wg.Wait()
 	if VerboseConcurrency {
-    	fmt.Printf("#%d\n", priority_level)
+		fmt.Printf("#%d\n", priority_level)
 	}
 }
 
@@ -114,7 +113,7 @@ func RunParallelTasks( priority_level int, operations ExecCommands ) {
 		2            /some/other/path/start
 		2            /some/alternative/path/start
 	}
-	
+
 	run concurrently: {
 		3            /some/path/load_grants
 		3            /some/other/path/load_grants
@@ -122,7 +121,7 @@ func RunParallelTasks( priority_level int, operations ExecCommands ) {
 	}
 */
 
-func RunParallelTasksByPriority ( exec_lists []ExecutionList) {
+func RunParallelTasksByPriority(exec_lists []ExecutionList) {
 	maxPriority := 0
 	if len(exec_lists) == 0 {
 		return
@@ -133,10 +132,10 @@ func RunParallelTasksByPriority ( exec_lists []ExecutionList) {
 	for _, list := range exec_lists {
 		if list.Priority > maxPriority {
 			maxPriority = list.Priority
-		}	
+		}
 	}
-	for N := 0; N <= maxPriority ; N++ {
-		var operations ExecCommands	
+	for N := 0; N <= maxPriority; N++ {
+		var operations ExecCommands
 		for _, list := range exec_lists {
 			if list.Priority == N {
 				operations = append(operations, list.Command)
@@ -145,7 +144,7 @@ func RunParallelTasksByPriority ( exec_lists []ExecutionList) {
 		if DebugConcurrency {
 			fmt.Printf("%d %v\n", N, operations)
 		}
-		RunParallelTasks(N, operations)	
+		RunParallelTasks(N, operations)
 	}
 }
 

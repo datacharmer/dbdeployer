@@ -31,8 +31,8 @@ func ShowSandboxesFromCatalog(current_sandbox_home string, header bool) {
 	}
 	template := "%-25s %-10s %-20s %5v %-25s %s \n"
 	if header {
-		fmt.Printf( template, "name", "version", "type", "nodes", "ports", "")
-		fmt.Printf( template, "----", "-------", "-----", "-----", "-----", "")
+		fmt.Printf(template, "name", "version", "type", "nodes", "ports", "")
+		fmt.Printf(template, "----", "-------", "-----", "-----", "-----", "")
 	}
 	for name, contents := range sandbox_list {
 		ports := "["
@@ -41,13 +41,12 @@ func ShowSandboxesFromCatalog(current_sandbox_home string, header bool) {
 		}
 		ports += "]"
 		extra := ""
-		if ! strings.HasPrefix(contents.Destination, current_sandbox_home) {
+		if !strings.HasPrefix(contents.Destination, current_sandbox_home) {
 			extra = "(" + common.DirName(contents.Destination) + ")"
 		}
 		fmt.Printf(template, common.BaseName(name), contents.Version, contents.SBType, len(contents.Nodes), ports, extra)
 	}
 }
-
 
 // Shows installed sandboxes
 func ShowSandboxes(cmd *cobra.Command, args []string) {
@@ -132,12 +131,12 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 		}
 	}
 	if use_header {
-	//           1         2         3         4         5         6         7     
-	//  12345678901234567890123456789012345678901234567890123456789012345678901234567890
-	//	fan_in_msb_5_7_21         : fan-in                   5.7.21 [14001 14002 14003]	
+		//           1         2         3         4         5         6         7
+		//  12345678901234567890123456789012345678901234567890123456789012345678901234567890
+		//	fan_in_msb_5_7_21         : fan-in                   5.7.21 [14001 14002 14003]
 		template := "%-25s   %-23s %-8s %s\n"
-		fmt.Printf( template, "name",             "type",    "version", "ports")
-		fmt.Printf( template, "----------------", "-------", "-------", "-----")
+		fmt.Printf(template, "name", "type", "version", "ports")
+		fmt.Printf(template, "----------------", "-------", "-------", "-----")
 	}
 	for _, dir := range dirs {
 		fmt.Println(dir)
@@ -145,9 +144,9 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 }
 
 var sandboxesCmd = &cobra.Command{
-	Use:     "sandboxes",
-	Short:   "List installed sandboxes",
-	Long:    `Lists all sandboxes installed in $SANDBOX_HOME.
+	Use:   "sandboxes",
+	Short: "List installed sandboxes",
+	Long: `Lists all sandboxes installed in $SANDBOX_HOME.
 If sandboxes are installed in a different location, use --sandbox-home to 
 indicate where to look.
 Alternatively, using --catalog will list all sandboxes, regardless of where 

@@ -28,7 +28,7 @@ func ShowDefaults(cmd *cobra.Command, args []string) {
 
 func WriteDefaults(cmd *cobra.Command, args []string) {
 	defaults.WriteDefaultsFile(defaults.ConfigurationFile, defaults.Defaults())
-	fmt.Printf("# Default values exported to %s\n",defaults.ConfigurationFile)
+	fmt.Printf("# Default values exported to %s\n", defaults.ConfigurationFile)
 }
 
 func RemoveDefaults(cmd *cobra.Command, args []string) {
@@ -37,7 +37,7 @@ func RemoveDefaults(cmd *cobra.Command, args []string) {
 
 func LoadDefaults(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
-		common.Exit(1,"'load' requires a file name")
+		common.Exit(1, "'load' requires a file name")
 	}
 	filename := args[0]
 	new_defaults := defaults.ReadDefaultsFile(filename)
@@ -46,12 +46,12 @@ func LoadDefaults(cmd *cobra.Command, args []string) {
 	} else {
 		return
 	}
-	fmt.Printf("Defaults imported from %s into %s\n",filename, defaults.ConfigurationFile)
+	fmt.Printf("Defaults imported from %s into %s\n", filename, defaults.ConfigurationFile)
 }
 
 func ExportDefaults(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
-		common.Exit(1,"'export' requires a file name")
+		common.Exit(1, "'export' requires a file name")
 	}
 	filename := args[0]
 	if common.FileExists(filename) {
@@ -75,8 +75,8 @@ func UpdateDefaults(cmd *cobra.Command, args []string) {
 
 var (
 	defaultsCmd = &cobra.Command{
-		Use:   "defaults",
-		Short: "tasks related to dbdeployer defaults",
+		Use:     "defaults",
+		Short:   "tasks related to dbdeployer defaults",
 		Aliases: []string{"config"},
 		Long: `Runs commands related to the administration of dbdeployer,
 such as showing the defaults and saving new ones.`,
@@ -91,11 +91,11 @@ such as showing the defaults and saving new ones.`,
 	}
 
 	defaultsLoadCmd = &cobra.Command{
-		Use:   "load file_name",
-		Short: "Load defaults from file",
+		Use:     "load file_name",
+		Short:   "Load defaults from file",
 		Aliases: []string{"import"},
-		Long:  fmt.Sprintf(`Reads defaults from file and saves them to dbdeployer configuration file (%s)`, defaults.ConfigurationFile),
-		Run:   LoadDefaults,
+		Long:    fmt.Sprintf(`Reads defaults from file and saves them to dbdeployer configuration file (%s)`, defaults.ConfigurationFile),
+		Run:     LoadDefaults,
 	}
 
 	defaultsUpdateCmd = &cobra.Command{
@@ -132,7 +132,6 @@ Afterwards, dbdeployer will use the internally stored defaults.
 `,
 		Run: RemoveDefaults,
 	}
-
 )
 
 func init() {

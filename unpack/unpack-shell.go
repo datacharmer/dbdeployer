@@ -16,9 +16,9 @@ package unpack
 
 import (
 	"fmt"
+	"github.com/datacharmer/dbdeployer/common"
 	"io/ioutil"
 	"os"
-	"github.com/datacharmer/dbdeployer/common"
 )
 
 func MergeShell(tarball, basedir, destination, barename string, verbosity int) error {
@@ -84,7 +84,7 @@ func MergeShell(tarball, basedir, destination, barename string, verbosity int) e
 		source_file := fmt.Sprintf("%s/%s", bin, f.Name())
 		dest_file := fmt.Sprintf("%s/bin/%s", destination, f.Name())
 		if verbosity >= VERBOSE {
-			fmt.Printf("Copy %s %s \n", source_file, dest_file )
+			fmt.Printf("Copy %s %s \n", source_file, dest_file)
 		}
 		common.CopyFile(source_file, dest_file)
 	}
