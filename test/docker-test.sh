@@ -41,10 +41,6 @@ then
     exit 1
 fi
 
-cd test
-env GOOS=linux GOARCH=386 go build -o sort_versions.linux sort_versions.go
-cd -
-
 docker version
 go version
 
@@ -65,11 +61,14 @@ then
     docker rm -v -f $container_name
 fi
 
+TARGET_DIR=test
+
 if [ -n "$TRAVIS" ]
 then
     export RUN_CONCURRENTLY=1
     export EXIT_ON_FAILURE=1
     export ONLY_MAIN=1
+    TARGET_DIR=original_test
 fi
 
 [ -n "$INTERACTIVE" ] && DOCKER_OPTIONS="$DOCKER_OPTIONS -e INTERACTIVE=1"
@@ -78,7 +77,7 @@ fi
 [ -n "$EXIT_ON_FAILURE" ] && DOCKER_OPTIONS="$DOCKER_OPTIONS -e EXIT_ON_FAILURE=1"
 [ -n "$ONLY_MAIN" ] && DOCKER_OPTIONS="$DOCKER_OPTIONS -e ONLY_MAIN=1"
 
-[ -z "$test_command" ] && test_command="./test/functional-test.sh"
+[ -z "$test_command" ] && test_command="./$TARGET_DIR/functional-test.sh"
 
 if [ "$test_command" != "bash" ]
 then
@@ -88,7 +87,7 @@ fi
 (set -x
   docker run -ti  \
     -v $PWD/$executable:/usr/bin/dbdeployer \
-    -v $PWD/test:/home/msandbox/test \
+    -v $PWD/test:/home/msandbox/$TARGET_DIR \
     --name $container_name \
     --hostname $container_name $DOCKER_OPTIONS \
     datacharmer/mysql-sb-full $test_command

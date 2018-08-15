@@ -4,6 +4,8 @@ go:
   - "1.10.x"
   - master
 
+os: linux
+
 sudo: false
 install:
     - go get -t
@@ -11,6 +13,8 @@ install:
 script: 
     - go build .
     - ./test/go-unit-tests.sh
+    - ./build.sh linux
+    - ./test/docker-test.sh $(cat .build/VERSION)
 
 after_success:
     - echo "Build Successful!"

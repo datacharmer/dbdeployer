@@ -15,6 +15,24 @@
 # limitations under the License.
 
 execdir=$(dirname "$0")
+execdirname=$(basename $execdir)
+
+# If we are inside a docker container (under TravisCI)
+# the test directry was renamed original_test.
+# The container will be unable to modify files in the original test directory
+# and therefore we make a local copy.
+if [ "$execdirname" == "original_test" ]
+then
+    if [ -d "./test" ]
+    then
+        echo "Can't create ./test from $execdir. Directory already exists "
+        exit 1
+    else
+        cp -r $execdir ./test
+        execdir=./test
+        ls -lh
+    fi
+fi
 
 cd "$execdir" || exit 1
 
@@ -556,18 +574,18 @@ fi
 
 if [ ! -x ./sort_versions ]
 then
-    if [ -f ./sort_versions.go ]
-    then
-        env GOOS=linux GOARCH=386 go build -o sort_versions.linux sort_versions.go
-        env GOOS=darwin GOARCH=386 go build -o sort_versions.Darwin sort_versions.go
-        ls -l sort_versions*
-        cp "sort_versions.$OS" sort_versions
-    fi
-    if [ ! -x ./sort_versions ]
-    then
+    #if [ -f ./sort_versions.go ]
+    #then
+    #    env GOOS=linux GOARCH=386 go build -o sort_versions.linux sort_versions.go
+    #    env GOOS=darwin GOARCH=386 go build -o sort_versions.Darwin sort_versions.go
+    #    ls -l sort_versions*
+    #    cp "sort_versions.$OS" sort_versions
+    #fi
+    #if [ ! -x ./sort_versions ]
+    #then
         echo "./sort_versions not found"
         exit 1
-    fi
+    #fi
 fi
 
 for v in ${short_versions[*]}

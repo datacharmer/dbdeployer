@@ -82,7 +82,12 @@ then
     exit 1
 fi
 
-go run $version_builder
+function build_sort {
+    OS=$1
+    cd test
+    env GOOS=$OS GOARCH=386 go build -o sort_versions.$OS sort_versions.go
+    cd -
+}
 
 if [ -z "$target" ]
 then
@@ -91,6 +96,8 @@ then
     echo "Set the variable MKDOCS to build the docs-enabled dbdeployer (see README.md)"
     exit 1
 fi
+
+go run $version_builder
 
 case $target in 
     all)
@@ -103,6 +110,7 @@ case $target in
         env GOOS=darwin GOARCH=386 go build $docs_flags -o $executable .
         )
         tar -c $executable | gzip -c > ${executable}.tar.gz
+        build_sort Darwin
     ;;
     linux)
         executable=dbdeployer-${version}${docs_tag}.linux
@@ -110,6 +118,7 @@ case $target in
 	    env GOOS=linux GOARCH=386 go build $docs_flags -o $executable .
         )
         tar -c $executable | gzip -c > ${executable}.tar.gz
+        build_sort linux
     ;;
     *)
         echo unrecognized target.
