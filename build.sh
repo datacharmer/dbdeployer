@@ -69,9 +69,24 @@ then
     docs_flags="--tags docs"
     docs_tag="-docs"
 fi
+
 if [ -z "$version" ]
 then
-    echo "Syntax: target  version"
+    version=$(cat .build/VERSION)
+fi
+
+version_builder=.build/create-version-source-file.go
+if [ ! -f $version_builder ]
+then
+    echo "File $version_builder not found - aborting"
+    exit 1
+fi
+
+go run $version_builder
+
+if [ -z "$target" ]
+then
+    echo "Syntax: target [version]"
     echo "      target: (linux | OSX) "
     echo "Set the variable MKDOCS to build the docs-enabled dbdeployer (see README.md)"
     exit 1
