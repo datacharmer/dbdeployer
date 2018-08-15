@@ -27,6 +27,11 @@ source common.sh
 
 options=$1
 
+if [ -n "$ONLY_MAIN" ]
+then
+    options=main
+fi
+
 if [ -n "$options" ]
 then
     # If there is any option on the command line,

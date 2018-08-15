@@ -41,6 +41,13 @@ then
     exit 1
 fi
 
+cd test
+env GOOS=linux GOARCH=386 go build -o sort_versions.linux sort_versions.go
+cd -
+
+docker version
+go version
+
 container_name=dbtest
 #if [ "$(uname)" == "Darwin" ]
 #then
@@ -58,10 +65,18 @@ then
     docker rm -v -f $container_name
 fi
 
+if [ -n "$TRAVIS" ]
+then
+    export RUN_CONCURRENTLY=1
+    export EXIT_ON_FAILURE=1
+    export ONLY_MAIN=1
+fi
+
 [ -n "$INTERACTIVE" ] && DOCKER_OPTIONS="$DOCKER_OPTIONS -e INTERACTIVE=1"
 [ -n "$RUN_CONCURRENTLY" ] && DOCKER_OPTIONS="$DOCKER_OPTIONS -e RUN_CONCURRENTLY=1"
 [ -n "$VERBOSE_CONCURRENCY" ] && DOCKER_OPTIONS="$DOCKER_OPTIONS -e VERBOSE_CONCURRENCY=1"
 [ -n "$EXIT_ON_FAILURE" ] && DOCKER_OPTIONS="$DOCKER_OPTIONS -e EXIT_ON_FAILURE=1"
+[ -n "$ONLY_MAIN" ] && DOCKER_OPTIONS="$DOCKER_OPTIONS -e ONLY_MAIN=1"
 
 [ -z "$test_command" ] && test_command="./test/functional-test.sh"
 
@@ -69,7 +84,6 @@ if [ "$test_command" != "bash" ]
 then
     test_command="bash -c $test_command"
 fi
-
 
 (set -x
   docker run -ti  \
