@@ -52,7 +52,7 @@ type AliasList map[string]argList
 
 var DebugAbbr bool = false
 
-func show_args( args argList) {
+func show_args(args argList) {
 	for N, arg := range args {
 		if DebugAbbr {
 			fmt.Printf("%d <<%s>>\n", N, arg)
@@ -113,7 +113,7 @@ func LoadAbbreviations() {
 	// Loop through original arguments.
 	// Replaces every occurrence of the abbreviation with its components
 	debug_print("os.Args", os.Args)
-	show_args( os.Args)
+	show_args(os.Args)
 	for _, arg := range os.Args {
 		// An abbreviation may set variables
 		// for example

@@ -18,12 +18,12 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/datacharmer/dbdeployer/common"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"regexp"
 	"strings"
-	"github.com/datacharmer/dbdeployer/common"
 	"time"
 )
 
@@ -39,7 +39,7 @@ func get_cmd_output(cmdText string) string {
 	cmd := exec.Command(command, args...)
 	stdout, err := cmd.StdoutPipe()
 	if err = cmd.Start(); err != nil {
-		common.Exit(1, fmt.Sprintf("# ERROR: %s",err))
+		common.Exit(1, fmt.Sprintf("# ERROR: %s", err))
 	}
 	slurp, _ := ioutil.ReadAll(stdout)
 	stdout.Close()
@@ -75,7 +75,7 @@ func main() {
 	}
 	for scanner.Scan() {
 		line := scanner.Text()
-		// Replacement for version and date must occur BEFORE 
+		// Replacement for version and date must occur BEFORE
 		// we search for commands, as the regexp for commands would
 		// match version and date as well.
 		line = re_version.ReplaceAllString(line, common.VersionDef)
@@ -101,6 +101,6 @@ func main() {
 	}
 
 	if err := scanner.Err(); err != nil {
-		common.Exit(1, fmt.Sprintf("# ERROR: %s",err))
+		common.Exit(1, fmt.Sprintf("# ERROR: %s", err))
 	}
 }
