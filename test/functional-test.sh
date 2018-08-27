@@ -60,6 +60,7 @@ then
     export skip_semisync_operations=1
     export skip_group_operations=1
     export skip_dd_operations=1
+    export skip_upgrade_operations=1
     export skip_multi_source_operations=1
     export no_tests=1
 fi
@@ -91,6 +92,7 @@ do
             unset skip_semisync_operations
             unset skip_group_operations
             unset skip_dd_operations
+            unset skip_upgrade_operations
             unset skip_multi_source_operations
             unset no_tests
             echo "# Enabling all tests"
@@ -109,6 +111,11 @@ do
             unset skip_semisync_operations
             unset no_tests
             echo "# Enabling semi_sync tests"
+            ;;
+        upgrade)
+            unset skip_upgrade_operations
+            unset no_tests
+            echo "# Enabling upgrade tests"
             ;;
         pre)
             unset skip_pre_post_operations
@@ -143,6 +150,7 @@ do
             echo "  semi     : semisync operations"
             echo "  group    : group replication operations "
             echo "  dd       : data dictionary operations "
+            echo "  upgrade  : upgrade operations "
             echo "  multi    : multi-source operations (fan-in, all-masters)"
             echo "  all      : enable all the above tests"
             echo ""
@@ -895,6 +903,43 @@ function dd_operations {
     done
 }
 
+function upgrade_operations {
+    current_test=upgrade_operations
+    test_header upgrade_operations "" double
+    latest_5_6=$(ls "$BINARY_DIR" | grep "^5.6" | ./sort_versions | tail -n 1)
+    latest_5_7=$(ls "$BINARY_DIR" | grep "^5.7" | ./sort_versions | tail -n 1)
+    latest_8_0=$(ls "$BINARY_DIR" | grep "^8.0" | ./sort_versions | tail -n 1)
+    if [ -z "$latest_5_7" -o -z "$latest_8_0" ]
+    then
+        echo "Skipping upgrade test. No suitable version found for 5.7 or 8.0"
+        return
+    fi
+    echo "# upgrade operations $latest_5_7 to $latest_8_0"
+
+    v_path_5_6=$(echo msb_$latest_5_6| tr '.' '_')
+    v_path_5_7=$(echo msb_$latest_5_7| tr '.' '_')
+    v_path_8_0=$(echo msb_$latest_8_0| tr '.' '_')
+    upgrade_from=$v_path_5_7
+    upgrade_to=$v_path_8_0
+    # run dbdeployer deploy single $latest_5_6
+    run dbdeployer deploy single $latest_5_7
+    run dbdeployer deploy single $latest_8_0
+    results "upgrade $upgrade_from to $upgrade_to"
+    capture_test run dbdeployer global test
+    echo "dbdeployer admin upgrade $upgrade_from $upgrade_to"
+    run dbdeployer admin upgrade $upgrade_from $upgrade_to 
+    if [ -f $SANDBOX_HOME/$upgrade_to/no_upgrade ]
+    then
+        echo "SKIPPING upgrade test. mysql_upgrade not found in destination"
+    else
+        ok_dir_exists $SANDBOX_HOME/$upgrade_to/data-${upgrade_to}
+        ok_dir_exists $SANDBOX_HOME/$upgrade_to/data
+        ok_dir_does_not_exist $SANDBOX_HOME/$upgrade_from/data
+    fi
+    dbdeployer delete ALL --skip-confirm
+    results "upgrade $latest_5_7 to $latest_8_0 - after deletion"
+}
+
 function group_operations {
     current_test=group_operations
     test_header group_operations "" double
@@ -984,6 +1029,10 @@ fi
 if [ -z "$skip_dd_operations" ]
 then
     dd_operations
+fi
+if [ -z "$skip_upgrade_operations" ]
+then
+    upgrade_operations
 fi
 if [ -z "$skip_multi_source_operations" ]
 then

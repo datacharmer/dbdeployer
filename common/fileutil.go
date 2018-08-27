@@ -159,7 +159,8 @@ func WriteStrings(lines []string, filename string, termination string) error {
 
 	w := bufio.NewWriter(file)
 	for _, line := range lines {
-		fmt.Fprintln(w, line+termination)
+		//fmt.Fprintln(w, line+termination)
+		fmt.Fprintf(w, "%s", line+termination)
 	}
 	return w.Flush()
 }

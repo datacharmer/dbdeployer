@@ -1,3 +1,6 @@
+1.10.0	27-Aug-2018
+	- Fixed Issue#32 "Error log was not created in data directory"
+	- Added command 'dbdeployer admin upgrade sandbox1 sandbox2' (Issue#33)
 1.9.0	12-Aug-2018
 	- Implemented Issue#31 "Add feature to extract and merge a mysql-shell
 	  tarball into a regular one"

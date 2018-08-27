@@ -109,6 +109,11 @@ case $target in
 	    (set -x
         env GOOS=darwin GOARCH=386 go build $docs_flags -o $executable .
         )
+        if [ "$?" != "0" ]
+        then
+            echo "ERROR during build!"
+            exit 1
+        fi
         tar -c $executable | gzip -c > ${executable}.tar.gz
         build_sort Darwin
     ;;

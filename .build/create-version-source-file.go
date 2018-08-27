@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bufio"
+	//"bufio"
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
 	"os"
@@ -25,7 +25,6 @@ func main() {
 		if !common.DirExists(templates_dir) {
 			common.Exit(1, "Directory .build/ not found")
 		}
-
 	}
 	version_dest_file := "common/version.go"
 
@@ -51,6 +50,7 @@ func main() {
 		"Timestamp":             time.Now().Format("2006-01-02 15:04"),
 	}
 	version_code := common.Tprintf(template, data)
+	/*
 	file, err := os.Open(version_dest_file)
 	if err != nil {
 		common.Exit(1, fmt.Sprintf("error opening file %s", version_dest_file))
@@ -61,5 +61,7 @@ func main() {
 	if err != nil {
 		common.Exit(1, fmt.Sprintf("error writing to file %s", version_dest_file))
 	}
-	fmt.Printf("Written %d bytes into %s\n", written, version_dest_file)
+	*/
+	common.WriteString(version_code, version_dest_file)
+	// fmt.Printf("Written %d bytes into %s\n", written, version_dest_file)
 }

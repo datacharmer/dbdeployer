@@ -30,6 +30,7 @@ export SANDBOX_HOME=$HOME/sandboxes
 export SANDBOX_BINARY=$HOME/opt/mysql
 export SANDBOX_TARBALL=$HOME/downloads
 export SLEEP_TIME=0
+export SB_MOCKING=1
 
 pwd
 ls -l

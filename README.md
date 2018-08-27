@@ -3,7 +3,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.9.0 (14-Aug-2018 08:30 UTC)
+Documentation updated for version 1.10.0 (26-Aug-2018 21:57 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -15,7 +15,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.9.0
+    $ VERSION=1.10.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -50,7 +50,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.9.0
+    dbdeployer version 1.10.0
     
 
     $ dbdeployer -h
@@ -819,6 +819,43 @@ The lock can also be reverted using
 
     $ dbdeployer admin unlock sandbox_name
 
+## Sandbox upgrade
+
+dbdeployer 1.10.0 introduces upgrades:
+
+    $ dbdeployer admin upgrade -h
+    Upgrades a sandbox to a newer version.
+    The sandbox with the new version must exist already.
+    The data directory of the old sandbox will be moved to the new one.
+    
+    Usage:
+      dbdeployer admin upgrade sandbox_name newer_sandbox [flags]
+    
+    Examples:
+    dbdeployer admin upgrade msb_8_0_11 msb_8_0_12
+    
+    Flags:
+      -h, --help   help for upgrade
+    
+    
+
+To perform an upgrade, the following conditions myst be met:
+
+* Both sandboxes must be **single** deployments.
+* The older version must be one major version behind (5.6.x to 5.7.x, or 5.7.x to 8.0.x, but not 5.6.x to 8.0.x) or same major version but different revision (e.g. 5.7.22 to 5.7.23)
+* The newer version must have been already deployed.
+* The newer version must have mysql_upgrade in its base directory (e.g $SANDBOX_BINARY/5.7.23/bin)
+
+dbdeployer checks all the conditions, then
+
+1. stops both databases;
+2. renames the data directory of the newer version;
+3. moves the data directory of the older version under the newer sandbox;
+4. restarts the newer version;
+5. runs mysql_upgrade.
+
+The older version is, at this point, not operational anymore, and can be deleted.
+
 ## Compiling dbdeployer
 
 Should you need to compile your own binaries for dbdeployer, follow these steps:
@@ -826,18 +863,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 1. Make sure you have go installed in your system, and that the ``$GOPATH`` variable is set.
 2. Run ``go get -u github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
-4. Run ``./build.sh {linux|OSX} 1.9.0``
-5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.9.0``
+4. Run ``./build.sh {linux|OSX} 1.10.0``
+5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./build.sh {linux|OSX} 1.10.0``
 
 ## Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.9.0-docs.linux.tar.gz
-* dbdeployer-1.9.0-docs.osx.tar.gz
-* dbdeployer-1.9.0.linux.tar.gz
-* dbdeployer-1.9.0.osx.tar.gz
+* dbdeployer-1.10.0-docs.linux.tar.gz
+* dbdeployer-1.10.0-docs.osx.tar.gz
+* dbdeployer-1.10.0.linux.tar.gz
+* dbdeployer-1.10.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

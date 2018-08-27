@@ -289,6 +289,29 @@ _dbdeployer_admin_unlock()
     noun_aliases=()
 }
 
+_dbdeployer_admin_upgrade()
+{
+    last_command="dbdeployer_admin_upgrade"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--config=")
+    flags+=("--sandbox-binary=")
+    flags+=("--sandbox-home=")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _dbdeployer_admin()
 {
     last_command="dbdeployer_admin"
@@ -306,6 +329,7 @@ _dbdeployer_admin()
         command_aliases+=("unpreserve")
         aliashash["unpreserve"]="unlock"
     fi
+    commands+=("upgrade")
 
     flags=()
     two_word_flags=()
