@@ -453,7 +453,12 @@ function ok_generic_does_not_exist {
 
 function ok_dir_exists {
     dir=$1
-    ok_generic_exists $dir directory -d
+    ok_generic_exists $dir "directory" -d
+}
+
+function ok_dir_does_not_exist {
+    dir=$1
+    ok_generic_does_not_exist $dir "directory" -d
 }
 
 function ok_file_exists {
@@ -485,6 +490,7 @@ function run {
     echo $exit_code
     if [ "$exit_code" != "0" ]
     then
+        echo "ERROR running $@"
         exit $exit_code
     fi
 }
@@ -504,6 +510,11 @@ function test_completeness {
     base_scripts=(use start stop restart add_option send_kill clear test_sb status)
     script_postfix=""
     folders=(data tmp)
+    non_scripts=(data/msandbox.err sbdescription.json )
+    if [ -n "$SB_MOCKING" ]
+    then
+        non_scripts=(sbdescription.json)
+    fi
     case  "$mode" in
         single)
             scripts=( "${base_scripts[@]}" )
@@ -526,6 +537,21 @@ function test_completeness {
     do
         ok_dir_exists $sbdir/$dir
     done
+    if [ "$mode" == "single" ]
+    then
+        for fname in ${non_scripts[*]}
+        do
+            ok_file_exists $sbdir/$fname
+        done
+    else
+        for dir in ${folders[*]}
+        do
+            for fname in ${non_scripts[*]}
+            do
+                ok_file_exists $sbdir/$dir/$fname
+            done
+        done
+    fi
     for f in ${scripts[*]}
     do
         if [ "$f" == "add_option" ]
