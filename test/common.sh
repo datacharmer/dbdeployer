@@ -12,6 +12,12 @@ then
     exit 1
 fi
 
+# dbdeployer is not compatible with .mylogin.cnf,
+# as it bypasses --defaults-file and --no-defaults.
+# See: https://dev.mysql.com/doc/refman/8.0/en/mysql-config-editor.html
+# The following statement disables .mylogin.cnf
+export MYSQL_TEST_LOGIN_FILE=/tmp/dont_break_my_sandboxes$RANDOM
+
 dbdeployer_version=$(dbdeployer --version)
 if [ -z "$dbdeployer_version" ]
 then

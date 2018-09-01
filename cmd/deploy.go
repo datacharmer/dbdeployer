@@ -16,8 +16,12 @@
 package cmd
 
 import (
+	"fmt"
+	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/spf13/cobra"
+	"math/rand"
+	"os"
 )
 
 var deployCmd = &cobra.Command{
@@ -27,6 +31,14 @@ var deployCmd = &cobra.Command{
 }
 
 func init() {
+	mylogin_cnf := os.Getenv("HOME") + "/.mylogin.cnf"
+	if common.FileExists(mylogin_cnf) {
+		// dbdeployer is not compatible with .mylogin.cnf,
+		// as it bypasses --defaults-file and --no-defaults.
+		// See: https://dev.mysql.com/doc/refman/8.0/en/mysql-config-editor.html
+		// The following statement disables .mylogin.cnf
+		os.Setenv("MYSQL_TEST_LOGIN_FILE", fmt.Sprintf("/tmp/dont_break_my_sandboxes%d", rand.Int()))
+	}
 	rootCmd.AddCommand(deployCmd)
 	deployCmd.PersistentFlags().Int(defaults.PortLabel, 0, "Overrides default port")
 	deployCmd.PersistentFlags().Int(defaults.BasePortLabel, 0, "Overrides default base-port (for multiple sandboxes)")

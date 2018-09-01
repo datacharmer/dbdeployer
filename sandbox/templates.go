@@ -1006,6 +1006,12 @@ export DYLD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$DYLD_LIBRARY_PATH
 export PIDFILE=$SBDIR/data/mysql_sandbox{{.Port}}.pid
 [ -z "$SLEEP_TIME" ] && export SLEEP_TIME=1
 
+# dbdeployer is not compatible with .mylogin.cnf,
+# as it bypasses --defaults-file and --no-defaults.
+# See: https://dev.mysql.com/doc/refman/8.0/en/mysql-config-editor.html
+# The following statement disables .mylogin.cnf
+export MYSQL_TEST_LOGIN_FILE=/tmp/dont_break_my_sandboxes$RANDOM
+
 function is_running
 {
     if [ -f $PIDFILE ]

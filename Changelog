@@ -1,3 +1,5 @@
+1.10.1	01-Sep-2018
+	- Fixed Issue#34 "dbdeployer fails when .mylogin.cnf is found"
 1.10.0	27-Aug-2018
 	- Fixed Issue#32 "Error log was not created in data directory"
 	- Added command 'dbdeployer admin upgrade sandbox1 sandbox2' (Issue#33)

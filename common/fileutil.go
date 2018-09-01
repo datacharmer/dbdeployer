@@ -229,7 +229,7 @@ func Run_cmd_with_args(c string, args []string) (error, string) {
 	out, err = cmd.Output()
 	if err != nil {
 		fmt.Printf("err: %s\n", err)
-		fmt.Printf("cmd: %#v\n", cmd)
+		fmt.Printf("cmd: %s %s\n", c, args)
 		fmt.Printf("stdout: %s\n", out)
 		//fmt.Printf("stderr: %s\n", stderr.String())
 		// os.Exit(1)
@@ -254,7 +254,7 @@ func Run_cmd_ctrl(c string, silent bool) (error, string) {
 	out, err = cmd.Output()
 	if err != nil {
 		fmt.Printf("err: %s\n", err)
-		fmt.Printf("cmd: %#v\n", cmd)
+		fmt.Printf("cmd: %s\n", c)
 		fmt.Printf("stdout: %s\n", out)
 		//fmt.Printf("stdout: %s\n", out.String())
 		//fmt.Printf("stderr: %s\n", stderr.String())
