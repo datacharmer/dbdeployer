@@ -1,3 +1,9 @@
+1.10.2	08-Sep-2018
+	- Code cleanup and formatting
+	- Moved build script to ./scripts 
+	- Added option to build compressed executables (but defaults is still
+	  uncompressed)
+	- Added ./scripts/sanity_check to verify formatting and code complaint.
 1.10.1	01-Sep-2018
 	- Fixed Issue#34 "dbdeployer fails when .mylogin.cnf is found"
 1.10.0	27-Aug-2018

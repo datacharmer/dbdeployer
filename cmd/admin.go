@@ -154,12 +154,12 @@ func UnlockSandbox(cmd *cobra.Command, args []string) {
 
 func UpgradeSandbox(sandbox_dir, old_sandbox, new_sandbox string) {
 	var possible_upgrades = map[string]string{
-		"5.0" : "5.1",
-		"5.1" : "5.5",
-		"5.5" : "5.6",
-		"5.6" : "5.7",
-		"5.7" : "8.0",
-		"8.0" : "8.0",
+		"5.0": "5.1",
+		"5.1": "5.5",
+		"5.5": "5.6",
+		"5.6": "5.7",
+		"5.7": "8.0",
+		"8.0": "8.0",
 	}
 	err := os.Chdir(sandbox_dir)
 	if err != nil {
@@ -171,9 +171,9 @@ func UpgradeSandbox(sandbox_dir, old_sandbox, new_sandbox string) {
 			common.Exit(1, fmt.Sprintf("Error: Directory %s not found in %s", dir, sandbox_dir))
 		}
 		for _, script := range scripts {
-			if !common.ExecExists( dir + "/" + script) {
+			if !common.ExecExists(dir + "/" + script) {
 				common.Exit(1, fmt.Sprintf("Error: script %s not found in %s", script, dir),
-				"The upgrade only works between SINGLE deployments")
+					"The upgrade only works between SINGLE deployments")
 			}
 		}
 	}
@@ -181,7 +181,7 @@ func UpgradeSandbox(sandbox_dir, old_sandbox, new_sandbox string) {
 	old_sbdesc := common.ReadSandboxDescription(old_sandbox)
 	mysql_upgrade := new_sbdesc.Basedir + "/bin/mysql_upgrade"
 	if !common.ExecExists(mysql_upgrade) {
-		common.WriteString("", new_sandbox + "/no_upgrade")
+		common.WriteString("", new_sandbox+"/no_upgrade")
 		common.Exit(0, fmt.Sprintf("mysql_upgrade not found in %s. Upgrade is not possible", new_sbdesc.Basedir))
 	}
 	new_version_list := common.VersionToList(new_sbdesc.Version)
@@ -215,7 +215,7 @@ func UpgradeSandbox(sandbox_dir, old_sandbox, new_sandbox string) {
 	if !can_be_upgraded {
 		common.Exit(1, fmt.Sprintf("Version %s can only be upgraded to %s or to the same version with a higher revision", old_upgrade_version, possible_upgrades[old_upgrade_version]))
 	}
-	new_sandbox_old_data :=  new_sandbox + "/data-" + new_sandbox
+	new_sandbox_old_data := new_sandbox + "/data-" + new_sandbox
 	if common.DirExists(new_sandbox_old_data) {
 		common.Exit(1, fmt.Sprintf("Sandbox %s is already the upgrade from an older version", new_sandbox))
 	}
@@ -233,7 +233,7 @@ func UpgradeSandbox(sandbox_dir, old_sandbox, new_sandbox string) {
 		common.Exit(1, fmt.Sprintf("Error while moving data directory in sandbox %s", new_sandbox))
 	}
 
-	mv_args = []string{old_sandbox + "/data", new_sandbox + "/data" }
+	mv_args = []string{old_sandbox + "/data", new_sandbox + "/data"}
 	err, _ = common.Run_cmd_with_args("mv", mv_args)
 	if err != nil {
 		common.Exit(1, fmt.Sprintf("Error while moving data directory from sandbox %s to %s", old_sandbox, new_sandbox))
@@ -245,7 +245,7 @@ func UpgradeSandbox(sandbox_dir, old_sandbox, new_sandbox string) {
 		common.Exit(1, fmt.Sprintf("Error while starting sandbox %s", new_sandbox))
 	}
 	upgrade_args := []string{"sql_upgrade"}
-	err, _ = common.Run_cmd_with_args(new_sandbox + "/my", upgrade_args)
+	err, _ = common.Run_cmd_with_args(new_sandbox+"/my", upgrade_args)
 	if err != nil {
 		common.Exit(1, fmt.Sprintf("Error while running mysql_upgrade in %s", new_sandbox))
 	}
@@ -255,7 +255,7 @@ func UpgradeSandbox(sandbox_dir, old_sandbox, new_sandbox string) {
 	fmt.Printf("%s is not operational and can be deleted\n", old_sandbox)
 }
 
-func RunUpgradeSandbox(cmd *cobra .Command, args []string) {
+func RunUpgradeSandbox(cmd *cobra.Command, args []string) {
 	if len(args) < 2 {
 		common.Exit(1,
 			"'upgrade' requires the name of two sandboxes ",
@@ -293,15 +293,14 @@ Users can still delete locked sandboxes manually.`,
 		Run:     UnlockSandbox,
 	}
 	adminUpgradeCmd = &cobra.Command{
-		Use:     "upgrade sandbox_name newer_sandbox",
-		Short:   "Upgrades a sandbox to a newer version",
-		Long:    `Upgrades a sandbox to a newer version.
+		Use:   "upgrade sandbox_name newer_sandbox",
+		Short: "Upgrades a sandbox to a newer version",
+		Long: `Upgrades a sandbox to a newer version.
 The sandbox with the new version must exist already.
 The data directory of the old sandbox will be moved to the new one.`,
 		Example: "dbdeployer admin upgrade msb_8_0_11 msb_8_0_12",
 		Run:     RunUpgradeSandbox,
 	}
-
 )
 
 func init() {

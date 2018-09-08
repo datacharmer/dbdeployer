@@ -17,8 +17,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
-	//"os"
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/spf13/cobra"
 	"io/ioutil"
@@ -30,7 +28,7 @@ func ShowVersions(cmd *cobra.Command, args []string) {
 	Basedir := GetAbsolutePathFromFlag(cmd, "sandbox-binary")
 	files, err := ioutil.ReadDir(Basedir)
 	if err != nil {
-		log.Fatal(err)
+		common.Exit(1, fmt.Sprintf("Error reading directory %s: %s", Basedir, err))
 	}
 	var dirs []string
 	for _, f := range files {

@@ -425,7 +425,7 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 			Cmd:  sandbox_dir + "/init_db",
 			Args: []string{},
 		}
-		exec_list = append(exec_list, concurrent.ExecutionList{0, eCommand})
+		exec_list = append(exec_list, concurrent.ExecutionList{Priority: 0, Command: eCommand})
 	} else {
 		err, _ := common.Run_cmd_ctrl(sandbox_dir+"/init_db", true)
 		if err == nil {
@@ -527,7 +527,7 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 			Cmd:  sandbox_dir + "/start",
 			Args: []string{},
 		}
-		exec_list = append(exec_list, concurrent.ExecutionList{2, eCommand2})
+		exec_list = append(exec_list, concurrent.ExecutionList{Priority: 2, Command: eCommand2})
 		if sdef.LoadGrants {
 			var eCommand3 = concurrent.ExecCommand{
 				Cmd:  sandbox_dir + "/load_grants",
@@ -541,9 +541,9 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 				Cmd:  sandbox_dir + "/load_grants",
 				Args: []string{"post_grants.sql"},
 			}
-			exec_list = append(exec_list, concurrent.ExecutionList{3, eCommand3})
-			exec_list = append(exec_list, concurrent.ExecutionList{4, eCommand4})
-			exec_list = append(exec_list, concurrent.ExecutionList{5, eCommand5})
+			exec_list = append(exec_list, concurrent.ExecutionList{Priority: 3, Command: eCommand3})
+			exec_list = append(exec_list, concurrent.ExecutionList{Priority: 4, Command: eCommand4})
+			exec_list = append(exec_list, concurrent.ExecutionList{Priority: 5, Command: eCommand5})
 		}
 	} else {
 		if !sdef.SkipStart {
@@ -608,7 +608,7 @@ func RemoveSandbox(sandbox_dir, sandbox string, run_concurrently bool) (exec_lis
 			Cmd:  stop,
 			Args: []string{},
 		}
-		exec_list = append(exec_list, concurrent.ExecutionList{0, eCommand1})
+		exec_list = append(exec_list, concurrent.ExecutionList{Priority: 0, Command: eCommand1})
 	} else {
 		if defaults.UsingDbDeployer {
 			fmt.Printf("Running %s\n", stop)
@@ -626,7 +626,7 @@ func RemoveSandbox(sandbox_dir, sandbox string, run_concurrently bool) (exec_lis
 			Cmd:  cmd_str,
 			Args: rm_args,
 		}
-		exec_list = append(exec_list, concurrent.ExecutionList{1, eCommand2})
+		exec_list = append(exec_list, concurrent.ExecutionList{Priority: 1, Command: eCommand2})
 	} else {
 		for _, item := range rm_args {
 			cmd_str += " " + item

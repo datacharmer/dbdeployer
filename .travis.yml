@@ -11,8 +11,9 @@ install:
 
 script: 
     - go build .
+    - ./scripts/sanity_check.sh
     - ./test/go-unit-tests.sh
-    - ./build.sh linux
+    - ./scripts/build.sh linux
     - ./test/mock/defaults-change.sh
     - ./test/mock/short-versions.sh
     - ./test/mock/direct-paths.sh

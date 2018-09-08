@@ -3,7 +3,12 @@ target=$1
 version=$2
 
 build_dir=$(dirname $0)
+executable=$(basename $0)
 cd $build_dir
+executable=$PWD/$executable
+cd ..
+build_dir=$PWD
+
 
 if [ -z "$GOPATH" ]
 then
@@ -28,6 +33,18 @@ then
 fi
 
 local_items=(cmd defaults main.go common unpack abbreviations concurrent sandbox)
+
+function find_in_path {
+    wanted=$1
+    for dir in $(echo $PATH | tr ':' ' ')
+    do
+        if [ -x $dir/$wanted ]
+        then
+            echo "$dir/$wanted"
+            return
+        fi
+    done
+}
 
 dashline="--------------------------------------------------------------------------------"
 all_ok=yes
@@ -99,10 +116,24 @@ fi
 
 go run $version_builder
 
-case $target in 
+function shrink {
+    executable=$1
+    if [ -z "$SHRINK_EXECUTABLES" ]
+    then
+        return
+    fi
+    upx_cmd=$(find_in_path upx)
+    if [ -z "$upx_cmd" ]
+    then
+        return
+    fi
+    upx -9 $executable
+}
+
+case $target in
     all)
-        $0 OSX $version
-        $0 linux $version
+        $executable OSX $version
+        $executable linux $version
         ;;
     OSX)
         executable=dbdeployer-${version}${docs_tag}.osx
@@ -115,6 +146,7 @@ case $target in
             exit 1
         fi
         tar -c $executable | gzip -c > ${executable}.tar.gz
+        shrink $executable
         build_sort Darwin
     ;;
     linux)
@@ -123,6 +155,7 @@ case $target in
 	    env GOOS=linux GOARCH=386 go build $docs_flags -o $executable .
         )
         tar -c $executable | gzip -c > ${executable}.tar.gz
+        shrink $executable
         build_sort linux
     ;;
     *)

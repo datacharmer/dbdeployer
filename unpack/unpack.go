@@ -207,7 +207,7 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 			}
 		}
 	}
-	return nil
+	//return nil
 }
 
 func unpackTarFile(filename, tarFilename string,

@@ -43,7 +43,7 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 	skip_confirm, _ := flags.GetBool(defaults.SkipConfirmLabel)
 	sandbox_dir := GetAbsolutePathFromFlag(cmd, "sandbox-home")
 
-	deletion_list := []common.SandboxInfo{common.SandboxInfo{sandbox_name, false}}
+	deletion_list := []common.SandboxInfo{common.SandboxInfo{SandboxName: sandbox_name, Locked: false}}
 	if sandbox_name == "ALL" || sandbox_name == "all" {
 		confirm = true
 		if skip_confirm {

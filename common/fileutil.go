@@ -17,12 +17,10 @@ package common
 
 import (
 	"bufio"
-	//"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -275,24 +273,24 @@ func Run_cmd(c string) (error, string) {
 func CopyFile(source, destination string) {
 	sfile, err := os.Stat(source)
 	if err != nil {
-		log.Fatal(err)
+		Exit(1, fmt.Sprintf("Error finding source file %s: %s", source, err))
 	}
 	fmode := sfile.Mode()
 	from, err := os.Open(source)
 	if err != nil {
-		log.Fatal(err)
+		Exit(1, fmt.Sprintf("Error opening source file %s: %s", source, err))
 	}
 	defer from.Close()
 
 	to, err := os.OpenFile(destination, os.O_RDWR|os.O_CREATE, fmode) // 0666)
 	if err != nil {
-		log.Fatal(err)
+		Exit(1, fmt.Sprintf("Error opening destination file %s: %s", destination, err))
 	}
 	defer to.Close()
 
 	_, err = io.Copy(to, from)
 	if err != nil {
-		log.Fatal(err)
+		Exit(1, fmt.Sprintf("Error copying from source %s to destination file %s: %s", source, destination, err))
 	}
 }
 
