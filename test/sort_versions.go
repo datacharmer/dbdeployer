@@ -50,7 +50,7 @@ func main() {
 	}
 
 	if err := scanner.Err(); err != nil {
-		common.Exit(1, fmt.Sprintf("error: %s", err))
+		common.Exitf(1, "error: %s", err)
 	}
 	sort.Slice(vlist, func(i, j int) bool {
 		return vlist[i].mmr[0] < vlist[j].mmr[0] ||

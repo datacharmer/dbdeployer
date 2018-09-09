@@ -139,7 +139,7 @@ func LatestVersion(search_dir, pattern string) string {
 	files, err := ioutil.ReadDir(search_dir)
 	// fmt.Printf("<%s> <%s>\n",search_dir, pattern)
 	if err != nil {
-		Exit(1, fmt.Sprintf("ERROR reading directory %s: %s", search_dir, err))
+		Exitf(1, "ERROR reading directory %s: %s", search_dir, err)
 	}
 	var matching_list []string
 	valid_pattern := regexp.MustCompile(`\d+\.\d+$`)
@@ -199,7 +199,7 @@ func AddToCleanupStack(cf CleanupFunc, func_name, arg string) {
 	cleanup_actions.Push(CleanupRec{f: cf, label: func_name, target: arg})
 }
 
-func Exit(exit_code int, messages ...string) {
+func RunCleanupActions() {
 	if cleanup_actions.Len() > 0 {
 		fmt.Printf("# Pre-exit cleanup. \n")
 	}
@@ -210,6 +210,16 @@ func Exit(exit_code int, messages ...string) {
 		fmt.Printf("#%d - Executing %s( %s)\n", count, cr.label, cr.target)
 		cr.f(cr.target)
 	}
+}
+
+func Exitf(exit_code int, format string, args ...interface{}) {
+	RunCleanupActions()
+	fmt.Printf(format, args...)
+	os.Exit(exit_code)
+}
+
+func Exit(exit_code int, messages ...string) {
+	RunCleanupActions()
 	for _, msg := range messages {
 		fmt.Printf("%s\n", msg)
 	}

@@ -143,7 +143,7 @@ func ShowDefaults(defaults DbdeployerDefaults) {
 	}
 	b, err := json.MarshalIndent(defaults, " ", "\t")
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("error encoding defaults: %s", err))
+		common.Exitf(1, "error encoding defaults: %s", err)
 	}
 	fmt.Printf("%s\n", b)
 }
@@ -156,7 +156,7 @@ func WriteDefaultsFile(filename string, defaults DbdeployerDefaults) {
 	}
 	b, err := json.MarshalIndent(defaults, " ", "\t")
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("error encoding defaults: %s", err))
+		common.Exitf(1, "error encoding defaults: %s", err)
 	}
 	json_string := fmt.Sprintf("%s", b)
 	common.WriteString(json_string, filename)
@@ -183,7 +183,7 @@ func ReadDefaultsFile(filename string) (defaults DbdeployerDefaults) {
 
 	err := json.Unmarshal(defaults_blob, &defaults)
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("error decoding defaults: %s", err))
+		common.Exitf(1, "error decoding defaults: %s", err)
 	}
 	defaults = expand_environment_variables(defaults)
 	return
@@ -267,18 +267,18 @@ func RemoveDefaultsFile() {
 	if common.FileExists(ConfigurationFile) {
 		err := os.Remove(ConfigurationFile)
 		if err != nil {
-			common.Exit(1, fmt.Sprintf("%s", err))
+			common.Exitf(1, "%s", err)
 		}
 		fmt.Printf("#File %s removed\n", ConfigurationFile)
 	} else {
-		common.Exit(1, fmt.Sprintf("Configuration file %s not found", ConfigurationFile))
+		common.Exitf(1, "Configuration file %s not found", ConfigurationFile)
 	}
 }
 
 func a_to_i(val string) int {
 	numvalue, err := strconv.Atoi(val)
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("Not a valid number: %s", val))
+		common.Exitf(1, "Not a valid number: %s", val)
 	}
 	return numvalue
 }
@@ -351,7 +351,7 @@ func UpdateDefaults(label, value string, store_defaults bool) {
 	// case "ndb-prefix":
 	// 	new_defaults.NdbPrefix = value
 	default:
-		common.Exit(1, fmt.Sprintf("Unrecognized label %s", label))
+		common.Exitf(1, "Unrecognized label %s", label)
 	}
 	if ValidateDefaults(new_defaults) {
 		currentDefaults = new_defaults
@@ -360,7 +360,7 @@ func UpdateDefaults(label, value string, store_defaults bool) {
 			fmt.Printf("# Updated %s -> \"%s\"\n", label, value)
 		}
 	} else {
-		common.Exit(1, fmt.Sprintf("Invalid defaults data %s : %s", label, value))
+		common.Exitf(1, "Invalid defaults data %s : %s", label, value)
 	}
 }
 

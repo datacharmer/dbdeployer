@@ -46,7 +46,7 @@ func WriteBashCompletion() {
 func WriteManPages() {
 	man_dir := "man_pages"
 	if common.DirExists(man_dir) {
-		common.Exit(1, fmt.Sprintf("manual pages directory '%s' exists already.", man_dir))
+		common.Exitf(1, "manual pages directory '%s' exists already.", man_dir)
 	}
 	common.Mkdir(man_dir)
 	header := &doc.GenManHeader{
@@ -55,7 +55,7 @@ func WriteManPages() {
 	}
 	err := doc.GenManTree(rootCmd, header, man_dir)
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("%s", err))
+		common.Exitf(1, "%s", err)
 	}
 	fmt.Printf("Man pages generated in '%s'\n", man_dir)
 }
@@ -63,12 +63,12 @@ func WriteManPages() {
 func WriteMarkdownPages() {
 	md_dir := "markdown_pages"
 	if common.DirExists(md_dir) {
-		common.Exit(1, fmt.Sprintf("Markdown pages directory '%s' exists already.", md_dir))
+		common.Exitf(1, "Markdown pages directory '%s' exists already.", md_dir)
 	}
 	common.Mkdir(md_dir)
 	err := doc.GenMarkdownTree(rootCmd, md_dir)
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("%s", err))
+		common.Exitf(1, "%s", err)
 	}
 	err = doc.GenReSTTree(rootCmd, md_dir)
 	fmt.Printf("Markdown pages generated in '%s'\n", md_dir)
@@ -77,12 +77,12 @@ func WriteMarkdownPages() {
 func WriteRstPages() {
 	rst_dir := "rst_pages"
 	if common.DirExists(rst_dir) {
-		common.Exit(1, fmt.Sprintf("Restructured Text pages directory '%s' exists already.", rst_dir))
+		common.Exitf(1, "Restructured Text pages directory '%s' exists already.", rst_dir)
 	}
 	common.Mkdir(rst_dir)
 	err := doc.GenReSTTree(rootCmd, rst_dir)
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("%s", err))
+		common.Exitf(1, "%s", err)
 	}
 	fmt.Printf("Restructured Text pages generated in '%s'\n", rst_dir)
 }

@@ -16,7 +16,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/datacharmer/dbdeployer/common"
@@ -49,7 +48,7 @@ func Execute() {
 	}
 	common.CommandLineArgs = cl
 	if err := rootCmd.Execute(); err != nil {
-		common.Exit(1, fmt.Sprintf("%s", err))
+		common.Exitf(1, "%s", err)
 	}
 }
 
@@ -75,7 +74,7 @@ func checkDefaultsFile() {
 		if common.FileExists(defaults.CustomConfigurationFile) {
 			defaults.ConfigurationFile = defaults.CustomConfigurationFile
 		} else {
-			common.Exit(1, fmt.Sprintf("*** File %s not found", defaults.CustomConfigurationFile))
+			common.Exitf(1, "*** File %s not found", defaults.CustomConfigurationFile)
 		}
 	}
 	defaults.LoadConfiguration()

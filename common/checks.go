@@ -51,7 +51,7 @@ func GetInstalledSandboxes(sandbox_home string) (installed_sandboxes []SandboxIn
 	}
 	files, err := ioutil.ReadDir(sandbox_home)
 	if err != nil {
-		Exit(1, fmt.Sprintf("%s", err))
+		Exitf(1, "%s", err)
 	}
 	for _, f := range files {
 		fname := f.Name()
@@ -173,7 +173,7 @@ func CheckTarballOperatingSystem(basedir string) {
 			}
 			fmt.Println(dash_line)
 		}
-		Exit(1, fmt.Sprintf("Could not find any of the expected files for %s server: %s", currentOs, wanted_files), dash_line)
+		Exitf(1, "Could not find any of the expected files for %s server: %s\n%s", currentOs, wanted_files, dash_line)
 	}
 }
 
@@ -199,7 +199,7 @@ func CheckSandboxDir(sandbox_home string) {
 		fmt.Printf("Creating directory %s\n", sandbox_home)
 		err := os.Mkdir(sandbox_home, 0755)
 		if err != nil {
-			Exit(1, fmt.Sprintf("%s", err))
+			Exitf(1, "%s", err)
 		}
 	}
 

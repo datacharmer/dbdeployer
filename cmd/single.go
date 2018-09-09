@@ -31,12 +31,12 @@ import (
 func replace_template(template_name string, file_name string) {
 	group, _, contents := FindTemplate(template_name)
 	if !common.FileExists(file_name) {
-		common.Exit(1, fmt.Sprintf("File %s not found\n", file_name))
+		common.Exitf(1, "File %s not found\n", file_name)
 	}
 	fmt.Printf("Replacing template %s.%s [%d chars] with contents of file %s\n", group, template_name, len(contents), file_name)
 	new_contents := common.SlurpAsString(file_name)
 	if len(new_contents) == 0 {
-		common.Exit(1, fmt.Sprintf("File %s is empty\n", file_name))
+		common.Exitf(1, "File %s is empty\n", file_name)
 	}
 	var new_rec sandbox.TemplateDesc = sandbox.TemplateDesc{
 		Description: sandbox.AllTemplates[group][template_name].Description,
@@ -50,7 +50,7 @@ func check_template_change_request(request string) (template_name, file_name str
 	re := regexp.MustCompile(`(\w+):(\S+)`)
 	reqList := re.FindAllStringSubmatch(request, -1)
 	if len(reqList) == 0 {
-		common.Exit(1, fmt.Sprintf("request '%s' invalid. Required format is 'template_name:file_name'", request))
+		common.Exitf(1, "request '%s' invalid. Required format is 'template_name:file_name'", request)
 	}
 	template_name = reqList[0][1]
 	file_name = reqList[0][2]
@@ -72,7 +72,7 @@ func GetAbsolutePathFromFlag(cmd *cobra.Command, name string) string {
 	flags := cmd.Flags()
 	value, err := flags.GetString(name)
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("Error getting flag value for --%s", name))
+		common.Exitf(1, "Error getting flag value for --%s", name)
 	}
 	return common.AbsolutePath(value)
 }
@@ -88,7 +88,7 @@ func check_if_abridged_version(version, basedir string) string {
 	}
 	full_version := common.LatestVersion(basedir, version)
 	if full_version == "" {
-		common.Exit(1, fmt.Sprintf("FATAL: no full version found for %s in %s\n", version, basedir))
+		common.Exitf(1, "FATAL: no full version found for %s in %s\n", version, basedir)
 	} else {
 		fmt.Printf("# %s => %s\n", version, full_version)
 		version = full_version
@@ -152,14 +152,14 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 			sd.Version = sd.BasedirName
 		}
 		if !common.IsVersion(sd.Version) {
-			common.Exit(1, fmt.Sprintf("No version detected for directory %s", target))
+			common.Exitf(1, "No version detected for directory %s", target)
 		}
 		// fmt.Printf("NEW bd <%s> - v: <%s>\n",basedir, sd.Version )
 	}
 
 	sd.Port = common.VersionToPort(sd.Version)
 	if sd.Port < 0 {
-		common.Exit(1, fmt.Sprintf("Unsupported version format (%s)", sd.Version))
+		common.Exitf(1, "Unsupported version format (%s)", sd.Version)
 	}
 	sd.UserPort, _ = flags.GetInt(defaults.PortLabel)
 	sd.BasePort, _ = flags.GetInt(defaults.BasePortLabel)
@@ -172,7 +172,7 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.Basedir = path.Join(basedir, sd.BasedirName)
 	// sd.Basedir = path.Join(basedir, args[0])
 	if !common.DirExists(sd.Basedir) {
-		common.Exit(1, fmt.Sprintf("basedir '%s' not found", sd.Basedir))
+		common.Exitf(1, "basedir '%s' not found", sd.Basedir)
 	}
 
 	common.CheckTarballOperatingSystem(sd.Basedir)
@@ -252,14 +252,14 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 			sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 			sd.ServerId = sd.Port
 		} else {
-			common.Exit(1, fmt.Sprintf("--%s requires version 5.6.9+", defaults.GtidLabel))
+			common.Exitf(1, "--%s requires version 5.6.9+", defaults.GtidLabel)
 		}
 	}
 	if repl_crash_safe && sd.ReplCrashSafeOptions == "" {
 		if common.GreaterOrEqualVersion(sd.Version, []int{5, 6, 2}) {
 			sd.ReplCrashSafeOptions = sandbox.SingleTemplates["repl_crash_safe_options"].Contents
 		} else {
-			common.Exit(1, fmt.Sprintf("--%s requires version 5.6.2+", defaults.ReplCrashSafeLabel))
+			common.Exitf(1, "--%s requires version 5.6.2+", defaults.ReplCrashSafeLabel)
 		}
 	}
 	return sd

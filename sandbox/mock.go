@@ -43,7 +43,7 @@ func set_mock_environment(mock_upper_dir string) {
 		mock_upper_dir = default_mock_dir
 	}
 	if common.DirExists(mock_upper_dir) {
-		common.Exit(1, fmt.Sprintf("Mock directory %s already exists. Aborting", mock_upper_dir))
+		common.Exitf(1, "Mock directory %s already exists. Aborting", mock_upper_dir)
 	}
 	PWD := os.Getenv("PWD")
 	home := fmt.Sprintf("%s/%s/home", PWD, mock_upper_dir)
@@ -68,7 +68,7 @@ func set_mock_environment(mock_upper_dir string) {
 
 func remove_mock_environment(mock_upper_dir string) {
 	if !common.DirExists(mock_upper_dir) {
-		common.Exit(1, fmt.Sprintf("Mock directory %s doesn't exist. Aborting", mock_upper_dir))
+		common.Exitf(1, "Mock directory %s doesn't exist. Aborting", mock_upper_dir)
 	}
 	os.RemoveAll(mock_upper_dir)
 	os.Setenv("HOME", save_home)
@@ -95,7 +95,7 @@ func create_mock_version(version string) {
 	case "darwin":
 		extension = "dylib"
 	default:
-		common.Exit(1, fmt.Sprintf("unhandled operating system %s", currentOs))
+		common.Exitf(1, "unhandled operating system %s", currentOs)
 	}
 	libmysqlclient_file_name := fmt.Sprintf("libmysqlclient.%s", extension)
 	write_script(MockTemplates, "mysqld", "no_op_mock_template",

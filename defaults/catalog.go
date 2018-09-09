@@ -80,7 +80,7 @@ func WriteCatalog(sc SandboxCatalog) {
 	}
 	b, err := json.MarshalIndent(sc, " ", "\t")
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("error encoding sandbox catalog: %s", err))
+		common.Exitf(1, "error encoding sandbox catalog: %s", err)
 	}
 	json_string := fmt.Sprintf("%s", b)
 	filename := SandboxRegistry
@@ -99,7 +99,7 @@ func ReadCatalog() (sc SandboxCatalog) {
 
 	err := json.Unmarshal(sc_blob, &sc)
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("error decoding sandbox catalog: %s", err))
+		common.Exitf(1, "error decoding sandbox catalog: %s", err)
 	}
 	return
 }

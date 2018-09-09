@@ -16,7 +16,7 @@
 package common
 
 // This file was generated during build. Do not edit.
-// Build time: 2018-09-09 14:57
+// Build time: 2018-09-09 17:06
 
 var VersionDef string = "1.11.0" // 2018-09-08
 

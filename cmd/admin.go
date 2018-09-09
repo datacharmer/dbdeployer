@@ -26,7 +26,7 @@ import (
 func UnpreserveSandbox(sandbox_dir, sandbox_name string) {
 	full_path := sandbox_dir + "/" + sandbox_name
 	if !common.DirExists(full_path) {
-		common.Exit(1, fmt.Sprintf("Directory '%s' not found", full_path))
+		common.Exitf(1, "Directory '%s' not found", full_path)
 	}
 	preserve := full_path + "/no_clear_all"
 	if !common.ExecExists(preserve) {
@@ -43,7 +43,7 @@ func UnpreserveSandbox(sandbox_dir, sandbox_name string) {
 		is_multiple = false
 	}
 	if !common.ExecExists(clear) {
-		common.Exit(1, fmt.Sprintf("Executable '%s' not found", clear))
+		common.Exitf(1, "Executable '%s' not found", clear)
 	}
 	no_clear := full_path + "/no_clear"
 	if is_multiple {
@@ -51,11 +51,11 @@ func UnpreserveSandbox(sandbox_dir, sandbox_name string) {
 	}
 	err := os.Remove(clear)
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("Error while removing %s \n%s", clear, err))
+		common.Exitf(1, "Error while removing %s \n%s", clear, err)
 	}
 	err = os.Rename(no_clear, clear)
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("Error while renaming  script\n%s", err))
+		common.Exitf(1, "Error while renaming  script\n%s", err)
 	}
 	fmt.Printf("Sandbox %s unlocked\n", sandbox_name)
 }
@@ -63,7 +63,7 @@ func UnpreserveSandbox(sandbox_dir, sandbox_name string) {
 func PreserveSandbox(sandbox_dir, sandbox_name string) {
 	full_path := sandbox_dir + "/" + sandbox_name
 	if !common.DirExists(full_path) {
-		common.Exit(1, fmt.Sprintf("Directory '%s' not found", full_path))
+		common.Exitf(1, "Directory '%s' not found", full_path)
 	}
 	preserve := full_path + "/no_clear_all"
 	if !common.ExecExists(preserve) {
@@ -80,7 +80,7 @@ func PreserveSandbox(sandbox_dir, sandbox_name string) {
 		is_multiple = false
 	}
 	if !common.ExecExists(clear) {
-		common.Exit(1, fmt.Sprintf("Executable '%s' not found", clear))
+		common.Exitf(1, "Executable '%s' not found", clear)
 	}
 	no_clear := full_path + "/no_clear"
 	clear_cmd := "clear"
@@ -92,7 +92,7 @@ func PreserveSandbox(sandbox_dir, sandbox_name string) {
 	}
 	err := os.Rename(clear, no_clear)
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("Error while renaming script.\n%s", err))
+		common.Exitf(1, "Error while renaming script.\n%s", err)
 	}
 	template := sandbox.SingleTemplates["sb_locked_template"].Contents
 	var data = common.Smap{
@@ -163,12 +163,12 @@ func UpgradeSandbox(sandbox_dir, old_sandbox, new_sandbox string) {
 	}
 	err := os.Chdir(sandbox_dir)
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("Error: can't change directory to %s", sandbox_dir))
+		common.Exitf(1, "Error: can't change directory to %s", sandbox_dir)
 	}
 	scripts := []string{"start", "stop", "my"}
 	for _, dir := range []string{old_sandbox, new_sandbox} {
 		if !common.DirExists(dir) {
-			common.Exit(1, fmt.Sprintf("Error: Directory %s not found in %s", dir, sandbox_dir))
+			common.Exitf(1, "Error: Directory %s not found in %s", dir, sandbox_dir)
 		}
 		for _, script := range scripts {
 			if !common.ExecExists(dir + "/" + script) {
@@ -182,7 +182,7 @@ func UpgradeSandbox(sandbox_dir, old_sandbox, new_sandbox string) {
 	mysql_upgrade := new_sbdesc.Basedir + "/bin/mysql_upgrade"
 	if !common.ExecExists(mysql_upgrade) {
 		common.WriteString("", new_sandbox+"/no_upgrade")
-		common.Exit(0, fmt.Sprintf("mysql_upgrade not found in %s. Upgrade is not possible", new_sbdesc.Basedir))
+		common.Exit(0, "mysql_upgrade not found in %s. Upgrade is not possible", new_sbdesc.Basedir)
 	}
 	new_version_list := common.VersionToList(new_sbdesc.Version)
 	new_major := new_version_list[0]
@@ -198,7 +198,7 @@ func UpgradeSandbox(sandbox_dir, old_sandbox, new_sandbox string) {
 		common.Exit(1, "Upgrade from and to MariaDB is not supported")
 	}
 	if common.GreaterOrEqualVersion(old_sbdesc.Version, new_version_list) {
-		common.Exit(1, fmt.Sprintf("Version %s must be greater than %s", new_upgrade_version, old_upgrade_version))
+		common.Exitf(1, "Version %s must be greater than %s", new_upgrade_version, old_upgrade_version)
 	}
 	can_be_upgraded := false
 	if old_major < new_major {
@@ -213,41 +213,41 @@ func UpgradeSandbox(sandbox_dir, old_sandbox, new_sandbox string) {
 		}
 	}
 	if !can_be_upgraded {
-		common.Exit(1, fmt.Sprintf("Version %s can only be upgraded to %s or to the same version with a higher revision", old_upgrade_version, possible_upgrades[old_upgrade_version]))
+		common.Exitf(1, "Version %s can only be upgraded to %s or to the same version with a higher revision", old_upgrade_version, possible_upgrades[old_upgrade_version])
 	}
 	new_sandbox_old_data := new_sandbox + "/data-" + new_sandbox
 	if common.DirExists(new_sandbox_old_data) {
-		common.Exit(1, fmt.Sprintf("Sandbox %s is already the upgrade from an older version", new_sandbox))
+		common.Exitf(1, "Sandbox %s is already the upgrade from an older version", new_sandbox)
 	}
 	err, _ = common.Run_cmd(old_sandbox + "/stop")
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("Error while stopping sandbox %s", old_sandbox))
+		common.Exitf(1, "Error while stopping sandbox %s", old_sandbox)
 	}
 	err, _ = common.Run_cmd(new_sandbox + "/stop")
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("Error while stopping sandbox %s", new_sandbox))
+		common.Exitf(1, "Error while stopping sandbox %s", new_sandbox)
 	}
 	mv_args := []string{new_sandbox + "/data", new_sandbox_old_data}
 	err, _ = common.Run_cmd_with_args("mv", mv_args)
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("Error while moving data directory in sandbox %s", new_sandbox))
+		common.Exitf(1, "Error while moving data directory in sandbox %s", new_sandbox)
 	}
 
 	mv_args = []string{old_sandbox + "/data", new_sandbox + "/data"}
 	err, _ = common.Run_cmd_with_args("mv", mv_args)
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("Error while moving data directory from sandbox %s to %s", old_sandbox, new_sandbox))
+		common.Exitf(1, "Error while moving data directory from sandbox %s to %s", old_sandbox, new_sandbox)
 	}
 	fmt.Printf("Data directory %s/data moved to %s/data \n", old_sandbox, new_sandbox)
 
 	err, _ = common.Run_cmd(new_sandbox + "/start")
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("Error while starting sandbox %s", new_sandbox))
+		common.Exitf(1, "Error while starting sandbox %s", new_sandbox)
 	}
 	upgrade_args := []string{"sql_upgrade"}
 	err, _ = common.Run_cmd_with_args(new_sandbox+"/my", upgrade_args)
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("Error while running mysql_upgrade in %s", new_sandbox))
+		common.Exitf(1, "Error while running mysql_upgrade in %s", new_sandbox)
 	}
 	fmt.Println("")
 	fmt.Printf("The data directory from %s/data is preserved in %s\n", new_sandbox, new_sandbox_old_data)

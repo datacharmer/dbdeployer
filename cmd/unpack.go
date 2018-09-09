@@ -68,7 +68,7 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 		destination = Basedir + "/" + target
 	}
 	if common.DirExists(destination) && !is_shell {
-		common.Exit(1, fmt.Sprintf("Destination directory %s exists already\n", destination))
+		common.Exitf(1, "Destination directory %s exists already\n", destination)
 	}
 	var extension string = ".tar.gz"
 	extracted := path.Base(tarball)
@@ -82,7 +82,7 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 		fmt.Printf("Merging shell tarball %s to %s\n", common.ReplaceLiteralHome(tarball), common.ReplaceLiteralHome(destination))
 		err := unpack.MergeShell(tarball, Basedir, destination, barename, verbosity)
 		if err != nil {
-			common.Exit(1, fmt.Sprintf("Error while unpacking mysql shell tarball : %s", err))
+			common.Exitf(1, "Error while unpacking mysql shell tarball : %s", err)
 		}
 		return
 	}
@@ -91,14 +91,14 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	//verbosity_level := unpack.VERBOSE
 	err := unpack.UnpackTar(tarball, Basedir, verbosity)
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("%s", err))
+		common.Exitf(1, "%s", err)
 	}
 	final_name := Basedir + "/" + barename
 	if final_name != destination {
 		fmt.Printf("Renaming directory %s to %s\n", final_name, destination)
 		err = os.Rename(final_name, destination)
 		if err != nil {
-			common.Exit(1, fmt.Sprintf("%s", err))
+			common.Exitf(1, "%s", err)
 		}
 	}
 }

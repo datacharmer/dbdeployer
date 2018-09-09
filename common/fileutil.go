@@ -98,7 +98,7 @@ func WriteSandboxDescription(destination string, sd SandboxDescription) {
 	sd.CommandLine = CommandLineArgs
 	b, err := json.MarshalIndent(sd, " ", "\t")
 	if err != nil {
-		Exit(1, fmt.Sprintf("error encoding sandbox description: %s", err))
+		Exitf(1, "error encoding sandbox description: %s", err)
 	}
 	json_string := fmt.Sprintf("%s", b)
 	filename := destination + "/sbdescription.json"
@@ -111,7 +111,7 @@ func ReadSandboxDescription(sandbox_directory string) (sd SandboxDescription) {
 
 	err := json.Unmarshal(sb_blob, &sd)
 	if err != nil {
-		Exit(1, fmt.Sprintf("error decoding sandbox description: %s", err))
+		Exitf(1, "error decoding sandbox description: %s", err)
 	}
 	return
 }
@@ -129,7 +129,7 @@ func SlurpAsLines(filename string) []string {
 		lines = append(lines, scanner.Text())
 	}
 	if err := scanner.Err(); err != nil {
-		Exit(1, fmt.Sprintf("%s", err))
+		Exitf(1, "%s", err)
 	}
 	return lines
 }
@@ -273,24 +273,24 @@ func Run_cmd(c string) (error, string) {
 func CopyFile(source, destination string) {
 	sfile, err := os.Stat(source)
 	if err != nil {
-		Exit(1, fmt.Sprintf("Error finding source file %s: %s", source, err))
+		Exitf(1, "Error finding source file %s: %s", source, err)
 	}
 	fmode := sfile.Mode()
 	from, err := os.Open(source)
 	if err != nil {
-		Exit(1, fmt.Sprintf("Error opening source file %s: %s", source, err))
+		Exitf(1, "Error opening source file %s: %s", source, err)
 	}
 	defer from.Close()
 
 	to, err := os.OpenFile(destination, os.O_RDWR|os.O_CREATE, fmode) // 0666)
 	if err != nil {
-		Exit(1, fmt.Sprintf("Error opening destination file %s: %s", destination, err))
+		Exitf(1, "Error opening destination file %s: %s", destination, err)
 	}
 	defer to.Close()
 
 	_, err = io.Copy(to, from)
 	if err != nil {
-		Exit(1, fmt.Sprintf("Error copying from source %s to destination file %s: %s", source, destination, err))
+		Exitf(1, "Error copying from source %s to destination file %s: %s", source, destination, err)
 	}
 }
 
@@ -305,7 +305,7 @@ func DirName(filename string) string {
 func AbsolutePath(value string) string {
 	filename, err := filepath.Abs(value)
 	if err != nil {
-		Exit(1, fmt.Sprintf("Error getting absolute path for %s", value))
+		Exitf(1, "Error getting absolute path for %s", value)
 	}
 	return filename
 }
@@ -313,23 +313,20 @@ func AbsolutePath(value string) string {
 func Mkdir(dir_name string) {
 	err := os.Mkdir(dir_name, 0755)
 	if err != nil {
-		fmt.Printf("Error creating directory %s\n%s\n", dir_name, err)
-		os.Exit(1)
+		Exitf(1, "Error creating directory %s\n%s\n", dir_name, err)
 	}
 }
 
 func Rmdir(dir_name string) {
 	err := os.Remove(dir_name)
 	if err != nil {
-		fmt.Printf("Error removing directory %s\n%s\n", dir_name, err)
-		os.Exit(1)
+		Exitf(1, "Error removing directory %s\n%s\n", dir_name, err)
 	}
 }
 
 func RmdirAll(dir_name string) {
 	err := os.RemoveAll(dir_name)
 	if err != nil {
-		fmt.Printf("Error deep-removing directory %s\n%s\n", dir_name, err)
-		os.Exit(1)
+		Exitf(1, "Error deep-removing directory %s\n%s\n", dir_name, err)
 	}
 }

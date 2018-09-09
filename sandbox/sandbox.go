@@ -124,7 +124,7 @@ func CheckDirectory(sdef SandboxDef) SandboxDef {
 			common.Run_cmd(stop_command)
 			err, _ := common.Run_cmd_with_args("rm", []string{"-rf", sandbox_dir})
 			if err != nil {
-				common.Exit(1, fmt.Sprintf("Error while deleting sandbox %s", sandbox_dir))
+				common.Exitf(1, "Error while deleting sandbox %s", sandbox_dir)
 			}
 			var new_installed_ports []int
 			for _, port := range sdef.InstalledPorts {
@@ -134,7 +134,7 @@ func CheckDirectory(sdef SandboxDef) SandboxDef {
 			}
 			sdef.InstalledPorts = new_installed_ports
 		} else {
-			common.Exit(1, fmt.Sprintf("Directory %s already exists. Use --force to override.", sandbox_dir))
+			common.Exitf(1, "Directory %s already exists. Use --force to override.", sandbox_dir)
 		}
 	}
 	return sdef
@@ -148,7 +148,7 @@ func CheckPort(caller string, sandbox_type string, installed_ports []int, port i
 		}
 	}
 	if conflict > 0 {
-		common.Exit(1, fmt.Sprintf("Port conflict detected for %s (%s). Port %d is already used", sandbox_type, caller, conflict))
+		common.Exitf(1, "Port conflict detected for %s (%s). Port %d is already used", sandbox_type, caller, conflict)
 	}
 }
 
@@ -208,11 +208,11 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 	var sandbox_dir string
 
 	if !common.DirExists(sdef.Basedir) {
-		common.Exit(1, fmt.Sprintf("Base directory %s does not exist", sdef.Basedir))
+		common.Exitf(1, "Base directory %s does not exist", sdef.Basedir)
 	}
 
 	if sdef.Port <= 1024 {
-		common.Exit(1, fmt.Sprintf("Port for sandbox must be > 1024 (given:%d)", sdef.Port))
+		common.Exitf(1, "Port for sandbox must be > 1024 (given:%d)", sdef.Port)
 	}
 	debug_print(sdef)
 
@@ -236,7 +236,7 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 		global_tmp_dir = "/tmp"
 	}
 	if !common.DirExists(global_tmp_dir) {
-		common.Exit(1, fmt.Sprintf("TMP directory %s does not exist", global_tmp_dir))
+		common.Exitf(1, "TMP directory %s does not exist", global_tmp_dir)
 	}
 	if sdef.NodeNum == 0 && !sdef.Force {
 		sdef.Port = common.FindFreePort(sdef.Port, sdef.InstalledPorts, 1)
@@ -397,7 +397,7 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 	}
 	// fmt.Printf("Script: %s\n", script)
 	if !common.ExecExists(script) {
-		common.Exit(1, fmt.Sprintf("Script '%s' not found", script))
+		common.Exitf(1, "Script '%s' not found", script)
 	}
 	if len(sdef.InitOptions) > 0 {
 		for _, op := range sdef.InitOptions {
@@ -586,7 +586,7 @@ func write_regular_file(filename, text, directory string) string {
 func RemoveSandbox(sandbox_dir, sandbox string, run_concurrently bool) (exec_list []concurrent.ExecutionList) {
 	full_path := sandbox_dir + "/" + sandbox
 	if !common.DirExists(full_path) {
-		common.Exit(1, fmt.Sprintf("Directory '%s' not found", full_path))
+		common.Exitf(1, "Directory '%s' not found", full_path)
 	}
 	preserve := full_path + "/no_clear_all"
 	if !common.ExecExists(preserve) {
@@ -602,7 +602,7 @@ func RemoveSandbox(sandbox_dir, sandbox string, run_concurrently bool) (exec_lis
 		stop = full_path + "/stop"
 	}
 	if !common.ExecExists(stop) {
-		common.Exit(1, fmt.Sprintf("Executable '%s' not found", stop))
+		common.Exitf(1, "Executable '%s' not found", stop)
 	}
 
 	if run_concurrently {
@@ -617,7 +617,7 @@ func RemoveSandbox(sandbox_dir, sandbox string, run_concurrently bool) (exec_lis
 		}
 		err, _ := common.Run_cmd(stop)
 		if err != nil {
-			common.Exit(1, fmt.Sprintf("Error while stopping sandbox %s", full_path))
+			common.Exitf(1, "Error while stopping sandbox %s", full_path)
 		}
 	}
 
@@ -638,7 +638,7 @@ func RemoveSandbox(sandbox_dir, sandbox string, run_concurrently bool) (exec_lis
 		}
 		err, _ := common.Run_cmd_with_args("rm", rm_args)
 		if err != nil {
-			common.Exit(1, fmt.Sprintf("Error while deleting sandbox %s", full_path))
+			common.Exitf(1, "Error while deleting sandbox %s", full_path)
 		}
 		if defaults.UsingDbDeployer {
 			fmt.Printf("Sandbox %s deleted\n", full_path)

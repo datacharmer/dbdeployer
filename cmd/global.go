@@ -25,10 +25,10 @@ func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 	sandbox_dir := GetAbsolutePathFromFlag(cmd, "sandbox-home")
 	run_list := common.SandboxInfoToFileNames(common.GetInstalledSandboxes(sandbox_dir))
 	if len(run_list) == 0 {
-		common.Exit(1, fmt.Sprintf("No sandboxes found in %s", sandbox_dir))
+		common.Exitf(1, "No sandboxes found in %s", sandbox_dir)
 	}
 	if require_args && len(args) < 1 {
-		common.Exit(1, fmt.Sprintf("Arguments required for command %s", executable))
+		common.Exitf(1, "Arguments required for command %s", executable)
 	}
 	for _, sb := range run_list {
 		single_use := true
@@ -45,7 +45,7 @@ func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 				fmt.Printf("# Sandbox %s: executable %s not found\n", full_dir_path, executable)
 				continue
 			}
-			common.Exit(1, fmt.Sprintf("No %s or %s found in %s", executable, executable+"_all", full_dir_path))
+			common.Exitf(1, "No %s or %s found in %s", executable, executable+"_all", full_dir_path)
 		}
 		var cmd_args []string
 
@@ -63,7 +63,7 @@ func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 			err, _ = common.Run_cmd(cmd_file)
 		}
 		if err != nil {
-			common.Exit(1, fmt.Sprintf("Error while running %s\n", cmd_file))
+			common.Exitf(1, "Error while running %s\n", cmd_file)
 		}
 		fmt.Println("")
 	}

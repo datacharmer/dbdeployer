@@ -43,7 +43,7 @@ func FindTemplate(requested string) (group, template_name, contents string) {
 			}
 		}
 	}
-	common.Exit(1, fmt.Sprintf("template '%s' not found", requested))
+	common.Exitf(1, "template '%s' not found", requested)
 	return
 }
 
@@ -79,7 +79,7 @@ func GetTemplatesList(wanted string) (tlist []TemplateInfo) {
 		}
 	}
 	if !found {
-		common.Exit(1, fmt.Sprintf("group %s not found\n", wanted))
+		common.Exitf(1, "group %s not found\n", wanted)
 	}
 	return
 }
@@ -156,7 +156,7 @@ func ExportTemplates(cmd *cobra.Command, args []string) {
 		wanted = ""
 	}
 	if common.DirExists(dir_name) {
-		common.Exit(1, fmt.Sprintf("# Directory <%s> already exists", dir_name))
+		common.Exitf(1, "# Directory <%s> already exists", dir_name)
 	}
 	common.Mkdir(dir_name)
 	common.WriteString(common.VersionDef, dir_name+"/version.txt")
@@ -181,10 +181,10 @@ func ExportTemplates(cmd *cobra.Command, args []string) {
 		}
 	}
 	if !found_group {
-		common.Exit(1, fmt.Sprintf("Group %s not found", wanted))
+		common.Exitf(1, "Group %s not found", wanted)
 	}
 	if !found_template {
-		common.Exit(1, fmt.Sprintf("template %s not found", template_name))
+		common.Exitf(1, "template %s not found", template_name)
 	}
 	fmt.Printf("Exported to %s\n", dir_name)
 }
@@ -227,7 +227,7 @@ func ImportTemplates(cmd *cobra.Command, args []string) {
 	}
 	dir_name := args[1]
 	if !common.DirExists(dir_name) {
-		common.Exit(1, fmt.Sprintf("# Directory <%s> doesn't exist", dir_name))
+		common.Exitf(1, "# Directory <%s> doesn't exist", dir_name)
 	}
 	template_name := ""
 	if len(args) > 2 {
@@ -235,17 +235,17 @@ func ImportTemplates(cmd *cobra.Command, args []string) {
 	}
 	version_file := dir_name + "/version.txt"
 	if !common.FileExists(version_file) {
-		common.Exit(1, fmt.Sprintf("File %s not found. Unable to validate templates.", version_file))
+		common.Exitf(1, "File %s not found. Unable to validate templates.", version_file)
 	}
 	template_version := strings.TrimSpace(common.SlurpAsString(version_file))
 	version_list := common.VersionToList(template_version)
 	// fmt.Printf("%v\n",version_list)
 	compatible_version_list := common.VersionToList(common.CompatibleVersion)
 	if version_list[0] < 0 {
-		common.Exit(1, fmt.Sprintf("Invalid version (%s) found in %s", template_version, version_file))
+		common.Exitf(1, "Invalid version (%s) found in %s", template_version, version_file)
 	}
 	if !common.GreaterOrEqualVersion(template_version, compatible_version_list) {
-		common.Exit(1, fmt.Sprintf("Templates are for version %s. The minimum compatible version is %s", template_version, common.CompatibleVersion))
+		common.Exitf(1, "Templates are for version %s. The minimum compatible version is %s", template_version, common.CompatibleVersion)
 	}
 	found_group := false
 	found_template := false
@@ -289,10 +289,10 @@ func ImportTemplates(cmd *cobra.Command, args []string) {
 		}
 	}
 	if !found_group {
-		common.Exit(1, fmt.Sprintf("Group %s not found", wanted))
+		common.Exitf(1, "Group %s not found", wanted)
 	}
 	if !found_template {
-		common.Exit(1, fmt.Sprintf("template %s not found", template_name))
+		common.Exitf(1, "template %s not found", template_name)
 	}
 }
 

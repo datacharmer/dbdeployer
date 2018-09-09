@@ -24,25 +24,25 @@ import (
 func MergeShell(tarball, basedir, destination, barename string, verbosity int) error {
 	// fmt.Printf("<%s> <%s> <%s> <%s> %d\n",tarball, basedir, destination, barename, verbosity)
 	if !common.DirExists(basedir) {
-		common.Exit(1, fmt.Sprintf("Unpack directory %s does not exist\n", destination))
+		common.Exitf(1, "Unpack directory %s does not exist\n", destination)
 	}
 	if !common.DirExists(destination) {
-		common.Exit(1, fmt.Sprintf("Target server directory %s does not exist\n", destination))
+		common.Exitf(1, "Target server directory %s does not exist\n", destination)
 	}
 	extracted := basedir + "/" + barename
 	if common.DirExists(extracted) {
-		common.Exit(1, fmt.Sprintf("Unpacked shell directory %s already exists", extracted))
+		common.Exitf(1, "Unpacked shell directory %s already exists", extracted)
 	}
 
 	var dirs = []string{"bin", "lib", "share"}
 	for _, dir := range dirs {
 		dest_path := destination + "/" + dir
 		if !common.DirExists(dest_path) {
-			common.Exit(1, fmt.Sprintf("Destination server directory %s does not exist in %s\n", dir, destination))
+			common.Exitf(1, "Destination server directory %s does not exist in %s\n", dir, destination)
 		}
 		dest_path = destination + "/" + dir + "/mysqlsh"
 		if dir != "bin" && common.DirExists(dest_path) {
-			common.Exit(1, fmt.Sprintf("Destination shell directory %s/mysqlsh already exists in %s\n", dir, destination))
+			common.Exitf(1, "Destination shell directory %s/mysqlsh already exists in %s\n", dir, destination)
 		}
 	}
 
@@ -56,7 +56,7 @@ func MergeShell(tarball, basedir, destination, barename string, verbosity int) e
 	for _, dir := range dirs {
 		full_path := extracted + "/" + dir
 		if !common.DirExists(full_path) {
-			common.Exit(1, fmt.Sprintf("Source shell directory %s does not exist in %s\n", dir, extracted))
+			common.Exitf(1, "Source shell directory %s does not exist in %s\n", dir, extracted)
 		}
 	}
 	bin := extracted + "/bin"
@@ -69,7 +69,7 @@ func MergeShell(tarball, basedir, destination, barename string, verbosity int) e
 		source_dir := extracted + "/" + dir + "/mysqlsh"
 		dest_dir := destination + "/" + dir + "/mysqlsh"
 		if !common.DirExists(source_dir) {
-			common.Exit(1, fmt.Sprintf("Source shell directory %s/mysqlsh does not exist in %s\n", dir, extracted))
+			common.Exitf(1, "Source shell directory %s/mysqlsh does not exist in %s\n", dir, extracted)
 		}
 		if verbosity >= VERBOSE {
 			fmt.Printf("Move %s %s\n", source_dir, dest_dir)

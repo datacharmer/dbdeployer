@@ -203,7 +203,7 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 						fmt.Sprintf("# ERROR: %s", err))
 				}
 			} else {
-				common.Exit(1, fmt.Sprintf("File %s is a symlink, but no link information was provided\n", filename))
+				common.Exitf(1, "File %s is a symlink, but no link information was provided\n", filename)
 			}
 		}
 	}

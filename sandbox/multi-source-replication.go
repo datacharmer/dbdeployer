@@ -27,24 +27,24 @@ import (
 func check_node_lists(nodes int, mlist, slist []int) {
 	for _, N := range mlist {
 		if N > nodes {
-			common.Exit(1, fmt.Sprintf("Master num '%d' greater than number of nodes (%d)", N, nodes))
+			common.Exitf(1, "Master num '%d' greater than number of nodes (%d)", N, nodes)
 		}
 	}
 	for _, N := range slist {
 		if N > nodes {
-			common.Exit(1, fmt.Sprintf("Slave num '%d' greater than number of nodes (%d)", N, nodes))
+			common.Exitf(1, "Slave num '%d' greater than number of nodes (%d)", N, nodes)
 		}
 	}
 	for _, M := range mlist {
 		for _, S := range slist {
 			if S == M {
-				common.Exit(1, fmt.Sprintf("Overlapping values: %d is in both master and slave list", M))
+				common.Exitf(1, "Overlapping values: %d is in both master and slave list", M)
 			}
 		}
 	}
 	total_nodes := len(mlist) + len(slist)
 	if total_nodes != nodes {
-		common.Exit(1, fmt.Sprintf("Mismatched values: masters (%d) + slaves (%d) = %d. Expected: %d", len(mlist), len(slist), total_nodes, nodes))
+		common.Exitf(1, "Mismatched values: masters (%d) + slaves (%d) = %d. Expected: %d", len(mlist), len(slist), total_nodes, nodes)
 	}
 }
 
@@ -64,13 +64,13 @@ func nodes_list_to_int_slice(nodes_list string, nodes int) (int_list []int) {
 	list := strings.Split(nodes_list, separator)
 	// fmt.Printf("# separator: <%s> %#v\n",separator, list)
 	if len(list) == 0 {
-		common.Exit(1, fmt.Sprintf("Empty nodes list given (%s)", nodes_list))
+		common.Exitf(1, "Empty nodes list given (%s)", nodes_list)
 	}
 	for _, s := range list {
 		if s != "" {
 			num, err := strconv.Atoi(s)
 			if err != nil {
-				common.Exit(1, fmt.Sprintf("Error converting node number '%s' to int", s))
+				common.Exitf(1, "Error converting node number '%s' to int", s)
 			}
 			int_list = append(int_list, num)
 		}

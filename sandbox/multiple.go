@@ -40,7 +40,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Sma
 	}
 	Basedir := sdef.Basedir
 	if !common.DirExists(Basedir) {
-		common.Exit(1, fmt.Sprintf("Base directory %s does not exist", Basedir))
+		common.Exitf(1, "Base directory %s does not exist", Basedir)
 	}
 	if sdef.DirName == "" {
 		sdef.SandboxDir += "/" + defaults.Defaults().MultiplePrefix + common.VersionToName(origin)

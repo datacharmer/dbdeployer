@@ -244,7 +244,7 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 
 	Basedir := sdef.Basedir
 	if !common.DirExists(Basedir) {
-		common.Exit(1, fmt.Sprintf("Base directory %s does not exist", Basedir))
+		common.Exitf(1, "Base directory %s does not exist", Basedir)
 	}
 
 	sandbox_dir := sdef.SandboxDir

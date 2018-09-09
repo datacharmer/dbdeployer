@@ -55,7 +55,7 @@ func ExportDefaults(cmd *cobra.Command, args []string) {
 	}
 	filename := args[0]
 	if common.FileExists(filename) {
-		common.Exit(1, fmt.Sprintf("File %s already exists. Will not overwrite", filename))
+		common.Exitf(1, "File %s already exists. Will not overwrite", filename)
 	}
 	defaults.WriteDefaultsFile(filename, defaults.Defaults())
 	fmt.Printf("# Defaults exported to file %s\n", filename)
