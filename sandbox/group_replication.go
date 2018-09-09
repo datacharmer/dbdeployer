@@ -216,7 +216,8 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 		sdef.ReplOptions = SingleTemplates["replication_options"].Contents + fmt.Sprintf("\n%s\n%s\n", GroupReplOptions, single_multi_primary)
 		re_master_ip := regexp.MustCompile(`127\.0\.0\.1`)
 		sdef.ReplOptions = re_master_ip.ReplaceAllString(sdef.ReplOptions, master_ip)
-		sdef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["gtid_options"].Contents)
+		sdef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["gtid_options_57"].Contents)
+		sdef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["repl_crash_safe_options"].Contents)
 		sdef.ReplOptions += fmt.Sprintf("\nloose-group-replication-local-address=%s:%d\n", master_ip, group_port)
 		sdef.ReplOptions += fmt.Sprintf("\nloose-group-replication-group-seeds=%s\n", connection_string)
 		if common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 11}) {

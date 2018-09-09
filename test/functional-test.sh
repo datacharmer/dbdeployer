@@ -303,6 +303,26 @@ function test_start_restart {
 }
 
 
+function test_gtid {
+    running_version=$1
+    group_dir_name=$2
+    if [ -z "$GTID_TEST" ]
+    then
+        return
+    fi
+    test_header test_gtid $running_version
+    version_path=$(echo $running_version| tr '.' '_')
+    sbdir=$SANDBOX_HOME/$group_dir_name$version_path
+    gtid_slave1=$($sbdir/s1 -B -e 'show slave status\G' | grep '1111-1111-1111' )
+    gtid_slave2=$($sbdir/s1 -B -e 'show slave status\G' | grep 'Auto_Position: 1' )
+    gtid_master=$($sbdir/m -B -e 'show master status\G' | grep '1111-1111-1111' )
+    $sbdir/test_replication
+    ok "master GTID is enabled" "$gtid_master"
+    ok "slave GTID is enabled" "$gtid_slave1"
+    ok "slave uses auto position" "$gtid_slave2"
+    check_for_exit test_gtid skip_log_check
+}
+
 function test_semi_sync {
     running_version=$1
     group_dir_name=$2
@@ -872,16 +892,18 @@ function semisync_operations {
     do
         echo "# semisync operations $V"
         is_5_5=$(echo $V | grep '^5.5')
-        GTID=""
+        GTID_TEST=""
         if [ -z "$is_5_5" ]
         then
-            GTID=--gtid
+            export GTID_TEST=--gtid
         fi
-        run dbdeployer deploy replication $V --semi-sync $GTID
+        run dbdeployer deploy replication $V --semi-sync $GTID_TEST
         results "semisync $V"
         #sleep 2
         capture_test run dbdeployer global test
         test_semi_sync $V rsandbox_
+        test_gtid $V rsandbox_
+        unset GTID_TEST
         check_for_exit semisync_operations skip_log_check
         dbdeployer delete ALL --skip-confirm
         results "semisync $V - after deletion"

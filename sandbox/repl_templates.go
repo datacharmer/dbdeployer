@@ -36,7 +36,7 @@ fi
 
 {{ range .Slaves }}
 echo "initializing {{.SlaveLabel}} {{.Node}}"
-echo 'CHANGE MASTER TO  master_host="{{.MasterIp}}",  master_port={{.MasterPort}},  master_user="{{.RplUser}}",  master_password="{{.RplPassword}}" {{.ChangeMasterExtra}}' | $SBDIR/{{.NodeLabel}}{{.Node}}/use -u root
+echo 'CHANGE MASTER TO  master_host="{{.MasterIp}}",  master_port={{.MasterPort}},  master_user="{{.RplUser}}",  master_password="{{.RplPassword}}" {{.MasterAutoPosition}} {{.ChangeMasterExtra}}' | $SBDIR/{{.NodeLabel}}{{.Node}}/use -u root
 $SBDIR/{{.NodeLabel}}{{.Node}}/use -u root -e 'START SLAVE'
 {{end}}
 if [ -x ./post_initialization ]
@@ -221,7 +221,7 @@ echo "{{.SlaveLabel}}{{.Node}}"
 port=$($SBDIR/{{.NodeLabel}}{{.Node}}/use -BN -e "show variables like 'port'")
 server_id=$($SBDIR/{{.NodeLabel}}{{.Node}}/use -BN -e "show variables like 'server_id'")
 echo "$port - $server_id"
-$SBDIR/{{.NodeLabel}}{{.Node}}/use -e 'show slave status\G' | grep "\(Running:\|Master_Log_Pos\|\<Master_Log_File\|Retrieved\|Executed\)"
+$SBDIR/{{.NodeLabel}}{{.Node}}/use -e 'show slave status\G' | grep "\(Running:\|Master_Log_Pos\|\<Master_Log_File\|Retrieved\|Executed\|Auto_Position\)"
 {{end}}
 `
 	master_template string = `#!/bin/sh

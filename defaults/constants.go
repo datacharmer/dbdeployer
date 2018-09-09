@@ -33,6 +33,7 @@ const (
 	PortLabel              = "port"
 	BasePortLabel          = "base-port"
 	GtidLabel              = "gtid"
+	ReplCrashSafeLabel     = "repl-crash-safe"
 	NativeAuthPluginLabel  = "native-auth-plugin"
 	KeepServerUuidLabel    = "keep-server-uuid"
 	ForceLabel             = "force"

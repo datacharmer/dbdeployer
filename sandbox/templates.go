@@ -320,6 +320,7 @@ log-error={{.Datadir}}/msandbox.err
 {{.ServerId}}
 {{.ReplOptions}}
 {{.GtidOptions}}
+{{.ReplCrashSafeOptions}}
 {{.SemiSyncOptions}}
 
 {{.ExtraOptions}}
@@ -904,24 +905,36 @@ printf "# $fail_label  : %5d \n" $fail
 exit $exit_code
 `
 	replication_options string = `
+# basic replication options
 relay-log-index=mysql-relay
 relay-log=mysql-relay
 log-bin=mysql-bin
-log-error=msandbox.err
 `
 	semisync_master_options string = `
+# semi-synchronous replication options for master
 plugin-load=rpl_semi_sync_master=semisync_master.so
 #rpl_semi_sync_master_enabled=1
 `
 	semisync_slave_options string = `
+# semi-synchronous replication options for slave
 plugin-load=rpl_semi_sync_slave=semisync_slave.so
 #rpl_semi_sync_slave_enabled=1
 `
-	gtid_options string = `
+	repl_crash_safe_options string = `
+# replication crash-safe options
 master-info-repository=table
 relay-log-info-repository=table
+relay-log-recovery=on
+`
+	gtid_options_56 string = `
+# GTID options for 5.6
 gtid_mode=ON
 log-slave-updates
+enforce-gtid-consistency
+`
+	gtid_options_57 string = `
+# GTID options for 5.7 +
+gtid_mode=ON
 enforce-gtid-consistency
 `
 	expose_dd_tables string = `
@@ -1069,10 +1082,20 @@ function check_output
 			Notes:       "",
 			Contents:    semisync_slave_options,
 		},
-		"gtid_options": TemplateDesc{
-			Description: "GTID options for my.cnf",
+		"gtid_options_56": TemplateDesc{
+			Description: "GTID options for my.cnf 5.6.x",
 			Notes:       "",
-			Contents:    gtid_options,
+			Contents:    gtid_options_56,
+		},
+		"gtid_options_57": TemplateDesc{
+			Description: "GTID options for my.cnf 5.7.x and 8.0",
+			Notes:       "",
+			Contents:    gtid_options_57,
+		},
+		"repl_crash_safe_options": TemplateDesc{
+			Description: "Replication crash safe options",
+			Notes:       "",
+			Contents:    repl_crash_safe_options,
 		},
 		"expose_dd_tables": TemplateDesc{
 			Description: "Commands needed to enable data dictionary table usage",

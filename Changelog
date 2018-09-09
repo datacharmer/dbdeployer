@@ -1,4 +1,9 @@
-1.10.2	08-Sep-2018
+1.11.0	09-Sep-2018
+	- Added option --repl-crash-safe (Issue #36) to get crash safe params without GTID.
+	- Fixed Issue #35 (--gtid should include relay-log-recovery)
+	- Fixed Issue #37 (slave initialization with GTID should use
+	  MASTER_AUTO_POSITION) and added test for GTID behavior.
+1.10.2	08-Sep-2018 (not released)
 	- Code cleanup and formatting
 	- Moved build script to ./scripts 
 	- Added option to build compressed executables (but defaults is still

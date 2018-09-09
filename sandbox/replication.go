@@ -61,9 +61,13 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	sdef.LoadGrants = false
 	master_port := sdef.Port
 	change_master_extra := ""
+	master_auto_position := ""
+	if sdef.GtidOptions != "" {
+		master_auto_position += ", MASTER_AUTO_POSITION=1"
+	}
 	if common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 4}) {
 		if !sdef.NativeAuthPlugin {
-			change_master_extra = ", GET_MASTER_PUBLIC_KEY=1"
+			change_master_extra += ", GET_MASTER_PUBLIC_KEY=1"
 		}
 	}
 	if nodes < 2 {
@@ -77,20 +81,21 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	timestamp := time.Now()
 
 	var data common.Smap = common.Smap{
-		"Copyright":         Copyright,
-		"AppVersion":        common.VersionDef,
-		"DateTime":          timestamp.Format(time.UnixDate),
-		"SandboxDir":        sdef.SandboxDir,
-		"MasterLabel":       master_label,
-		"MasterPort":        sdef.Port,
-		"SlaveLabel":        slave_label,
-		"MasterAbbr":        master_abbr,
-		"MasterIp":          master_ip,
-		"RplUser":           sdef.RplUser,
-		"RplPassword":       sdef.RplPassword,
-		"SlaveAbbr":         slave_abbr,
-		"ChangeMasterExtra": change_master_extra,
-		"Slaves":            []common.Smap{},
+		"Copyright":          Copyright,
+		"AppVersion":         common.VersionDef,
+		"DateTime":           timestamp.Format(time.UnixDate),
+		"SandboxDir":         sdef.SandboxDir,
+		"MasterLabel":        master_label,
+		"MasterPort":         sdef.Port,
+		"SlaveLabel":         slave_label,
+		"MasterAbbr":         master_abbr,
+		"MasterIp":           master_ip,
+		"RplUser":            sdef.RplUser,
+		"RplPassword":        sdef.RplPassword,
+		"SlaveAbbr":          slave_abbr,
+		"ChangeMasterExtra":  change_master_extra,
+		"MasterAutoPosition": master_auto_position,
+		"Slaves":             []common.Smap{},
 	}
 
 	installation_message := "Installing and starting %s\n"
@@ -140,21 +145,22 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	for i := 1; i <= slaves; i++ {
 		sdef.Port = base_port + i + 1
 		data["Slaves"] = append(data["Slaves"].([]common.Smap), common.Smap{
-			"Copyright":         Copyright,
-			"AppVersion":        common.VersionDef,
-			"DateTime":          timestamp.Format(time.UnixDate),
-			"Node":              i,
-			"NodeLabel":         node_label,
-			"NodePort":          sdef.Port,
-			"SlaveLabel":        slave_label,
-			"MasterAbbr":        master_abbr,
-			"SlaveAbbr":         slave_abbr,
-			"SandboxDir":        sdef.SandboxDir,
-			"MasterPort":        master_port,
-			"MasterIp":          master_ip,
-			"ChangeMasterExtra": change_master_extra,
-			"RplUser":           sdef.RplUser,
-			"RplPassword":       sdef.RplPassword})
+			"Copyright":          Copyright,
+			"AppVersion":         common.VersionDef,
+			"DateTime":           timestamp.Format(time.UnixDate),
+			"Node":               i,
+			"NodeLabel":          node_label,
+			"NodePort":           sdef.Port,
+			"SlaveLabel":         slave_label,
+			"MasterAbbr":         master_abbr,
+			"SlaveAbbr":          slave_abbr,
+			"SandboxDir":         sdef.SandboxDir,
+			"MasterPort":         master_port,
+			"MasterIp":           master_ip,
+			"ChangeMasterExtra":  change_master_extra,
+			"MasterAutoPosition": master_auto_position,
+			"RplUser":            sdef.RplUser,
+			"RplPassword":        sdef.RplPassword})
 		sdef.LoadGrants = false
 		sdef.Prompt = fmt.Sprintf("%s%d", slave_label, i)
 		sdef.DirName = fmt.Sprintf("%s%d", node_label, i)
@@ -185,17 +191,18 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 			exec_lists = append(exec_lists, list)
 		}
 		var data_slave common.Smap = common.Smap{
-			"Copyright":         Copyright,
-			"AppVersion":        common.VersionDef,
-			"DateTime":          timestamp.Format(time.UnixDate),
-			"Node":              i,
-			"NodeLabel":         node_label,
-			"NodePort":          sdef.Port,
-			"SlaveLabel":        slave_label,
-			"MasterAbbr":        master_abbr,
-			"ChangeMasterExtra": change_master_extra,
-			"SlaveAbbr":         slave_abbr,
-			"SandboxDir":        sdef.SandboxDir,
+			"Copyright":          Copyright,
+			"AppVersion":         common.VersionDef,
+			"DateTime":           timestamp.Format(time.UnixDate),
+			"Node":               i,
+			"NodeLabel":          node_label,
+			"NodePort":           sdef.Port,
+			"SlaveLabel":         slave_label,
+			"MasterAbbr":         master_abbr,
+			"ChangeMasterExtra":  change_master_extra,
+			"MasterAutoPosition": master_auto_position,
+			"SlaveAbbr":          slave_abbr,
+			"SandboxDir":         sdef.SandboxDir,
 		}
 		write_script(ReplicationTemplates, fmt.Sprintf("%s%d", slave_abbr, i), "slave_template", sdef.SandboxDir, data_slave, true)
 		write_script(ReplicationTemplates, fmt.Sprintf("n%d", i+1), "slave_template", sdef.SandboxDir, data_slave, true)

@@ -26,54 +26,55 @@ import (
 )
 
 type SandboxDef struct {
-	DirName           string   // name of the directory cointaining the sandbox
-	SBType            string   // Type of sandbox (single, multiple, replication-node, group-node)
-	Multi             bool     // either single or part of a multiple sandbox
-	NodeNum           int      // in multiple sandboxes, which node is this
-	Version           string   // MySQL version
-	Basedir           string   // Where to get binaries from (e.g. $HOME/opt/mysql/8.0.11)
-	BasedirName       string   // The ibare name of the directory containing the binaries (e.g. 8.0.11)
-	SandboxDir        string   // Target directory for sandboxes
-	LoadGrants        bool     // Should we load grants?
-	SkipReportHost    bool     // Do not add report-host to my.sandbox.cnf
-	SkipReportPort    bool     // Do not add report-port to my.sandbox.cnf
-	SkipStart         bool     // Do not start the server after deployment
-	InstalledPorts    []int    // Which ports should be skipped in port assignment for this SB
-	Port              int      // port assigned to this sandbox
-	MysqlXPort        int      // XPlugin port for thsi sandbox
-	UserPort          int      //
-	BasePort          int      // Base port for calculating more ports in multiple SB
-	MorePorts         []int    // Additional ports that belong to thos sandbox
-	Prompt            string   // Prompt to use in "mysql" client
-	DbUser            string   // Database user name
-	RplUser           string   // Replication user name
-	DbPassword        string   // Database password
-	RplPassword       string   // Replication password
-	RemoteAccess      string   // What access have the users created for this SB (127.%)
-	BindAddress       string   // Bind address for this sandbox (127.0.0.1)
-	CustomMysqld      string   // Use an alternative mysqld executable
-	ServerId          int      // Server ID (for replication)
-	ReplOptions       string   // Replication options, as string to append to my.sandbox.cnf
-	GtidOptions       string   // Options needed for GTID
-	SemiSyncOptions   string   // Options for semi-synchronous replication
-	InitOptions       []string // Options to be added to the initialization command
-	MyCnfOptions      []string // Options to be added to my.sandbox.cnf
-	PreGrantsSql      []string // SQL statements to execute before grants assignment
-	PreGrantsSqlFile  string   // SQL file to load before grants assignment
-	PostGrantsSql     []string // SQL statements to run after grants assignment
-	PostGrantsSqlFile string   // SQL file to load after grants assignment
-	MyCnfFile         string   // options file to merge with the SB my.sandbox.cnf
-	HistoryDir        string   // Where to store the MySQL client history
-	InitGeneralLog    bool     // enable general log during server initialization
-	EnableGeneralLog  bool     // enable general log after initialization
-	NativeAuthPlugin  bool     // Use the native password plugin for MySQL 8.0.4+
-	DisableMysqlX     bool     // Disable Xplugin (MySQL 8.0.11+)
-	EnableMysqlX      bool     // Enable Xplugin (MySQL 5.7.12+)
-	KeepUuid          bool     // Do not change UUID
-	SinglePrimary     bool     // Use single primary for group replication
-	Force             bool     // Overwrite an existing sandbox with same target
-	ExposeDdTables    bool     // Show hidden data dictionary tables (MySQL 8.0.0+)
-	RunConcurrently   bool     // Run multiple sandbox creation concurrently
+	DirName              string   // name of the directory cointaining the sandbox
+	SBType               string   // Type of sandbox (single, multiple, replication-node, group-node)
+	Multi                bool     // either single or part of a multiple sandbox
+	NodeNum              int      // in multiple sandboxes, which node is this
+	Version              string   // MySQL version
+	Basedir              string   // Where to get binaries from (e.g. $HOME/opt/mysql/8.0.11)
+	BasedirName          string   // The ibare name of the directory containing the binaries (e.g. 8.0.11)
+	SandboxDir           string   // Target directory for sandboxes
+	LoadGrants           bool     // Should we load grants?
+	SkipReportHost       bool     // Do not add report-host to my.sandbox.cnf
+	SkipReportPort       bool     // Do not add report-port to my.sandbox.cnf
+	SkipStart            bool     // Do not start the server after deployment
+	InstalledPorts       []int    // Which ports should be skipped in port assignment for this SB
+	Port                 int      // port assigned to this sandbox
+	MysqlXPort           int      // XPlugin port for thsi sandbox
+	UserPort             int      //
+	BasePort             int      // Base port for calculating more ports in multiple SB
+	MorePorts            []int    // Additional ports that belong to thos sandbox
+	Prompt               string   // Prompt to use in "mysql" client
+	DbUser               string   // Database user name
+	RplUser              string   // Replication user name
+	DbPassword           string   // Database password
+	RplPassword          string   // Replication password
+	RemoteAccess         string   // What access have the users created for this SB (127.%)
+	BindAddress          string   // Bind address for this sandbox (127.0.0.1)
+	CustomMysqld         string   // Use an alternative mysqld executable
+	ServerId             int      // Server ID (for replication)
+	ReplOptions          string   // Replication options, as string to append to my.sandbox.cnf
+	GtidOptions          string   // Options needed for GTID
+	ReplCrashSafeOptions string   // Options needed for Replication crash safe
+	SemiSyncOptions      string   // Options for semi-synchronous replication
+	InitOptions          []string // Options to be added to the initialization command
+	MyCnfOptions         []string // Options to be added to my.sandbox.cnf
+	PreGrantsSql         []string // SQL statements to execute before grants assignment
+	PreGrantsSqlFile     string   // SQL file to load before grants assignment
+	PostGrantsSql        []string // SQL statements to run after grants assignment
+	PostGrantsSqlFile    string   // SQL file to load after grants assignment
+	MyCnfFile            string   // options file to merge with the SB my.sandbox.cnf
+	HistoryDir           string   // Where to store the MySQL client history
+	InitGeneralLog       bool     // enable general log during server initialization
+	EnableGeneralLog     bool     // enable general log after initialization
+	NativeAuthPlugin     bool     // Use the native password plugin for MySQL 8.0.4+
+	DisableMysqlX        bool     // Disable Xplugin (MySQL 8.0.11+)
+	EnableMysqlX         bool     // Enable Xplugin (MySQL 5.7.12+)
+	KeepUuid             bool     // Do not change UUID
+	SinglePrimary        bool     // Use single primary for group replication
+	Force                bool     // Overwrite an existing sandbox with same target
+	ExposeDdTables       bool     // Show hidden data dictionary tables (MySQL 8.0.0+)
+	RunConcurrently      bool     // Run multiple sandbox creation concurrently
 }
 
 func GetOptionsFromFile(filename string) (options []string) {
@@ -333,34 +334,35 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 	}
 	timestamp := time.Now()
 	var data common.Smap = common.Smap{"Basedir": sdef.Basedir,
-		"Copyright":       SingleTemplates["Copyright"].Contents,
-		"AppVersion":      common.VersionDef,
-		"DateTime":        timestamp.Format(time.UnixDate),
-		"SandboxDir":      sandbox_dir,
-		"CustomMysqld":    sdef.CustomMysqld,
-		"Port":            sdef.Port,
-		"MysqlXPort":      sdef.MysqlXPort,
-		"MysqlShell":      mysqlsh_executable,
-		"BasePort":        sdef.BasePort,
-		"Prompt":          sdef.Prompt,
-		"Version":         sdef.Version,
-		"Datadir":         datadir,
-		"Tmpdir":          tmpdir,
-		"GlobalTmpDir":    global_tmp_dir,
-		"DbUser":          sdef.DbUser,
-		"DbPassword":      sdef.DbPassword,
-		"RplUser":         sdef.RplUser,
-		"RplPassword":     sdef.RplPassword,
-		"RemoteAccess":    sdef.RemoteAccess,
-		"BindAddress":     sdef.BindAddress,
-		"OsUser":          os.Getenv("USER"),
-		"ReplOptions":     sdef.ReplOptions,
-		"GtidOptions":     sdef.GtidOptions,
-		"SemiSyncOptions": sdef.SemiSyncOptions,
-		"ExtraOptions":    slice_to_text(sdef.MyCnfOptions),
-		"ReportHost":      fmt.Sprintf("report-host=single-%d", sdef.Port),
-		"ReportPort":      fmt.Sprintf("report-port=%d", sdef.Port),
-		"HistoryDir":      sdef.HistoryDir,
+		"Copyright":            SingleTemplates["Copyright"].Contents,
+		"AppVersion":           common.VersionDef,
+		"DateTime":             timestamp.Format(time.UnixDate),
+		"SandboxDir":           sandbox_dir,
+		"CustomMysqld":         sdef.CustomMysqld,
+		"Port":                 sdef.Port,
+		"MysqlXPort":           sdef.MysqlXPort,
+		"MysqlShell":           mysqlsh_executable,
+		"BasePort":             sdef.BasePort,
+		"Prompt":               sdef.Prompt,
+		"Version":              sdef.Version,
+		"Datadir":              datadir,
+		"Tmpdir":               tmpdir,
+		"GlobalTmpDir":         global_tmp_dir,
+		"DbUser":               sdef.DbUser,
+		"DbPassword":           sdef.DbPassword,
+		"RplUser":              sdef.RplUser,
+		"RplPassword":          sdef.RplPassword,
+		"RemoteAccess":         sdef.RemoteAccess,
+		"BindAddress":          sdef.BindAddress,
+		"OsUser":               os.Getenv("USER"),
+		"ReplOptions":          sdef.ReplOptions,
+		"GtidOptions":          sdef.GtidOptions,
+		"ReplCrashSafeOptions": sdef.ReplCrashSafeOptions,
+		"SemiSyncOptions":      sdef.SemiSyncOptions,
+		"ExtraOptions":         slice_to_text(sdef.MyCnfOptions),
+		"ReportHost":           fmt.Sprintf("report-host=single-%d", sdef.Port),
+		"ReportPort":           fmt.Sprintf("report-port=%d", sdef.Port),
+		"HistoryDir":           sdef.HistoryDir,
 	}
 	if sdef.NodeNum != 0 {
 		data["ReportHost"] = fmt.Sprintf("report-host = node-%d", sdef.NodeNum)

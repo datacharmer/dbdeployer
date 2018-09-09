@@ -93,7 +93,8 @@ func make_nodes_list(nodes int) (nodes_list string) {
 
 func CreateAllMastersReplication(sdef SandboxDef, origin string, nodes int, master_ip string) {
 	sdef.SBType = "all-masters"
-	sdef.GtidOptions = SingleTemplates["gtid_options"].Contents
+	sdef.GtidOptions = SingleTemplates["gtid_options_57"].Contents
+	sdef.ReplCrashSafeOptions = SingleTemplates["repl_crash_safe_options"].Contents
 	if sdef.DirName == "" {
 		sdef.DirName += defaults.Defaults().AllMastersPrefix + common.VersionToName(origin)
 	}
@@ -142,7 +143,8 @@ func normalize_node_list(list string) string {
 
 func CreateFanInReplication(sdef SandboxDef, origin string, nodes int, master_ip, master_list, slave_list string) {
 	sdef.SBType = "fan-in"
-	sdef.GtidOptions = SingleTemplates["gtid_options"].Contents
+	sdef.GtidOptions = SingleTemplates["gtid_options_57"].Contents
+	sdef.ReplCrashSafeOptions = SingleTemplates["repl_crash_safe_options"].Contents
 	if sdef.DirName == "" {
 		sdef.DirName = defaults.Defaults().FanInPrefix + common.VersionToName(origin)
 	}

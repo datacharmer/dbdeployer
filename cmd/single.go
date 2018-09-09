@@ -233,19 +233,33 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 
 	var gtid bool
 	var master bool
+	var repl_crash_safe bool
 	master, _ = flags.GetBool(defaults.MasterLabel)
 	gtid, _ = flags.GetBool(defaults.GtidLabel)
+	repl_crash_safe, _ = flags.GetBool(defaults.ReplCrashSafeLabel)
 	if master {
 		sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 		sd.ServerId = sd.Port
 	}
 	if gtid {
+		template_name := "gtid_options_56"
+		if common.GreaterOrEqualVersion(sd.Version, []int{5, 7, 0}) {
+			template_name = "gtid_options_57"
+		}
 		if common.GreaterOrEqualVersion(sd.Version, []int{5, 6, 9}) {
-			sd.GtidOptions = sandbox.SingleTemplates["gtid_options"].Contents
+			sd.GtidOptions = sandbox.SingleTemplates[template_name].Contents
+			sd.ReplCrashSafeOptions = sandbox.SingleTemplates["repl_crash_safe_options"].Contents
 			sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 			sd.ServerId = sd.Port
 		} else {
-			common.Exit(1, "--gtid requires version 5.6.9+")
+			common.Exit(1, fmt.Sprintf("--%s requires version 5.6.9+", defaults.GtidLabel))
+		}
+	}
+	if repl_crash_safe && sd.ReplCrashSafeOptions == "" {
+		if common.GreaterOrEqualVersion(sd.Version, []int{5, 6, 2}) {
+			sd.ReplCrashSafeOptions = sandbox.SingleTemplates["repl_crash_safe_options"].Contents
+		} else {
+			common.Exit(1, fmt.Sprintf("--%s requires version 5.6.2+", defaults.ReplCrashSafeLabel))
 		}
 	}
 	return sd
