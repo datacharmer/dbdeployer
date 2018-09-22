@@ -16,11 +16,10 @@
 package cmd
 
 import (
-	"os"
-
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/spf13/cobra"
+	"os"
 	//"github.com/davecgh/go-spew/spew"
 )
 
@@ -39,14 +38,13 @@ Runs single, multiple, and replicated sandboxes.`,
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	cl := ""
-	for _, item := range os.Args {
-		if cl != "" {
-			cl += " "
+	// If the command line was not set in the abbreviations module,
+	// we save it here, before it is processed by Cobra
+	if len(common.CommandLineArgs) == 0 {
+		for _, arg := range os.Args {
+			common.CommandLineArgs = append(common.CommandLineArgs, arg)
 		}
-		cl += item
 	}
-	common.CommandLineArgs = cl
 	if err := rootCmd.Execute(); err != nil {
 		common.Exitf(1, "%s", err)
 	}

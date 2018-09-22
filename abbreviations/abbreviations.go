@@ -171,10 +171,7 @@ func LoadAbbreviations() {
 		}
 	}
 	for _, arg := range os.Args {
-		if common.CommandLineArgs != "" {
-			common.CommandLineArgs += " "
-		}
-		common.CommandLineArgs += arg
+		common.CommandLineArgs = append(common.CommandLineArgs, arg)
 	}
 }
 

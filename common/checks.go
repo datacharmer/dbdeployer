@@ -50,9 +50,7 @@ func GetInstalledSandboxes(sandbox_home string) (installed_sandboxes []SandboxIn
 		return
 	}
 	files, err := ioutil.ReadDir(sandbox_home)
-	if err != nil {
-		Exitf(1, "%s", err)
-	}
+	ErrCheckExitf(err, 1, "%s", err)
 	for _, f := range files {
 		fname := f.Name()
 		fmode := f.Mode()
@@ -64,9 +62,9 @@ func GetInstalledSandboxes(sandbox_home string) (installed_sandboxes []SandboxIn
 			no_clear_all := sandbox_home + "/" + fname + "/no_clear_all"
 			if FileExists(sbdesc) || FileExists(start) || FileExists(start_all) {
 				if FileExists(no_clear_all) || FileExists(no_clear) {
-					installed_sandboxes = append(installed_sandboxes, SandboxInfo{fname, true})
+					installed_sandboxes = append(installed_sandboxes, SandboxInfo{SandboxName: fname, Locked: true})
 				} else {
-					installed_sandboxes = append(installed_sandboxes, SandboxInfo{fname, false})
+					installed_sandboxes = append(installed_sandboxes, SandboxInfo{SandboxName: fname, Locked: false})
 				}
 			}
 		}
@@ -197,12 +195,8 @@ func CheckOrigin(args []string) {
 func CheckSandboxDir(sandbox_home string) {
 	if !DirExists(sandbox_home) {
 		fmt.Printf("Creating directory %s\n", sandbox_home)
-		err := os.Mkdir(sandbox_home, 0755)
-		if err != nil {
-			Exitf(1, "%s", err)
-		}
+		Mkdir(sandbox_home)
 	}
-
 }
 
 // Returns true if a given string looks contains a version

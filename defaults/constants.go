@@ -22,6 +22,8 @@ const (
 	SandboxHomeLabel   = "sandbox-home"
 
 	// Instantiated in cmd/deploy.go
+	LogSBOperationsLabel   = "log-sb-operations"
+	LogLogDirectoryLabel   = "log-directory"
 	DbUserLabel            = "db-user"
 	DbUserValue            = "msandbox"
 	DbPasswordLabel        = "db-password"

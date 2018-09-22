@@ -17,6 +17,7 @@ package concurrent
 
 import (
 	"fmt"
+	"github.com/datacharmer/dbdeployer/defaults"
 	"os"
 	"os/exec"
 	"sync"
@@ -32,6 +33,7 @@ type ExecCommand struct {
 type ExecCommands []ExecCommand
 
 type ExecutionList struct {
+	Logger   *defaults.Logger
 	Priority int
 	Command  ExecCommand
 }
@@ -139,6 +141,10 @@ func RunParallelTasksByPriority(exec_lists []ExecutionList) {
 		for _, list := range exec_lists {
 			if list.Priority == N {
 				operations = append(operations, list.Command)
+				if list.Logger != nil {
+					list.Logger.Printf(" Queueing command %s [%v] with priority # %d\n",
+						list.Command.Cmd, list.Command.Args, list.Priority)
+				}
 			}
 		}
 		if DebugConcurrency {

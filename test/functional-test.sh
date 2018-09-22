@@ -495,6 +495,12 @@ function test_deletion {
     num_sandboxes_after=$(dbdeployer sandboxes | wc -l)
     ok_equal "num_sandboxes" $num_sandboxes_before $num_sandboxes_after
 
+    if [ -n "$DBDEPLOYER_LOGGING" ]
+    then
+        num_log_dirs=$(ls $HOME/sandboxes/logs | wc -l)
+        ok_equal "num_logs_before" $num_sandboxes_after $num_log_dirs
+    fi
+
     how_many=$(count_catalog)
     ok_equal "sandboxes_in_catalog" $how_many $expected_items
 
@@ -507,6 +513,11 @@ function test_deletion {
     # there are no sandboxes left
     ok_equal "num_sandboxes" $num_sandboxes_final 0
 
+    if [ -n "$DBDEPLOYER_LOGGING" ]
+    then
+        num_log_dirs=$(ls $HOME/sandboxes/logs | wc -l)
+        ok_equal "num_logs_after" $num_log_dirs 0
+    fi
     how_many=$(count_catalog)
     ok_equal "sandboxes_in_catalog" $how_many 0
     processes_after=$(pgrep mysqld | wc -l | tr -d ' \t')
@@ -915,13 +926,18 @@ function dd_operations {
     test_header dd_operations "" double
     for V in ${dd_versions[*]}
     do
-        echo "# data dictionary operations $V"
-        run dbdeployer deploy single $V --expose-dd-tables --disable-mysqlx
-        results "dd $V"
-        capture_test run dbdeployer global test
-        test_expose_dd $V msb_
-        dbdeployer delete ALL --skip-confirm
-        results "dd $V - after deletion"
+        if [ -x $SANDBOX_BINARY/$V/bin/mysqld-debug ]
+        then
+            echo "# data dictionary operations $V"
+            run dbdeployer deploy single $V --expose-dd-tables --disable-mysqlx
+            results "dd $V"
+            capture_test run dbdeployer global test
+            test_expose_dd $V msb_
+            dbdeployer delete ALL --skip-confirm
+            results "dd $V - after deletion"
+        else
+            echo "Skipping dd operations for ${V}: no mysqld-debug found in ./bin"
+        fi
     done
 }
 

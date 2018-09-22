@@ -101,8 +101,11 @@ fi
 
 function build_sort {
     OS=$1
+    target_os=$(echo $OS | tr 'A-Z' 'a-z')
     cd test
-    env GOOS=$OS GOARCH=386 go build -o sort_versions.$OS sort_versions.go
+    (set -x
+    env GOOS=$target_os GOARCH=386 go build -o sort_versions.$OS sort_versions.go
+    )
     cd -
 }
 

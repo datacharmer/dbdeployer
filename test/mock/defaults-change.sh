@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+#unset DBDEPLOYER_LOGGING
 test_dir=$(dirname $0)
 cd $test_dir || (echo "error changing directory to $test_dir"; exit 1)
 test_dir=$PWD

@@ -18,6 +18,8 @@ package defaults
 import (
 	"fmt"
 	"os"
+	"strings"
+
 	//"strings"
 	"encoding/json"
 	"github.com/datacharmer/dbdeployer/common"
@@ -33,6 +35,7 @@ type SandboxItem struct {
 	Destination       string   `json:"destination"`
 	DbDeployerVersion string   `json:"dbdeployer-version"`
 	Timestamp         string   `json:"timestamp"`
+	LogDirectory      string   `json:"log-directory,omitempty"`
 	CommandLine       string   `json:"command-line"`
 }
 
@@ -79,9 +82,7 @@ func WriteCatalog(sc SandboxCatalog) {
 		return
 	}
 	b, err := json.MarshalIndent(sc, " ", "\t")
-	if err != nil {
-		common.Exitf(1, "error encoding sandbox catalog: %s", err)
-	}
+	common.ErrCheckExitf(err, 1, "error encoding sandbox catalog: %s", err)
 	json_string := fmt.Sprintf("%s", b)
 	filename := SandboxRegistry
 	common.WriteString(json_string, filename)
@@ -98,16 +99,14 @@ func ReadCatalog() (sc SandboxCatalog) {
 	sc_blob := common.SlurpAsBytes(filename)
 
 	err := json.Unmarshal(sc_blob, &sc)
-	if err != nil {
-		common.Exitf(1, "error decoding sandbox catalog: %s", err)
-	}
+	common.ErrCheckExitf(err, 1, "error decoding sandbox catalog: %s", err)
 	return
 }
 
 func UpdateCatalog(sb_name string, details SandboxItem) {
 	details.DbDeployerVersion = common.VersionDef
 	details.Timestamp = time.Now().Format(time.UnixDate)
-	details.CommandLine = common.CommandLineArgs
+	details.CommandLine = strings.Join(common.CommandLineArgs, " ")
 	if !enable_catalog_management {
 		return
 	}

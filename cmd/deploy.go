@@ -57,7 +57,9 @@ func init() {
 	deployCmd.PersistentFlags().Bool(defaults.ConcurrentLabel, false, "Runs multiple sandbox deployments concurrently")
 	deployCmd.PersistentFlags().Bool(defaults.EnableGeneralLogLabel, false, "Enables general log for the sandbox (MySQL 5.1+)")
 	deployCmd.PersistentFlags().Bool(defaults.InitGeneralLogLabel, false, "uses general log during initialization (MySQL 5.1+)")
+	deployCmd.PersistentFlags().Bool(defaults.LogSBOperationsLabel, defaults.LogSBOperations, "Logs sandbox operations to a file")
 
+	set_pflag(deployCmd, defaults.LogLogDirectoryLabel, "", "", defaults.Defaults().LogDirectory, "Where to store dbdeployer logs", false)
 	set_pflag(deployCmd, defaults.RemoteAccessLabel, "", "", defaults.RemoteAccessValue, "defines the database access ", false)
 	set_pflag(deployCmd, defaults.BindAddressLabel, "", "", defaults.BindAddressValue, "defines the database bind-address ", false)
 	set_pflag(deployCmd, defaults.CustomMysqldLabel, "", "", "", "Uses an alternative mysqld (must be in the same directory as regular mysqld)", false)

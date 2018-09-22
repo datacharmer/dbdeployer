@@ -62,9 +62,7 @@ func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 		} else {
 			err, _ = common.Run_cmd(cmd_file)
 		}
-		if err != nil {
-			common.Exitf(1, "Error while running %s\n", cmd_file)
-		}
+		common.ErrCheckExitf(err, 1, "Error while running %s\n", cmd_file)
 		fmt.Println("")
 	}
 }

@@ -1,3 +1,8 @@
+1.12.0	22-Sep-2018
+	- Added sandbox operations logging (on demand)
+	- Added option --log-sb-operations to enable logging
+	- Added option --log-directory to change the default directory ($SANDBOX_HOME)
+	- Added log-sb-operations and log-directory fields to default values.
 1.11.0	09-Sep-2018
 	- Added option --repl-crash-safe (Issue #36) to get crash safe params without GTID.
 	- Fixed Issue #35 (--gtid should include relay-log-recovery)

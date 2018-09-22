@@ -4,6 +4,8 @@ cd $testdir
 cd ..
 maindir=$PWD
 
+unset DBDEPLOYER_LOGGING
+
 function check_exit_code {
     exit_code=$?
     if [ "$exit_code" != "0" ]

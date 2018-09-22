@@ -25,6 +25,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -45,6 +46,7 @@ type SandboxDescription struct {
 	DbDeployerVersion string `json:"dbdeployer-version"`
 	Timestamp         string `json:"timestamp"`
 	CommandLine       string `json:"command-line"`
+	LogFile           string `json:"log-file,omitempty"`
 }
 
 type KeyValue struct {
@@ -54,7 +56,45 @@ type KeyValue struct {
 
 type ConfigOptions map[string][]KeyValue
 
-var CommandLineArgs string
+var CommandLineArgs []string
+
+func LogDirName() string {
+	log_dir_name := ""
+	topology := ""
+	name_qualifier := ""
+	re_topology := regexp.MustCompile(`^--topology\s*=\s*(\S+)`)
+	re_single_primary := regexp.MustCompile(`^--single-primary`)
+	re_unwanted_chars := regexp.MustCompile(`[- ./()\[\]]`)
+	for _, arg := range CommandLineArgs {
+		if arg == "dbdeployer" || arg == "deploy" {
+			continue
+		}
+		if Includes(arg, `^--`) {
+			find_topology := re_topology.FindAllStringSubmatch(arg, -1)
+			if len(find_topology) > 0 {
+				topology = find_topology[0][1]
+			}
+			if re_single_primary.MatchString(arg) {
+				name_qualifier = "sp"
+			}
+		} else {
+			if log_dir_name != "" {
+				log_dir_name += "_"
+			}
+			log_dir_name += arg
+		}
+	}
+	if topology != "" {
+		log_dir_name += "_" + topology
+	}
+	if name_qualifier != "" {
+		log_dir_name += "_" + name_qualifier
+	}
+	PID := os.Getpid()
+	log_dir_name = re_unwanted_chars.ReplaceAllString(log_dir_name, "_")
+	log_dir_name = fmt.Sprintf("%s-%d", log_dir_name, PID)
+	return log_dir_name
+}
 
 func ParseConfigFile(filename string) ConfigOptions {
 	config := make(ConfigOptions)
@@ -95,11 +135,9 @@ func ParseConfigFile(filename string) ConfigOptions {
 func WriteSandboxDescription(destination string, sd SandboxDescription) {
 	sd.DbDeployerVersion = VersionDef
 	sd.Timestamp = time.Now().Format(time.UnixDate)
-	sd.CommandLine = CommandLineArgs
+	sd.CommandLine = strings.Join(CommandLineArgs, " ")
 	b, err := json.MarshalIndent(sd, " ", "\t")
-	if err != nil {
-		Exitf(1, "error encoding sandbox description: %s", err)
-	}
+	ErrCheckExitf(err, 1, "error encoding sandbox description: %s", err)
 	json_string := fmt.Sprintf("%s", b)
 	filename := destination + "/sbdescription.json"
 	WriteString(json_string, filename)
@@ -110,17 +148,13 @@ func ReadSandboxDescription(sandbox_directory string) (sd SandboxDescription) {
 	sb_blob := SlurpAsBytes(filename)
 
 	err := json.Unmarshal(sb_blob, &sd)
-	if err != nil {
-		Exitf(1, "error decoding sandbox description: %s", err)
-	}
+	ErrCheckExitf(err, 1, "error decoding sandbox description: %s", err)
 	return
 }
 
 func SlurpAsLines(filename string) []string {
 	f, err := os.Open(filename)
-	if err != nil {
-		panic(err)
-	}
+	ErrCheckExitf(err, 1, "error opening file %s: %s", filename, err)
 	defer f.Close()
 
 	var lines []string
@@ -142,9 +176,7 @@ func SlurpAsString(filename string) string {
 
 func SlurpAsBytes(filename string) []byte {
 	b, err := ioutil.ReadFile(filename)
-	if err != nil {
-		panic(err)
-	}
+	ErrCheckExitf(err, 1, "error reading from file %s: %s", filename, err)
 	return b
 }
 
@@ -272,26 +304,18 @@ func Run_cmd(c string) (error, string) {
 
 func CopyFile(source, destination string) {
 	sfile, err := os.Stat(source)
-	if err != nil {
-		Exitf(1, "Error finding source file %s: %s", source, err)
-	}
+	ErrCheckExitf(err, 1, "Error finding source file %s: %s", source, err)
 	fmode := sfile.Mode()
 	from, err := os.Open(source)
-	if err != nil {
-		Exitf(1, "Error opening source file %s: %s", source, err)
-	}
+	ErrCheckExitf(err, 1, "Error opening source file %s: %s", source, err)
 	defer from.Close()
 
 	to, err := os.OpenFile(destination, os.O_RDWR|os.O_CREATE, fmode) // 0666)
-	if err != nil {
-		Exitf(1, "Error opening destination file %s: %s", destination, err)
-	}
+	ErrCheckExitf(err, 1, "Error opening destination file %s: %s", destination, err)
 	defer to.Close()
 
 	_, err = io.Copy(to, from)
-	if err != nil {
-		Exitf(1, "Error copying from source %s to destination file %s: %s", source, destination, err)
-	}
+	ErrCheckExitf(err, 1, "Error copying from source %s to destination file %s: %s", source, destination, err)
 }
 
 func BaseName(filename string) string {
@@ -304,29 +328,21 @@ func DirName(filename string) string {
 
 func AbsolutePath(value string) string {
 	filename, err := filepath.Abs(value)
-	if err != nil {
-		Exitf(1, "Error getting absolute path for %s", value)
-	}
+	ErrCheckExitf(err, 1, "Error getting absolute path for %s", value)
 	return filename
 }
 
 func Mkdir(dir_name string) {
 	err := os.Mkdir(dir_name, 0755)
-	if err != nil {
-		Exitf(1, "Error creating directory %s\n%s\n", dir_name, err)
-	}
+	ErrCheckExitf(err, 1, "Error creating directory %s\n%s\n", dir_name, err)
 }
 
 func Rmdir(dir_name string) {
 	err := os.Remove(dir_name)
-	if err != nil {
-		Exitf(1, "Error removing directory %s\n%s\n", dir_name, err)
-	}
+	ErrCheckExitf(err, 1, "Error removing directory %s\n%s\n", dir_name, err)
 }
 
 func RmdirAll(dir_name string) {
 	err := os.RemoveAll(dir_name)
-	if err != nil {
-		Exitf(1, "Error deep-removing directory %s\n%s\n", dir_name, err)
-	}
+	ErrCheckExitf(err, 1, "Error deep-removing directory %s\n%s\n", dir_name, err)
 }

@@ -35,6 +35,9 @@ type Slave struct {
 func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, master_ip string) {
 
 	var exec_lists []concurrent.ExecutionList
+
+	fname, logger := defaults.NewLogger(common.LogDirName(), "master-slave-replication")
+	sdef.LogFileName = fname
 	sdef.ReplOptions = SingleTemplates["replication_options"].Contents
 	vList := common.VersionToList(sdef.Version)
 	rev := vList[2]
@@ -54,7 +57,12 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		CheckPort("CreateMasterSlaveReplication", sdef.SandboxDir, sdef.InstalledPorts, check_port)
 	}
 
+	if nodes < 2 {
+		common.Exit(1, "Can't run replication with less than 2 nodes")
+	}
 	common.Mkdir(sdef.SandboxDir)
+	logger.Printf("Created directory %s\n", sdef.SandboxDir)
+	logger.Printf("Replication Sandbox Definition: %s\n", SandboxDefToJson(sdef))
 	common.AddToCleanupStack(common.Rmdir, "Rmdir", sdef.SandboxDir)
 	sdef.Port = base_port + 1
 	sdef.ServerId = (base_server_id + 1) * 100
@@ -64,14 +72,13 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	master_auto_position := ""
 	if sdef.GtidOptions != "" {
 		master_auto_position += ", MASTER_AUTO_POSITION=1"
+		logger.Printf("Adding MASTER_AUTO_POSITION to slaves setup\n")
 	}
 	if common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 4}) {
 		if !sdef.NativeAuthPlugin {
 			change_master_extra += ", GET_MASTER_PUBLIC_KEY=1"
+			logger.Printf("Adding GET_MASTER_PUBLIC_KEY to slaves setup \n")
 		}
-	}
-	if nodes < 2 {
-		common.Exit(1, "Can't run replication with less than 2 nodes")
 	}
 	slaves := nodes - 1
 	master_abbr := defaults.Defaults().MasterAbbr
@@ -98,18 +105,21 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		"Slaves":             []common.Smap{},
 	}
 
+	logger.Printf("Defining replication data: %v\n", SmapToJson(data))
 	installation_message := "Installing and starting %s\n"
 	if sdef.SkipStart {
 		installation_message = "Installing %s\n"
 	}
 	if !sdef.RunConcurrently {
 		fmt.Printf(installation_message, master_label)
+		logger.Printf(installation_message, master_label)
 	}
 	sdef.LoadGrants = true
 	sdef.Multi = true
 	sdef.Prompt = master_label
 	sdef.NodeNum = 1
 	sdef.SBType = "replication-node"
+	logger.Printf("Creating single sandbox for master\n")
 	exec_list := CreateSingleSandbox(sdef)
 	for _, list := range exec_list {
 		exec_lists = append(exec_lists, list)
@@ -122,6 +132,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		Port:    []int{sdef.Port},
 		Nodes:   slaves,
 		NodeNum: 0,
+		LogFile: sdef.LogFileName,
 	}
 
 	sb_item := defaults.SandboxItem{
@@ -133,11 +144,16 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		Destination: sdef.SandboxDir,
 	}
 
+	if sdef.LogFileName != "" {
+		sb_item.LogDirectory = common.DirName(sdef.LogFileName)
+	}
+
 	if common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 11}) {
 		sdef.MysqlXPort = base_mysqlx_port + 1
 		if !sdef.DisableMysqlX {
 			sb_desc.Port = append(sb_desc.Port, base_mysqlx_port+1)
 			sb_item.Port = append(sb_item.Port, base_mysqlx_port+1)
+			logger.Printf("Adding mysqlx port %d to master\n", base_mysqlx_port+1)
 		}
 	}
 
@@ -174,18 +190,22 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 			if !sdef.DisableMysqlX {
 				sb_desc.Port = append(sb_desc.Port, base_mysqlx_port+i+1)
 				sb_item.Port = append(sb_item.Port, base_mysqlx_port+i+1)
+				logger.Printf("Adding mysqlx port %d to slave %d\n", base_mysqlx_port+i+1, i)
 			}
 		}
+
 		installation_message = "Installing and starting %s%d\n"
 		if sdef.SkipStart {
 			installation_message = "Installing %s%d\n"
 		}
 		if !sdef.RunConcurrently {
 			fmt.Printf(installation_message, slave_label, i)
+			logger.Printf(installation_message, slave_label, i)
 		}
 		if sdef.SemiSyncOptions != "" {
 			sdef.SemiSyncOptions = SingleTemplates["semisync_slave_options"].Contents
 		}
+		logger.Printf("Creating single sandbox for slave %d\n", i)
 		exec_list_node := CreateSingleSandbox(sdef)
 		for _, list := range exec_list_node {
 			exec_lists = append(exec_lists, list)
@@ -204,36 +224,42 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 			"SlaveAbbr":          slave_abbr,
 			"SandboxDir":         sdef.SandboxDir,
 		}
-		write_script(ReplicationTemplates, fmt.Sprintf("%s%d", slave_abbr, i), "slave_template", sdef.SandboxDir, data_slave, true)
-		write_script(ReplicationTemplates, fmt.Sprintf("n%d", i+1), "slave_template", sdef.SandboxDir, data_slave, true)
+		logger.Printf("Defining replication node data: %v\n", SmapToJson(data_slave))
+		logger.Printf("Create slave script %d\n", i)
+		write_script(logger, ReplicationTemplates, fmt.Sprintf("%s%d", slave_abbr, i), "slave_template", sdef.SandboxDir, data_slave, true)
+		write_script(logger, ReplicationTemplates, fmt.Sprintf("n%d", i+1), "slave_template", sdef.SandboxDir, data_slave, true)
 	}
 	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)
+	logger.Printf("Create sandbox description\n")
 	defaults.UpdateCatalog(sdef.SandboxDir, sb_item)
 
 	initialize_slaves := "initialize_" + slave_label + "s"
 	check_slaves := "check_" + slave_label + "s"
 
 	if sdef.SemiSyncOptions != "" {
-		write_script(ReplicationTemplates, "post_initialization", "semi_sync_start_template", sdef.SandboxDir, data, true)
+		write_script(logger, ReplicationTemplates, "post_initialization", "semi_sync_start_template", sdef.SandboxDir, data, true)
 	}
-	write_script(ReplicationTemplates, "start_all", "start_all_template", sdef.SandboxDir, data, true)
-	write_script(ReplicationTemplates, "restart_all", "restart_all_template", sdef.SandboxDir, data, true)
-	write_script(ReplicationTemplates, "status_all", "status_all_template", sdef.SandboxDir, data, true)
-	write_script(ReplicationTemplates, "test_sb_all", "test_sb_all_template", sdef.SandboxDir, data, true)
-	write_script(ReplicationTemplates, "stop_all", "stop_all_template", sdef.SandboxDir, data, true)
-	write_script(ReplicationTemplates, "clear_all", "clear_all_template", sdef.SandboxDir, data, true)
-	write_script(ReplicationTemplates, "send_kill_all", "send_kill_all_template", sdef.SandboxDir, data, true)
-	write_script(ReplicationTemplates, "use_all", "use_all_template", sdef.SandboxDir, data, true)
-	write_script(ReplicationTemplates, "use_all_slaves", "use_all_slaves_template", sdef.SandboxDir, data, true)
-	write_script(ReplicationTemplates, "use_all_masters", "use_all_masters_template", sdef.SandboxDir, data, true)
-	write_script(ReplicationTemplates, initialize_slaves, "init_slaves_template", sdef.SandboxDir, data, true)
-	write_script(ReplicationTemplates, check_slaves, "check_slaves_template", sdef.SandboxDir, data, true)
-	write_script(ReplicationTemplates, master_abbr, "master_template", sdef.SandboxDir, data, true)
-	write_script(ReplicationTemplates, "n1", "master_template", sdef.SandboxDir, data, true)
-	write_script(ReplicationTemplates, "test_replication", "test_replication_template", sdef.SandboxDir, data, true)
+	logger.Printf("Create replication scripts\n")
+	write_script(logger, ReplicationTemplates, "start_all", "start_all_template", sdef.SandboxDir, data, true)
+	write_script(logger, ReplicationTemplates, "restart_all", "restart_all_template", sdef.SandboxDir, data, true)
+	write_script(logger, ReplicationTemplates, "status_all", "status_all_template", sdef.SandboxDir, data, true)
+	write_script(logger, ReplicationTemplates, "test_sb_all", "test_sb_all_template", sdef.SandboxDir, data, true)
+	write_script(logger, ReplicationTemplates, "stop_all", "stop_all_template", sdef.SandboxDir, data, true)
+	write_script(logger, ReplicationTemplates, "clear_all", "clear_all_template", sdef.SandboxDir, data, true)
+	write_script(logger, ReplicationTemplates, "send_kill_all", "send_kill_all_template", sdef.SandboxDir, data, true)
+	write_script(logger, ReplicationTemplates, "use_all", "use_all_template", sdef.SandboxDir, data, true)
+	write_script(logger, ReplicationTemplates, "use_all_slaves", "use_all_slaves_template", sdef.SandboxDir, data, true)
+	write_script(logger, ReplicationTemplates, "use_all_masters", "use_all_masters_template", sdef.SandboxDir, data, true)
+	write_script(logger, ReplicationTemplates, initialize_slaves, "init_slaves_template", sdef.SandboxDir, data, true)
+	write_script(logger, ReplicationTemplates, check_slaves, "check_slaves_template", sdef.SandboxDir, data, true)
+	write_script(logger, ReplicationTemplates, master_abbr, "master_template", sdef.SandboxDir, data, true)
+	write_script(logger, ReplicationTemplates, "n1", "master_template", sdef.SandboxDir, data, true)
+	write_script(logger, ReplicationTemplates, "test_replication", "test_replication_template", sdef.SandboxDir, data, true)
+	logger.Printf("Run concurrent sandbox scripts \n")
 	concurrent.RunParallelTasksByPriority(exec_lists)
 	if !sdef.SkipStart {
 		fmt.Println(common.ReplaceLiteralHome(sdef.SandboxDir) + "/" + initialize_slaves)
+		logger.Printf("Run replication initialization script \n")
 		common.Run_cmd(sdef.SandboxDir + "/" + initialize_slaves)
 	}
 	fmt.Printf("Replication directory installed in %s\n", common.ReplaceLiteralHome(sdef.SandboxDir))

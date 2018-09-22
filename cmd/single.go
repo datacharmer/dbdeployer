@@ -71,9 +71,7 @@ func process_defaults(new_defaults []string) {
 func GetAbsolutePathFromFlag(cmd *cobra.Command, name string) string {
 	flags := cmd.Flags()
 	value, err := flags.GetString(name)
-	if err != nil {
-		common.Exitf(1, "Error getting flag value for --%s", name)
-	}
+	common.ErrCheckExitf(err, 1, "Error getting flag value for --%s", name)
 	return common.AbsolutePath(value)
 }
 
@@ -109,6 +107,15 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	var sd sandbox.SandboxDef
 
 	flags := cmd.Flags()
+
+	log_sb_operations, _ := flags.GetBool(defaults.LogSBOperationsLabel)
+	defaults.LogSBOperations = log_sb_operations
+
+	log_dir := GetAbsolutePathFromFlag(cmd, defaults.LogLogDirectoryLabel)
+	if log_dir != "" {
+		defaults.UpdateDefaults(defaults.LogLogDirectoryLabel, log_dir, false)
+	}
+
 	template_requests, _ := flags.GetStringSlice(defaults.UseTemplateLabel)
 	for _, request := range template_requests {
 		tname, fname := check_template_change_request(request)

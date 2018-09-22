@@ -27,9 +27,7 @@ import (
 func ShowVersions(cmd *cobra.Command, args []string) {
 	Basedir := GetAbsolutePathFromFlag(cmd, "sandbox-binary")
 	files, err := ioutil.ReadDir(Basedir)
-	if err != nil {
-		common.Exitf(1, "Error reading directory %s: %s", Basedir, err)
-	}
+	common.ErrCheckExitf(err, 1, "Error reading directory %s: %s", Basedir, err)
 	var dirs []string
 	for _, f := range files {
 		fname := f.Name()

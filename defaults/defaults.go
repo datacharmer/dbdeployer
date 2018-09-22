@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -30,6 +29,9 @@ type DbdeployerDefaults struct {
 	SandboxHome       string `json:"sandbox-home"`
 	SandboxBinary     string `json:"sandbox-binary"`
 	UseSandboxCatalog bool   `json:"use-sandbox-catalog"`
+	LogSBOperations   bool   `json:"log-sb-operations"`
+	LogDirectory      string `json:"log-directory"`
+
 	//UseConcurrency    			   bool   `json:"use-concurrency"`
 	MasterSlaveBasePort           int `json:"master-slave-base-port"`
 	GroupReplicationBasePort      int `json:"group-replication-base-port"`
@@ -77,6 +79,7 @@ var (
 	StarLine                string = strings.Repeat("*", LineLength)
 	DashLine                string = strings.Repeat("-", LineLength)
 	HashLine                string = strings.Repeat("#", LineLength)
+	LogSBOperations         bool   = os.Getenv("DBDEPLOYER_LOGGING") != ""
 
 	// This variable is changed to true when the "cmd" package is activated,
 	// meaning that we're using the command line interface of dbdeployer.
@@ -90,6 +93,8 @@ var (
 		SandboxBinary: home_dir + "/opt/mysql",
 
 		UseSandboxCatalog: true,
+		LogSBOperations:   false,
+		LogDirectory:      home_dir + "/sandboxes/logs",
 		//UseConcurrency :			   true,
 		MasterSlaveBasePort:           11000,
 		GroupReplicationBasePort:      12000,
@@ -131,6 +136,9 @@ func Defaults() DbdeployerDefaults {
 			currentDefaults = factoryDefaults
 		}
 	}
+	if currentDefaults.LogSBOperations {
+		LogSBOperations = true
+	}
 	return currentDefaults
 }
 
@@ -142,9 +150,7 @@ func ShowDefaults(defaults DbdeployerDefaults) {
 		fmt.Println("# Internal values:")
 	}
 	b, err := json.MarshalIndent(defaults, " ", "\t")
-	if err != nil {
-		common.Exitf(1, "error encoding defaults: %s", err)
-	}
+	common.ErrCheckExitf(err, 1, "error encoding defaults: %s", err)
 	fmt.Printf("%s\n", b)
 }
 
@@ -155,9 +161,7 @@ func WriteDefaultsFile(filename string, defaults DbdeployerDefaults) {
 		common.Mkdir(defaults_dir)
 	}
 	b, err := json.MarshalIndent(defaults, " ", "\t")
-	if err != nil {
-		common.Exitf(1, "error encoding defaults: %s", err)
-	}
+	common.ErrCheckExitf(err, 1, "error encoding defaults: %s", err)
 	json_string := fmt.Sprintf("%s", b)
 	common.WriteString(json_string, filename)
 }
@@ -182,9 +186,7 @@ func ReadDefaultsFile(filename string) (defaults DbdeployerDefaults) {
 	defaults_blob := common.SlurpAsBytes(filename)
 
 	err := json.Unmarshal(defaults_blob, &defaults)
-	if err != nil {
-		common.Exitf(1, "error decoding defaults: %s", err)
-	}
+	common.ErrCheckExitf(err, 1, "error decoding defaults: %s", err)
 	defaults = expand_environment_variables(defaults)
 	return
 }
@@ -266,21 +268,11 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 func RemoveDefaultsFile() {
 	if common.FileExists(ConfigurationFile) {
 		err := os.Remove(ConfigurationFile)
-		if err != nil {
-			common.Exitf(1, "%s", err)
-		}
+		common.ErrCheckExitf(err, 1, "%s", err)
 		fmt.Printf("#File %s removed\n", ConfigurationFile)
 	} else {
 		common.Exitf(1, "Configuration file %s not found", ConfigurationFile)
 	}
-}
-
-func a_to_i(val string) int {
-	numvalue, err := strconv.Atoi(val)
-	if err != nil {
-		common.Exitf(1, "Not a valid number: %s", val)
-	}
-	return numvalue
 }
 
 func UpdateDefaults(label, value string, store_defaults bool) {
@@ -294,30 +286,34 @@ func UpdateDefaults(label, value string, store_defaults bool) {
 		new_defaults.SandboxBinary = value
 	case "use-sandbox-catalog":
 		new_defaults.UseSandboxCatalog = common.TextToBool(value)
+	case "log-sb-operations":
+		new_defaults.LogSBOperations = common.TextToBool(value)
+	case "log-directory":
+		new_defaults.LogDirectory = value
 	//case "use-concurrency":
 	//	new_defaults.UseConcurrency = common.TextToBool(value)
 	case "master-slave-base-port":
-		new_defaults.MasterSlaveBasePort = a_to_i(value)
+		new_defaults.MasterSlaveBasePort = common.Atoi(value)
 	case "group-replication-base-port":
-		new_defaults.GroupReplicationBasePort = a_to_i(value)
+		new_defaults.GroupReplicationBasePort = common.Atoi(value)
 	case "group-replication-sp-base-port":
-		new_defaults.GroupReplicationSpBasePort = a_to_i(value)
+		new_defaults.GroupReplicationSpBasePort = common.Atoi(value)
 	case "multiple-base-port":
-		new_defaults.MultipleBasePort = a_to_i(value)
+		new_defaults.MultipleBasePort = common.Atoi(value)
 	case "fan-in-base-port":
-		new_defaults.FanInReplicationBasePort = a_to_i(value)
+		new_defaults.FanInReplicationBasePort = common.Atoi(value)
 	case "all-masters-base-port":
-		new_defaults.AllMastersReplicationBasePort = a_to_i(value)
+		new_defaults.AllMastersReplicationBasePort = common.Atoi(value)
 	// case "ndb-base-port":
-	//	 new_defaults.NdbBasePort = a_to_i(value)
+	//	 new_defaults.NdbBasePort = common.Atoi(value)
 	// case "galera-base-port":
-	//	 new_defaults.GaleraBasePort = a_to_i(value)
+	//	 new_defaults.GaleraBasePort = common.Atoi(value)
 	// case "pxc-base-port":
-	//	 new_defaults.PxcBasePort = a_to_i(value)
+	//	 new_defaults.PxcBasePort = common.Atoi(value)
 	case "group-port-delta":
-		new_defaults.GroupPortDelta = a_to_i(value)
+		new_defaults.GroupPortDelta = common.Atoi(value)
 	case "mysqlx-port-delta":
-		new_defaults.MysqlXPortDelta = a_to_i(value)
+		new_defaults.MysqlXPortDelta = common.Atoi(value)
 	case "master-name":
 		new_defaults.MasterName = value
 	case "master-abbr":

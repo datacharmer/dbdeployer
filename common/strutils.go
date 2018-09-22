@@ -138,9 +138,7 @@ func SortVersions(versions []string) (sorted []string) {
 func LatestVersion(search_dir, pattern string) string {
 	files, err := ioutil.ReadDir(search_dir)
 	// fmt.Printf("<%s> <%s>\n",search_dir, pattern)
-	if err != nil {
-		Exitf(1, "ERROR reading directory %s: %s", search_dir, err)
-	}
+	ErrCheckExitf(err, 1, "ERROR reading directory %s: %s", search_dir, err)
 	var matching_list []string
 	valid_pattern := regexp.MustCompile(`\d+\.\d+$`)
 	if !valid_pattern.MatchString(pattern) {
@@ -166,9 +164,7 @@ func LatestVersion(search_dir, pattern string) string {
 
 func Atoi(val string) int {
 	numvalue, err := strconv.Atoi(val)
-	if err != nil {
-		Exit(1, fmt.Sprintf("Not a valid number: %s (%s)", val, err))
-	}
+	ErrCheckExitf(err, 1, fmt.Sprintf("Not a valid number: %s (%s)", val, err))
 	return numvalue
 }
 
@@ -195,10 +191,13 @@ func StringToIntSlice(val string) (num_list []int) {
 	return num_list
 }
 
+// Adds an action to the list of clean-up operations
+// to run before aborting the program
 func AddToCleanupStack(cf CleanupFunc, func_name, arg string) {
 	cleanup_actions.Push(CleanupRec{f: cf, label: func_name, target: arg})
 }
 
+// Runs the cleanup actions (usually before Exit)
 func RunCleanupActions() {
 	if cleanup_actions.Len() > 0 {
 		fmt.Printf("# Pre-exit cleanup. \n")
@@ -212,12 +211,26 @@ func RunCleanupActions() {
 	}
 }
 
+// Checks the status of error variable and exit with custom message if it is not nil.
+func ErrCheckExitf(err error, exit_code int, format string, args ...interface{}) {
+	if err != nil {
+		Exitf(exit_code, format, args...)
+	}
+}
+
+// Exit with formatted message
+// Runs cleanup actions before aborting the program
 func Exitf(exit_code int, format string, args ...interface{}) {
 	RunCleanupActions()
 	fmt.Printf(format, args...)
+	if !Includes(format, `\n`) {
+		fmt.Println()
+	}
 	os.Exit(exit_code)
 }
 
+// Exit with custom set of messages
+// Runs cleanup actions before aborting the program
 func Exit(exit_code int, messages ...string) {
 	RunCleanupActions()
 	for _, msg := range messages {

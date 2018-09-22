@@ -69,9 +69,7 @@ func nodes_list_to_int_slice(nodes_list string, nodes int) (int_list []int) {
 	for _, s := range list {
 		if s != "" {
 			num, err := strconv.Atoi(s)
-			if err != nil {
-				common.Exitf(1, "Error converting node number '%s' to int", s)
-			}
+			common.ErrCheckExitf(err, 1, "Error converting node number '%s' to int", s)
 			int_list = append(int_list, num)
 		}
 	}
@@ -93,6 +91,10 @@ func make_nodes_list(nodes int) (nodes_list string) {
 
 func CreateAllMastersReplication(sdef SandboxDef, origin string, nodes int, master_ip string) {
 	sdef.SBType = "all-masters"
+
+	fname, logger := defaults.NewLogger(common.LogDirName(), "all-masters")
+	sdef.LogFileName = common.ReplaceLiteralHome(fname)
+	sdef.Logger = logger
 	sdef.GtidOptions = SingleTemplates["gtid_options_57"].Contents
 	sdef.ReplCrashSafeOptions = SingleTemplates["repl_crash_safe_options"].Contents
 	if sdef.DirName == "" {
@@ -108,6 +110,8 @@ func CreateAllMastersReplication(sdef SandboxDef, origin string, nodes int, mast
 	master_label := defaults.Defaults().MasterName
 	slave_label := defaults.Defaults().SlavePrefix
 	data := CreateMultipleSandbox(sdef, origin, nodes)
+
+	sdef.SandboxDir = data["SandboxDir"].(string)
 	master_list := make_nodes_list(nodes)
 	slist := nodes_list_to_int_slice(master_list, nodes)
 	data["MasterIp"] = master_ip
@@ -120,17 +124,20 @@ func CreateAllMastersReplication(sdef SandboxDef, origin string, nodes int, mast
 	data["RplUser"] = sdef.RplUser
 	data["RplPassword"] = sdef.RplPassword
 	data["NodeLabel"] = defaults.Defaults().NodePrefix
+	logger.Printf("Writing master and slave scripts in %s\n", sdef.SandboxDir)
 	for _, node := range slist {
 		data["Node"] = node
-		write_script(ReplicationTemplates, fmt.Sprintf("s%d", node), "slave_template", sandbox_dir, data, true)
-		write_script(ReplicationTemplates, fmt.Sprintf("m%d", node), "slave_template", sandbox_dir, data, true)
+		write_script(logger, ReplicationTemplates, fmt.Sprintf("s%d", node), "slave_template", sandbox_dir, data, true)
+		write_script(logger, ReplicationTemplates, fmt.Sprintf("m%d", node), "slave_template", sandbox_dir, data, true)
 	}
-	write_script(ReplicationTemplates, "test_replication", "multi_source_test_template", sandbox_dir, data, true)
-	write_script(ReplicationTemplates, "use_all_slaves", "multi_source_use_slaves_template", sandbox_dir, data, true)
-	write_script(ReplicationTemplates, "use_all_masters", "multi_source_use_masters_template", sandbox_dir, data, true)
-	write_script(ReplicationTemplates, "check_ms_nodes", "check_multi_source_template", sandbox_dir, data, true)
-	write_script(ReplicationTemplates, "initialize_ms_nodes", "multi_source_template", sandbox_dir, data, true)
+	logger.Printf("Writing all-masters replication scripts in %s\n", sdef.SandboxDir)
+	write_script(logger, ReplicationTemplates, "test_replication", "multi_source_test_template", sandbox_dir, data, true)
+	write_script(logger, ReplicationTemplates, "use_all_slaves", "multi_source_use_slaves_template", sandbox_dir, data, true)
+	write_script(logger, ReplicationTemplates, "use_all_masters", "multi_source_use_masters_template", sandbox_dir, data, true)
+	write_script(logger, ReplicationTemplates, "check_ms_nodes", "check_multi_source_template", sandbox_dir, data, true)
+	write_script(logger, ReplicationTemplates, "initialize_ms_nodes", "multi_source_template", sandbox_dir, data, true)
 	if !sdef.SkipStart {
+		logger.Printf("Initializing all-masters replication \n")
 		fmt.Println(common.ReplaceLiteralHome(sandbox_dir) + "/initialize_ms_nodes")
 		common.Run_cmd(sandbox_dir + "/initialize_ms_nodes")
 	}
@@ -143,6 +150,10 @@ func normalize_node_list(list string) string {
 
 func CreateFanInReplication(sdef SandboxDef, origin string, nodes int, master_ip, master_list, slave_list string) {
 	sdef.SBType = "fan-in"
+
+	fname, logger := defaults.NewLogger(common.LogDirName(), "fan-in")
+	sdef.LogFileName = fname
+	sdef.Logger = logger
 	sdef.GtidOptions = SingleTemplates["gtid_options_57"].Contents
 	sdef.ReplCrashSafeOptions = SingleTemplates["repl_crash_safe_options"].Contents
 	if sdef.DirName == "" {
@@ -157,6 +168,8 @@ func CreateFanInReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	slist := nodes_list_to_int_slice(slave_list, nodes)
 	check_node_lists(nodes, mlist, slist)
 	data := CreateMultipleSandbox(sdef, origin, nodes)
+
+	sdef.SandboxDir = data["SandboxDir"].(string)
 	master_abbr := defaults.Defaults().MasterAbbr
 	slave_abbr := defaults.Defaults().SlaveAbbr
 	master_label := defaults.Defaults().MasterName
@@ -171,20 +184,23 @@ func CreateFanInReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	data["RplPassword"] = sdef.RplPassword
 	data["NodeLabel"] = defaults.Defaults().NodePrefix
 	data["MasterIp"] = master_ip
+	logger.Printf("Writing master and slave scripts in %s\n", sdef.SandboxDir)
 	for _, slave := range slist {
 		data["Node"] = slave
-		write_script(ReplicationTemplates, fmt.Sprintf("s%d", slave), "slave_template", sandbox_dir, data, true)
+		write_script(logger, ReplicationTemplates, fmt.Sprintf("s%d", slave), "slave_template", sandbox_dir, data, true)
 	}
 	for _, master := range mlist {
 		data["Node"] = master
-		write_script(ReplicationTemplates, fmt.Sprintf("m%d", master), "slave_template", sandbox_dir, data, true)
+		write_script(logger, ReplicationTemplates, fmt.Sprintf("m%d", master), "slave_template", sandbox_dir, data, true)
 	}
-	write_script(ReplicationTemplates, "test_replication", "multi_source_test_template", sandbox_dir, data, true)
-	write_script(ReplicationTemplates, "check_ms_nodes", "check_multi_source_template", sandbox_dir, data, true)
-	write_script(ReplicationTemplates, "use_all_slaves", "multi_source_use_slaves_template", sandbox_dir, data, true)
-	write_script(ReplicationTemplates, "use_all_masters", "multi_source_use_masters_template", sandbox_dir, data, true)
-	write_script(ReplicationTemplates, "initialize_ms_nodes", "multi_source_template", sandbox_dir, data, true)
+	logger.Printf("writing fan-in replication scripts in %s\n", sdef.SandboxDir)
+	write_script(logger, ReplicationTemplates, "test_replication", "multi_source_test_template", sandbox_dir, data, true)
+	write_script(logger, ReplicationTemplates, "check_ms_nodes", "check_multi_source_template", sandbox_dir, data, true)
+	write_script(logger, ReplicationTemplates, "use_all_slaves", "multi_source_use_slaves_template", sandbox_dir, data, true)
+	write_script(logger, ReplicationTemplates, "use_all_masters", "multi_source_use_masters_template", sandbox_dir, data, true)
+	write_script(logger, ReplicationTemplates, "initialize_ms_nodes", "multi_source_template", sandbox_dir, data, true)
 	if !sdef.SkipStart {
+		logger.Printf("Initializing fan-in replication\n")
 		fmt.Println(common.ReplaceLiteralHome(sandbox_dir) + "/initialize_ms_nodes")
 		common.Run_cmd(sandbox_dir + "/initialize_ms_nodes")
 	}

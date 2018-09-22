@@ -81,25 +81,18 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	if is_shell {
 		fmt.Printf("Merging shell tarball %s to %s\n", common.ReplaceLiteralHome(tarball), common.ReplaceLiteralHome(destination))
 		err := unpack.MergeShell(tarball, Basedir, destination, barename, verbosity)
-		if err != nil {
-			common.Exitf(1, "Error while unpacking mysql shell tarball : %s", err)
-		}
-		return
+		common.ErrCheckExitf(err, 1, "Error while unpacking mysql shell tarball : %s", err)
 	}
 
 	fmt.Printf("Unpacking tarball %s to %s\n", tarball, common.ReplaceLiteralHome(destination))
 	//verbosity_level := unpack.VERBOSE
 	err := unpack.UnpackTar(tarball, Basedir, verbosity)
-	if err != nil {
-		common.Exitf(1, "%s", err)
-	}
+	common.ErrCheckExitf(err, 1, "%s", err)
 	final_name := Basedir + "/" + barename
 	if final_name != destination {
 		fmt.Printf("Renaming directory %s to %s\n", final_name, destination)
 		err = os.Rename(final_name, destination)
-		if err != nil {
-			common.Exitf(1, "%s", err)
-		}
+		common.ErrCheckExitf(err, 1, "%s", err)
 	}
 }
 

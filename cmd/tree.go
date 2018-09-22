@@ -54,9 +54,7 @@ func WriteManPages() {
 		Section: "1",
 	}
 	err := doc.GenManTree(rootCmd, header, man_dir)
-	if err != nil {
-		common.Exitf(1, "%s", err)
-	}
+	common.ErrCheckExitf(err, 1, "%s", err)
 	fmt.Printf("Man pages generated in '%s'\n", man_dir)
 }
 
@@ -67,9 +65,7 @@ func WriteMarkdownPages() {
 	}
 	common.Mkdir(md_dir)
 	err := doc.GenMarkdownTree(rootCmd, md_dir)
-	if err != nil {
-		common.Exitf(1, "%s", err)
-	}
+	common.ErrCheckExitf(err, 1, "%s", err)
 	err = doc.GenReSTTree(rootCmd, md_dir)
 	fmt.Printf("Markdown pages generated in '%s'\n", md_dir)
 }
@@ -81,9 +77,7 @@ func WriteRstPages() {
 	}
 	common.Mkdir(rst_dir)
 	err := doc.GenReSTTree(rootCmd, rst_dir)
-	if err != nil {
-		common.Exitf(1, "%s", err)
-	}
+	common.ErrCheckExitf(err, 1, "%s", err)
 	fmt.Printf("Restructured Text pages generated in '%s'\n", rst_dir)
 }
 

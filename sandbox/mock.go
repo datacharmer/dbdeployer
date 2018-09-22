@@ -81,6 +81,7 @@ func create_mock_version(version string) {
 	if mock_sandbox_binary == "" {
 		common.Exit(1, "Mock directory not set yet. - Call set_mock_environment() first")
 	}
+	_, logger := defaults.NewLogger(common.LogDirName(), "mock")
 	version_dir := fmt.Sprintf("%s/%s", mock_sandbox_binary, version)
 	common.Mkdir(version_dir)
 	common.Mkdir(version_dir + "/bin")
@@ -98,15 +99,15 @@ func create_mock_version(version string) {
 		common.Exitf(1, "unhandled operating system %s", currentOs)
 	}
 	libmysqlclient_file_name := fmt.Sprintf("libmysqlclient.%s", extension)
-	write_script(MockTemplates, "mysqld", "no_op_mock_template",
+	write_script(logger, MockTemplates, "mysqld", "no_op_mock_template",
 		version_dir+"/bin", empty_data, true)
-	write_script(MockTemplates, "mysql", "no_op_mock_template",
+	write_script(logger, MockTemplates, "mysql", "no_op_mock_template",
 		version_dir+"/bin", empty_data, true)
-	write_script(MockTemplates, "mysql_install_db", "no_op_mock_template",
+	write_script(logger, MockTemplates, "mysql_install_db", "no_op_mock_template",
 		version_dir+"/scripts", empty_data, true)
-	write_script(MockTemplates, libmysqlclient_file_name, "no_op_mock_template",
+	write_script(logger, MockTemplates, libmysqlclient_file_name, "no_op_mock_template",
 		version_dir+"/lib", empty_data, true)
-	write_script(MockTemplates, "mysqld_safe", "mysqld_safe_mock_template",
+	write_script(logger, MockTemplates, "mysqld_safe", "mysqld_safe_mock_template",
 		version_dir+"/bin", empty_data, true)
 }
 
