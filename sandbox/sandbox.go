@@ -120,10 +120,17 @@ func SmapToJson(data common.Smap) string {
 	return fmt.Sprintf("%s", b)
 }
 
+func is_locked(sb_dir string) bool {
+	return common.FileExists(sb_dir+"/no_clear") || common.FileExists(sb_dir+"/no_clear_all")
+}
+
 func CheckDirectory(sdef SandboxDef) SandboxDef {
 	sandbox_dir := sdef.SandboxDir
 	if common.DirExists(sandbox_dir) {
 		if sdef.Force {
+			if is_locked(sandbox_dir) {
+				common.Exitf(1, "Sandbox in %s is locked. Cannot be overwritten\nYou can unlock it with 'dbdeployer admin unlock %s'\n", sandbox_dir, common.DirName(sandbox_dir))
+			}
 			fmt.Printf("Overwriting directory %s\n", sandbox_dir)
 			stop_command := sandbox_dir + "/stop"
 			if !common.ExecExists(stop_command) {
