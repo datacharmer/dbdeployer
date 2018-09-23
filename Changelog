@@ -1,3 +1,8 @@
+1.12.1	23-Sep-2018
+	- Fixes Issue #38 "--force does not check for locked sb"
+	- Adds cookbook scripts
+	- Adds missing copyright on some files.
+	- Adds check for missing copyright to sanity_check.sh
 1.12.0	22-Sep-2018
 	- Added sandbox operations logging (on demand)
 	- Added option --log-sb-operations to enable logging

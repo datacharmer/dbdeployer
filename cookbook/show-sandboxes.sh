@@ -13,36 +13,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-version=$1
-vtype=$2
+cd $(dirname $0)
+source cookbook_include.sh
 
-version_dir=$(dirname $0)
-cd $version_dir
+(set -x
+dbdeployer sandboxes --header
+)
 
-if [ -z "$version" ]
-then
-    echo "Syntax: $0 version [compatible]"
-    exit 1
-fi
-
-if [ -n "$vtype" ]
-then
-    if [ "$vtype" != "compatible" ]
-    then
-        echo "The only supported version type is 'compatible'"
-        exit 1
-    fi
-fi
-
-function set_version {
-    file_name=$1
-    version=$2
-    echo $version > $file_name
-}
-
-if [ "$vtype" == "compatible" ]
-then
-    set_version COMPATIBLE_VERSION $version
-else
-    set_version VERSION $version
-fi 
+# Alternative:
+#(set -x
+#dbdeployer sandboxes --header --catalog
+#)

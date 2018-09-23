@@ -74,6 +74,26 @@ The ``deploy replication`` command will install a master and two or more slaves,
 
 	{{dbdeployer deploy replication -h}}
 
+## Practical examples
+
+Several examples of dbdeployer usages are listed in [./cookbook](https://github.com/datacharmer/dbdeployer/tree/master/cookbook).
+
+     *	single.sh
+     *	replication-master-slave.sh
+     *	replication-group-multi-primary.sh
+     *	replication-group-single-primary.sh
+     *	replication-all-masters.sh
+     *	replication-fan-in.sh
+
+     *	show-sandboxes.sh
+     *	operations-single.sh
+     *	operations-replication.sh
+     *	operations-restart.sh
+     *	upgrade.sh
+     *	delete-all.sh
+
+See [cookbook/README.md](https://github.com/datacharmer/dbdeployer/blob/master/cookbook/README.md) for more information.
+
 ## Standard and non-standard basedir names
 
 dbdeployer expects to get the binaries from ``$HOME/opt/mysql/x.x.xx``. For example, when you run the command ``dbdeployer deploy single 8.0.11``, you must have the binaries for MySQL 8.0.11 expanded into a directory named ``$HOME/opt/mysql/8.0.11``.

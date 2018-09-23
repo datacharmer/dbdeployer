@@ -13,36 +13,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+cd $(dirname $0)
+source cookbook_include.sh
+
 version=$1
-vtype=$2
+[ -z "$version" ] && version=5.7.23
+check_version $version
 
-version_dir=$(dirname $0)
-cd $version_dir
-
-if [ -z "$version" ]
+if [ -n "$(dbdeployer sandboxes | grep 'master-slave\s*'$version)" ]
 then
-    echo "Syntax: $0 version [compatible]"
-    exit 1
-fi
-
-if [ -n "$vtype" ]
-then
-    if [ "$vtype" != "compatible" ]
-    then
-        echo "The only supported version type is 'compatible'"
-        exit 1
-    fi
-fi
-
-function set_version {
-    file_name=$1
-    version=$2
-    echo $version > $file_name
-}
-
-if [ "$vtype" == "compatible" ]
-then
-    set_version COMPATIBLE_VERSION $version
+    echo "replication version $version is already installed"
 else
-    set_version VERSION $version
-fi 
+    (set -x
+    dbdeployer deploy replication $version --concurrent
+    )
+fi
