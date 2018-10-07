@@ -89,7 +89,7 @@ func PreserveSandbox(sandbox_dir, sandbox_name string) {
 	err := os.Rename(clear, no_clear)
 	common.ErrCheckExitf(err, 1, "Error while renaming script.\n%s", err)
 	template := sandbox.SingleTemplates["sb_locked_template"].Contents
-	var data = common.Smap{
+	var data = common.StringMap{
 		"TemplateName": "sb_locked_template",
 		"SandboxDir":   sandbox_name,
 		"AppVersion":   common.VersionDef,
@@ -98,7 +98,7 @@ func PreserveSandbox(sandbox_dir, sandbox_name string) {
 		"NoClearCmd":   no_clear_cmd,
 	}
 	template = common.TrimmedLines(template)
-	new_clear_message := common.Tprintf(template, data)
+	new_clear_message := common.TemplateFill(template, data)
 	common.WriteString(new_clear_message, clear)
 	os.Chmod(clear, 0744)
 	fmt.Printf("Sandbox %s locked\n", sandbox_name)

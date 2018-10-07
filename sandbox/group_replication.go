@@ -130,7 +130,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 	//		change_master_extra = ", GET_MASTER_PUBLIC_KEY=1"
 	//	}
 	//}
-	var data common.Smap = common.Smap{
+	var data common.StringMap = common.StringMap{
 		"Copyright":         Copyright,
 		"AppVersion":        common.VersionDef,
 		"DateTime":          timestamp.Format(time.UnixDate),
@@ -146,7 +146,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 		"ChangeMasterExtra": change_master_extra,
 		"MasterLabel":       master_label,
 		"MasterAbbr":        master_abbr,
-		"Nodes":             []common.Smap{},
+		"Nodes":             []common.StringMap{},
 	}
 	connection_string := ""
 	for i := 0; i < nodes; i++ {
@@ -191,7 +191,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 
 	for i := 1; i <= nodes; i++ {
 		group_port := base_group_port + i
-		data["Nodes"] = append(data["Nodes"].([]common.Smap), common.Smap{
+		data["Nodes"] = append(data["Nodes"].([]common.StringMap), common.StringMap{
 			"Copyright":         Copyright,
 			"AppVersion":        common.VersionDef,
 			"DateTime":          timestamp.Format(time.UnixDate),
@@ -251,7 +251,7 @@ func CreateGroupReplication(sdef SandboxDef, origin string, nodes int, master_ip
 		for _, list := range exec_list {
 			exec_lists = append(exec_lists, list)
 		}
-		var data_node common.Smap = common.Smap{
+		var data_node common.StringMap = common.StringMap{
 			"Copyright":         Copyright,
 			"AppVersion":        common.VersionDef,
 			"DateTime":          timestamp.Format(time.UnixDate),

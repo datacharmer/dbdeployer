@@ -63,6 +63,7 @@ fi
 
 TARGET_DIR=test
 
+# $TRAVIS is defined when the test is running in TRavis environment
 if [ -n "$TRAVIS" ]
 then
     export RUN_CONCURRENTLY=1

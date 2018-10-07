@@ -31,7 +31,7 @@ type Node struct {
 	Name     string
 }
 
-func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Smap {
+func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.StringMap {
 
 	var exec_lists []concurrent.ExecutionList
 
@@ -86,12 +86,12 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Sma
 		common.Exit(1, "Only one node requested. For single sandbox deployment, use the 'single' command")
 	}
 	timestamp := time.Now()
-	var data common.Smap = common.Smap{
+	var data common.StringMap = common.StringMap{
 		"Copyright":  Copyright,
 		"AppVersion": common.VersionDef,
 		"DateTime":   timestamp.Format(time.UnixDate),
 		"SandboxDir": sdef.SandboxDir,
-		"Nodes":      []common.Smap{},
+		"Nodes":      []common.StringMap{},
 	}
 
 	sb_desc := common.SandboxDescription{
@@ -121,7 +121,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Sma
 	node_label := defaults.Defaults().NodePrefix
 	for i := 1; i <= nodes; i++ {
 		sdef.Port = base_port + i
-		data["Nodes"] = append(data["Nodes"].([]common.Smap), common.Smap{
+		data["Nodes"] = append(data["Nodes"].([]common.StringMap), common.StringMap{
 			"Copyright":  Copyright,
 			"AppVersion": common.VersionDef,
 			"DateTime":   timestamp.Format(time.UnixDate),
@@ -158,7 +158,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Sma
 			exec_lists = append(exec_lists, list)
 		}
 
-		var data_node common.Smap = common.Smap{
+		var data_node common.StringMap = common.StringMap{
 			"Node":       i,
 			"NodePort":   sdef.Port,
 			"NodeLabel":  node_label,

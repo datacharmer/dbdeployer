@@ -22,8 +22,8 @@ import (
 	"time"
 )
 
-// Smap defines the map of variable types, for brevity
-type Smap map[string]interface{}
+// StringMap defines the map of variable types, for brevity
+type StringMap map[string]interface{}
 
 // Given a multi-line string, this function removes leading
 // spaces from every line.
@@ -44,10 +44,10 @@ func TrimmedLines(s string) string {
 	*/
 }
 
-// Tprintf passed template string is formatted using its operands and returns the resulting string.
+// TemplateFill passed template string is formatted using its operands and returns the resulting string.
 // Spaces are added between operands when neither is a string.
 // Based on code from https://play.golang.org/p/COHKlB2RML
-func Tprintf(tmpl string, data Smap) string {
+func TemplateFill(tmpl string, data StringMap) string {
 
 	// Adds timestamp and version info
 	timestamp := time.Now()

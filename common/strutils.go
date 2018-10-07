@@ -35,7 +35,8 @@ type CleanupRec struct {
 type CleanupStack []CleanupRec
 
 // var cleanup_actions CleanupStack
-var cleanup_actions = new(Stack)
+// var cleanup_actions = new(Stack)
+var cleanup_actions = NewStack()
 
 // Given a path starting at the HOME directory
 // returns a string where the literal value for $HOME
@@ -163,9 +164,9 @@ func LatestVersion(search_dir, pattern string) string {
 }
 
 func Atoi(val string) int {
-	numvalue, err := strconv.Atoi(val)
+	num, err := strconv.Atoi(val)
 	ErrCheckExitf(err, 1, fmt.Sprintf("Not a valid number: %s (%s)", val, err))
-	return numvalue
+	return num
 }
 
 func TextToBool(value string) (result bool) {
@@ -183,12 +184,17 @@ func TextToBool(value string) (result bool) {
 	return
 }
 
-func StringToIntSlice(val string) (num_list []int) {
+// Given a string containing comma-separated integers, returns an array of integers
+func StringToIntSlice(val string) (num_list []int, err error) {
 	list := strings.Split(val, ",")
 	for _, item := range list {
-		num_list = append(num_list, Atoi(strings.TrimSpace(item)))
+		num, err := strconv.Atoi(strings.TrimSpace(item))
+		if err != nil {
+			return []int{}, fmt.Errorf("Value '%s' (part of %s) is not a number\n", item, val)
+		}
+		num_list = append(num_list, num)
 	}
-	return num_list
+	return num_list, nil
 }
 
 // Adds an action to the list of clean-up operations

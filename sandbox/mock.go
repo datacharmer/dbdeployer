@@ -87,7 +87,7 @@ func create_mock_version(version string) {
 	common.Mkdir(version_dir + "/bin")
 	common.Mkdir(version_dir + "/scripts")
 	common.Mkdir(version_dir + "/lib")
-	var empty_data = common.Smap{}
+	var empty_data = common.StringMap{}
 	currentOs := runtime.GOOS
 	extension := ""
 	switch currentOs {

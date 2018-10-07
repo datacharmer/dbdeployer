@@ -116,3 +116,62 @@ func TestCustomUuid(t *testing.T) {
 		}
 	}
 }
+
+type expected_data struct {
+	index int
+	value string
+}
+type sortVersionData struct {
+	data     []string
+	expected []expected_data
+}
+
+func checkSortVersion(t *testing.T, sortData sortVersionData) {
+	sorted := SortVersions(sortData.data)
+	for _, exp := range sortData.expected {
+		if exp.value == sorted[exp.index] {
+			t.Logf("ok - element %d = '%s'\n", exp.index, exp.value)
+		} else {
+			t.Logf("not ok - out of position element %d - Expected: '%s' - Found: '%s'\n", exp.index, exp.value, sorted[exp.index])
+			t.Fail()
+		}
+	}
+}
+
+func TestSortVersions(t *testing.T) {
+
+	var sortData = []sortVersionData{
+		sortVersionData{
+			data: []string{"5.0.1", "5.0.11", "5.0.9", "5.0.6", "5.0.10"},
+			expected: []expected_data{
+				expected_data{0, "5.0.1"},
+				expected_data{4, "5.0.11"},
+			},
+		},
+		sortVersionData{
+			data: []string{"8.0.11", "8.0.1", "5.0.9", "5.0.6", "5.0.10"},
+			expected: []expected_data{
+				expected_data{0, "5.0.6"},
+				expected_data{4, "8.0.11"},
+			},
+		},
+		sortVersionData{
+			data: []string{"10.0.2", "8.0.1", "5.1.5", "5.0.6", "5.0.10"},
+			expected: []expected_data{
+				expected_data{0, "5.0.6"},
+				expected_data{4, "10.0.2"},
+			},
+		},
+		sortVersionData{
+			data: []string{"ps8.0.2", "ps8.0.1", "ps5.1.5", "ps5.0.6", "ps5.0.10"},
+			expected: []expected_data{
+				expected_data{0, "ps5.0.6"},
+				expected_data{4, "ps8.0.2"},
+			},
+		},
+	}
+
+	for _, sd := range sortData {
+		checkSortVersion(t, sd)
+	}
+}

@@ -42,14 +42,14 @@ func main() {
 	compatible_version := strings.TrimSpace(common.SlurpAsString(compatible_version_file))
 	compatible_version_date := get_file_date(compatible_version_file)
 
-	var data = common.Smap{
+	var data = common.StringMap{
 		"Version":               version,
 		"VersionDate":           version_date,
 		"CompatibleVersion":     compatible_version,
 		"CompatibleVersionDate": compatible_version_date,
 		"Timestamp":             time.Now().Format("2006-01-02 15:04"),
 	}
-	version_code := common.Tprintf(template, data)
+	version_code := common.TemplateFill(template, data)
 	/*
 	file, err := os.Open(version_dest_file)
 	if err != nil {

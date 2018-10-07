@@ -1,15 +1,27 @@
+1.12.3	07-Oct-2018
+	- Merged in PR #39 (add port to prompt)
+	- Added tests for common/checks and common/tprintf
+	- Refactored some code to improve testability
+1.12.2	30-Sep-2018 (not released)
+	- Replaced stack implementation
+	- Added tests for stack and concurrency
 1.12.1	23-Sep-2018
-	- Fixes Issue #38 "--force does not check for locked sb"
-	- Adds cookbook scripts
-	- Adds missing copyright on some files.
-	- Adds check for missing copyright to sanity_check.sh
+	NEW FEATURES:
+	- Added cookbook scripts
+	BUGS FIXED:
+	- Fixed Issue #38 "--force does not check for locked sb"
+	- Added missing copyright on some files.
+	- Added check for missing copyright to sanity_check.sh
 1.12.0	22-Sep-2018
+	NEW FEATURES:
 	- Added sandbox operations logging (on demand)
 	- Added option --log-sb-operations to enable logging
 	- Added option --log-directory to change the default directory ($SANDBOX_HOME)
 	- Added log-sb-operations and log-directory fields to default values.
 1.11.0	09-Sep-2018
+	NEW FEATURES:
 	- Added option --repl-crash-safe (Issue #36) to get crash safe params without GTID.
+	BUGS FIXED:
 	- Fixed Issue #35 (--gtid should include relay-log-recovery)
 	- Fixed Issue #37 (slave initialization with GTID should use
 	  MASTER_AUTO_POSITION) and added test for GTID behavior.

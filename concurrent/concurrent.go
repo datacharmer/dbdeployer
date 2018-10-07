@@ -21,13 +21,22 @@ import (
 	"os"
 	"os/exec"
 	"sync"
+	"time"
 )
 
 type CommonChan chan *exec.Cmd
+type TraceInfo struct {
+	Time  time.Time
+	Cmd   string
+	Args  []string
+	Level int
+}
+type Trace func(ti TraceInfo)
 
 type ExecCommand struct {
-	Cmd  string
-	Args []string
+	Cmd    string
+	Args   []string
+	Tracer Trace
 }
 
 type ExecCommands []ExecCommand
@@ -41,13 +50,13 @@ type ExecutionList struct {
 var DebugConcurrency bool
 var VerboseConcurrency bool
 
-func add_task(num int, wg *sync.WaitGroup, tasks CommonChan, cmd string, args []string) {
+func addTask(num int, wg *sync.WaitGroup, tasks CommonChan, cmd string, args []string) {
 	wg.Add(1)
-	go start_task(num, wg, tasks)
+	go startTask(num, wg, tasks)
 	tasks <- exec.Command(cmd, args...)
 }
 
-func start_task(num int, w *sync.WaitGroup, tasks CommonChan) {
+func startTask(num int, w *sync.WaitGroup, tasks CommonChan) {
 	defer w.Done()
 	var (
 		out []byte
@@ -77,7 +86,7 @@ func RunParallelTasks(priority_level int, operations ExecCommands) {
 	var wg sync.WaitGroup
 
 	for N, ec := range operations {
-		add_task(N, &wg, tasks, ec.Cmd, ec.Args)
+		addTask(N, &wg, tasks, ec.Cmd, ec.Args)
 	}
 	close(tasks)
 	wg.Wait()
@@ -141,6 +150,9 @@ func RunParallelTasksByPriority(exec_lists []ExecutionList) {
 		for _, list := range exec_lists {
 			if list.Priority == N {
 				operations = append(operations, list.Command)
+				if list.Command.Tracer != nil {
+					list.Command.Tracer(TraceInfo{Time: time.Now(), Cmd: list.Command.Cmd, Args: list.Command.Args, Level: list.Priority})
+				}
 				if list.Logger != nil {
 					list.Logger.Printf(" Queueing command %s [%v] with priority # %d\n",
 						list.Command.Cmd, list.Command.Args, list.Priority)

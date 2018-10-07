@@ -62,12 +62,19 @@ func LogDirName() string {
 	log_dir_name := ""
 	topology := ""
 	name_qualifier := ""
+	use_replication := false
 	re_topology := regexp.MustCompile(`^--topology\s*=\s*(\S+)`)
 	re_single_primary := regexp.MustCompile(`^--single-primary`)
 	re_unwanted_chars := regexp.MustCompile(`[- ./()\[\]]`)
 	for _, arg := range CommandLineArgs {
 		if arg == "dbdeployer" || arg == "deploy" {
 			continue
+		}
+		if arg == "replication" {
+			if topology == "" {
+				topology = "master-slave"
+			}
+			use_replication = true
 		}
 		if Includes(arg, `^--`) {
 			find_topology := re_topology.FindAllStringSubmatch(arg, -1)
@@ -83,6 +90,10 @@ func LogDirName() string {
 			}
 			log_dir_name += arg
 		}
+	}
+	if !use_replication {
+		topology = ""
+		name_qualifier = ""
 	}
 	if topology != "" {
 		log_dir_name += "_" + topology

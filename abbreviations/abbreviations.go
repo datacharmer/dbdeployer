@@ -74,7 +74,7 @@ func LoadAbbreviations() {
 	var abbrev_file string = "abbreviations.txt"
 	var new_args []string
 	var abbreviations = make(AliasList)
-	var variables = make(common.Smap)
+	var variables = make(common.StringMap)
 	var verbose_abbr bool = true
 	var replacements_used bool = false
 	if os.Getenv("SILENT_ABBR") != "" {
@@ -143,7 +143,7 @@ func LoadAbbreviations() {
 			for _, item := range abbreviations[arg] {
 				if item != "" {
 					// Replaces possible vars with their value
-					item = common.Tprintf(item, variables)
+					item = common.TemplateFill(item, variables)
 					// adds the replacement items to the new argument list
 					replacement += " " + item
 					new_args = append(new_args, item)

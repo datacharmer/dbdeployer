@@ -87,7 +87,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	slave_abbr := defaults.Defaults().SlaveAbbr
 	timestamp := time.Now()
 
-	var data common.Smap = common.Smap{
+	var data common.StringMap = common.StringMap{
 		"Copyright":          Copyright,
 		"AppVersion":         common.VersionDef,
 		"DateTime":           timestamp.Format(time.UnixDate),
@@ -102,7 +102,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		"SlaveAbbr":          slave_abbr,
 		"ChangeMasterExtra":  change_master_extra,
 		"MasterAutoPosition": master_auto_position,
-		"Slaves":             []common.Smap{},
+		"Slaves":             []common.StringMap{},
 	}
 
 	logger.Printf("Defining replication data: %v\n", SmapToJson(data))
@@ -160,7 +160,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 	node_label := defaults.Defaults().NodePrefix
 	for i := 1; i <= slaves; i++ {
 		sdef.Port = base_port + i + 1
-		data["Slaves"] = append(data["Slaves"].([]common.Smap), common.Smap{
+		data["Slaves"] = append(data["Slaves"].([]common.StringMap), common.StringMap{
 			"Copyright":          Copyright,
 			"AppVersion":         common.VersionDef,
 			"DateTime":           timestamp.Format(time.UnixDate),
@@ -210,7 +210,7 @@ func CreateMasterSlaveReplication(sdef SandboxDef, origin string, nodes int, mas
 		for _, list := range exec_list_node {
 			exec_lists = append(exec_lists, list)
 		}
-		var data_slave common.Smap = common.Smap{
+		var data_slave common.StringMap = common.StringMap{
 			"Copyright":          Copyright,
 			"AppVersion":         common.VersionDef,
 			"DateTime":           timestamp.Format(time.UnixDate),

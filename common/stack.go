@@ -12,39 +12,73 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package common
 
-// Taken from https://gist.github.com/bemasher/1777766
+import (
+	"container/list"
+	"sync"
+)
 
+// The stack is implemented using a double-linked list from
+// Go standard library
 type Stack struct {
-	top  *Element
-	size int
+	list *list.List
+	mux  sync.Mutex
 }
 
-type Element struct {
-	value interface{} // All types satisfy the empty interface, so we can store anything here.
-	next  *Element
+// NewStack returns a new stack
+func NewStack() (stack Stack) {
+	stack.list = list.New()
+	return
 }
 
-// Return the stack's length
-func (s *Stack) Len() int {
-	return s.size
+// The length of the stack is that of the underlying list
+func (stack *Stack) Len() int {
+	return stack.list.Len()
 }
 
-// Push a new element onto the stack
-func (s *Stack) Push(value interface{}) {
-	// fmt.Printf("#>> inserting  %#v\n",value)
-	s.top = &Element{value, s.top}
-	s.size++
-}
-
-// Remove the top element from the stack and return it's value
-// If the stack is empty, return nil
-func (s *Stack) Pop() (value interface{}) {
-	if s.size > 0 {
-		value, s.top = s.top.value, s.top.next
-		s.size--
-		return
+// Removes all items from the stack
+func (stack *Stack) Reset() {
+	stack.mux.Lock()
+	for stack.list.Len() > 0 {
+		stack.list.Remove(stack.list.Front())
 	}
-	return nil
+	stack.mux.Unlock()
+}
+
+// Push() inserts an item to the front of the stack.
+// The item can be of any type
+func (stack *Stack) Push(item interface{}) {
+	stack.list.PushFront(item)
+}
+
+// Pop() returns the object stored as .Value in the top list element
+// Client calls will need to cast the object to the expected type.
+// The object is removed from the list
+// e.g.:
+//     type MyType struct { ... }
+//     var lastOne MyType
+//     lastOne = stack.Pop().(MyType)
+func (stack *Stack) Pop() interface{} {
+	// Locks so that it is safe to pop from concurrent goroutines
+	stack.mux.Lock()
+	latest := stack.list.Front().Value
+	// After extracting the item, we remove the first
+	// list element
+	stack.list.Remove(stack.list.Front())
+	stack.mux.Unlock()
+	return latest
+}
+
+// Top() returns the object stored as .Value in the top list element
+// The object is NOT removed from the list
+func (stack *Stack) Top() interface{} {
+	return stack.list.Front().Value
+}
+
+// Bottom() returns the object stored as .Value in the bottom list element
+// The object is NOT removed from the list
+func (stack *Stack) Bottom() interface{} {
+	return stack.list.Back().Value
 }

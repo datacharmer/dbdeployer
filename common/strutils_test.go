@@ -16,6 +16,7 @@
 package common
 
 import (
+	"fmt"
 	"os"
 	"testing"
 )
@@ -58,6 +59,82 @@ func TestReplaceLiteralHome(t *testing.T) {
 		} else {
 			t.Logf("NOT OK %-35s %-10s --=> %-25s\n", value, "("+env_var+")", expected)
 			t.Fail()
+		}
+	}
+}
+
+func TestTextToBool(t *testing.T) {
+	type textBoolData struct {
+		input    string
+		expected bool
+	}
+	var data = []textBoolData{
+		textBoolData{"yes", true},
+		textBoolData{"no", false},
+		textBoolData{"true", true},
+		textBoolData{"True", true},
+		textBoolData{"false", false},
+		textBoolData{"False", false},
+		textBoolData{"1", true},
+		textBoolData{"0", false},
+		textBoolData{"unexpected", false},
+	}
+	for _, tb := range data {
+		if tb.expected == TextToBool(tb.input) {
+			t.Logf("ok - value '%s' translated to %v\n", tb.input, tb.expected)
+		} else {
+			t.Logf("ok - value '%s' does not translate to %v\n", tb.input, tb.expected)
+			t.Fail()
+		}
+	}
+}
+
+func TestRemoveTrailingSlash(t *testing.T) {
+	type trailingSlashData struct {
+		input    string
+		expected string
+	}
+	var data = []trailingSlashData{
+		trailingSlashData{"one/", "one"},
+		trailingSlashData{"one//", "one/"},
+		trailingSlashData{"one", "one"},
+		trailingSlashData{"/", ""},
+		trailingSlashData{"one/one/", "one/one"},
+		trailingSlashData{"//", "/"},
+		trailingSlashData{"", ""},
+	}
+	for _, ts := range data {
+		result := RemoveTrailingSlash(ts.input)
+		if result == ts.expected {
+			t.Logf("ok - value '%s' becomes '%s'\n", ts.input, ts.expected)
+		} else {
+			t.Logf("not ok - value '%s' not translated correctly. Expected: '%s' - found '%s'\n", ts.input, ts.expected, result)
+			t.Fail()
+		}
+	}
+}
+
+func TestStringToIntSlice(t *testing.T) {
+	type StringToSliceData struct {
+		input    string
+		expected []int
+	}
+	var data = []StringToSliceData{
+		StringToSliceData{"1 2000 3839 6783 -1", []int{}},
+		StringToSliceData{"1;2000;3839;6783;-1", []int{}},
+		StringToSliceData{"1,2000,3839,6783,-a", []int{}},
+		StringToSliceData{"1,2000,3839,6783,-1", []int{1, 2000, 3839, 6783, -1}},
+		StringToSliceData{"2, 2001, 3840, 6784, -2", []int{2, 2001, 3840, 6784, -2}},
+		StringToSliceData{" 3, 2002, 3841, 6785, -3 ", []int{3, 2002, 3841, 6785, -3}},
+	}
+
+	for _, sd := range data {
+		result, _ := StringToIntSlice(sd.input)
+		okEqualInt("slice size", len(sd.expected), len(result), t)
+		for N := 0; N < len(sd.expected); N++ {
+			if N < len(result) {
+				okEqualInt(fmt.Sprintf("slice element %d", N), sd.expected[N], result[N], t)
+			}
 		}
 	}
 }

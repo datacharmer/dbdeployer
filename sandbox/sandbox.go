@@ -111,7 +111,7 @@ func SandboxDefToJson(sd SandboxDef) string {
 	return fmt.Sprintf("%s", b)
 }
 
-func SmapToJson(data common.Smap) string {
+func SmapToJson(data common.StringMap) string {
 	copyright := data["Copyright"]
 	data["Copyright"] = "[skipped] (See 'Copyright' template for full text)"
 	b, err := json.MarshalIndent(data, " ", "\t")
@@ -371,7 +371,7 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 		}
 	}
 	timestamp := time.Now()
-	var data common.Smap = common.Smap{"Basedir": sdef.Basedir,
+	var data common.StringMap = common.StringMap{"Basedir": sdef.Basedir,
 		"Copyright":            SingleTemplates["Copyright"].Contents,
 		"AppVersion":           common.VersionDef,
 		"DateTime":             timestamp.Format(time.UnixDate),
@@ -620,11 +620,11 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 	return
 }
 
-func write_script(logger *defaults.Logger, temp_var TemplateCollection, name, template_name, directory string, data common.Smap, make_executable bool) {
+func write_script(logger *defaults.Logger, temp_var TemplateCollection, name, template_name, directory string, data common.StringMap, make_executable bool) {
 	template := temp_var[template_name].Contents
 	template = common.TrimmedLines(template)
 	data["TemplateName"] = template_name
-	text := common.Tprintf(template, data)
+	text := common.TemplateFill(template, data)
 	executable_status := ""
 	if make_executable {
 		write_exec(name, text, directory)

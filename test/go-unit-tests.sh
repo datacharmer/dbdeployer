@@ -30,7 +30,7 @@ function check_exit_code {
 
 }
 
-for dir in common sandbox 
+for dir in common sandbox concurrent
 do
     cd $dir
     echo "# Testing $dir"

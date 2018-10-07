@@ -275,6 +275,14 @@ func RemoveDefaultsFile() {
 	}
 }
 
+func strToSlice(label, s string) []int {
+	intList, err := common.StringToIntSlice(s)
+	if err != nil {
+		common.Exitf(1, "Bad input for %s: %s (%s) ", label, s, err)
+	}
+	return intList
+}
+
 func UpdateDefaults(label, value string, store_defaults bool) {
 	new_defaults := Defaults()
 	switch label {
@@ -339,7 +347,7 @@ func UpdateDefaults(label, value string, store_defaults bool) {
 	case "all-masters-prefix":
 		new_defaults.AllMastersPrefix = value
 	case "reserved-ports":
-		new_defaults.ReservedPorts = common.StringToIntSlice(value)
+		new_defaults.ReservedPorts = strToSlice("reserved-ports", value)
 	// case "galera-prefix":
 	// 	new_defaults.GaleraPrefix = value
 	// case "pxc-prefix":
