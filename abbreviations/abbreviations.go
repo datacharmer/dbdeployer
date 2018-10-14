@@ -48,20 +48,22 @@ import (
 */
 
 type argList []string
-type AliasList map[string]argList
+type aliasLists map[string]argList
 
-var DebugAbbr bool = false
+var debugAbbr bool = false
+var abbrevFile string = "abbreviations.txt"
+var userDefinedFile string = os.Getenv("DBDEPLOYER_ABBR_FILE")
 
-func show_args(args argList) {
+func showArgs(args argList) {
 	for N, arg := range args {
-		if DebugAbbr {
+		if debugAbbr {
 			fmt.Printf("%d <<%s>>\n", N, arg)
 		}
 	}
 }
 
-func debug_print(descr string, v interface{}) {
-	if DebugAbbr {
+func debugPrint(descr string, v interface{}) {
+	if debugAbbr {
 		fmt.Printf("%s : %v\n", descr, v)
 	}
 }
@@ -71,68 +73,66 @@ func LoadAbbreviations() {
 		fmt.Printf("# Abbreviations suppressed by env variable SKIP_ABBR\n")
 		return
 	}
-	var abbrev_file string = "abbreviations.txt"
-	var new_args []string
-	var abbreviations = make(AliasList)
+	var newArgs []string
+	var abbreviations = make(aliasLists)
 	var variables = make(common.StringMap)
-	var verbose_abbr bool = true
-	var replacements_used bool = false
+	var verboseAbbr bool = true
+	var replacementsUsed bool = false
 	if os.Getenv("SILENT_ABBR") != "" {
-		verbose_abbr = false
+		verboseAbbr = false
 	}
-	user_defined_file := os.Getenv("DBDEPLOYER_ABBR_FILE")
-	if user_defined_file != "" {
-		abbrev_file = user_defined_file
+	if userDefinedFile != "" {
+		abbrevFile = userDefinedFile
 	}
-	if !common.FileExists(abbrev_file) {
-		if DebugAbbr {
-			fmt.Printf("# File %s not found\n", abbrev_file)
+	if !common.FileExists(abbrevFile) {
+		if debugAbbr {
+			fmt.Printf("# File %s not found\n", abbrevFile)
 		}
 		return
 	}
-	abbr_lines := common.SlurpAsLines(abbrev_file)
+	abbrLines := common.SlurpAsLines(abbrevFile)
 	// Loads abbreviations from file
-	for _, abbreviation := range abbr_lines {
+	for _, abbreviation := range abbrLines {
 		abbreviation = strings.TrimSpace(abbreviation)
 		list := strings.Split(abbreviation, " ")
 		abbr := list[0]
-		is_comment, _ := regexp.MatchString(`^\s*#`, abbr)
-		is_empty, _ := regexp.MatchString(`^\s*#\$`, abbr)
-		if is_comment || is_empty {
+		isComment, _ := regexp.MatchString(`^\s*#`, abbr)
+		isEmpty, _ := regexp.MatchString(`^\s*#\$`, abbr)
+		if isComment || isEmpty {
 			continue
 		}
-		var new_list argList
+		var newList argList
 		for N, repl := range list {
 			// Skips the first item, which is the abbreviation
 			if N > 0 {
-				new_list = append(new_list, repl)
+				newList = append(newList, repl)
 			}
 		}
-		abbreviations[abbr] = new_list
+		abbreviations[abbr] = newList
 	}
 	// Loop through original arguments.
 	// Replaces every occurrence of the abbreviation with its components
-	debug_print("os.Args", os.Args)
-	show_args(os.Args)
+	debugPrint("os.Args", os.Args)
+	showArgs(os.Args)
 	for _, arg := range os.Args {
 		// An abbreviation may set variables
 		// for example
 		// myabbr:varname=var_value
 		// myabbr:varname=var_value,other_var=other_value
 		re := regexp.MustCompile(`(\w+)[-:](\S+)`)
-		re_flag := regexp.MustCompile(`^-`)
+		reFlag := regexp.MustCompile(`^-`)
 		vars := re.FindStringSubmatch(arg)
-		if re_flag.MatchString(arg) {
-			new_args = append(new_args, arg)
+		if reFlag.MatchString(arg) {
+			newArgs = append(newArgs, arg)
 			continue
 		}
 		if len(vars) > 0 {
 			arg = vars[1]
-			all_vars := vars[2]
+			allVars := vars[2]
 
 			// Keys and values are separated by an equals (=) sign
 			re = regexp.MustCompile(`(\w+)=(\w+)`)
-			uvars := re.FindAllStringSubmatch(all_vars, -1)
+			uvars := re.FindAllStringSubmatch(allVars, -1)
 			for _, vgroup := range uvars {
 				variables[string(vgroup[1])] = string(vgroup[2])
 			}
@@ -146,27 +146,27 @@ func LoadAbbreviations() {
 					item = common.TemplateFill(item, variables)
 					// adds the replacement items to the new argument list
 					replacement += " " + item
-					new_args = append(new_args, item)
-					replacements_used = true
+					newArgs = append(newArgs, item)
+					replacementsUsed = true
 				}
 			}
-			if verbose_abbr {
+			if verboseAbbr {
 				fmt.Printf("# %s => %s\n", arg, replacement)
 			}
 		} else {
 			// If there is no abbreviation for the current argument
 			// it is added as it is.
-			new_args = append(new_args, arg)
+			newArgs = append(newArgs, arg)
 		}
 	}
-	debug_print("new_args", new_args)
+	debugPrint("new_args", newArgs)
 	// Arguments replaced!
-	if replacements_used {
-		if DebugAbbr {
-			fmt.Printf("# Using file %s\n", abbrev_file)
+	if replacementsUsed {
+		if debugAbbr {
+			fmt.Printf("# Using file %s\n", abbrevFile)
 		}
-		os.Args = new_args
-		if verbose_abbr {
+		os.Args = newArgs
+		if verboseAbbr {
 			fmt.Printf("# %s\n", os.Args)
 		}
 	}
@@ -177,6 +177,6 @@ func LoadAbbreviations() {
 
 func init() {
 	if os.Getenv("DEBUG_ABBR") != "" {
-		DebugAbbr = true
+		debugAbbr = true
 	}
 }

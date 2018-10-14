@@ -33,17 +33,17 @@ type Node struct {
 
 func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.StringMap {
 
-	var exec_lists []concurrent.ExecutionList
+	var execLists []concurrent.ExecutionList
 
-	sb_type := sdef.SBType
-	if sb_type == "" {
-		sb_type = "multiple"
+	sbType := sdef.SBType
+	if sbType == "" {
+		sbType = "multiple"
 	}
 	var logger *defaults.Logger
 	if sdef.Logger != nil {
 		logger = sdef.Logger
 	} else {
-		sdef.LogFileName, logger = defaults.NewLogger(common.LogDirName(), sb_type)
+		sdef.LogFileName, logger = defaults.NewLogger(common.LogDirName(), sbType)
 		sdef.LogFileName = common.ReplaceLiteralHome(sdef.LogFileName)
 	}
 	Basedir := sdef.Basedir
@@ -61,19 +61,19 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Str
 
 	vList := common.VersionToList(sdef.Version)
 	rev := vList[2]
-	base_port := sdef.Port + defaults.Defaults().MultipleBasePort + (rev * 100)
+	basePort := sdef.Port + defaults.Defaults().MultipleBasePort + (rev * 100)
 	if sdef.BasePort > 0 {
-		base_port = sdef.BasePort
+		basePort = sdef.BasePort
 	}
 	// FindFreePort returns the first free port, but base_port will be used
 	// with a counter. Thus the availability will be checked using
 	// "base_port + 1"
-	first_port := common.FindFreePort(base_port+1, sdef.InstalledPorts, nodes)
-	base_port = first_port - 1
-	for check_port := base_port + 1; check_port < base_port+nodes; check_port++ {
-		CheckPort("CreateMultipleSandbox", sdef.SandboxDir, sdef.InstalledPorts, check_port)
+	firstPort := common.FindFreePort(basePort+1, sdef.InstalledPorts, nodes)
+	basePort = firstPort - 1
+	for checkPort := basePort + 1; checkPort < basePort+nodes; checkPort++ {
+		CheckPort("CreateMultipleSandbox", sdef.SandboxDir, sdef.InstalledPorts, checkPort)
 	}
-	base_mysqlx_port := get_base_mysqlx_port(base_port, sdef, nodes)
+	baseMysqlxPort := getBaseMysqlxPort(basePort, sdef, nodes)
 	common.Mkdir(sdef.SandboxDir)
 	logger.Printf("Created directory %s\n", sdef.SandboxDir)
 	logger.Printf("Multiple Sandbox Definition: %s\n", SandboxDefToJson(sdef))
@@ -81,12 +81,12 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Str
 	common.AddToCleanupStack(common.Rmdir, "Rmdir", sdef.SandboxDir)
 
 	sdef.ReplOptions = SingleTemplates["replication_options"].Contents
-	base_server_id := 0
+	baseServerId := 0
 	if nodes < 2 {
 		common.Exit(1, "Only one node requested. For single sandbox deployment, use the 'single' command")
 	}
 	timestamp := time.Now()
-	var data common.StringMap = common.StringMap{
+	var data = common.StringMap{
 		"Copyright":  Copyright,
 		"AppVersion": common.VersionDef,
 		"DateTime":   timestamp.Format(time.UnixDate),
@@ -94,7 +94,7 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Str
 		"Nodes":      []common.StringMap{},
 	}
 
-	sb_desc := common.SandboxDescription{
+	sbDesc := common.SandboxDescription{
 		Basedir: Basedir,
 		SBType:  sdef.SBType,
 		Version: sdef.Version,
@@ -104,9 +104,9 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Str
 		LogFile: sdef.LogFileName,
 	}
 
-	sb_item := defaults.SandboxItem{
-		Origin:      sb_desc.Basedir,
-		SBType:      sb_desc.SBType,
+	sbItem := defaults.SandboxItem{
+		Origin:      sbDesc.Basedir,
+		SBType:      sbDesc.SBType,
 		Version:     sdef.Version,
 		Port:        []int{},
 		Nodes:       []string{},
@@ -114,79 +114,79 @@ func CreateMultipleSandbox(sdef SandboxDef, origin string, nodes int) common.Str
 	}
 
 	if sdef.LogFileName != "" {
-		sb_item.LogDirectory = common.DirName(sdef.LogFileName)
+		sbItem.LogDirectory = common.DirName(sdef.LogFileName)
 	}
 
 	logger.Printf("Defining multiple sandbox data: %v\n", SmapToJson(data))
-	node_label := defaults.Defaults().NodePrefix
+	nodeLabel := defaults.Defaults().NodePrefix
 	for i := 1; i <= nodes; i++ {
-		sdef.Port = base_port + i
+		sdef.Port = basePort + i
 		data["Nodes"] = append(data["Nodes"].([]common.StringMap), common.StringMap{
 			"Copyright":  Copyright,
 			"AppVersion": common.VersionDef,
 			"DateTime":   timestamp.Format(time.UnixDate),
 			"Node":       i,
 			"NodePort":   sdef.Port,
-			"NodeLabel":  node_label,
+			"NodeLabel":  nodeLabel,
 			"SandboxDir": sdef.SandboxDir,
 		})
 		sdef.LoadGrants = true
-		sdef.DirName = fmt.Sprintf("%s%d", node_label, i)
-		sdef.ServerId = (base_server_id + i) * 100
-		sb_item.Nodes = append(sb_item.Nodes, sdef.DirName)
-		sb_item.Port = append(sb_item.Port, sdef.Port)
-		sb_desc.Port = append(sb_desc.Port, sdef.Port)
+		sdef.DirName = fmt.Sprintf("%s%d", nodeLabel, i)
+		sdef.ServerId = (baseServerId + i) * 100
+		sbItem.Nodes = append(sbItem.Nodes, sdef.DirName)
+		sbItem.Port = append(sbItem.Port, sdef.Port)
+		sbDesc.Port = append(sbDesc.Port, sdef.Port)
 		if common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 11}) {
-			sdef.MysqlXPort = base_mysqlx_port + i
+			sdef.MysqlXPort = baseMysqlxPort + i
 			if !sdef.DisableMysqlX {
-				sb_desc.Port = append(sb_desc.Port, base_mysqlx_port+i)
-				sb_item.Port = append(sb_item.Port, base_mysqlx_port+i)
-				logger.Printf("Adding mysqlx port %d to node %d\n", base_mysqlx_port+i, i)
+				sbDesc.Port = append(sbDesc.Port, baseMysqlxPort+i)
+				sbItem.Port = append(sbItem.Port, baseMysqlxPort+i)
+				logger.Printf("Adding mysqlx port %d to node %d\n", baseMysqlxPort+i, i)
 			}
 		}
 		sdef.Multi = true
 		sdef.NodeNum = i
-		sdef.Prompt = fmt.Sprintf("%s%d", node_label, i)
-		sdef.SBType = sb_type + "-node"
+		sdef.Prompt = fmt.Sprintf("%s%d", nodeLabel, i)
+		sdef.SBType = sbType + "-node"
 		if !sdef.RunConcurrently {
-			fmt.Printf("Installing and starting %s %d\n", node_label, i)
-			logger.Printf("installing and starting %s %d", node_label, i)
+			fmt.Printf("Installing and starting %s %d\n", nodeLabel, i)
+			logger.Printf("installing and starting %s %d", nodeLabel, i)
 		}
 		logger.Printf("Creating single sandbox for node %d\n", i)
-		exec_list := CreateSingleSandbox(sdef)
-		for _, list := range exec_list {
-			exec_lists = append(exec_lists, list)
+		execList := CreateSingleSandbox(sdef)
+		for _, list := range execList {
+			execLists = append(execLists, list)
 		}
 
-		var data_node common.StringMap = common.StringMap{
+		var dataNode = common.StringMap{
 			"Node":       i,
 			"NodePort":   sdef.Port,
-			"NodeLabel":  node_label,
+			"NodeLabel":  nodeLabel,
 			"SandboxDir": sdef.SandboxDir,
 			"Copyright":  Copyright,
 		}
 		logger.Printf("Creating node script for node %d\n", i)
-		logger.Printf("Defining multiple sandbox node inner data: %v\n", SmapToJson(data_node))
-		write_script(logger, MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sdef.SandboxDir, data_node, true)
+		logger.Printf("Defining multiple sandbox node inner data: %v\n", SmapToJson(dataNode))
+		writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sdef.SandboxDir, dataNode, true)
 	}
 	logger.Printf("Write sandbox description\n")
-	common.WriteSandboxDescription(sdef.SandboxDir, sb_desc)
-	defaults.UpdateCatalog(sdef.SandboxDir, sb_item)
+	common.WriteSandboxDescription(sdef.SandboxDir, sbDesc)
+	defaults.UpdateCatalog(sdef.SandboxDir, sbItem)
 
 	logger.Printf("Write multiple sandbox scripts\n")
-	write_script(logger, MultipleTemplates, "start_all", "start_multi_template", sdef.SandboxDir, data, true)
-	write_script(logger, MultipleTemplates, "restart_all", "restart_multi_template", sdef.SandboxDir, data, true)
-	write_script(logger, MultipleTemplates, "status_all", "status_multi_template", sdef.SandboxDir, data, true)
-	write_script(logger, MultipleTemplates, "test_sb_all", "test_sb_multi_template", sdef.SandboxDir, data, true)
-	write_script(logger, MultipleTemplates, "stop_all", "stop_multi_template", sdef.SandboxDir, data, true)
-	write_script(logger, MultipleTemplates, "clear_all", "clear_multi_template", sdef.SandboxDir, data, true)
-	write_script(logger, MultipleTemplates, "send_kill_all", "send_kill_multi_template", sdef.SandboxDir, data, true)
-	write_script(logger, MultipleTemplates, "use_all", "use_multi_template", sdef.SandboxDir, data, true)
+	writeScript(logger, MultipleTemplates, "start_all", "start_multi_template", sdef.SandboxDir, data, true)
+	writeScript(logger, MultipleTemplates, "restart_all", "restart_multi_template", sdef.SandboxDir, data, true)
+	writeScript(logger, MultipleTemplates, "status_all", "status_multi_template", sdef.SandboxDir, data, true)
+	writeScript(logger, MultipleTemplates, "test_sb_all", "test_sb_multi_template", sdef.SandboxDir, data, true)
+	writeScript(logger, MultipleTemplates, "stop_all", "stop_multi_template", sdef.SandboxDir, data, true)
+	writeScript(logger, MultipleTemplates, "clear_all", "clear_multi_template", sdef.SandboxDir, data, true)
+	writeScript(logger, MultipleTemplates, "send_kill_all", "send_kill_multi_template", sdef.SandboxDir, data, true)
+	writeScript(logger, MultipleTemplates, "use_all", "use_multi_template", sdef.SandboxDir, data, true)
 
 	logger.Printf("Run concurrent tasks\n")
-	concurrent.RunParallelTasksByPriority(exec_lists)
+	concurrent.RunParallelTasksByPriority(execLists)
 
-	fmt.Printf("%s directory installed in %s\n", sb_type, common.ReplaceLiteralHome(sdef.SandboxDir))
+	fmt.Printf("%s directory installed in %s\n", sbType, common.ReplaceLiteralHome(sdef.SandboxDir))
 	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
 	return data
 }

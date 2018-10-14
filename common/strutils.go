@@ -32,70 +32,60 @@ type CleanupRec struct {
 	f      CleanupFunc
 }
 
-type CleanupStack []CleanupRec
-
-// var cleanup_actions CleanupStack
-// var cleanup_actions = new(Stack)
-var cleanup_actions = NewStack()
+var cleanupActions = NewStack()
 
 // Given a path starting at the HOME directory
 // returns a string where the literal value for $HOME
 // is replaced by the string "$HOME"
 func ReplaceLiteralHome(path string) string {
-	// home := os.Getenv("HOME")
-	// re := regexp.MustCompile(`^` + home)
-	// return re.ReplaceAllString(path, "$$HOME")
 	return ReplaceLiteralEnvVar(path, "HOME")
 }
 
-func ReplaceLiteralEnvVar(name string, env_var string) string {
-	value := os.Getenv(env_var)
+func ReplaceLiteralEnvVar(name string, envVar string) string {
+	value := os.Getenv(envVar)
 	re := regexp.MustCompile(value)
-	return re.ReplaceAllString(name, "$$"+env_var)
+	return re.ReplaceAllString(name, "$$"+envVar)
 }
 
-func ReplaceEnvVar(name string, env_var string) string {
-	value := os.Getenv(env_var)
-	re := regexp.MustCompile(`\$` + env_var + `\b`)
+func ReplaceEnvVar(name string, envVar string) string {
+	value := os.Getenv(envVar)
+	re := regexp.MustCompile(`\$` + envVar + `\b`)
 	return re.ReplaceAllString(name, value)
 }
 
 // Given a path with the variable "$HOME" at the start,
 // returns a string with the value of HOME expanded
 func ReplaceHomeVar(path string) string {
-	// home := os.Getenv("HOME")
-	// re := regexp.MustCompile(`^\$HOME\b`)
-	//return re.ReplaceAllString(path, home)
 	return ReplaceEnvVar(path, "HOME")
 }
 
-func MakeCustomizedUuid(port, node_num int) string {
-	re_digit := regexp.MustCompile(`\d`)
+func MakeCustomizedUuid(port, nodeNum int) string {
+	reDigit := regexp.MustCompile(`\d`)
 	group1 := fmt.Sprintf("%08d", port)
-	group2 := fmt.Sprintf("%04d-%04d-%04d", node_num, node_num, node_num)
+	group2 := fmt.Sprintf("%04d-%04d-%04d", nodeNum, nodeNum, nodeNum)
 	group3 := fmt.Sprintf("%012d", port)
 	//              12345678 1234 1234 1234 123456789012
 	//    new_uuid="00000000-0000-0000-0000-000000000000"
 	switch {
-	case node_num > 0 && node_num <= 9:
-		group2 = re_digit.ReplaceAllString(group2, fmt.Sprintf("%d", node_num))
-		group3 = re_digit.ReplaceAllString(group3, fmt.Sprintf("%d", node_num))
+	case nodeNum > 0 && nodeNum <= 9:
+		group2 = reDigit.ReplaceAllString(group2, fmt.Sprintf("%d", nodeNum))
+		group3 = reDigit.ReplaceAllString(group3, fmt.Sprintf("%d", nodeNum))
 	// Number greater than 10 make little sense for this purpose.
 	// But we keep the rule so that a valid UUID will be formatted in any case.
-	case node_num >= 10000 && node_num <= 99999:
-		group2 = fmt.Sprintf("%04d-%04d-%04d", 0, int(node_num/10000), node_num-10000*int(node_num/10000))
-	case node_num >= 100000:
-		group2 = fmt.Sprintf("%04d-%04d-%04d", int(node_num/10000), 0, 0)
-	case node_num >= 1000000:
-		fmt.Printf("Node num out of boundaries: %d\n", node_num)
+	case nodeNum >= 10000 && nodeNum <= 99999:
+		group2 = fmt.Sprintf("%04d-%04d-%04d", 0, int(nodeNum/10000), nodeNum-10000*int(nodeNum/10000))
+	case nodeNum >= 100000:
+		group2 = fmt.Sprintf("%04d-%04d-%04d", int(nodeNum/10000), 0, 0)
+	case nodeNum >= 1000000:
+		fmt.Printf("Node num out of boundaries: %d\n", nodeNum)
 		os.Exit(1)
 	}
 	return fmt.Sprintf("%s-%s-%s", group1, group2, group3)
 }
 
-func Includes(main_string, contained string) bool {
+func Includes(mainString, contained string) bool {
 	re := regexp.MustCompile(contained)
-	return re.MatchString(main_string)
+	return re.MatchString(mainString)
 
 }
 
@@ -104,31 +94,31 @@ func Includes(main_string, contained string) bool {
 // components of the versions, so that 5.6.2 sorts lower than 5.6.11
 // while a text sort would put 5.6.11 before 5.6.2
 func SortVersions(versions []string) (sorted []string) {
-	type version_list struct {
-		text        string
-		maj_min_rev []int
+	type versionList struct {
+		text      string
+		majMinRev []int
 	}
-	var vlist []version_list
+	var vlist []versionList
 	for _, line := range versions {
 		vl := VersionToList(line)
-		rec := version_list{
-			text:        line,
-			maj_min_rev: vl,
+		rec := versionList{
+			text:      line,
+			majMinRev: vl,
 		}
 		if vl[0] > 0 {
 			vlist = append(vlist, rec)
 		}
 	}
 	sort.Slice(vlist, func(a, b int) bool {
-		maj_a := vlist[a].maj_min_rev[0]
-		min_a := vlist[a].maj_min_rev[1]
-		rev_a := vlist[a].maj_min_rev[2]
-		maj_b := vlist[b].maj_min_rev[0]
-		min_b := vlist[b].maj_min_rev[1]
-		rev_b := vlist[b].maj_min_rev[2]
-		return maj_a < maj_b ||
-			(maj_a == maj_b && min_a < min_b) ||
-			(maj_a == maj_b && min_a == min_b && rev_a < rev_b)
+		majA := vlist[a].majMinRev[0]
+		minA := vlist[a].majMinRev[1]
+		revA := vlist[a].majMinRev[2]
+		majB := vlist[b].majMinRev[0]
+		minB := vlist[b].majMinRev[1]
+		revB := vlist[b].majMinRev[2]
+		return majA < majB ||
+			(majA == majB && minA < minB) ||
+			(majA == majB && minA == minB && revA < revB)
 	})
 	for _, v := range vlist {
 		sorted = append(sorted, v.text)
@@ -136,28 +126,24 @@ func SortVersions(versions []string) (sorted []string) {
 	return
 }
 
-func LatestVersion(search_dir, pattern string) string {
-	files, err := ioutil.ReadDir(search_dir)
-	// fmt.Printf("<%s> <%s>\n",search_dir, pattern)
-	ErrCheckExitf(err, 1, "ERROR reading directory %s: %s", search_dir, err)
-	var matching_list []string
-	valid_pattern := regexp.MustCompile(`\d+\.\d+$`)
-	if !valid_pattern.MatchString(pattern) {
+func LatestVersion(searchDir, pattern string) string {
+	files, err := ioutil.ReadDir(searchDir)
+	ErrCheckExitf(err, 1, "ERROR reading directory %s: %s", searchDir, err)
+	var matchingList []string
+	validPattern := regexp.MustCompile(`\d+\.\d+$`)
+	if !validPattern.MatchString(pattern) {
 		Exit(1, "Invalid pattern. Must be '#.#'")
 	}
 	re := regexp.MustCompile(fmt.Sprintf(`^%s\.\d+$`, pattern))
 	for _, f := range files {
 		fmode := f.Mode()
-		// fmt.Printf("<%s> %#v\n",f.Name(), fmode.IsDir())
 		if fmode.IsDir() && re.MatchString(f.Name()) {
-			matching_list = append(matching_list, f.Name())
+			matchingList = append(matchingList, f.Name())
 		}
 	}
-	// fmt.Printf("%s\n",matching_list)
-	sorted_list := SortVersions(matching_list)
-	// fmt.Printf("%s\n",sorted_list)
-	if len(sorted_list) > 0 {
-		latest := sorted_list[len(sorted_list)-1]
+	sortedList := SortVersions(matchingList)
+	if len(sortedList) > 0 {
+		latest := sortedList[len(sortedList)-1]
 		return latest
 	}
 	return ""
@@ -185,64 +171,64 @@ func TextToBool(value string) (result bool) {
 }
 
 // Given a string containing comma-separated integers, returns an array of integers
-func StringToIntSlice(val string) (num_list []int, err error) {
+func StringToIntSlice(val string) (numberList []int, err error) {
 	list := strings.Split(val, ",")
 	for _, item := range list {
 		num, err := strconv.Atoi(strings.TrimSpace(item))
 		if err != nil {
 			return []int{}, fmt.Errorf("Value '%s' (part of %s) is not a number\n", item, val)
 		}
-		num_list = append(num_list, num)
+		numberList = append(numberList, num)
 	}
-	return num_list, nil
+	return numberList, nil
 }
 
 // Adds an action to the list of clean-up operations
 // to run before aborting the program
-func AddToCleanupStack(cf CleanupFunc, func_name, arg string) {
-	cleanup_actions.Push(CleanupRec{f: cf, label: func_name, target: arg})
+func AddToCleanupStack(cf CleanupFunc, funcName, arg string) {
+	cleanupActions.Push(CleanupRec{f: cf, label: funcName, target: arg})
 }
 
 // Runs the cleanup actions (usually before Exit)
 func RunCleanupActions() {
-	if cleanup_actions.Len() > 0 {
+	if cleanupActions.Len() > 0 {
 		fmt.Printf("# Pre-exit cleanup. \n")
 	}
 	count := 0
-	for cleanup_actions.Len() > 0 {
+	for cleanupActions.Len() > 0 {
 		count++
-		cr := cleanup_actions.Pop().(CleanupRec)
+		cr := cleanupActions.Pop().(CleanupRec)
 		fmt.Printf("#%d - Executing %s( %s)\n", count, cr.label, cr.target)
 		cr.f(cr.target)
 	}
 }
 
 // Checks the status of error variable and exit with custom message if it is not nil.
-func ErrCheckExitf(err error, exit_code int, format string, args ...interface{}) {
+func ErrCheckExitf(err error, exitCode int, format string, args ...interface{}) {
 	if err != nil {
-		Exitf(exit_code, format, args...)
+		Exitf(exitCode, format, args...)
 	}
 }
 
 // Exit with formatted message
 // Runs cleanup actions before aborting the program
-func Exitf(exit_code int, format string, args ...interface{}) {
+func Exitf(exitCode int, format string, args ...interface{}) {
 	RunCleanupActions()
 	fmt.Printf(format, args...)
 	if !Includes(format, `\n`) {
 		fmt.Println()
 	}
-	os.Exit(exit_code)
+	os.Exit(exitCode)
 }
 
 // Exit with custom set of messages
 // Runs cleanup actions before aborting the program
-func Exit(exit_code int, messages ...string) {
+func Exit(exitCode int, messages ...string) {
 	RunCleanupActions()
 	for _, msg := range messages {
 		fmt.Printf("%s\n", msg)
 	}
-	os.Exit(exit_code)
+	os.Exit(exitCode)
 }
 
 func RemoveTrailingSlash(s string) string {

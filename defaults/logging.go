@@ -35,17 +35,17 @@ type Logger struct {
 // 		* the current operation number
 // 		* the name of the caller function
 func (l *Logger) Printf(format string, args ...interface{}) {
-	var new_args []interface{}
+	var newArgs []interface{}
 	caller := CallFuncName()
-	op_num := GetOperationNumber(caller)
+	opNum := GetOperationNumber(caller)
 
 	// injects operation number and caller into the function arguments
-	new_args = append(new_args, op_num)
+	newArgs = append(newArgs, opNum)
 	for _, arg := range args {
-		new_args = append(new_args, arg)
+		newArgs = append(newArgs, arg)
 	}
 	// Calls the logger's Printf function, with the additional prefix
-	l.logger.Printf("[%s] "+format, new_args...)
+	l.logger.Printf("[%s] "+format, newArgs...)
 }
 
 var operationNum int
@@ -55,30 +55,30 @@ func GetOperationNumber(caller string) string {
 	var m sync.Mutex
 	m.Lock()
 	operationNum += 1
-	operation_id := fmt.Sprintf("%07d-%05d %s", os.Getpid(), operationNum, caller)
+	operationId := fmt.Sprintf("%07d-%05d %s", os.Getpid(), operationNum, caller)
 	m.Unlock()
-	return operation_id
+	return operationId
 }
 
-func NewLogger(log_dir, log_file_name string) (string, *Logger) {
+func NewLogger(logDir, logFileName string) (string, *Logger) {
 	if !LogSBOperations {
 		return "", &Logger{logger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime)}
 	}
 	if !common.DirExists(Defaults().LogDirectory) {
 		common.Mkdir(Defaults().LogDirectory)
 	}
-	full_log_dir := Defaults().LogDirectory + "/" + log_dir
-	if !common.DirExists(full_log_dir) {
-		common.Mkdir(full_log_dir)
+	fullLogDir := Defaults().LogDirectory + "/" + logDir
+	if !common.DirExists(fullLogDir) {
+		common.Mkdir(fullLogDir)
 	}
-	var log_file_full_name string = fmt.Sprintf("%s/%s.log", full_log_dir, log_file_name)
+	var logFileFullName string = fmt.Sprintf("%s/%s.log", fullLogDir, logFileName)
 	var err error
-	var log_file *os.File
-	log_file, err = os.OpenFile(log_file_full_name, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
+	var logFile *os.File
+	logFile, err = os.OpenFile(logFileFullName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("error opening log file %s : %v", log_file_full_name, err))
+		common.Exit(1, fmt.Sprintf("error opening log file %s : %v", logFileFullName, err))
 	}
-	return log_file_full_name, &Logger{logger: log.New(log_file, "", log.Ldate|log.Ltime)}
+	return logFileFullName, &Logger{logger: log.New(logFile, "", log.Ldate|log.Ltime)}
 }
 
 func CallFuncName() string {

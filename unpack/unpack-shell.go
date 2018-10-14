@@ -36,12 +36,12 @@ func MergeShell(tarball, basedir, destination, barename string, verbosity int) e
 
 	var dirs = []string{"bin", "lib", "share"}
 	for _, dir := range dirs {
-		dest_path := destination + "/" + dir
-		if !common.DirExists(dest_path) {
+		destPath := destination + "/" + dir
+		if !common.DirExists(destPath) {
 			common.Exitf(1, "Destination server directory %s does not exist in %s\n", dir, destination)
 		}
-		dest_path = destination + "/" + dir + "/mysqlsh"
-		if dir != "bin" && common.DirExists(dest_path) {
+		destPath = destination + "/" + dir + "/mysqlsh"
+		if dir != "bin" && common.DirExists(destPath) {
 			common.Exitf(1, "Destination shell directory %s/mysqlsh already exists in %s\n", dir, destination)
 		}
 	}
@@ -54,8 +54,8 @@ func MergeShell(tarball, basedir, destination, barename string, verbosity int) e
 	defer os.RemoveAll(extracted)
 	common.AddToCleanupStack(common.RmdirAll, "RmdirAll", extracted)
 	for _, dir := range dirs {
-		full_path := extracted + "/" + dir
-		if !common.DirExists(full_path) {
+		fullPath := extracted + "/" + dir
+		if !common.DirExists(fullPath) {
 			common.Exitf(1, "Source shell directory %s does not exist in %s\n", dir, extracted)
 		}
 	}
@@ -66,27 +66,27 @@ func MergeShell(tarball, basedir, destination, barename string, verbosity int) e
 	}
 	dirs = []string{"lib", "share"}
 	for _, dir := range dirs {
-		source_dir := extracted + "/" + dir + "/mysqlsh"
-		dest_dir := destination + "/" + dir + "/mysqlsh"
-		if !common.DirExists(source_dir) {
+		sourceDir := extracted + "/" + dir + "/mysqlsh"
+		destDir := destination + "/" + dir + "/mysqlsh"
+		if !common.DirExists(sourceDir) {
 			common.Exitf(1, "Source shell directory %s/mysqlsh does not exist in %s\n", dir, extracted)
 		}
 		if verbosity >= VERBOSE {
-			fmt.Printf("Move %s %s\n", source_dir, dest_dir)
+			fmt.Printf("Move %s %s\n", sourceDir, destDir)
 		}
-		err = os.Rename(source_dir, dest_dir)
+		err = os.Rename(sourceDir, destDir)
 		if err != nil {
 			return err
 		}
 	}
 
 	for _, f := range files {
-		source_file := fmt.Sprintf("%s/%s", bin, f.Name())
-		dest_file := fmt.Sprintf("%s/bin/%s", destination, f.Name())
+		sourceFile := fmt.Sprintf("%s/%s", bin, f.Name())
+		destFile := fmt.Sprintf("%s/bin/%s", destination, f.Name())
 		if verbosity >= VERBOSE {
-			fmt.Printf("Copy %s %s \n", source_file, dest_file)
+			fmt.Printf("Copy %s %s \n", sourceFile, destFile)
 		}
-		common.CopyFile(source_file, dest_file)
+		common.CopyFile(sourceFile, destFile)
 	}
 	return nil
 }

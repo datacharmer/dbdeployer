@@ -81,7 +81,7 @@ type SandboxDef struct {
 }
 
 func GetOptionsFromFile(filename string) (options []string) {
-	skip_options := map[string]bool{
+	skipOptions := map[string]bool{
 		"user":         true,
 		"port":         true,
 		"socket":       true,
@@ -96,7 +96,7 @@ func GetOptionsFromFile(filename string) (options []string) {
 	config := common.ParseConfigFile(filename)
 	for _, kv := range config["mysqld"] {
 
-		if skip_options[kv.Key] {
+		if skipOptions[kv.Key] {
 			continue
 		}
 		options = append(options, fmt.Sprintf("%s = %s", kv.Key, kv.Value))
@@ -120,91 +120,79 @@ func SmapToJson(data common.StringMap) string {
 	return fmt.Sprintf("%s", b)
 }
 
-func is_locked(sb_dir string) bool {
-	return common.FileExists(sb_dir+"/no_clear") || common.FileExists(sb_dir+"/no_clear_all")
+func isLocked(sbDir string) bool {
+	return common.FileExists(sbDir+"/no_clear") || common.FileExists(sbDir+"/no_clear_all")
 }
 
 func CheckDirectory(sdef SandboxDef) SandboxDef {
-	sandbox_dir := sdef.SandboxDir
-	if common.DirExists(sandbox_dir) {
+	sandboxDir := sdef.SandboxDir
+	if common.DirExists(sandboxDir) {
 		if sdef.Force {
-			if is_locked(sandbox_dir) {
-				common.Exitf(1, "Sandbox in %s is locked. Cannot be overwritten\nYou can unlock it with 'dbdeployer admin unlock %s'\n", sandbox_dir, common.DirName(sandbox_dir))
+			if isLocked(sandboxDir) {
+				common.Exitf(1, "Sandbox in %s is locked. Cannot be overwritten\nYou can unlock it with 'dbdeployer admin unlock %s'\n", sandboxDir, common.DirName(sandboxDir))
 			}
-			fmt.Printf("Overwriting directory %s\n", sandbox_dir)
-			stop_command := sandbox_dir + "/stop"
-			if !common.ExecExists(stop_command) {
-				stop_command = sandbox_dir + "/stop_all"
+			fmt.Printf("Overwriting directory %s\n", sandboxDir)
+			stopCommand := sandboxDir + "/stop"
+			if !common.ExecExists(stopCommand) {
+				stopCommand = sandboxDir + "/stop_all"
 			}
-			if !common.ExecExists(stop_command) {
-				fmt.Printf("Neither 'stop' or 'stop_all' found in %s\n", sandbox_dir)
-			}
-
-			used_ports_list := common.GetInstalledPorts(sandbox_dir)
-			my_used_ports := make(map[int]bool)
-			for _, p := range used_ports_list {
-				my_used_ports[p] = true
+			if !common.ExecExists(stopCommand) {
+				fmt.Printf("Neither 'stop' or 'stop_all' found in %s\n", sandboxDir)
 			}
 
-			log_directory := getLogDirFromSbDescription(sandbox_dir)
-			common.Run_cmd(stop_command)
-			err, _ := common.Run_cmd_with_args("rm", []string{"-rf", sandbox_dir})
-			common.ErrCheckExitf(err, 1, "Error while deleting sandbox %s", sandbox_dir)
-			if log_directory != "" {
-				err, _ = common.Run_cmd_with_args("rm", []string{"-rf", log_directory})
-				common.ErrCheckExitf(err, 1, "Error while deleting log directory %s", log_directory)
+			usedPortsList := common.GetInstalledPorts(sandboxDir)
+			myUsedPorts := make(map[int]bool)
+			for _, p := range usedPortsList {
+				myUsedPorts[p] = true
 			}
-			var new_installed_ports []int
+
+			logDirectory := getLogDirFromSbDescription(sandboxDir)
+			common.RunCmd(stopCommand)
+			err, _ := common.RunCmdWithArgs("rm", []string{"-rf", sandboxDir})
+			common.ErrCheckExitf(err, 1, "Error while deleting sandbox %s", sandboxDir)
+			if logDirectory != "" {
+				err, _ = common.RunCmdWithArgs("rm", []string{"-rf", logDirectory})
+				common.ErrCheckExitf(err, 1, "Error while deleting log directory %s", logDirectory)
+			}
+			var newInstalledPorts []int
 			for _, port := range sdef.InstalledPorts {
-				if !my_used_ports[port] {
-					new_installed_ports = append(new_installed_ports, port)
+				if !myUsedPorts[port] {
+					newInstalledPorts = append(newInstalledPorts, port)
 				}
 			}
-			sdef.InstalledPorts = new_installed_ports
+			sdef.InstalledPorts = newInstalledPorts
 		} else {
-			common.Exitf(1, "Directory %s already exists. Use --force to override.", sandbox_dir)
+			common.Exitf(1, "Directory %s already exists. Use --force to override.", sandboxDir)
 		}
 	}
 	return sdef
 }
 
-func CheckPort(caller string, sandbox_type string, installed_ports []int, port int) {
+func CheckPort(caller string, sandboxType string, installedPorts []int, port int) {
 	conflict := 0
-	for _, p := range installed_ports {
+	for _, p := range installedPorts {
 		if p == port {
 			conflict = p
 		}
 	}
 	if conflict > 0 {
-		common.Exitf(1, "Port conflict detected for %s (%s). Port %d is already used", sandbox_type, caller, conflict)
+		common.Exitf(1, "Port conflict detected for %s (%s). Port %d is already used", sandboxType, caller, conflict)
 	}
 }
 
-func getmatch(key string, names []string, matches []string) string {
-	if len(matches) < len(names) {
-		return ""
-	}
-	for n, _ := range names {
-		if names[n] == key {
-			return matches[n]
-		}
-	}
-	return ""
-}
-
-func FixServerUuid(sdef SandboxDef) (uuid_file, new_uuid string) {
+func FixServerUuid(sdef SandboxDef) (uuidFile, newUuid string) {
 	if !common.GreaterOrEqualVersion(sdef.Version, []int{5, 6, 9}) {
 		return
 	}
-	new_uuid = fmt.Sprintf("server-uuid=%s", common.MakeCustomizedUuid(sdef.Port, sdef.NodeNum))
-	operation_dir := sdef.SandboxDir + "/data"
-	uuid_file = operation_dir + "/auto.cnf"
+	newUuid = fmt.Sprintf("server-uuid=%s", common.MakeCustomizedUuid(sdef.Port, sdef.NodeNum))
+	operationDir := sdef.SandboxDir + "/data"
+	uuidFile = operationDir + "/auto.cnf"
 	return
 }
 
-func slice_to_text(s_array []string) string {
+func sliceToText(stringSlice []string) string {
 	var text string = ""
-	for _, v := range s_array {
+	for _, v := range stringSlice {
 		if len(v) > 0 {
 			text += fmt.Sprintf("%s\n", v)
 		}
@@ -212,30 +200,30 @@ func slice_to_text(s_array []string) string {
 	return text
 }
 
-func set_mysqlx_properties(sdef SandboxDef, global_tmp_dir string) SandboxDef {
-	mysqlx_port := sdef.MysqlXPort
-	if mysqlx_port == 0 {
-		mysqlx_port = common.FindFreePort(sdef.Port+defaults.Defaults().MysqlXPortDelta, sdef.InstalledPorts, 1)
+func setMysqlxProperties(sdef SandboxDef, globalTmpDir string) SandboxDef {
+	mysqlxPort := sdef.MysqlXPort
+	if mysqlxPort == 0 {
+		mysqlxPort = common.FindFreePort(sdef.Port+defaults.Defaults().MysqlXPortDelta, sdef.InstalledPorts, 1)
 	}
-	sdef.MyCnfOptions = append(sdef.MyCnfOptions, fmt.Sprintf("mysqlx-port=%d", mysqlx_port))
-	sdef.MyCnfOptions = append(sdef.MyCnfOptions, fmt.Sprintf("mysqlx-socket=%s/mysqlx-%d.sock", global_tmp_dir, mysqlx_port))
-	sdef.MorePorts = append(sdef.MorePorts, mysqlx_port)
-	sdef.MysqlXPort = mysqlx_port
+	sdef.MyCnfOptions = append(sdef.MyCnfOptions, fmt.Sprintf("mysqlx-port=%d", mysqlxPort))
+	sdef.MyCnfOptions = append(sdef.MyCnfOptions, fmt.Sprintf("mysqlx-socket=%s/mysqlx-%d.sock", globalTmpDir, mysqlxPort))
+	sdef.MorePorts = append(sdef.MorePorts, mysqlxPort)
+	sdef.MysqlXPort = mysqlxPort
 	return sdef
 }
 
-func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList) {
+func CreateSingleSandbox(sdef SandboxDef) (execList []concurrent.ExecutionList) {
 
-	var sandbox_dir string
+	var sandboxDir string
 
 	if sdef.SBType == "" {
 		sdef.SBType = "single"
 	}
-	log_name := sdef.SBType
+	logName := sdef.SBType
 	if sdef.NodeNum > 0 {
-		log_name = fmt.Sprintf("%s-%d", log_name, sdef.NodeNum)
+		logName = fmt.Sprintf("%s-%d", logName, sdef.NodeNum)
 	}
-	fname, logger := defaults.NewLogger(common.LogDirName(), log_name)
+	fname, logger := defaults.NewLogger(common.LogDirName(), logName)
 	sdef.LogFileName = common.ReplaceLiteralHome(fname)
 	logger.Printf("Single Sandbox Definition: %s\n", SandboxDefToJson(sdef))
 	if !common.DirExists(sdef.Basedir) {
@@ -246,7 +234,7 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 		common.Exitf(1, "Port for sandbox must be > 1024 (given:%d)", sdef.Port)
 	}
 
-	version_fname := common.VersionToName(sdef.Version)
+	versionFname := common.VersionToName(sdef.Version)
 	if sdef.Prompt == "" {
 		sdef.Prompt = "mysql"
 	}
@@ -254,27 +242,27 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 		if sdef.Version != sdef.BasedirName {
 			sdef.DirName = defaults.Defaults().SandboxPrefix + sdef.BasedirName
 		} else {
-			sdef.DirName = defaults.Defaults().SandboxPrefix + version_fname
+			sdef.DirName = defaults.Defaults().SandboxPrefix + versionFname
 		}
 	}
-	sandbox_dir = sdef.SandboxDir + "/" + sdef.DirName
-	sdef.SandboxDir = sandbox_dir
+	sandboxDir = sdef.SandboxDir + "/" + sdef.DirName
+	sdef.SandboxDir = sandboxDir
 	logger.Printf("Single Sandbox directory defined as %s\n", sdef.SandboxDir)
-	datadir := sandbox_dir + "/data"
-	tmpdir := sandbox_dir + "/tmp"
-	global_tmp_dir := os.Getenv("TMPDIR")
-	if global_tmp_dir == "" {
-		global_tmp_dir = "/tmp"
+	datadir := sandboxDir + "/data"
+	tmpdir := sandboxDir + "/tmp"
+	globalTmpDir := os.Getenv("TMPDIR")
+	if globalTmpDir == "" {
+		globalTmpDir = "/tmp"
 	}
-	if !common.DirExists(global_tmp_dir) {
-		common.Exitf(1, "TMP directory %s does not exist", global_tmp_dir)
+	if !common.DirExists(globalTmpDir) {
+		common.Exitf(1, "TMP directory %s does not exist", globalTmpDir)
 	}
 	if sdef.NodeNum == 0 && !sdef.Force {
 		sdef.Port = common.FindFreePort(sdef.Port, sdef.InstalledPorts, 1)
 		logger.Printf("Port defined as %d using FindFreePort \n", sdef.Port)
 	}
-	using_plugins := false
-	right_plugin_dir := true // Assuming we can use the right plugin directory
+	usingPlugins := false
+	rightPluginDir := true // Assuming we can use the right plugin directory
 	if sdef.EnableMysqlX {
 		if !common.GreaterOrEqualVersion(sdef.Version, []int{5, 7, 12}) {
 			common.Exit(1, "option --enable-mysqlx requires version 5.7.12+")
@@ -282,13 +270,13 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 		// If the version is 8.0.11 or later, MySQL X is enabled already
 		if !common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 11}) {
 			sdef.MyCnfOptions = append(sdef.MyCnfOptions, "plugin_load=mysqlx=mysqlx.so")
-			sdef = set_mysqlx_properties(sdef, global_tmp_dir)
+			sdef = setMysqlxProperties(sdef, globalTmpDir)
 			logger.Printf("Added mysqlx plugin to my.cnf\n")
 		}
-		using_plugins = true
+		usingPlugins = true
 	}
 	if common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 11}) && !sdef.DisableMysqlX {
-		using_plugins = true
+		usingPlugins = true
 	}
 	if sdef.ExposeDdTables {
 		if !common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 0}) {
@@ -304,17 +292,17 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 		logger.Printf("Using mysqld-debug for this sandbox\n")
 	}
 	if sdef.CustomMysqld != "" {
-		custom_mysqld := sdef.Basedir + "/bin/" + sdef.CustomMysqld
-		if !common.ExecExists(custom_mysqld) {
+		customMysqld := sdef.Basedir + "/bin/" + sdef.CustomMysqld
+		if !common.ExecExists(customMysqld) {
 			common.Exit(1,
-				fmt.Sprintf("File %s not found or not executable", custom_mysqld),
+				fmt.Sprintf("File %s not found or not executable", customMysqld),
 				fmt.Sprintf("The file \"%s\" (defined with --custom-mysqld) must be in the same directory as the regular mysqld", sdef.CustomMysqld))
 		}
-		plugin_debug_dir := fmt.Sprintf("%s/lib/plugin/debug", sdef.Basedir)
-		if sdef.CustomMysqld == "mysqld-debug" && common.DirExists(plugin_debug_dir) {
-			sdef.MyCnfOptions = append(sdef.MyCnfOptions, fmt.Sprintf("plugin-dir=%s", plugin_debug_dir))
+		pluginDebugDir := fmt.Sprintf("%s/lib/plugin/debug", sdef.Basedir)
+		if sdef.CustomMysqld == "mysqld-debug" && common.DirExists(pluginDebugDir) {
+			sdef.MyCnfOptions = append(sdef.MyCnfOptions, fmt.Sprintf("plugin-dir=%s", pluginDebugDir))
 		} else {
-			right_plugin_dir = false
+			rightPluginDir = false
 		}
 	}
 	if common.GreaterOrEqualVersion(sdef.Version, []int{5, 1, 0}) {
@@ -339,12 +327,12 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 			sdef.MyCnfOptions = append(sdef.MyCnfOptions, "mysqlx=OFF")
 			logger.Printf("Disabling MySQLX\n")
 		} else {
-			sdef = set_mysqlx_properties(sdef, global_tmp_dir)
+			sdef = setMysqlxProperties(sdef, globalTmpDir)
 		}
 	}
-	mysqlsh_executable := fmt.Sprintf("%s/bin/mysqlsh", sdef.Basedir)
-	if !common.ExecExists(mysqlsh_executable) {
-		mysqlsh_executable = "mysqlsh"
+	mysqlshExecutable := fmt.Sprintf("%s/bin/mysqlsh", sdef.Basedir)
+	if !common.ExecExists(mysqlshExecutable) {
+		mysqlshExecutable = "mysqlsh"
 	}
 	if sdef.MyCnfFile != "" {
 		options := GetOptionsFromFile(sdef.MyCnfFile)
@@ -356,14 +344,14 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 			sdef.MyCnfOptions = append(sdef.MyCnfOptions, option)
 		}
 	}
-	if common.Includes(slice_to_text(sdef.MyCnfOptions), "plugin.load") {
-		using_plugins = true
+	if common.Includes(sliceToText(sdef.MyCnfOptions), "plugin.load") {
+		usingPlugins = true
 	}
 	if common.Includes(sdef.SemiSyncOptions, "plugin.load") {
-		using_plugins = true
+		usingPlugins = true
 	}
-	if using_plugins {
-		if !right_plugin_dir {
+	if usingPlugins {
+		if !rightPluginDir {
 			common.Exit(1,
 				"The request of using mysqld-debug can't be honored.",
 				"This deployment is using a plugin, but the debug",
@@ -375,17 +363,17 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 		"Copyright":            SingleTemplates["Copyright"].Contents,
 		"AppVersion":           common.VersionDef,
 		"DateTime":             timestamp.Format(time.UnixDate),
-		"SandboxDir":           sandbox_dir,
+		"SandboxDir":           sandboxDir,
 		"CustomMysqld":         sdef.CustomMysqld,
 		"Port":                 sdef.Port,
 		"MysqlXPort":           sdef.MysqlXPort,
-		"MysqlShell":           mysqlsh_executable,
+		"MysqlShell":           mysqlshExecutable,
 		"BasePort":             sdef.BasePort,
 		"Prompt":               sdef.Prompt,
 		"Version":              sdef.Version,
 		"Datadir":              datadir,
 		"Tmpdir":               tmpdir,
-		"GlobalTmpDir":         global_tmp_dir,
+		"GlobalTmpDir":         globalTmpDir,
 		"DbUser":               sdef.DbUser,
 		"DbPassword":           sdef.DbPassword,
 		"RplUser":              sdef.RplUser,
@@ -397,7 +385,7 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 		"GtidOptions":          sdef.GtidOptions,
 		"ReplCrashSafeOptions": sdef.ReplCrashSafeOptions,
 		"SemiSyncOptions":      sdef.SemiSyncOptions,
-		"ExtraOptions":         slice_to_text(sdef.MyCnfOptions),
+		"ExtraOptions":         sliceToText(sdef.MyCnfOptions),
 		"ReportHost":           fmt.Sprintf("report-host=single-%d", sdef.Port),
 		"ReportPort":           fmt.Sprintf("report-port=%d", sdef.Port),
 		"HistoryDir":           sdef.HistoryDir,
@@ -416,14 +404,14 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 	} else {
 		data["ServerId"] = ""
 	}
-	if common.DirExists(sandbox_dir) {
+	if common.DirExists(sandboxDir) {
 		sdef = CheckDirectory(sdef)
 	}
 	logger.Printf("Checking port %d using CheckPort\n", sdef.Port)
 	CheckPort("CreateSingleSandbox", sdef.SBType, sdef.InstalledPorts, sdef.Port)
 
 	//fmt.Printf("creating: %s\n", sandbox_dir)
-	common.Mkdir(sandbox_dir)
+	common.Mkdir(sandboxDir)
 
 	logger.Printf("Created directory %s\n", sdef.SandboxDir)
 	logger.Printf("Single Sandbox template data: %s\n", SmapToJson(data))
@@ -435,10 +423,10 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 	common.Mkdir(tmpdir)
 	logger.Printf("Created directory %s\n", tmpdir)
 	script := sdef.Basedir + "/scripts/mysql_install_db"
-	init_script_flags := ""
+	initScriptFlags := ""
 	if common.GreaterOrEqualVersion(sdef.Version, []int{5, 7, 0}) {
 		script = sdef.Basedir + "/bin/mysqld"
-		init_script_flags = "--initialize-insecure"
+		initScriptFlags = "--initialize-insecure"
 	}
 	// fmt.Printf("Script: %s\n", script)
 	if !common.ExecExists(script) {
@@ -446,42 +434,42 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 	}
 	if len(sdef.InitOptions) > 0 {
 		for _, op := range sdef.InitOptions {
-			init_script_flags += " " + op
+			initScriptFlags += " " + op
 		}
 	}
 	data["InitScript"] = script
 	data["InitDefaults"] = "--no-defaults"
-	if init_script_flags != "" {
-		init_script_flags = fmt.Sprintf("\\\n    %s", init_script_flags)
+	if initScriptFlags != "" {
+		initScriptFlags = fmt.Sprintf("\\\n    %s", initScriptFlags)
 	}
-	data["ExtraInitFlags"] = init_script_flags
+	data["ExtraInitFlags"] = initScriptFlags
 	data["FixUuidFile1"] = ""
 	data["FixUuidFile2"] = ""
 
 	if !sdef.KeepUuid {
-		uuid_fname, new_uuid := FixServerUuid(sdef)
-		if uuid_fname != "" {
-			data["FixUuidFile1"] = fmt.Sprintf(`echo "[auto]" > %s`, uuid_fname)
-			data["FixUuidFile2"] = fmt.Sprintf(`echo "%s" >> %s`, new_uuid, uuid_fname)
-			logger.Printf("Created custom UUID %s\n", new_uuid)
+		uuidFname, newUuid := FixServerUuid(sdef)
+		if uuidFname != "" {
+			data["FixUuidFile1"] = fmt.Sprintf(`echo "[auto]" > %s`, uuidFname)
+			data["FixUuidFile2"] = fmt.Sprintf(`echo "%s" >> %s`, newUuid, uuidFname)
+			logger.Printf("Created custom UUID %s\n", newUuid)
 		}
 	}
 
-	write_script(logger, SingleTemplates, "init_db", "init_db_template", sandbox_dir, data, true)
+	writeScript(logger, SingleTemplates, "init_db", "init_db_template", sandboxDir, data, true)
 	if sdef.RunConcurrently {
 		var eCommand = concurrent.ExecCommand{
-			Cmd:  sandbox_dir + "/init_db",
+			Cmd:  sandboxDir + "/init_db",
 			Args: []string{},
 		}
 		logger.Printf("Added init_db script to execution list\n")
-		exec_list = append(exec_list, concurrent.ExecutionList{Logger: logger, Priority: 0, Command: eCommand})
+		execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 0, Command: eCommand})
 	} else {
 		logger.Printf("Running init_db script \n")
-		err, _ := common.Run_cmd_ctrl(sandbox_dir+"/init_db", true)
+		err, _ := common.RunCmdCtrl(sandboxDir+"/init_db", true)
 		if err == nil {
 			if !sdef.Multi {
 				if defaults.UsingDbDeployer {
-					fmt.Printf("Database installed in %s\n", common.ReplaceLiteralHome(sandbox_dir))
+					fmt.Printf("Database installed in %s\n", common.ReplaceLiteralHome(sandboxDir))
 					fmt.Printf("run 'dbdeployer usage single' for basic instructions'\n")
 				}
 			}
@@ -490,19 +478,19 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 		}
 	}
 
-	sb_item := defaults.SandboxItem{
+	sbItem := defaults.SandboxItem{
 		Origin:      sdef.Basedir,
 		SBType:      sdef.SBType,
 		Version:     sdef.Version,
 		Port:        []int{sdef.Port},
 		Nodes:       []string{},
-		Destination: sandbox_dir,
+		Destination: sandboxDir,
 	}
 
 	if sdef.LogFileName != "" {
-		sb_item.LogDirectory = common.DirName(sdef.LogFileName)
+		sbItem.LogDirectory = common.DirName(sdef.LogFileName)
 	}
-	sb_desc := common.SandboxDescription{
+	sbDesc := common.SandboxDescription{
 		Basedir: sdef.Basedir,
 		SBType:  sdef.SBType,
 		Version: sdef.Version,
@@ -513,220 +501,220 @@ func CreateSingleSandbox(sdef SandboxDef) (exec_list []concurrent.ExecutionList)
 	}
 	if len(sdef.MorePorts) > 0 {
 		for _, port := range sdef.MorePorts {
-			sb_desc.Port = append(sb_desc.Port, port)
-			sb_item.Port = append(sb_item.Port, port)
+			sbDesc.Port = append(sbDesc.Port, port)
+			sbItem.Port = append(sbItem.Port, port)
 		}
 	}
 	logger.Printf("Writing single sandbox description\n")
-	common.WriteSandboxDescription(sandbox_dir, sb_desc)
+	common.WriteSandboxDescription(sandboxDir, sbDesc)
 	if sdef.SBType == "single" {
-		defaults.UpdateCatalog(sandbox_dir, sb_item)
+		defaults.UpdateCatalog(sandboxDir, sbItem)
 	}
 	logger.Printf("Writing single sandbox scripts\n")
-	write_script(logger, SingleTemplates, "start", "start_template", sandbox_dir, data, true)
-	write_script(logger, SingleTemplates, "status", "status_template", sandbox_dir, data, true)
-	write_script(logger, SingleTemplates, "stop", "stop_template", sandbox_dir, data, true)
-	write_script(logger, SingleTemplates, "clear", "clear_template", sandbox_dir, data, true)
-	write_script(logger, SingleTemplates, "use", "use_template", sandbox_dir, data, true)
+	writeScript(logger, SingleTemplates, "start", "start_template", sandboxDir, data, true)
+	writeScript(logger, SingleTemplates, "status", "status_template", sandboxDir, data, true)
+	writeScript(logger, SingleTemplates, "stop", "stop_template", sandboxDir, data, true)
+	writeScript(logger, SingleTemplates, "clear", "clear_template", sandboxDir, data, true)
+	writeScript(logger, SingleTemplates, "use", "use_template", sandboxDir, data, true)
 	if sdef.MysqlXPort != 0 {
-		write_script(logger, SingleTemplates, "mysqlsh", "mysqlsh_template", sandbox_dir, data, true)
+		writeScript(logger, SingleTemplates, "mysqlsh", "mysqlsh_template", sandboxDir, data, true)
 	}
-	write_script(logger, SingleTemplates, "show_log", "show_log_template", sandbox_dir, data, true)
-	write_script(logger, SingleTemplates, "send_kill", "send_kill_template", sandbox_dir, data, true)
-	write_script(logger, SingleTemplates, "restart", "restart_template", sandbox_dir, data, true)
-	write_script(logger, SingleTemplates, "load_grants", "load_grants_template", sandbox_dir, data, true)
-	write_script(logger, SingleTemplates, "add_option", "add_option_template", sandbox_dir, data, true)
-	write_script(logger, SingleTemplates, "my", "my_template", sandbox_dir, data, true)
-	write_script(logger, SingleTemplates, "show_binlog", "show_binlog_template", sandbox_dir, data, true)
-	write_script(logger, SingleTemplates, "show_relaylog", "show_relaylog_template", sandbox_dir, data, true)
-	write_script(logger, SingleTemplates, "test_sb", "test_sb_template", sandbox_dir, data, true)
+	writeScript(logger, SingleTemplates, "show_log", "show_log_template", sandboxDir, data, true)
+	writeScript(logger, SingleTemplates, "send_kill", "send_kill_template", sandboxDir, data, true)
+	writeScript(logger, SingleTemplates, "restart", "restart_template", sandboxDir, data, true)
+	writeScript(logger, SingleTemplates, "load_grants", "load_grants_template", sandboxDir, data, true)
+	writeScript(logger, SingleTemplates, "add_option", "add_option_template", sandboxDir, data, true)
+	writeScript(logger, SingleTemplates, "my", "my_template", sandboxDir, data, true)
+	writeScript(logger, SingleTemplates, "show_binlog", "show_binlog_template", sandboxDir, data, true)
+	writeScript(logger, SingleTemplates, "show_relaylog", "show_relaylog_template", sandboxDir, data, true)
+	writeScript(logger, SingleTemplates, "test_sb", "test_sb_template", sandboxDir, data, true)
 
-	write_script(logger, SingleTemplates, "my.sandbox.cnf", "my_cnf_template", sandbox_dir, data, false)
+	writeScript(logger, SingleTemplates, "my.sandbox.cnf", "my_cnf_template", sandboxDir, data, false)
 	switch {
 	case common.GreaterOrEqualVersion(sdef.Version, []int{8, 0, 0}):
-		write_script(logger, SingleTemplates, "grants.mysql", "grants_template8x", sandbox_dir, data, false)
+		writeScript(logger, SingleTemplates, "grants.mysql", "grants_template8x", sandboxDir, data, false)
 	case common.GreaterOrEqualVersion(sdef.Version, []int{5, 7, 6}):
-		write_script(logger, SingleTemplates, "grants.mysql", "grants_template57", sandbox_dir, data, false)
+		writeScript(logger, SingleTemplates, "grants.mysql", "grants_template57", sandboxDir, data, false)
 	default:
-		write_script(logger, SingleTemplates, "grants.mysql", "grants_template5x", sandbox_dir, data, false)
+		writeScript(logger, SingleTemplates, "grants.mysql", "grants_template5x", sandboxDir, data, false)
 	}
-	write_script(logger, SingleTemplates, "sb_include", "sb_include_template", sandbox_dir, data, false)
+	writeScript(logger, SingleTemplates, "sb_include", "sb_include_template", sandboxDir, data, false)
 
-	pre_grant_sql_file := sandbox_dir + "/pre_grants.sql"
-	post_grant_sql_file := sandbox_dir + "/post_grants.sql"
+	preGrantSqlFile := sandboxDir + "/pre_grants.sql"
+	postGrantSqlFile := sandboxDir + "/post_grants.sql"
 	if sdef.PreGrantsSqlFile != "" {
-		common.CopyFile(sdef.PreGrantsSqlFile, pre_grant_sql_file)
+		common.CopyFile(sdef.PreGrantsSqlFile, preGrantSqlFile)
 	}
 	if sdef.PostGrantsSqlFile != "" {
-		common.CopyFile(sdef.PostGrantsSqlFile, post_grant_sql_file)
+		common.CopyFile(sdef.PostGrantsSqlFile, postGrantSqlFile)
 	}
 
 	if len(sdef.PreGrantsSql) > 0 {
-		if common.FileExists(pre_grant_sql_file) {
-			common.AppendStrings(sdef.PreGrantsSql, pre_grant_sql_file, ";")
+		if common.FileExists(preGrantSqlFile) {
+			common.AppendStrings(sdef.PreGrantsSql, preGrantSqlFile, ";")
 		} else {
-			common.WriteStrings(sdef.PreGrantsSql, pre_grant_sql_file, ";")
+			common.WriteStrings(sdef.PreGrantsSql, preGrantSqlFile, ";")
 		}
 	}
 	if len(sdef.PostGrantsSql) > 0 {
-		if common.FileExists(post_grant_sql_file) {
-			common.AppendStrings(sdef.PostGrantsSql, post_grant_sql_file, ";")
+		if common.FileExists(postGrantSqlFile) {
+			common.AppendStrings(sdef.PostGrantsSql, postGrantSqlFile, ";")
 		} else {
-			common.WriteStrings(sdef.PostGrantsSql, post_grant_sql_file, ";")
+			common.WriteStrings(sdef.PostGrantsSql, postGrantSqlFile, ";")
 		}
 	}
 	//common.Run_cmd(sandbox_dir + "/start", []string{})
 	if !sdef.SkipStart && sdef.RunConcurrently {
 		var eCommand2 = concurrent.ExecCommand{
-			Cmd:  sandbox_dir + "/start",
+			Cmd:  sandboxDir + "/start",
 			Args: []string{},
 		}
 		logger.Printf("Adding start command to execution list\n")
-		exec_list = append(exec_list, concurrent.ExecutionList{Logger: logger, Priority: 2, Command: eCommand2})
+		execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 2, Command: eCommand2})
 		if sdef.LoadGrants {
 			var eCommand3 = concurrent.ExecCommand{
-				Cmd:  sandbox_dir + "/load_grants",
+				Cmd:  sandboxDir + "/load_grants",
 				Args: []string{"pre_grants.sql"},
 			}
 			var eCommand4 = concurrent.ExecCommand{
-				Cmd:  sandbox_dir + "/load_grants",
+				Cmd:  sandboxDir + "/load_grants",
 				Args: []string{},
 			}
 			var eCommand5 = concurrent.ExecCommand{
-				Cmd:  sandbox_dir + "/load_grants",
+				Cmd:  sandboxDir + "/load_grants",
 				Args: []string{"post_grants.sql"},
 			}
 			logger.Printf("Adding pre grants command to execution list\n")
 			logger.Printf("Adding load grants command to execution list\n")
 			logger.Printf("Adding post grants command to execution list\n")
-			exec_list = append(exec_list, concurrent.ExecutionList{Logger: logger, Priority: 3, Command: eCommand3})
-			exec_list = append(exec_list, concurrent.ExecutionList{Logger: logger, Priority: 4, Command: eCommand4})
-			exec_list = append(exec_list, concurrent.ExecutionList{Logger: logger, Priority: 5, Command: eCommand5})
+			execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 3, Command: eCommand3})
+			execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 4, Command: eCommand4})
+			execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 5, Command: eCommand5})
 		}
 	} else {
 		if !sdef.SkipStart {
 			logger.Printf("Running start script\n")
-			common.Run_cmd(sandbox_dir + "/start")
+			common.RunCmd(sandboxDir + "/start")
 			if sdef.LoadGrants {
 				logger.Printf("Running pre grants script\n")
-				common.Run_cmd_with_args(sandbox_dir+"/load_grants", []string{"pre_grants.sql"})
+				common.RunCmdWithArgs(sandboxDir+"/load_grants", []string{"pre_grants.sql"})
 				logger.Printf("Running load grants script\n")
-				common.Run_cmd(sandbox_dir + "/load_grants")
+				common.RunCmd(sandboxDir + "/load_grants")
 				logger.Printf("Running post grants script\n")
-				common.Run_cmd_with_args(sandbox_dir+"/load_grants", []string{"post_grants.sql"})
+				common.RunCmdWithArgs(sandboxDir+"/load_grants", []string{"post_grants.sql"})
 			}
 		}
 	}
 	return
 }
 
-func write_script(logger *defaults.Logger, temp_var TemplateCollection, name, template_name, directory string, data common.StringMap, make_executable bool) {
-	template := temp_var[template_name].Contents
+func writeScript(logger *defaults.Logger, tempVar TemplateCollection, name, templateName, directory string, data common.StringMap, makeExecutable bool) {
+	template := tempVar[templateName].Contents
 	template = common.TrimmedLines(template)
-	data["TemplateName"] = template_name
+	data["TemplateName"] = templateName
 	text := common.TemplateFill(template, data)
-	executable_status := ""
-	if make_executable {
-		write_exec(name, text, directory)
-		executable_status = " executable"
+	executableStatus := ""
+	if makeExecutable {
+		writeExec(name, text, directory)
+		executableStatus = " executable"
 	} else {
-		write_regular_file(name, text, directory)
+		writeRegularFile(name, text, directory)
 	}
 	if logger != nil {
-		logger.Printf("Creating%s script '%s/%s' using template '%s'\n", executable_status, common.ReplaceLiteralHome(directory), name, template_name)
+		logger.Printf("Creating%s script '%s/%s' using template '%s'\n", executableStatus, common.ReplaceLiteralHome(directory), name, templateName)
 	}
 }
 
-func write_exec(filename, text, directory string) {
-	fname := write_regular_file(filename, text, directory)
+func writeExec(filename, text, directory string) {
+	fname := writeRegularFile(filename, text, directory)
 	os.Chmod(fname, 0744)
 }
 
-func write_regular_file(filename, text, directory string) string {
+func writeRegularFile(filename, text, directory string) string {
 	fname := directory + "/" + filename
 	common.WriteString(text, fname)
 	return fname
 }
 
-func getLogDirFromSbDescription(full_path string) string {
-	sbdescription := full_path + "/sbdescription.json"
-	log_file := ""
-	log_directory := ""
+func getLogDirFromSbDescription(fullPath string) string {
+	sbdescription := fullPath + "/sbdescription.json"
+	logFile := ""
+	logDirectory := ""
 	if common.FileExists(sbdescription) {
-		sbd := common.ReadSandboxDescription(full_path)
-		log_file = sbd.LogFile
-		if log_file != "" {
-			log_file = common.ReplaceHomeVar(log_file)
-			log_directory = common.DirName(log_file)
-			if !common.DirExists(log_directory) {
-				log_directory = ""
+		sbd := common.ReadSandboxDescription(fullPath)
+		logFile = sbd.LogFile
+		if logFile != "" {
+			logFile = common.ReplaceHomeVar(logFile)
+			logDirectory = common.DirName(logFile)
+			if !common.DirExists(logDirectory) {
+				logDirectory = ""
 			}
 		}
 	}
-	return log_directory
+	return logDirectory
 }
 
-func RemoveSandbox(sandbox_dir, sandbox string, run_concurrently bool) (exec_list []concurrent.ExecutionList) {
-	full_path := sandbox_dir + "/" + sandbox
-	if !common.DirExists(full_path) {
-		common.Exitf(1, "Directory '%s' not found", full_path)
+func RemoveSandbox(sandboxDir, sandbox string, runConcurrently bool) (execList []concurrent.ExecutionList) {
+	fullPath := sandboxDir + "/" + sandbox
+	if !common.DirExists(fullPath) {
+		common.Exitf(1, "Directory '%s' not found", fullPath)
 	}
-	preserve := full_path + "/no_clear_all"
+	preserve := fullPath + "/no_clear_all"
 	if !common.ExecExists(preserve) {
-		preserve = full_path + "/no_clear"
+		preserve = fullPath + "/no_clear"
 	}
 	if common.ExecExists(preserve) {
 		fmt.Printf("The sandbox %s is locked\n", sandbox)
 		fmt.Printf("You need to unlock it with \"dbdeployer admin unlock\"\n")
 		return
 	}
-	log_directory := getLogDirFromSbDescription(full_path)
-	stop := full_path + "/stop_all"
+	logDirectory := getLogDirFromSbDescription(fullPath)
+	stop := fullPath + "/stop_all"
 	if !common.ExecExists(stop) {
-		stop = full_path + "/stop"
+		stop = fullPath + "/stop"
 	}
 	if !common.ExecExists(stop) {
 		common.Exitf(1, "Executable '%s' not found", stop)
 	}
 
-	if run_concurrently {
+	if runConcurrently {
 		var eCommand1 = concurrent.ExecCommand{
 			Cmd:  stop,
 			Args: []string{},
 		}
-		exec_list = append(exec_list, concurrent.ExecutionList{Logger: nil, Priority: 0, Command: eCommand1})
+		execList = append(execList, concurrent.ExecutionList{Logger: nil, Priority: 0, Command: eCommand1})
 	} else {
 		if defaults.UsingDbDeployer {
 			fmt.Printf("Running %s\n", stop)
 		}
-		err, _ := common.Run_cmd(stop)
-		common.ErrCheckExitf(err, 1, "Error while stopping sandbox %s", full_path)
+		err, _ := common.RunCmd(stop)
+		common.ErrCheckExitf(err, 1, "Error while stopping sandbox %s", fullPath)
 	}
 
-	rm_targets := []string{full_path, log_directory}
+	rmTargets := []string{fullPath, logDirectory}
 
-	for _, target := range rm_targets {
+	for _, target := range rmTargets {
 		if target == "" {
 			continue
 		}
-		cmd_str := "rm"
-		rm_args := []string{"-rf", target}
-		if run_concurrently {
+		cmdStr := "rm"
+		rmArgs := []string{"-rf", target}
+		if runConcurrently {
 			var eCommand2 = concurrent.ExecCommand{
-				Cmd:  cmd_str,
-				Args: rm_args,
+				Cmd:  cmdStr,
+				Args: rmArgs,
 			}
-			exec_list = append(exec_list, concurrent.ExecutionList{Logger: nil, Priority: 1, Command: eCommand2})
+			execList = append(execList, concurrent.ExecutionList{Logger: nil, Priority: 1, Command: eCommand2})
 		} else {
-			for _, item := range rm_args {
-				cmd_str += " " + item
+			for _, item := range rmArgs {
+				cmdStr += " " + item
 			}
-			if defaults.UsingDbDeployer && target != log_directory {
-				fmt.Printf("Running %s\n", cmd_str)
+			if defaults.UsingDbDeployer && target != logDirectory {
+				fmt.Printf("Running %s\n", cmdStr)
 			}
-			err, _ := common.Run_cmd_with_args("rm", rm_args)
+			err, _ := common.RunCmdWithArgs("rm", rmArgs)
 			common.ErrCheckExitf(err, 1, "Error while deleting directory %s", target)
-			if defaults.UsingDbDeployer && target != log_directory {
+			if defaults.UsingDbDeployer && target != logDirectory {
 				fmt.Printf("Directory %s deleted\n", target)
 			}
 		}

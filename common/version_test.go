@@ -17,26 +17,26 @@ package common
 
 import "testing"
 
-type version_port struct {
+type versionPort struct {
 	version string
 	port    int
 }
 
-type version_pair struct {
+type versionPair struct {
 	version     string
 	versionList []int
 	expected    bool
 }
 
-type UUID_component struct {
+type uuidComponent struct {
 	port     int
-	node_num int
+	nodeNum  int
 	expected string
 }
 
 func TestVersionToPort(t *testing.T) {
 	//t.Parallel()
-	var versions []version_port = []version_port{
+	var versions = []versionPort{
 		{"", -1},            // FAIL: Empty string
 		{"5.0.A", -1},       // FAIL: Hexadecimal number
 		{"5.0.-9", -1},      // FAIL: Negative revision
@@ -73,7 +73,7 @@ func TestVersionToPort(t *testing.T) {
 
 func TestGreaterOrEqualVersion(t *testing.T) {
 
-	var versions = []version_pair{
+	var versions = []versionPair{
 		{"5.0.0", []int{5, 6, 0}, false},
 		{"8.0.0", []int{5, 6, 0}, true},
 		{"ps5.7.5", []int{5, 7, 0}, true},
@@ -91,39 +91,39 @@ func TestGreaterOrEqualVersion(t *testing.T) {
 }
 
 func TestCustomUuid(t *testing.T) {
-	var uuid_samples = []UUID_component{
+	var uuidSamples = []uuidComponent{
 		//                            12345678 1234 1234 1234 123456789012
 		//                           "00000000-0000-0000-0000-000000000000"
-		UUID_component{5000, 0, "00005000-0000-0000-0000-000000005000"},
-		UUID_component{15000, 0, "00015000-0000-0000-0000-000000015000"},
-		UUID_component{15000, 1, "00015000-1111-1111-1111-111111111111"},
-		UUID_component{25000, 2, "00025000-2222-2222-2222-222222222222"},
-		UUID_component{12987, 7, "00012987-7777-7777-7777-777777777777"},
-		UUID_component{8004, 0, "00008004-0000-0000-0000-000000008004"},
-		UUID_component{8004, 11, "00008004-0011-0011-0011-000000008004"},
-		UUID_component{8004, 3452, "00008004-3452-3452-3452-000000008004"},
-		UUID_component{8004, 18976, "00008004-0000-0001-8976-000000008004"},
-		UUID_component{6000, 35281, "00006000-0000-0003-5281-000000006000"},
-		UUID_component{6000, 235281, "00006000-0023-0000-0000-000000006000"},
+		{5000, 0, "00005000-0000-0000-0000-000000005000"},
+		{15000, 0, "00015000-0000-0000-0000-000000015000"},
+		{15000, 1, "00015000-1111-1111-1111-111111111111"},
+		{25000, 2, "00025000-2222-2222-2222-222222222222"},
+		{12987, 7, "00012987-7777-7777-7777-777777777777"},
+		{8004, 0, "00008004-0000-0000-0000-000000008004"},
+		{8004, 11, "00008004-0011-0011-0011-000000008004"},
+		{8004, 3452, "00008004-3452-3452-3452-000000008004"},
+		{8004, 18976, "00008004-0000-0001-8976-000000008004"},
+		{6000, 35281, "00006000-0000-0003-5281-000000006000"},
+		{6000, 235281, "00006000-0023-0000-0000-000000006000"},
 	}
-	for _, sample := range uuid_samples {
-		new_uuid := MakeCustomizedUuid(sample.port, sample.node_num)
-		if new_uuid == sample.expected {
-			t.Logf("ok     %5d %6d => %s \n", sample.port, sample.node_num, new_uuid)
+	for _, sample := range uuidSamples {
+		newUuid := MakeCustomizedUuid(sample.port, sample.nodeNum)
+		if newUuid == sample.expected {
+			t.Logf("ok     %5d %6d => %s \n", sample.port, sample.nodeNum, newUuid)
 		} else {
-			t.Logf("NOT OK %5d %6d => <%#v> (expected: <%#v>) \n", sample.port, sample.node_num, new_uuid, sample.expected)
+			t.Logf("NOT OK %5d %6d => <%#v> (expected: <%#v>) \n", sample.port, sample.nodeNum, newUuid, sample.expected)
 			t.Fail()
 		}
 	}
 }
 
-type expected_data struct {
+type expectedData struct {
 	index int
 	value string
 }
 type sortVersionData struct {
 	data     []string
-	expected []expected_data
+	expected []expectedData
 }
 
 func checkSortVersion(t *testing.T, sortData sortVersionData) {
@@ -132,7 +132,8 @@ func checkSortVersion(t *testing.T, sortData sortVersionData) {
 		if exp.value == sorted[exp.index] {
 			t.Logf("ok - element %d = '%s'\n", exp.index, exp.value)
 		} else {
-			t.Logf("not ok - out of position element %d - Expected: '%s' - Found: '%s'\n", exp.index, exp.value, sorted[exp.index])
+			t.Logf("not ok - out of position element %d - Expected: '%s' - Found: '%s'\n",
+				exp.index, exp.value, sorted[exp.index])
 			t.Fail()
 		}
 	}
@@ -141,32 +142,32 @@ func checkSortVersion(t *testing.T, sortData sortVersionData) {
 func TestSortVersions(t *testing.T) {
 
 	var sortData = []sortVersionData{
-		sortVersionData{
+		{
 			data: []string{"5.0.1", "5.0.11", "5.0.9", "5.0.6", "5.0.10"},
-			expected: []expected_data{
-				expected_data{0, "5.0.1"},
-				expected_data{4, "5.0.11"},
+			expected: []expectedData{
+				{0, "5.0.1"},
+				{4, "5.0.11"},
 			},
 		},
-		sortVersionData{
+		{
 			data: []string{"8.0.11", "8.0.1", "5.0.9", "5.0.6", "5.0.10"},
-			expected: []expected_data{
-				expected_data{0, "5.0.6"},
-				expected_data{4, "8.0.11"},
+			expected: []expectedData{
+				{0, "5.0.6"},
+				{4, "8.0.11"},
 			},
 		},
-		sortVersionData{
+		{
 			data: []string{"10.0.2", "8.0.1", "5.1.5", "5.0.6", "5.0.10"},
-			expected: []expected_data{
-				expected_data{0, "5.0.6"},
-				expected_data{4, "10.0.2"},
+			expected: []expectedData{
+				{0, "5.0.6"},
+				{4, "10.0.2"},
 			},
 		},
-		sortVersionData{
+		{
 			data: []string{"ps8.0.2", "ps8.0.1", "ps5.1.5", "ps5.0.6", "ps5.0.10"},
-			expected: []expected_data{
-				expected_data{0, "ps5.0.6"},
-				expected_data{4, "ps8.0.2"},
+			expected: []expectedData{
+				{0, "ps5.0.6"},
+				{4, "ps8.0.2"},
 			},
 		},
 	}

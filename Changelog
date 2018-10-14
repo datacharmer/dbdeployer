@@ -1,3 +1,6 @@
+1.12.4	14-Oct-2018 (not released)
+	- Code cleanup: fixed many code style violations
+	- Added unit test for abbreviations module.
 1.12.3	07-Oct-2018
 	- Merged in PR #39 (add port to prompt)
 	- Added tests for common/checks and common/tprintf

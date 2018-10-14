@@ -45,94 +45,94 @@ const (
 	timeout = 5
 )
 
-var enable_catalog_management bool = true
+var enableCatalogManagement bool = true
 
 func setLock(label string) bool {
-	if !enable_catalog_management {
+	if !enableCatalogManagement {
 		return true
 	}
-	lock_file := SandboxRegistryLock
+	lockFile := SandboxRegistryLock
 	if !common.DirExists(ConfigurationDir) {
 		common.Mkdir(ConfigurationDir)
 	}
 	elapsed := 0
-	for common.FileExists(lock_file) {
+	for common.FileExists(lockFile) {
 		elapsed += 1
 		time.Sleep(1000 * time.Millisecond)
 		if elapsed > timeout {
 			return false
 		}
 	}
-	common.WriteString(label, lock_file)
+	common.WriteString(label, lockFile)
 	return true
 }
 
 func releaseLock() {
-	if !enable_catalog_management {
+	if !enableCatalogManagement {
 		return
 	}
-	lock_file := SandboxRegistryLock
-	if common.FileExists(lock_file) {
-		os.Remove(lock_file)
+	lockFile := SandboxRegistryLock
+	if common.FileExists(lockFile) {
+		os.Remove(lockFile)
 	}
 }
 
 func WriteCatalog(sc SandboxCatalog) {
-	if !enable_catalog_management {
+	if !enableCatalogManagement {
 		return
 	}
 	b, err := json.MarshalIndent(sc, " ", "\t")
 	common.ErrCheckExitf(err, 1, "error encoding sandbox catalog: %s", err)
-	json_string := fmt.Sprintf("%s", b)
+	jsonString := fmt.Sprintf("%s", b)
 	filename := SandboxRegistry
-	common.WriteString(json_string, filename)
+	common.WriteString(jsonString, filename)
 }
 
 func ReadCatalog() (sc SandboxCatalog) {
-	if !enable_catalog_management {
+	if !enableCatalogManagement {
 		return
 	}
 	filename := SandboxRegistry
 	if !common.FileExists(filename) {
 		return
 	}
-	sc_blob := common.SlurpAsBytes(filename)
+	scBlob := common.SlurpAsBytes(filename)
 
-	err := json.Unmarshal(sc_blob, &sc)
+	err := json.Unmarshal(scBlob, &sc)
 	common.ErrCheckExitf(err, 1, "error decoding sandbox catalog: %s", err)
 	return
 }
 
-func UpdateCatalog(sb_name string, details SandboxItem) {
+func UpdateCatalog(sbName string, details SandboxItem) {
 	details.DbDeployerVersion = common.VersionDef
 	details.Timestamp = time.Now().Format(time.UnixDate)
 	details.CommandLine = strings.Join(common.CommandLineArgs, " ")
-	if !enable_catalog_management {
+	if !enableCatalogManagement {
 		return
 	}
 	// fmt.Printf("+%s\n",sb_name)
-	if setLock(sb_name) {
+	if setLock(sbName) {
 		// fmt.Printf("+locked\n")
 		current := ReadCatalog()
 		if current == nil {
 			current = make(SandboxCatalog)
 		}
-		current[sb_name] = details
+		current[sbName] = details
 		WriteCatalog(current)
 		releaseLock()
 		// fmt.Printf("+unlocked\n")
 	} else {
-		fmt.Printf("%s\n", HashLine)
+		fmt.Printf("%s\n", common.HashLine)
 		fmt.Printf("# Could not get lock on %s\n", SandboxRegistryLock)
-		fmt.Printf("%s\n", HashLine)
+		fmt.Printf("%s\n", common.HashLine)
 	}
 }
 
-func DeleteFromCatalog(sb_name string) {
-	if !enable_catalog_management {
+func DeleteFromCatalog(sbName string) {
+	if !enableCatalogManagement {
 		return
 	}
-	if setLock(sb_name) {
+	if setLock(sbName) {
 		current := ReadCatalog()
 		defer releaseLock()
 		if current == nil {
@@ -143,18 +143,18 @@ func DeleteFromCatalog(sb_name string) {
 		//		delete(current, name)
 		//	}
 		//}
-		delete(current, sb_name)
+		delete(current, sbName)
 		WriteCatalog(current)
 		releaseLock()
 	} else {
-		fmt.Printf("%s\n", HashLine)
+		fmt.Printf("%s\n", common.HashLine)
 		fmt.Printf("# Could not get lock on %s\n", SandboxRegistryLock)
-		fmt.Printf("%s\n", HashLine)
+		fmt.Printf("%s\n", common.HashLine)
 	}
 }
 
 func init() {
 	if os.Getenv("SKIP_DBDEPLOYER_CATALOG") != "" {
-		enable_catalog_management = false
+		enableCatalogManagement = false
 	}
 }

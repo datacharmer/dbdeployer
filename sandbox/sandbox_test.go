@@ -21,17 +21,17 @@ import (
 	"testing"
 )
 
-func ok_executable_exists(t *testing.T, dir, executable string) {
-	full_path := dir + "/" + executable
-	if common.ExecExists(full_path) {
-		t.Logf("ok - %s exists\n", full_path)
+func okExecutableExists(t *testing.T, dir, executable string) {
+	fullPath := dir + "/" + executable
+	if common.ExecExists(fullPath) {
+		t.Logf("ok - %s exists\n", fullPath)
 	} else {
-		t.Logf("not ok - %s does not exist\n", full_path)
+		t.Logf("not ok - %s does not exist\n", fullPath)
 		t.Fail()
 	}
 }
 
-func ok_dir_exists(t *testing.T, dir string) {
+func okDirExists(t *testing.T, dir string) {
 	if common.DirExists(dir) {
 		t.Logf("ok - %s exists\n", dir)
 	} else {
@@ -40,37 +40,37 @@ func ok_dir_exists(t *testing.T, dir string) {
 	}
 }
 
-func ok_port_exists(t *testing.T, dir_name string, port int) {
-	sandbox_list := defaults.ReadCatalog()
+func okPortExists(t *testing.T, dirName string, port int) {
+	sandboxList := defaults.ReadCatalog()
 	// In the sandbox catalog (a map of sandbox structures),
 	// each entry is indexed with the full path of the sandbox
 	// directory.
-	for name, sb := range sandbox_list {
-		if name == dir_name {
+	for name, sb := range sandboxList {
+		if name == dirName {
 			// A sandbox can have more than one port
 			// We loop through it to find the requested one
 			for _, p := range sb.Port {
 				if p == port {
-					t.Logf("ok - port %d found in %s\n", port, dir_name)
+					t.Logf("ok - port %d found in %s\n", port, dirName)
 					return
 				}
 			}
 		}
 	}
 	// If we reach this point, the port was not found
-	t.Logf("not ok - port %d not found in %s\n", port, dir_name)
+	t.Logf("not ok - port %d not found in %s\n", port, dirName)
 	t.Fail()
 }
 
-type version_rec struct {
+type versionRec struct {
 	version string
 	path    string
 	port    int
 }
 
 func TestCreateSandbox(t *testing.T) {
-	set_mock_environment("mock_dir")
-	var versions = []version_rec{
+	setMockEnvironment("mock_dir")
+	var versions = []versionRec{
 		{"5.0.89", "5_0_89", 5089},
 		{"5.1.67", "5_1_67", 5167},
 		{"5.5.48", "5_5_48", 5548},
@@ -79,15 +79,15 @@ func TestCreateSandbox(t *testing.T) {
 		{"8.0.11", "8_0_11", 8011},
 	}
 	for _, v := range versions {
-		mysql_version := v.version
-		path_version := v.path
+		mysqlVersion := v.version
+		pathVersion := v.path
 		port := v.port
-		create_mock_version(mysql_version)
+		createMockVersion(mysqlVersion)
 		var sdef = SandboxDef{
-			Version:        mysql_version,
-			Basedir:        mock_sandbox_binary + "/" + mysql_version,
-			SandboxDir:     mock_sandbox_home,
-			DirName:        "msb_" + path_version,
+			Version:        mysqlVersion,
+			Basedir:        mockSandboxBinary + "/" + mysqlVersion,
+			SandboxDir:     mockSandboxHome,
+			DirName:        "msb_" + pathVersion,
 			LoadGrants:     true,
 			InstalledPorts: []int{1186, 3306, 33060},
 			Port:           port,
@@ -102,16 +102,16 @@ func TestCreateSandbox(t *testing.T) {
 		CreateSingleSandbox(sdef)
 		//exec_list := CreateSingleSandbox(sdef)
 		//t.Logf("%#v", exec_list)
-		ok_dir_exists(t, sdef.Basedir)
-		sandbox_dir := sdef.SandboxDir + "/msb_" + path_version
-		ok_dir_exists(t, sandbox_dir)
-		t.Logf("%#v", sandbox_dir)
-		ok_dir_exists(t, sandbox_dir+"/data")
-		ok_dir_exists(t, sandbox_dir+"/tmp")
-		ok_executable_exists(t, sandbox_dir, "start")
-		ok_executable_exists(t, sandbox_dir, "use")
-		ok_executable_exists(t, sandbox_dir, "stop")
-		ok_port_exists(t, sandbox_dir, sdef.Port)
+		okDirExists(t, sdef.Basedir)
+		sandboxDir := sdef.SandboxDir + "/msb_" + pathVersion
+		okDirExists(t, sandboxDir)
+		t.Logf("%#v", sandboxDir)
+		okDirExists(t, sandboxDir+"/data")
+		okDirExists(t, sandboxDir+"/tmp")
+		okExecutableExists(t, sandboxDir, "start")
+		okExecutableExists(t, sandboxDir, "use")
+		okExecutableExists(t, sandboxDir, "stop")
+		okPortExists(t, sandboxDir, sdef.Port)
 	}
-	remove_mock_environment("mock_dir")
+	removeMockEnvironment("mock_dir")
 }

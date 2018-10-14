@@ -25,7 +25,7 @@ import (
 	"strings"
 )
 
-func WriteApi(show_hidden bool) {
+func WriteApi(showHidden bool) {
 	fmt.Println("This is the list of commands and modifiers available for")
 	fmt.Println("dbdeployer {{.Version}} as of {{.Date}}")
 	fmt.Println("")
@@ -33,29 +33,29 @@ func WriteApi(show_hidden bool) {
 	fmt.Println("{{dbdeployer -h }}")
 	fmt.Println("")
 	fmt.Println("{{dbdeployer-docs tree }}")
-	traverse(rootCmd, "", 0, true, show_hidden)
+	traverse(rootCmd, "", 0, true, showHidden)
 }
 
 func WriteBashCompletion() {
-	completion_file := "dbdeployer_completion.sh"
-	rootCmd.GenBashCompletionFile(completion_file)
-	fmt.Printf("Copy %s to the completion directory (/etc/bash_completion.d or /usr/local/etc/bash_completion.d)\n", completion_file)
+	completionFile := "dbdeployer_completion.sh"
+	rootCmd.GenBashCompletionFile(completionFile)
+	fmt.Printf("Copy %s to the completion directory (/etc/bash_completion.d or /usr/local/etc/bash_completion.d)\n", completionFile)
 
 }
 
 func WriteManPages() {
-	man_dir := "man_pages"
-	if common.DirExists(man_dir) {
-		common.Exitf(1, "manual pages directory '%s' exists already.", man_dir)
+	manDir := "man_pages"
+	if common.DirExists(manDir) {
+		common.Exitf(1, "manual pages directory '%s' exists already.", manDir)
 	}
-	common.Mkdir(man_dir)
+	common.Mkdir(manDir)
 	header := &doc.GenManHeader{
 		Title:   "dbdeployer",
 		Section: "1",
 	}
-	err := doc.GenManTree(rootCmd, header, man_dir)
+	err := doc.GenManTree(rootCmd, header, manDir)
 	common.ErrCheckExitf(err, 1, "%s", err)
-	fmt.Printf("Man pages generated in '%s'\n", man_dir)
+	fmt.Printf("Man pages generated in '%s'\n", manDir)
 }
 
 func WriteMarkdownPages() {
@@ -71,57 +71,57 @@ func WriteMarkdownPages() {
 }
 
 func WriteRstPages() {
-	rst_dir := "rst_pages"
-	if common.DirExists(rst_dir) {
-		common.Exitf(1, "Restructured Text pages directory '%s' exists already.", rst_dir)
+	rstDir := "rst_pages"
+	if common.DirExists(rstDir) {
+		common.Exitf(1, "Restructured Text pages directory '%s' exists already.", rstDir)
 	}
-	common.Mkdir(rst_dir)
-	err := doc.GenReSTTree(rootCmd, rst_dir)
+	common.Mkdir(rstDir)
+	err := doc.GenReSTTree(rootCmd, rstDir)
 	common.ErrCheckExitf(err, 1, "%s", err)
-	fmt.Printf("Restructured Text pages generated in '%s'\n", rst_dir)
+	fmt.Printf("Restructured Text pages generated in '%s'\n", rstDir)
 }
 
 func MakeDocumentation(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	api, _ := flags.GetBool("api")
-	show_hidden, _ := flags.GetBool("show-hidden")
-	bash_completion, _ := flags.GetBool("bash-completion")
-	man_pages, _ := flags.GetBool("man-pages")
-	md_pages, _ := flags.GetBool("markdown-pages")
-	rst_pages, _ := flags.GetBool("rst-pages")
-	if (man_pages && api) || (api && bash_completion) || (api && md_pages) || (api && rst_pages) {
+	showHidden, _ := flags.GetBool("show-hidden")
+	bashCompletion, _ := flags.GetBool("bash-completion")
+	manPages, _ := flags.GetBool("man-pages")
+	mdPages, _ := flags.GetBool("markdown-pages")
+	rstPages, _ := flags.GetBool("rst-pages")
+	if (manPages && api) || (api && bashCompletion) || (api && mdPages) || (api && rstPages) {
 		common.Exit(1, "Choose one option only")
 	}
-	if rst_pages {
+	if rstPages {
 		WriteRstPages()
 		return
 	}
-	if man_pages {
+	if manPages {
 		WriteManPages()
 		return
 	}
-	if md_pages {
+	if mdPages {
 		WriteMarkdownPages()
 		return
 	}
-	if bash_completion {
+	if bashCompletion {
 		WriteBashCompletion()
 		return
 	}
 	if api {
-		WriteApi(show_hidden)
+		WriteApi(showHidden)
 		return
 	}
-	traverse(rootCmd, "", 0, api, show_hidden)
+	traverse(rootCmd, "", 0, api, showHidden)
 }
 
-func traverse(cmd *cobra.Command, parent string, level int, api, show_hidden bool) {
+func traverse(cmd *cobra.Command, parent string, level int, api, showHidden bool) {
 	subcommands := cmd.Commands()
 	indent := strings.Repeat(" ", level*4) + "-"
 	for _, c := range subcommands {
 		hidden_flag := ""
 		if c.Hidden || c.Name() == "help" {
-			if show_hidden {
+			if showHidden {
 				hidden_flag = " (HIDDEN) "
 			} else {
 				continue
@@ -137,7 +137,7 @@ func traverse(cmd *cobra.Command, parent string, level int, api, show_hidden boo
 			fmt.Printf("%s %-20s%s\n", indent, c.Name(), hidden_flag)
 		}
 		if size > 0 {
-			traverse(c, parent+" "+c.Name(), level+1, api, show_hidden)
+			traverse(c, parent+" "+c.Name(), level+1, api, showHidden)
 		}
 	}
 }

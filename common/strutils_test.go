@@ -21,16 +21,16 @@ import (
 	"testing"
 )
 
-type path_info struct {
+type pathInfo struct {
 	value    string
-	env_var  string
+	envVar   string
 	expected string
 }
 
 func TestReplaceLiteralHome(t *testing.T) {
 	os.Setenv("HOME", "/home/Groucho")
 	os.Setenv("PWD", "/var/lib/MarxBrothers")
-	var paths = []path_info{
+	var paths = []pathInfo{
 		{"/home/Groucho/", "HOME", "$HOME/"},
 		{"/home/Groucho/path1/path2", "HOME", "$HOME/path1/path2"},
 		{"/home/Harpo/path1/path2", "HOME", "/home/Harpo/path1/path2"},
@@ -39,25 +39,25 @@ func TestReplaceLiteralHome(t *testing.T) {
 	}
 	for _, p := range paths {
 		value := p.value
-		env_var := p.env_var
+		envVar := p.envVar
 		expected := p.expected
-		canary := ReplaceLiteralEnvVar(value, env_var)
+		canary := ReplaceLiteralEnvVar(value, envVar)
 		if expected == canary {
-			t.Logf("ok    %-35s %-10s =--> %-25s\n", value, "("+env_var+")", expected)
+			t.Logf("ok    %-35s %-10s =--> %-25s\n", value, "("+envVar+")", expected)
 		} else {
-			t.Logf("NOT OK %-35s %-10s =--> %-25s\n", value, "("+env_var+")", expected)
+			t.Logf("NOT OK %-35s %-10s =--> %-25s\n", value, "("+envVar+")", expected)
 			t.Fail()
 		}
 	}
 	for _, p := range paths {
 		value := p.expected
-		env_var := p.env_var
+		envVar := p.envVar
 		expected := p.value
-		canary := ReplaceEnvVar(value, env_var)
+		canary := ReplaceEnvVar(value, envVar)
 		if expected == canary {
-			t.Logf("ok    %-35s %-10s --=> %-25s\n", value, "("+env_var+")", expected)
+			t.Logf("ok    %-35s %-10s --=> %-25s\n", value, "("+envVar+")", expected)
 		} else {
-			t.Logf("NOT OK %-35s %-10s --=> %-25s\n", value, "("+env_var+")", expected)
+			t.Logf("NOT OK %-35s %-10s --=> %-25s\n", value, "("+envVar+")", expected)
 			t.Fail()
 		}
 	}
@@ -69,15 +69,15 @@ func TestTextToBool(t *testing.T) {
 		expected bool
 	}
 	var data = []textBoolData{
-		textBoolData{"yes", true},
-		textBoolData{"no", false},
-		textBoolData{"true", true},
-		textBoolData{"True", true},
-		textBoolData{"false", false},
-		textBoolData{"False", false},
-		textBoolData{"1", true},
-		textBoolData{"0", false},
-		textBoolData{"unexpected", false},
+		{"yes", true},
+		{"no", false},
+		{"true", true},
+		{"True", true},
+		{"false", false},
+		{"False", false},
+		{"1", true},
+		{"0", false},
+		{"unexpected", false},
 	}
 	for _, tb := range data {
 		if tb.expected == TextToBool(tb.input) {
@@ -95,20 +95,21 @@ func TestRemoveTrailingSlash(t *testing.T) {
 		expected string
 	}
 	var data = []trailingSlashData{
-		trailingSlashData{"one/", "one"},
-		trailingSlashData{"one//", "one/"},
-		trailingSlashData{"one", "one"},
-		trailingSlashData{"/", ""},
-		trailingSlashData{"one/one/", "one/one"},
-		trailingSlashData{"//", "/"},
-		trailingSlashData{"", ""},
+		{"one/", "one"},
+		{"one//", "one/"},
+		{"one", "one"},
+		{"/", ""},
+		{"one/one/", "one/one"},
+		{"//", "/"},
+		{"", ""},
 	}
 	for _, ts := range data {
 		result := RemoveTrailingSlash(ts.input)
 		if result == ts.expected {
 			t.Logf("ok - value '%s' becomes '%s'\n", ts.input, ts.expected)
 		} else {
-			t.Logf("not ok - value '%s' not translated correctly. Expected: '%s' - found '%s'\n", ts.input, ts.expected, result)
+			t.Logf("not ok - value '%s' not translated correctly. Expected: '%s' - found '%s'\n",
+				ts.input, ts.expected, result)
 			t.Fail()
 		}
 	}
@@ -120,12 +121,12 @@ func TestStringToIntSlice(t *testing.T) {
 		expected []int
 	}
 	var data = []StringToSliceData{
-		StringToSliceData{"1 2000 3839 6783 -1", []int{}},
-		StringToSliceData{"1;2000;3839;6783;-1", []int{}},
-		StringToSliceData{"1,2000,3839,6783,-a", []int{}},
-		StringToSliceData{"1,2000,3839,6783,-1", []int{1, 2000, 3839, 6783, -1}},
-		StringToSliceData{"2, 2001, 3840, 6784, -2", []int{2, 2001, 3840, 6784, -2}},
-		StringToSliceData{" 3, 2002, 3841, 6785, -3 ", []int{3, 2002, 3841, 6785, -3}},
+		{"1 2000 3839 6783 -1", []int{}},
+		{"1;2000;3839;6783;-1", []int{}},
+		{"1,2000,3839,6783,-a", []int{}},
+		{"1,2000,3839,6783,-1", []int{1, 2000, 3839, 6783, -1}},
+		{"2, 2001, 3840, 6784, -2", []int{2, 2001, 3840, 6784, -2}},
+		{" 3, 2002, 3841, 6785, -3 ", []int{3, 2002, 3841, 6785, -3}},
 	}
 
 	for _, sd := range data {

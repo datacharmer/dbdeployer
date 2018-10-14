@@ -27,50 +27,50 @@ import (
 )
 
 func DeleteSandbox(cmd *cobra.Command, args []string) {
-	var exec_lists []concurrent.ExecutionList
+	var execLists []concurrent.ExecutionList
 	if len(args) < 1 {
 		common.Exit(1,
 			"Sandbox name (or \"ALL\") required.",
 			"You can run 'dbdeployer sandboxes for a list of available deployments'")
 	}
 	flags := cmd.Flags()
-	sandbox_name := args[0]
+	sandboxName := args[0]
 	confirm, _ := flags.GetBool(defaults.ConfirmLabel)
-	run_concurrently, _ := flags.GetBool(defaults.ConcurrentLabel)
+	runConcurrently, _ := flags.GetBool(defaults.ConcurrentLabel)
 	if os.Getenv("RUN_CONCURRENTLY") != "" {
-		run_concurrently = true
+		runConcurrently = true
 	}
-	skip_confirm, _ := flags.GetBool(defaults.SkipConfirmLabel)
-	sandbox_dir := GetAbsolutePathFromFlag(cmd, "sandbox-home")
+	skipConfirm, _ := flags.GetBool(defaults.SkipConfirmLabel)
+	sandboxDir := GetAbsolutePathFromFlag(cmd, "sandbox-home")
 
-	deletion_list := []common.SandboxInfo{common.SandboxInfo{SandboxName: sandbox_name, Locked: false}}
-	if sandbox_name == "ALL" || sandbox_name == "all" {
+	deletionList := []common.SandboxInfo{{SandboxName: sandboxName, Locked: false}}
+	if sandboxName == "ALL" || sandboxName == "all" {
 		confirm = true
-		if skip_confirm {
+		if skipConfirm {
 			confirm = false
 		}
-		deletion_list = common.GetInstalledSandboxes(sandbox_dir)
+		deletionList = common.GetInstalledSandboxes(sandboxDir)
 	}
-	if len(deletion_list) == 0 {
-		fmt.Printf("Nothing to delete in %s\n", sandbox_dir)
+	if len(deletionList) == 0 {
+		fmt.Printf("Nothing to delete in %s\n", sandboxDir)
 		return
 	}
-	if len(deletion_list) > 60 && run_concurrently {
+	if len(deletionList) > 60 && runConcurrently {
 		fmt.Println("# Concurrency disabled. Can't run more than 60 concurrent operations")
-		run_concurrently = false
+		runConcurrently = false
 	}
 	fmt.Printf("List of deployed sandboxes:\n")
-	unlocked_found := false
-	for _, sb := range deletion_list {
+	unlockedFound := false
+	for _, sb := range deletionList {
 		locked := ""
 		if sb.Locked {
 			locked = "(*LOCKED*)"
 		} else {
-			unlocked_found = true
+			unlockedFound = true
 		}
-		fmt.Printf("%s/%s %s\n", sandbox_dir, sb.SandboxName, locked)
+		fmt.Printf("%s/%s %s\n", sandboxDir, sb.SandboxName, locked)
 	}
-	if !unlocked_found {
+	if !unlockedFound {
 		fmt.Printf("No unlocked sandboxes found.\n")
 		return
 	}
@@ -90,21 +90,21 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 			}
 		}
 	}
-	for _, sb := range deletion_list {
+	for _, sb := range deletionList {
 		if sb.Locked {
 			fmt.Printf("Sandbox %s is locked\n", sb.SandboxName)
 		} else {
-			exec_list := sandbox.RemoveSandbox(sandbox_dir, sb.SandboxName, run_concurrently)
-			for _, list := range exec_list {
-				exec_lists = append(exec_lists, list)
+			execList := sandbox.RemoveSandbox(sandboxDir, sb.SandboxName, runConcurrently)
+			for _, list := range execList {
+				execLists = append(execLists, list)
 			}
 		}
 	}
-	concurrent.RunParallelTasksByPriority(exec_lists)
-	for _, sb := range deletion_list {
-		full_path := sandbox_dir + "/" + sb.SandboxName
+	concurrent.RunParallelTasksByPriority(execLists)
+	for _, sb := range deletionList {
+		fullPath := sandboxDir + "/" + sb.SandboxName
 		if !sb.Locked {
-			defaults.DeleteFromCatalog(full_path)
+			defaults.DeleteFromCatalog(fullPath)
 		}
 	}
 }

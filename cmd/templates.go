@@ -26,19 +26,19 @@ import (
 )
 
 type TemplateInfo struct {
-	Origin      int
-	Group       string
-	Name        string
-	Description string
+	TemplateInFile bool
+	Group          string
+	Name           string
+	Description    string
 }
 
-func FindTemplate(requested string) (group, template_name, contents string) {
+func FindTemplate(requested string) (group, templateName, contents string) {
 	for name, tvar := range sandbox.AllTemplates {
 		for k, v := range tvar {
 			if k == requested || k == requested+"_template" {
 				contents = v.Contents
 				group = name
-				template_name = k
+				templateName = k
 				return
 			}
 		}
@@ -58,20 +58,20 @@ func ShowTemplate(cmd *cobra.Command, args []string) {
 
 func GetTemplatesList(wanted string) (tlist []TemplateInfo) {
 	found := false
-	for group_name, tvar := range sandbox.AllTemplates {
-		will_include := true
+	for groupName, tvar := range sandbox.AllTemplates {
+		willInclude := true
 		//fmt.Printf("[%s]\n", group_name)
 		if wanted != "" {
-			if wanted != group_name {
-				will_include = false
+			if wanted != groupName {
+				willInclude = false
 			}
 		}
 		var td TemplateInfo
-		if will_include {
+		if willInclude {
 			for k, v := range tvar {
 				td.Description = v.Description
-				td.Group = group_name
-				td.Origin = v.Origin
+				td.Group = groupName
+				td.TemplateInFile = v.TemplateInFile
 				td.Name = k
 				tlist = append(tlist, td)
 				found = true
@@ -90,15 +90,15 @@ func ListTemplates(cmd *cobra.Command, args []string) {
 		wanted = args[0]
 	}
 	flags := cmd.Flags()
-	simple_list, _ := flags.GetBool(defaults.SimpleLabel)
+	simpleList, _ := flags.GetBool(defaults.SimpleLabel)
 
 	templates := GetTemplatesList(wanted)
 	for _, template := range templates {
 		origin := "   "
-		if template.Origin == sandbox.TEMPLATE_FILE {
+		if template.TemplateInFile {
 			origin = "{F}"
 		}
-		if simple_list {
+		if simpleList {
 			fmt.Printf("%s %-13s %-25s\n", origin, "["+template.Group+"]", template.Name)
 		} else {
 			fmt.Printf("%s %-13s %-25s : %s\n", origin, "["+template.Group+"]", template.Name, template.Description)
@@ -112,32 +112,32 @@ func RunDescribeTemplate(cmd *cobra.Command, args []string) {
 	}
 	requested := args[0]
 	flags := cmd.Flags()
-	complete_listing, _ := flags.GetBool(defaults.WithContentsLabel)
-	DescribeTemplate(requested, complete_listing)
+	completeListing, _ := flags.GetBool(defaults.WithContentsLabel)
+	DescribeTemplate(requested, completeListing)
 }
 
-func GetTemplatesDescription(requested string, complete_listing bool) string {
-	group, template_name, contents := FindTemplate(requested)
+func GetTemplatesDescription(requested string, completeListing bool) string {
+	group, templateName, contents := FindTemplate(requested)
 	out := ""
 	origin := "   "
-	if sandbox.AllTemplates[group][requested].Origin == sandbox.TEMPLATE_FILE {
+	if sandbox.AllTemplates[group][requested].TemplateInFile {
 		origin = "{F}"
 	}
 	out += fmt.Sprintf("# Collection    : %s\n", group)
-	out += fmt.Sprintf("# Name   %s    : %s\n", origin, template_name)
-	out += fmt.Sprintf("# Description 	: %s\n", sandbox.AllTemplates[group][template_name].Description)
-	out += fmt.Sprintf("# Notes     	: %s\n", sandbox.AllTemplates[group][template_name].Notes)
+	out += fmt.Sprintf("# Name   %s    : %s\n", origin, templateName)
+	out += fmt.Sprintf("# Description 	: %s\n", sandbox.AllTemplates[group][templateName].Description)
+	out += fmt.Sprintf("# Notes     	: %s\n", sandbox.AllTemplates[group][templateName].Notes)
 	out += fmt.Sprintf("# Length     	: %d\n", len(contents))
-	if complete_listing {
-		out += fmt.Sprintf("##START %s\n", template_name)
+	if completeListing {
+		out += fmt.Sprintf("##START %s\n", templateName)
 		out += fmt.Sprintf("%s\n", contents)
-		out += fmt.Sprintf("##END %s\n\n", template_name)
+		out += fmt.Sprintf("##END %s\n\n", templateName)
 	}
 	return out
 }
 
-func DescribeTemplate(requested string, complete_listing bool) {
-	fmt.Printf("%s", GetTemplatesDescription(requested, complete_listing))
+func DescribeTemplate(requested string, completeListing bool) {
+	fmt.Printf("%s", GetTemplatesDescription(requested, completeListing))
 }
 
 func ExportTemplates(cmd *cobra.Command, args []string) {
@@ -147,69 +147,69 @@ func ExportTemplates(cmd *cobra.Command, args []string) {
 			"If group_name is 'all', it will export all groups")
 	}
 	wanted := args[0]
-	dir_name := args[1]
-	template_name := ""
+	dirName := args[1]
+	templateName := ""
 	if len(args) > 2 {
-		template_name = args[2]
+		templateName = args[2]
 	}
 	if wanted == "all" || wanted == "ALL" {
 		wanted = ""
 	}
-	if common.DirExists(dir_name) {
-		common.Exitf(1, "# Directory <%s> already exists", dir_name)
+	if common.DirExists(dirName) {
+		common.Exitf(1, "# Directory <%s> already exists", dirName)
 	}
-	common.Mkdir(dir_name)
-	common.WriteString(common.VersionDef, dir_name+"/version.txt")
+	common.Mkdir(dirName)
+	common.WriteString(common.VersionDef, dirName+"/version.txt")
 
-	found_group := false
-	found_template := false
-	for group_name, group := range sandbox.AllTemplates {
-		if group_name == wanted || wanted == "" {
-			found_group = true
-			group_dir := dir_name + "/" + group_name
-			if !common.DirExists(group_dir) {
-				common.Mkdir(group_dir)
+	foundGroup := false
+	foundTemplate := false
+	for groupName, group := range sandbox.AllTemplates {
+		if groupName == wanted || wanted == "" {
+			foundGroup = true
+			groupDir := dirName + "/" + groupName
+			if !common.DirExists(groupDir) {
+				common.Mkdir(groupDir)
 			}
 			for name, template := range group {
-				if template_name == "" || common.Includes(name, template_name) {
-					file_name := group_dir + "/" + name
-					common.WriteString(common.TrimmedLines(template.Contents), file_name)
-					fmt.Printf("%s/%s exported\n", group_name, name)
-					found_template = true
+				if templateName == "" || common.Includes(name, templateName) {
+					fileName := groupDir + "/" + name
+					common.WriteString(common.TrimmedLines(template.Contents), fileName)
+					fmt.Printf("%s/%s exported\n", groupName, name)
+					foundTemplate = true
 				}
 			}
 		}
 	}
-	if !found_group {
+	if !foundGroup {
 		common.Exitf(1, "Group %s not found", wanted)
 	}
-	if !found_template {
-		common.Exitf(1, "template %s not found", template_name)
+	if !foundTemplate {
+		common.Exitf(1, "template %s not found", templateName)
 	}
-	fmt.Printf("Exported to %s\n", dir_name)
+	fmt.Printf("Exported to %s\n", dirName)
 }
 
 // Called by rootCmd when dbdeployer starts
 func LoadTemplates() {
-	load_dir := defaults.ConfigurationDir + "/templates" + common.CompatibleVersion
-	if !common.DirExists(load_dir) {
+	loadDir := defaults.ConfigurationDir + "/templates" + common.CompatibleVersion
+	if !common.DirExists(loadDir) {
 		return
 	}
-	for group_name, group := range sandbox.AllTemplates {
-		group_dir := load_dir + "/" + group_name
-		if !common.DirExists(group_dir) {
+	for groupName, group := range sandbox.AllTemplates {
+		groupDir := loadDir + "/" + groupName
+		if !common.DirExists(groupDir) {
 			continue
 		}
 		for name, template := range group {
-			file_name := group_dir + "/" + name
-			if !common.FileExists(file_name) {
+			fileName := groupDir + "/" + name
+			if !common.FileExists(fileName) {
 				continue
 			}
-			new_contents := common.SlurpAsString(file_name)
-			new_template := template
-			new_template.Origin = sandbox.TEMPLATE_FILE
-			new_template.Contents = new_contents
-			sandbox.AllTemplates[group_name][name] = new_template
+			newContents := common.SlurpAsString(fileName)
+			newTemplate := template
+			newTemplate.TemplateInFile = true
+			newTemplate.Contents = newContents
+			sandbox.AllTemplates[groupName][name] = newTemplate
 			// fmt.Printf("# Template %s loaded from %s\n",name, file_name)
 		}
 	}
@@ -225,88 +225,88 @@ func ImportTemplates(cmd *cobra.Command, args []string) {
 	if wanted == "all" || wanted == "ALL" {
 		wanted = ""
 	}
-	dir_name := args[1]
-	if !common.DirExists(dir_name) {
-		common.Exitf(1, "# Directory <%s> doesn't exist", dir_name)
+	dirName := args[1]
+	if !common.DirExists(dirName) {
+		common.Exitf(1, "# Directory <%s> doesn't exist", dirName)
 	}
-	template_name := ""
+	templateName := ""
 	if len(args) > 2 {
-		template_name = args[2]
+		templateName = args[2]
 	}
-	version_file := dir_name + "/version.txt"
-	if !common.FileExists(version_file) {
-		common.Exitf(1, "File %s not found. Unable to validate templates.", version_file)
+	versionFile := dirName + "/version.txt"
+	if !common.FileExists(versionFile) {
+		common.Exitf(1, "File %s not found. Unable to validate templates.", versionFile)
 	}
-	template_version := strings.TrimSpace(common.SlurpAsString(version_file))
-	version_list := common.VersionToList(template_version)
+	templateVersion := strings.TrimSpace(common.SlurpAsString(versionFile))
+	versionList := common.VersionToList(templateVersion)
 	// fmt.Printf("%v\n",version_list)
-	compatible_version_list := common.VersionToList(common.CompatibleVersion)
-	if version_list[0] < 0 {
-		common.Exitf(1, "Invalid version (%s) found in %s", template_version, version_file)
+	compatibleVersionList := common.VersionToList(common.CompatibleVersion)
+	if versionList[0] < 0 {
+		common.Exitf(1, "Invalid version (%s) found in %s", templateVersion, versionFile)
 	}
-	if !common.GreaterOrEqualVersion(template_version, compatible_version_list) {
-		common.Exitf(1, "Templates are for version %s. The minimum compatible version is %s", template_version, common.CompatibleVersion)
+	if !common.GreaterOrEqualVersion(templateVersion, compatibleVersionList) {
+		common.Exitf(1, "Templates are for version %s. The minimum compatible version is %s", templateVersion, common.CompatibleVersion)
 	}
-	found_group := false
-	found_template := false
-	for group_name, group := range sandbox.AllTemplates {
-		group_dir := dir_name + "/" + group_name
-		if !common.DirExists(group_dir) {
+	foundGroup := false
+	foundTemplate := false
+	for groupName, group := range sandbox.AllTemplates {
+		groupDir := dirName + "/" + groupName
+		if !common.DirExists(groupDir) {
 			continue
 		}
 		for name, _ := range group {
-			file_name := group_dir + "/" + name
-			if !common.FileExists(file_name) {
+			fileName := groupDir + "/" + name
+			if !common.FileExists(fileName) {
 				continue
 			}
-			if group_name == wanted || wanted == "" {
-				found_group = true
+			if groupName == wanted || wanted == "" {
+				foundGroup = true
 			} else {
 				continue
 			}
-			if template_name == "" || common.Includes(name, template_name) {
-				found_template = true
+			if templateName == "" || common.Includes(name, templateName) {
+				foundTemplate = true
 			} else {
 				continue
 			}
-			new_contents := common.SlurpAsString(file_name)
+			newContents := common.SlurpAsString(fileName)
 			// fmt.Printf("Group: %s - File: %s\n", group_name, name)
 			// fmt.Printf("sizes: %d %d\n",len(template.Contents), len(new_contents))
 			if !common.DirExists(defaults.ConfigurationDir) {
 				common.Mkdir(defaults.ConfigurationDir)
 			}
-			destination_dir := defaults.ConfigurationDir + "/templates" + common.CompatibleVersion
-			if !common.DirExists(destination_dir) {
-				common.Mkdir(destination_dir)
+			destinationDir := defaults.ConfigurationDir + "/templates" + common.CompatibleVersion
+			if !common.DirExists(destinationDir) {
+				common.Mkdir(destinationDir)
 			}
-			dest_group_dir := destination_dir + "/" + group_name
-			if !common.DirExists(dest_group_dir) {
-				common.Mkdir(dest_group_dir)
+			destGroupDir := destinationDir + "/" + groupName
+			if !common.DirExists(destGroupDir) {
+				common.Mkdir(destGroupDir)
 			}
-			dest_file := dest_group_dir + "/" + name
-			common.WriteString(new_contents, dest_file)
-			fmt.Printf("# Template %s written to %s\n", name, dest_file)
+			destFile := destGroupDir + "/" + name
+			common.WriteString(newContents, destFile)
+			fmt.Printf("# Template %s written to %s\n", name, destFile)
 		}
 	}
-	if !found_group {
+	if !foundGroup {
 		common.Exitf(1, "Group %s not found", wanted)
 	}
-	if !found_template {
-		common.Exitf(1, "template %s not found", template_name)
+	if !foundTemplate {
+		common.Exitf(1, "template %s not found", templateName)
 	}
 }
 
 func ResetTemplates(cmd *cobra.Command, args []string) {
 	// TODO: loop through the templates directories and remove all the ones that have compatible versions.
-	templates_dir := defaults.ConfigurationDir + "/templates" + common.CompatibleVersion
-	if !common.DirExists(templates_dir) {
+	templatesDir := defaults.ConfigurationDir + "/templates" + common.CompatibleVersion
+	if !common.DirExists(templatesDir) {
 		return
 	}
-	err := os.RemoveAll(templates_dir)
+	err := os.RemoveAll(templatesDir)
 	if err != nil {
-		fmt.Printf("Error removing %s\n%s\n", templates_dir, err)
+		fmt.Printf("Error removing %s\n%s\n", templatesDir, err)
 	}
-	fmt.Printf("Templates directory %s removed\n", templates_dir)
+	fmt.Printf("Templates directory %s removed\n", templatesDir)
 }
 
 var (

@@ -30,15 +30,15 @@ func TestLogDirName(t *testing.T) {
 
 	pid := fmt.Sprintf("%d", os.Getpid())
 	var data = []logDirTest{
-		logDirTest{[]string{"single"}, "single_VERSION"},
-		logDirTest{[]string{"multiple"}, "multiple_VERSION"},
-		logDirTest{[]string{"replication"}, "replication_VERSION_master_slave"},
-		logDirTest{[]string{"--topology=master-slave", "replication"}, "replication_VERSION_master_slave"},
-		logDirTest{[]string{"replication", "--topology=group"}, "replication_VERSION_group"},
-		logDirTest{[]string{"replication", "--topology=group", "--single-primary"}, "replication_VERSION_group_sp"},
-		logDirTest{[]string{"replication", "--topology=all-masters"}, "replication_VERSION_all_masters"},
-		logDirTest{[]string{"replication", "--topology=fan-in"}, "replication_VERSION_fan_in"},
-		logDirTest{[]string{"replication", "--topology=UNUSED"}, "replication_VERSION_UNUSED"},
+		{[]string{"single"}, "single_VERSION"},
+		{[]string{"multiple"}, "multiple_VERSION"},
+		{[]string{"replication"}, "replication_VERSION_master_slave"},
+		{[]string{"--topology=master-slave", "replication"}, "replication_VERSION_master_slave"},
+		{[]string{"replication", "--topology=group"}, "replication_VERSION_group"},
+		{[]string{"replication", "--topology=group", "--single-primary"}, "replication_VERSION_group_sp"},
+		{[]string{"replication", "--topology=all-masters"}, "replication_VERSION_all_masters"},
+		{[]string{"replication", "--topology=fan-in"}, "replication_VERSION_fan_in"},
+		{[]string{"replication", "--topology=UNUSED"}, "replication_VERSION_UNUSED"},
 	}
 	var versions = []string{"5.7.93", "8.0.94"}
 	re := regexp.MustCompile(`VERSION`)

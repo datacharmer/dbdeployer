@@ -49,14 +49,14 @@ func TestConcurrency(t *testing.T) {
 	// The concurrency function RunParallelTasksByPriority is supposed
 	// to sort the tasks by priority and queue them accordingly.
 	var testData = []CheckConcurrency{
-		CheckConcurrency{0, "one", 0},
-		CheckConcurrency{0, "two", 1},
-		CheckConcurrency{0, "three", 2},
-		CheckConcurrency{3, "one.3", 7},
-		CheckConcurrency{2, "one.2", 6},
-		CheckConcurrency{1, "one.1", 4},
-		CheckConcurrency{0, "four", 3},
-		CheckConcurrency{1, "three.1", 5},
+		{0, "one", 0},
+		{0, "two", 1},
+		{0, "three", 2},
+		{3, "one.3", 7},
+		{2, "one.2", 6},
+		{1, "one.1", 4},
+		{0, "four", 3},
+		{1, "three.1", 5},
 	}
 	var results []string
 	var times Times
@@ -73,7 +73,7 @@ func TestConcurrency(t *testing.T) {
 	}
 
 	// We build an execution list based on the test data
-	var exec_lists []ExecutionList
+	var execLists []ExecutionList
 	for _, item := range testData {
 		var execList = ExecutionList{
 			Logger:   nil,
@@ -84,10 +84,10 @@ func TestConcurrency(t *testing.T) {
 				Args:   []string{item.ID},
 			},
 		}
-		exec_lists = append(exec_lists, execList)
+		execLists = append(execLists, execList)
 	}
 
-	RunParallelTasksByPriority(exec_lists)
+	RunParallelTasksByPriority(execLists)
 
 	fmt.Printf("# Results:\n")
 	for N, item := range testData {

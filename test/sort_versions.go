@@ -32,15 +32,15 @@ func main() {
 
 	scanner := bufio.NewScanner(os.Stdin)
 
-	type version_list struct {
+	type versionList struct {
 		text string
 		mmr  []int
 	}
-	var vlist []version_list
+	var vlist []versionList
 	for scanner.Scan() {
 		line := scanner.Text()
 		vl := common.VersionToList(line)
-		rec := version_list{
+		rec := versionList{
 			text: line,
 			mmr:  vl,
 		}

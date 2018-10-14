@@ -50,18 +50,18 @@ func Execute() {
 	}
 }
 
-func set_pflag(cmd *cobra.Command, key string, abbr string, env_var string, default_var string, help_str string, is_slice bool) {
-	var default_value string
-	if env_var != "" {
-		default_value = os.Getenv(env_var)
+func setPflag(cmd *cobra.Command, key string, abbr string, envVar string, defaultVar string, helpStr string, isSlice bool) {
+	var defaultValue string
+	if envVar != "" {
+		defaultValue = os.Getenv(envVar)
 	}
-	if default_value == "" {
-		default_value = default_var
+	if defaultValue == "" {
+		defaultValue = defaultVar
 	}
-	if is_slice {
-		cmd.PersistentFlags().StringSliceP(key, abbr, []string{default_value}, help_str)
+	if isSlice {
+		cmd.PersistentFlags().StringSliceP(key, abbr, []string{defaultValue}, helpStr)
 	} else {
-		cmd.PersistentFlags().StringP(key, abbr, default_value, help_str)
+		cmd.PersistentFlags().StringP(key, abbr, defaultValue, helpStr)
 	}
 }
 
@@ -83,8 +83,8 @@ func init() {
 	cobra.OnInitialize(checkDefaultsFile)
 	// spew.Dump(rootCmd)
 	rootCmd.PersistentFlags().StringVar(&defaults.CustomConfigurationFile, defaults.ConfigLabel, defaults.ConfigurationFile, "configuration file")
-	set_pflag(rootCmd, defaults.SandboxHomeLabel, "", "SANDBOX_HOME", defaults.Defaults().SandboxHome, "Sandbox deployment directory", false)
-	set_pflag(rootCmd, defaults.SandboxBinaryLabel, "", "SANDBOX_BINARY", defaults.Defaults().SandboxBinary, "Binary repository", false)
+	setPflag(rootCmd, defaults.SandboxHomeLabel, "", "SANDBOX_HOME", defaults.Defaults().SandboxHome, "Sandbox deployment directory", false)
+	setPflag(rootCmd, defaults.SandboxBinaryLabel, "", "SANDBOX_BINARY", defaults.Defaults().SandboxBinary, "Binary repository", false)
 
 	rootCmd.InitDefaultVersionFlag()
 

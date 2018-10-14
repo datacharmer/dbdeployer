@@ -27,7 +27,7 @@ import (
 	"time"
 )
 
-func get_cmd_output(cmdText string) string {
+func getCmdOutput(cmdText string) string {
 	cmdList := strings.Split(cmdText, " ")
 	command := cmdList[0]
 	var args []string
@@ -60,15 +60,15 @@ func main() {
 	// Gets input from stdin
 	scanner := bufio.NewScanner(os.Stdin)
 
-	re_version := regexp.MustCompile(`{{\.Version}}`)
-	re_date := regexp.MustCompile(`{{\.Date}}`)
-	re_cmd := regexp.MustCompile(`{{([^}]+)}}`)
-	re_flag := regexp.MustCompile(`(?sm)Global Flags:.*`)
-	re_spaces := regexp.MustCompile(`(?m)^`)
+	reVersion := regexp.MustCompile(`{{\.Version}}`)
+	reDate := regexp.MustCompile(`{{\.Date}}`)
+	reCmd := regexp.MustCompile(`{{([^}]+)}}`)
+	reFlag := regexp.MustCompile(`(?sm)Global Flags:.*`)
+	reSpaces := regexp.MustCompile(`(?m)^`)
 	home := os.Getenv("HOME")
-	re_home := regexp.MustCompile(home)
-	time_format := "02-Jan-2006 15:04 MST"
-	timestamp := time.Now().UTC().Format(time_format)
+	reHome := regexp.MustCompile(home)
+	timeFormat := "02-Jan-2006 15:04 MST"
+	timestamp := time.Now().UTC().Format(timeFormat)
 	// An user defined timestamp could be used instead of the generated one.
 	if os.Getenv("DBDEPLOYER_TIMESTAMP") != "" {
 		timestamp = os.Getenv("DBDEPLOYER_TIMESTAMP")
@@ -78,20 +78,20 @@ func main() {
 		// Replacement for version and date must occur BEFORE
 		// we search for commands, as the regexp for commands would
 		// match version and date as well.
-		line = re_version.ReplaceAllString(line, common.VersionDef)
-		line = re_date.ReplaceAllString(line, timestamp)
+		line = reVersion.ReplaceAllString(line, common.VersionDef)
+		line = reDate.ReplaceAllString(line, timestamp)
 		// Find a placeholder for a {{command}}
-		findList := re_cmd.FindAllStringSubmatch(line, -1)
+		findList := reCmd.FindAllStringSubmatch(line, -1)
 		if findList != nil {
 			commandText := findList[0][1]
 			// Run the command and gets its output
-			out := get_cmd_output(commandText)
+			out := getCmdOutput(commandText)
 			// remove global flags from the output
-			out = re_flag.ReplaceAllString(out, "")
+			out = reFlag.ReplaceAllString(out, "")
 			// Add 4 spaces to every line of the output
-			out = re_spaces.ReplaceAllString(out, "    ")
+			out = reSpaces.ReplaceAllString(out, "    ")
 			// Replace the literal $HOME value with its variable name
-			out = re_home.ReplaceAllString(out, `$$HOME`)
+			out = reHome.ReplaceAllString(out, `$$HOME`)
 
 			fmt.Printf("    $ %s\n", commandText)
 			fmt.Printf("%s\n", out)

@@ -98,8 +98,8 @@ func main() {
 	sandbox.CreateSingleSandbox(sdef)
 
 	// Invokes the sandbox self-testing script
-	common.Run_cmd(sandbox_home + "/" + sandbox_name1 + "/test_sb")
-	common.Run_cmd(sandbox_home + "/" + sandbox_name2 + "/test_sb")
+	common.RunCmd(sandbox_home + "/" + sandbox_name1 + "/test_sb")
+	common.RunCmd(sandbox_home + "/" + sandbox_name2 + "/test_sb")
 
 	// Removes the sandbox from disk
 	sandbox.RemoveSandbox(sandbox_home, sandbox_name1, false)

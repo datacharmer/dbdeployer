@@ -31,40 +31,47 @@ type SandboxInfo struct {
 	Locked      bool
 }
 
-var port_debug bool = os.Getenv("PORT_DEBUG") != ""
+const lineLength = 80
+
+var (
+	portDebug bool   = os.Getenv("PORT_DEBUG") != ""
+	DashLine  string = strings.Repeat("-", lineLength)
+	StarLine  string = strings.Repeat("*", lineLength)
+	HashLine  string = strings.Repeat("#", lineLength)
+)
 
 type PortMap map[int]bool
 
 var MaxAllowedPort int = 64000
 
-func SandboxInfoToFileNames(sb_list []SandboxInfo) (file_names []string) {
-	for _, sbinfo := range sb_list {
-		file_names = append(file_names, sbinfo.SandboxName)
+func SandboxInfoToFileNames(sbList []SandboxInfo) (fileNames []string) {
+	for _, sbinfo := range sbList {
+		fileNames = append(fileNames, sbinfo.SandboxName)
 	}
 	return
 }
 
 // Gets a list of installed sandboxes from the $SANDBOX_HOME directory
-func GetInstalledSandboxes(sandbox_home string) (installed_sandboxes []SandboxInfo) {
-	if !DirExists(sandbox_home) {
+func GetInstalledSandboxes(sandboxHome string) (installedSandboxes []SandboxInfo) {
+	if !DirExists(sandboxHome) {
 		return
 	}
-	files, err := ioutil.ReadDir(sandbox_home)
+	files, err := ioutil.ReadDir(sandboxHome)
 	ErrCheckExitf(err, 1, "%s", err)
 	for _, f := range files {
 		fname := f.Name()
 		fmode := f.Mode()
 		if fmode.IsDir() {
-			sbdesc := sandbox_home + "/" + fname + "/sbdescription.json"
-			start := sandbox_home + "/" + fname + "/start"
-			start_all := sandbox_home + "/" + fname + "/start_all"
-			no_clear := sandbox_home + "/" + fname + "/no_clear"
-			no_clear_all := sandbox_home + "/" + fname + "/no_clear_all"
-			if FileExists(sbdesc) || FileExists(start) || FileExists(start_all) {
-				if FileExists(no_clear_all) || FileExists(no_clear) {
-					installed_sandboxes = append(installed_sandboxes, SandboxInfo{SandboxName: fname, Locked: true})
+			sbdesc := sandboxHome + "/" + fname + "/sbdescription.json"
+			start := sandboxHome + "/" + fname + "/start"
+			startAll := sandboxHome + "/" + fname + "/start_all"
+			noClear := sandboxHome + "/" + fname + "/no_clear"
+			noClearAll := sandboxHome + "/" + fname + "/no_clear_all"
+			if FileExists(sbdesc) || FileExists(start) || FileExists(startAll) {
+				if FileExists(noClearAll) || FileExists(noClear) {
+					installedSandboxes = append(installedSandboxes, SandboxInfo{SandboxName: fname, Locked: true})
 				} else {
-					installed_sandboxes = append(installed_sandboxes, SandboxInfo{SandboxName: fname, Locked: false})
+					installedSandboxes = append(installedSandboxes, SandboxInfo{SandboxName: fname, Locked: false})
 				}
 			}
 		}
@@ -73,39 +80,39 @@ func GetInstalledSandboxes(sandbox_home string) (installed_sandboxes []SandboxIn
 }
 
 // Collects a list of used ports from deployed sandboxes
-func GetInstalledPorts(sandbox_home string) []int {
-	files := SandboxInfoToFileNames(GetInstalledSandboxes(sandbox_home))
+func GetInstalledPorts(sandboxHome string) []int {
+	files := SandboxInfoToFileNames(GetInstalledSandboxes(sandboxHome))
 	// If there is a file sbdescription.json in the top directory
 	// it will be included in the reporting
 	files = append(files, "")
-	var port_collection []int
-	var seen_ports = make(map[int]bool)
+	var portCollection []int
+	var seenPorts = make(map[int]bool)
 	for _, fname := range files {
-		sbdesc := sandbox_home + "/" + fname + "/sbdescription.json"
+		sbdesc := sandboxHome + "/" + fname + "/sbdescription.json"
 		if FileExists(sbdesc) {
-			sbd := ReadSandboxDescription(sandbox_home + "/" + fname)
+			sbd := ReadSandboxDescription(sandboxHome + "/" + fname)
 			if sbd.Nodes == 0 {
 				for _, p := range sbd.Port {
-					if !seen_ports[p] {
-						port_collection = append(port_collection, p)
-						seen_ports[p] = true
+					if !seenPorts[p] {
+						portCollection = append(portCollection, p)
+						seenPorts[p] = true
 					}
 				}
 			} else {
-				var node_descr []SandboxDescription
-				inner_files := SandboxInfoToFileNames(GetInstalledSandboxes(sandbox_home + "/" + fname))
-				for _, inner := range inner_files {
-					inner_sbdesc := sandbox_home + "/" + fname + "/" + inner + "/sbdescription.json"
-					if FileExists(inner_sbdesc) {
-						sd_node := ReadSandboxDescription(fmt.Sprintf("%s/%s/%s", sandbox_home, fname, inner))
-						node_descr = append(node_descr, sd_node)
+				var nodeDescr []SandboxDescription
+				innerFiles := SandboxInfoToFileNames(GetInstalledSandboxes(sandboxHome + "/" + fname))
+				for _, inner := range innerFiles {
+					innerSbdesc := sandboxHome + "/" + fname + "/" + inner + "/sbdescription.json"
+					if FileExists(innerSbdesc) {
+						sdNode := ReadSandboxDescription(fmt.Sprintf("%s/%s/%s", sandboxHome, fname, inner))
+						nodeDescr = append(nodeDescr, sdNode)
 					}
 				}
-				for _, nd := range node_descr {
+				for _, nd := range nodeDescr {
 					for _, p := range nd.Port {
-						if !seen_ports[p] {
-							port_collection = append(port_collection, p)
-							seen_ports[p] = true
+						if !seenPorts[p] {
+							portCollection = append(portCollection, p)
+							seenPorts[p] = true
 						}
 					}
 				}
@@ -113,7 +120,7 @@ func GetInstalledPorts(sandbox_home string) []int {
 		}
 	}
 	// fmt.Printf("%v\n",port_collection)
-	return port_collection
+	return portCollection
 }
 
 /* Checks that the extracted tarball directory
@@ -132,46 +139,45 @@ func CheckTarballOperatingSystem(basedir string) {
 		flavor   string
 		isBinary bool
 	}
-	var finding_list = map[string]OSFinding{
-		"libmysqlclient.so":            OSFinding{"lib", "linux", "mysql", true},
-		"libperconaserverclient.so":    OSFinding{"lib", "linux", "percona", true},
-		"libperconaserverclient.dylib": OSFinding{"lib", "darwin", "percona", true},
-		"libmysqlclient.dylib":         OSFinding{"lib", "darwin", "mysql", true},
-		"table.h":                      OSFinding{"sql", "source", "any", false},
-		"mysqlprovision.zip":           OSFinding{"share/mysqlsh", "shell", "any", false},
+	var findingList = map[string]OSFinding{
+		"libmysqlclient.so":            {"lib", "linux", "mysql", true},
+		"libperconaserverclient.so":    {"lib", "linux", "percona", true},
+		"libperconaserverclient.dylib": {"lib", "darwin", "percona", true},
+		"libmysqlclient.dylib":         {"lib", "darwin", "mysql", true},
+		"table.h":                      {"sql", "source", "any", false},
+		"mysqlprovision.zip":           {"share/mysqlsh", "shell", "any", false},
 	}
-	wanted_os_found := false
-	var found_list = make(map[string]OSFinding)
-	var wanted_files []string
-	for fname, rec := range finding_list {
-		full_name := path.Join(basedir, rec.Dir, fname)
+	wantedOsFound := false
+	var foundList = make(map[string]OSFinding)
+	var wantedFiles []string
+	for fname, rec := range findingList {
+		fullName := path.Join(basedir, rec.Dir, fname)
 		if rec.OS == currentOs && rec.isBinary {
-			wanted_files = append(wanted_files, path.Join(rec.Dir, fname))
+			wantedFiles = append(wantedFiles, path.Join(rec.Dir, fname))
 		}
-		if FileExists(full_name) {
+		if FileExists(fullName) {
 			if rec.OS == currentOs && rec.isBinary {
-				wanted_os_found = true
+				wantedOsFound = true
 			}
-			found_list[fname] = rec
+			foundList[fname] = rec
 		}
 	}
-	if !wanted_os_found {
-		dash_line := strings.Repeat("-", 80)
-		fmt.Println(dash_line)
+	if !wantedOsFound {
+		fmt.Println(DashLine)
 		fmt.Printf("Looking for *%s* binaries\n", currentOs)
-		fmt.Println(dash_line)
-		if len(found_list) > 0 {
+		fmt.Println(DashLine)
+		if len(foundList) > 0 {
 			fmt.Printf("# Found the following:\n")
 		}
-		for fname, rec := range found_list {
-			full_name := path.Join(basedir, rec.Dir, fname)
-			fmt.Printf("%-20s - tarball type: '%s' (flavor: %s)\n", full_name, rec.OS, rec.flavor)
+		for fname, rec := range foundList {
+			fullName := path.Join(basedir, rec.Dir, fname)
+			fmt.Printf("%-20s - tarball type: '%s' (flavor: %s)\n", fullName, rec.OS, rec.flavor)
 			if rec.OS == "source" {
 				fmt.Printf("THIS IS A SOURCE TARBALL. YOU NEED TO USE A *BINARY* TARBALL\n")
 			}
-			fmt.Println(dash_line)
+			fmt.Println(DashLine)
 		}
-		Exitf(1, "Could not find any of the expected files for %s server: %s\n%s", currentOs, wanted_files, dash_line)
+		Exitf(1, "Could not find any of the expected files for %s server: %s\n%s", currentOs, wantedFiles, DashLine)
 	}
 }
 
@@ -192,10 +198,10 @@ func CheckOrigin(args []string) {
 }
 
 // Creates a sandbox directory if it does not exist
-func CheckSandboxDir(sandbox_home string) {
-	if !DirExists(sandbox_home) {
-		fmt.Printf("Creating directory %s\n", sandbox_home)
-		Mkdir(sandbox_home)
+func CheckSandboxDir(sandboxHome string) {
+	if !DirExists(sandboxHome) {
+		fmt.Printf("Creating directory %s\n", sandboxHome)
+		Mkdir(sandboxHome)
 	}
 }
 
@@ -275,8 +281,8 @@ func VersionToPort(version string) int {
 // Note: MariaDB versions are skipped. The function returns false for MariaDB 10+
 // So far (2018-02-19) this comparison holds, because MariaDB behaves like 5.5+ for
 // the purposes of sandbox deployment
-func GreaterOrEqualVersion(version string, compared_to []int) bool {
-	var cmajor, cminor, crev int = compared_to[0], compared_to[1], compared_to[2]
+func GreaterOrEqualVersion(version string, comparedTo []int) bool {
+	var cmajor, cminor, crev int = comparedTo[0], comparedTo[1], comparedTo[2]
 	verList := VersionToList(version)
 	major := verList[0]
 	if major < 0 {
@@ -295,92 +301,92 @@ func GreaterOrEqualVersion(version string, compared_to []int) bool {
 }
 
 // Finds the first free port available, starting at
-// requested_port.
-// used_ports is a map of ports already used by other sandboxes.
+// requestedPort.
+// usedPorts is a map of ports already used by other sandboxes.
 // This function should not be used alone, but through FindFreePort
 // Returns the first free port
-func FindFreePortSingle(requested_port int, used_ports PortMap) int {
-	found_port := 0
-	candidate_port := requested_port
-	for found_port == 0 {
-		_, exists := used_ports[candidate_port]
+func FindFreePortSingle(requestedPort int, usedPorts PortMap) int {
+	foundPort := 0
+	candidatePort := requestedPort
+	for foundPort == 0 {
+		_, exists := usedPorts[candidatePort]
 		if exists {
-			if port_debug {
-				fmt.Printf("- port %d not free\n", candidate_port)
+			if portDebug {
+				fmt.Printf("- port %d not free\n", candidatePort)
 			}
 		} else {
-			found_port = candidate_port
+			foundPort = candidatePort
 		}
-		candidate_port += 1
-		if candidate_port > MaxAllowedPort {
-			Exit(1, fmt.Sprintf("FATAL (FindFreePortSingle): Could not find a free port starting at %d.", requested_port),
+		candidatePort += 1
+		if candidatePort > MaxAllowedPort {
+			Exit(1, fmt.Sprintf("FATAL (FindFreePortSingle): Could not find a free port starting at %d.", requestedPort),
 				fmt.Sprintf("Maximum limit for port value (%d) reached", MaxAllowedPort))
 		}
 	}
-	return found_port
+	return foundPort
 }
 
-// Finds the a range of how_many free ports available, starting at
-// base_port.
-// used_ports is a map of ports already used by other sandboxes.
+// Finds the a range of howMany free ports available, starting at
+// basePort.
+// usedPorts is a map of ports already used by other sandboxes.
 // This function should not be used alone, but through FindFreePort
 // Returns the first port of the requested range
-func FindFreePortRange(base_port int, used_ports PortMap, how_many int) int {
-	var found_port int = 0
-	requested_port := base_port
-	candidate_port := requested_port
+func FindFreePortRange(basePort int, usedPorts PortMap, howMany int) int {
+	var foundPort int = 0
+	requestedPort := basePort
+	candidatePort := requestedPort
 	counter := 0
-	for found_port == 0 {
-		num_ports := 0
-		for counter < how_many {
-			_, exists := used_ports[candidate_port+counter]
+	for foundPort == 0 {
+		numPorts := 0
+		for counter < howMany {
+			_, exists := usedPorts[candidatePort+counter]
 			if exists {
-				if port_debug {
-					fmt.Printf("- port %d is not free\n", candidate_port+counter)
+				if portDebug {
+					fmt.Printf("- port %d is not free\n", candidatePort+counter)
 				}
-				candidate_port += 1
+				candidatePort += 1
 				counter = 0
-				num_ports = 0
+				numPorts = 0
 				continue
 			} else {
-				if port_debug {
-					fmt.Printf("+ port %d is free\n", candidate_port+counter)
+				if portDebug {
+					fmt.Printf("+ port %d is free\n", candidatePort+counter)
 				}
-				num_ports += 1
+				numPorts += 1
 			}
 			counter++
-			if candidate_port > MaxAllowedPort {
-				Exit(1, fmt.Sprintf("FATAL (FindFreePortRange): Could not find a free range of %d ports starting at %d.", how_many, requested_port),
+			if candidatePort > MaxAllowedPort {
+				Exit(1, fmt.Sprintf("FATAL (FindFreePortRange): Could not find a free range of %d ports starting at %d.", howMany, requestedPort),
 					fmt.Sprintf("Maximum limit for port value (%d) reached", MaxAllowedPort))
 			}
 		}
-		if num_ports == how_many {
-			found_port = candidate_port
+		if numPorts == howMany {
+			foundPort = candidatePort
 		} else {
 			Exit(1, "FATAL: FindFreePortRange should never reach this point",
-				fmt.Sprintf("requested: %d - used: %v - candidate: %d", requested_port, used_ports, candidate_port))
+				fmt.Sprintf("requested: %d - used: %v - candidate: %d", requestedPort, usedPorts, candidatePort))
 		}
 	}
-	return found_port
+	return foundPort
 }
 
-// Finds the a range of how_many free ports available, starting at
-// base_port.
-// installed_ports is a slice of ports already used by other sandboxes.
+// Finds the a range of howMany free ports available, starting at
+// basePort.
+// installedPorts is a slice of ports already used by other sandboxes.
 // Calls either FindFreePortRange or FindFreePortSingle, depending on the
 // amount of ports requested
 // Returns the first port of the requested range
-func FindFreePort(base_port int, installed_ports []int, how_many int) int {
-	if port_debug {
-		fmt.Printf("FindFreePort: requested: %d - used: %v - how_many: %d\n", base_port, installed_ports, how_many)
+func FindFreePort(basePort int, installedPorts []int, howMany int) int {
+	if portDebug {
+		fmt.Printf("FindFreePort: requested: %d - used: %v - howMany: %d\n", basePort, installedPorts, howMany)
 	}
-	used_ports := make(PortMap)
+	usedPorts := make(PortMap)
 
-	for _, p := range installed_ports {
-		used_ports[p] = true
+	for _, p := range installedPorts {
+		usedPorts[p] = true
 	}
-	if how_many == 1 {
-		return FindFreePortSingle(base_port, used_ports)
+	if howMany == 1 {
+		return FindFreePortSingle(basePort, usedPorts)
 	}
-	return FindFreePortRange(base_port, used_ports, how_many)
+	return FindFreePortRange(basePort, usedPorts, howMany)
 }

@@ -70,7 +70,7 @@ const (
 
 var Verbose int
 
-func cond_print(s string, nl bool, level int) {
+func condPrint(s string, nl bool, level int) {
 	if Verbose >= level {
 		if nl {
 			fmt.Println(s)
@@ -89,15 +89,15 @@ func validSuffix(filename string) bool {
 	return false
 }
 
-func UnpackTar(filename string, destination string, verbosity_level int) (err error) {
-	Verbose = verbosity_level
+func UnpackTar(filename string, destination string, verbosityLevel int) (err error) {
+	Verbose = verbosityLevel
 	f, err := os.Stat(destination)
 	if os.IsNotExist(err) {
-		return fmt.Errorf("Destination directory '%s' does not exist", destination)
+		return fmt.Errorf("destination directory '%s' does not exist", destination)
 	}
 	filemode := f.Mode()
 	if filemode.IsDir() == false {
-		return fmt.Errorf("Destination '%s' is not a directory", destination)
+		return fmt.Errorf("destination '%s' is not a directory", destination)
 	}
 	if !validSuffix(filename) {
 		return fmt.Errorf("unrecognized archive suffix")
@@ -132,8 +132,8 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 	for {
 		if header, err = reader.Next(); err != nil {
 			if err == io.EOF {
-				cond_print("Files ", false, CHATTY)
-				cond_print(strconv.Itoa(count), true, 1)
+				condPrint("Files ", false, CHATTY)
+				condPrint(strconv.Itoa(count), true, 1)
 				return nil // OK
 			}
 			return err
@@ -183,7 +183,7 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 			if err = os.MkdirAll(fileDir, 0755); err != nil {
 				return err
 			}
-			cond_print(" + "+fileDir+" ", true, CHATTY)
+			condPrint(" + "+fileDir+" ", true, CHATTY)
 		}
 		if header.Typeflag == 0 {
 			header.Typeflag = tar.TypeReg
@@ -199,19 +199,19 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 			}
 			os.Chmod(filename, filemode)
 			count++
-			cond_print(filename, true, CHATTY)
+			condPrint(filename, true, CHATTY)
 			if count%10 == 0 {
 				mark := "."
 				if count%100 == 0 {
 					mark = strconv.Itoa(count)
 				}
 				if Verbose < CHATTY {
-					cond_print(mark, false, 1)
+					condPrint(mark, false, 1)
 				}
 			}
 		case tar.TypeSymlink:
 			if header.Linkname != "" {
-				cond_print(fmt.Sprintf("%s -> %s", filename, header.Linkname), true, CHATTY)
+				condPrint(fmt.Sprintf("%s -> %s", filename, header.Linkname), true, CHATTY)
 				err := os.Symlink(header.Linkname, filename)
 				if err != nil {
 					common.Exit(1,

@@ -80,7 +80,7 @@ func startTask(num int, w *sync.WaitGroup, tasks CommonChan) {
 
 // Run several tasks in parallel
 
-func RunParallelTasks(priority_level int, operations ExecCommands) {
+func RunParallelTasks(priorityLevel int, operations ExecCommands) {
 	tasks := make(CommonChan, 64)
 
 	var wg sync.WaitGroup
@@ -91,7 +91,7 @@ func RunParallelTasks(priority_level int, operations ExecCommands) {
 	close(tasks)
 	wg.Wait()
 	if VerboseConcurrency {
-		fmt.Printf("#%d\n", priority_level)
+		fmt.Printf("#%d\n", priorityLevel)
 	}
 }
 
@@ -132,22 +132,22 @@ func RunParallelTasks(priority_level int, operations ExecCommands) {
 	}
 */
 
-func RunParallelTasksByPriority(exec_lists []ExecutionList) {
+func RunParallelTasksByPriority(execLists []ExecutionList) {
 	maxPriority := 0
-	if len(exec_lists) == 0 {
+	if len(execLists) == 0 {
 		return
 	}
 	if DebugConcurrency {
-		fmt.Printf("RunParallelTasksByPriority exec_list %#v\n", exec_lists)
+		fmt.Printf("RunParallelTasksByPriority exec_list %#v\n", execLists)
 	}
-	for _, list := range exec_lists {
+	for _, list := range execLists {
 		if list.Priority > maxPriority {
 			maxPriority = list.Priority
 		}
 	}
 	for N := 0; N <= maxPriority; N++ {
 		var operations ExecCommands
-		for _, list := range exec_lists {
+		for _, list := range execLists {
 			if list.Priority == N {
 				operations = append(operations, list.Command)
 				if list.Command.Tracer != nil {

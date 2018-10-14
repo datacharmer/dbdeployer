@@ -55,35 +55,35 @@ func TestStack(t *testing.T) {
 		b bool
 	}
 
-	empty_size := 0
-	small_size := 1
-	long_size := 10000
-	first_value := 0
-	last_value := long_size - 1
-	int_value := 1234
+	emptySize := 0
+	smallSize := 1
+	longSize := 10000
+	firstValue := 0
+	lastValue := longSize - 1
+	intValue := 1234
 	stack := NewStack()
-	stack.Push(int_value)
-	okEqualInt("size full", stack.Len(), small_size, t)
+	stack.Push(intValue)
+	okEqualInt("size full", stack.Len(), smallSize, t)
 	x := stack.Pop().(int)
-	okEqualInt("value x", x, int_value, t)
-	okEqualInt("size empty", stack.Len(), empty_size, t)
+	okEqualInt("value x", x, intValue, t)
+	okEqualInt("size empty", stack.Len(), emptySize, t)
 
-	for N := 0; N < long_size; N++ {
+	for N := 0; N < longSize; N++ {
 		stack.Push(N) // last one is 99
 	}
-	okEqualInt("size full", stack.Len(), long_size, t)
+	okEqualInt("size full", stack.Len(), longSize, t)
 	x = stack.Top().(int)
-	okEqualInt("value x (Top)", x, last_value, t)
+	okEqualInt("value x (Top)", x, lastValue, t)
 	x = stack.Bottom().(int)
-	okEqualInt("value x (Bottom)", x, first_value, t)
+	okEqualInt("value x (Bottom)", x, firstValue, t)
 	x = stack.Pop().(int)
-	okEqualInt("value x (Pop)", x, last_value, t)
-	okEqualInt("size after pop", stack.Len(), last_value, t)
+	okEqualInt("value x (Pop)", x, lastValue, t)
+	okEqualInt("size after pop", stack.Len(), lastValue, t)
 	for stack.Len() > 0 {
 		stack.Pop()
 	}
-	okEqualInt("size empty", stack.Len(), empty_size, t)
-	for N := 0; N < long_size; N++ {
+	okEqualInt("size empty", stack.Len(), emptySize, t)
+	for N := 0; N < longSize; N++ {
 		odd := true
 		if N%2 == 0 {
 			odd = false
@@ -91,24 +91,24 @@ func TestStack(t *testing.T) {
 		c := compound{N, fmt.Sprintf("str%d", N), odd}
 		stack.Push(c)
 	}
-	okEqualInt("size full", stack.Len(), long_size, t)
+	okEqualInt("size full", stack.Len(), longSize, t)
 	c := stack.Top().(compound)
-	okEqualInt("value c.i (Top)", c.i, last_value, t)
-	okEqualString("value c.s (Top)", c.s, fmt.Sprintf("str%d", last_value), t)
+	okEqualInt("value c.i (Top)", c.i, lastValue, t)
+	okEqualString("value c.s (Top)", c.s, fmt.Sprintf("str%d", lastValue), t)
 	okEqualBool("value c.b (Top)", c.b, true, t)
 
 	c = stack.Bottom().(compound)
-	okEqualInt("value c.i (Bottom)", c.i, first_value, t)
-	okEqualString("value c.s (Bottom)", c.s, fmt.Sprintf("str%d", first_value), t)
+	okEqualInt("value c.i (Bottom)", c.i, firstValue, t)
+	okEqualString("value c.s (Bottom)", c.s, fmt.Sprintf("str%d", firstValue), t)
 	okEqualBool("value c.b (Bottom)", c.b, false, t)
 	c = stack.Pop().(compound)
-	okEqualInt("value c.i (Pop)", c.i, last_value, t)
-	okEqualString("value c.s (Pop)", c.s, fmt.Sprintf("str%d", last_value), t)
+	okEqualInt("value c.i (Pop)", c.i, lastValue, t)
+	okEqualString("value c.s (Pop)", c.s, fmt.Sprintf("str%d", lastValue), t)
 	okEqualBool("value c.b (Pop)", c.b, true, t)
 	c = stack.Pop().(compound)
-	okEqualInt("value c.i", c.i, last_value-1, t)
-	okEqualString("value c.s ", c.s, fmt.Sprintf("str%d", last_value-1), t)
+	okEqualInt("value c.i", c.i, lastValue-1, t)
+	okEqualString("value c.s ", c.s, fmt.Sprintf("str%d", lastValue-1), t)
 	okEqualBool("value c.b", c.b, false, t)
 	stack.Reset()
-	okEqualInt("size after Reset", stack.Len(), empty_size, t)
+	okEqualInt("size after Reset", stack.Len(), emptySize, t)
 }

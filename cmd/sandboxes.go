@@ -24,9 +24,9 @@ import (
 	"strings"
 )
 
-func ShowSandboxesFromCatalog(current_sandbox_home string, header bool) {
-	sandbox_list := defaults.ReadCatalog()
-	if len(sandbox_list) == 0 {
+func ShowSandboxesFromCatalog(currentSandboxHome string, header bool) {
+	sandboxList := defaults.ReadCatalog()
+	if len(sandboxList) == 0 {
 		return
 	}
 	template := "%-25s %-10s %-20s %5v %-25s %s \n"
@@ -34,14 +34,14 @@ func ShowSandboxesFromCatalog(current_sandbox_home string, header bool) {
 		fmt.Printf(template, "name", "version", "type", "nodes", "ports", "")
 		fmt.Printf(template, "----", "-------", "-----", "-----", "-----", "")
 	}
-	for name, contents := range sandbox_list {
+	for name, contents := range sandboxList {
 		ports := "["
 		for _, p := range contents.Port {
 			ports += fmt.Sprintf("%d ", p)
 		}
 		ports += "]"
 		extra := ""
-		if !strings.HasPrefix(contents.Destination, current_sandbox_home) {
+		if !strings.HasPrefix(contents.Destination, currentSandboxHome) {
 			extra = "(" + common.DirName(contents.Destination) + ")"
 		}
 		fmt.Printf(template, common.BaseName(name), contents.Version, contents.SBType, len(contents.Nodes), ports, extra)
@@ -52,15 +52,15 @@ func ShowSandboxesFromCatalog(current_sandbox_home string, header bool) {
 func ShowSandboxes(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	SandboxHome, _ := flags.GetString(defaults.SandboxHomeLabel)
-	read_catalog, _ := flags.GetBool(defaults.CatalogLabel)
-	use_header, _ := flags.GetBool(defaults.HeaderLabel)
-	if read_catalog {
-		ShowSandboxesFromCatalog(SandboxHome, use_header)
+	readCatalog, _ := flags.GetBool(defaults.CatalogLabel)
+	useHeader, _ := flags.GetBool(defaults.HeaderLabel)
+	if readCatalog {
+		ShowSandboxesFromCatalog(SandboxHome, useHeader)
 		return
 	}
-	sandbox_list := common.GetInstalledSandboxes(SandboxHome)
+	sandboxList := common.GetInstalledSandboxes(SandboxHome)
 	var dirs []string
-	for _, sbinfo := range sandbox_list {
+	for _, sbinfo := range sandboxList {
 		//fname := f.Name()
 		//fmode := f.Mode()
 		//if fmode.IsDir() {
@@ -74,26 +74,26 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 				locked = "(LOCKED)"
 			}
 			if sbd.Nodes == 0 {
-				port_text := ""
+				portText := ""
 				for _, p := range sbd.Port {
-					if port_text != "" {
-						port_text += " "
+					if portText != "" {
+						portText += " "
 					}
-					port_text += fmt.Sprintf("%d", p)
+					portText += fmt.Sprintf("%d", p)
 				}
-				description = fmt.Sprintf("%-20s %10s [%s]", sbd.SBType, sbd.Version, port_text)
+				description = fmt.Sprintf("%-20s %10s [%s]", sbd.SBType, sbd.Version, portText)
 			} else {
-				var node_descr []common.SandboxDescription
-				inner_files := common.SandboxInfoToFileNames(common.GetInstalledSandboxes(SandboxHome + "/" + fname))
-				for _, inner := range inner_files {
-					inner_sbdesc := SandboxHome + "/" + fname + "/" + inner + "/sbdescription.json"
-					if common.FileExists(inner_sbdesc) {
-						sd_node := common.ReadSandboxDescription(fmt.Sprintf("%s/%s/%s", SandboxHome, fname, inner))
-						node_descr = append(node_descr, sd_node)
+				var nodeDescr []common.SandboxDescription
+				innerFiles := common.SandboxInfoToFileNames(common.GetInstalledSandboxes(SandboxHome + "/" + fname))
+				for _, inner := range innerFiles {
+					innerSbdesc := SandboxHome + "/" + fname + "/" + inner + "/sbdescription.json"
+					if common.FileExists(innerSbdesc) {
+						sdNode := common.ReadSandboxDescription(fmt.Sprintf("%s/%s/%s", SandboxHome, fname, inner))
+						nodeDescr = append(nodeDescr, sdNode)
 					}
 				}
 				ports := ""
-				for _, nd := range node_descr {
+				for _, nd := range nodeDescr {
 					for _, p := range nd.Port {
 						if ports != "" {
 							ports += " "
@@ -107,30 +107,30 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 			dirs = append(dirs, fmt.Sprintf("%-25s : %s %s", fname, description, locked))
 		} else {
 			locked := ""
-			no_clear := SandboxHome + "/" + fname + "/no_clear"
-			no_clear_all := SandboxHome + "/" + fname + "/no_clear_all"
+			noClear := SandboxHome + "/" + fname + "/no_clear"
+			noClearAll := SandboxHome + "/" + fname + "/no_clear_all"
 			start := SandboxHome + "/" + fname + "/start"
-			start_all := SandboxHome + "/" + fname + "/start_all"
-			initialize_slaves := SandboxHome + "/" + fname + "/initialize_slaves"
-			initialize_nodes := SandboxHome + "/" + fname + "/initialize_nodes"
-			if common.FileExists(no_clear) || common.FileExists(no_clear_all) {
+			startAll := SandboxHome + "/" + fname + "/start_all"
+			initializeSlaves := SandboxHome + "/" + fname + "/initialize_slaves"
+			initializeNodes := SandboxHome + "/" + fname + "/initialize_nodes"
+			if common.FileExists(noClear) || common.FileExists(noClearAll) {
 				locked = "(LOCKED)"
 			}
-			if common.FileExists(start_all) {
+			if common.FileExists(startAll) {
 				description = "multiple sandbox"
 			}
-			if common.FileExists(initialize_slaves) {
+			if common.FileExists(initializeSlaves) {
 				description = "master-slave replication"
 			}
-			if common.FileExists(initialize_nodes) {
+			if common.FileExists(initializeNodes) {
 				description = "group replication"
 			}
-			if common.FileExists(start) || common.FileExists(start_all) {
+			if common.FileExists(start) || common.FileExists(startAll) {
 				dirs = append(dirs, fmt.Sprintf("%-20s : *%s* %s ", fname, description, locked))
 			}
 		}
 	}
-	if use_header {
+	if useHeader {
 		//           1         2         3         4         5         6         7
 		//  12345678901234567890123456789012345678901234567890123456789012345678901234567890
 		//	fan_in_msb_5_7_21         : fan-in                   5.7.21 [14001 14002 14003]

@@ -31,8 +31,8 @@ var deployCmd = &cobra.Command{
 }
 
 func init() {
-	mylogin_cnf := os.Getenv("HOME") + "/.mylogin.cnf"
-	if common.FileExists(mylogin_cnf) {
+	myloginCnf := os.Getenv("HOME") + "/.mylogin.cnf"
+	if common.FileExists(myloginCnf) {
 		// dbdeployer is not compatible with .mylogin.cnf,
 		// as it bypasses --defaults-file and --no-defaults.
 		// See: https://dev.mysql.com/doc/refman/8.0/en/mysql-config-editor.html
@@ -59,26 +59,26 @@ func init() {
 	deployCmd.PersistentFlags().Bool(defaults.InitGeneralLogLabel, false, "uses general log during initialization (MySQL 5.1+)")
 	deployCmd.PersistentFlags().Bool(defaults.LogSBOperationsLabel, defaults.LogSBOperations, "Logs sandbox operations to a file")
 
-	set_pflag(deployCmd, defaults.LogLogDirectoryLabel, "", "", defaults.Defaults().LogDirectory, "Where to store dbdeployer logs", false)
-	set_pflag(deployCmd, defaults.RemoteAccessLabel, "", "", defaults.RemoteAccessValue, "defines the database access ", false)
-	set_pflag(deployCmd, defaults.BindAddressLabel, "", "", defaults.BindAddressValue, "defines the database bind-address ", false)
-	set_pflag(deployCmd, defaults.CustomMysqldLabel, "", "", "", "Uses an alternative mysqld (must be in the same directory as regular mysqld)", false)
-	set_pflag(deployCmd, defaults.BinaryVersionLabel, "", "", "", "Specifies the version when the basedir directory name does not contain it (i.e. it is not x.x.xx)", false)
-	set_pflag(deployCmd, defaults.DefaultsLabel, "", "", "", "Change defaults on-the-fly (--defaults=label:value)", true)
-	set_pflag(deployCmd, defaults.InitOptionsLabel, "i", "INIT_OPTIONS", "", "mysqld options to run during initialization", true)
-	set_pflag(deployCmd, defaults.MyCnfOptionsLabel, "c", "MY_CNF_OPTIONS", "", "mysqld options to add to my.sandbox.cnf", true)
-	set_pflag(deployCmd, defaults.PreGrantsSqlFileLabel, "", "", "", "SQL file to run before loading grants", false)
-	set_pflag(deployCmd, defaults.PreGrantsSqlLabel, "", "", "", "SQL queries to run before loading grants", true)
-	set_pflag(deployCmd, defaults.PostGrantsSqlLabel, "", "", "", "SQL queries to run after loading grants", true)
-	set_pflag(deployCmd, defaults.PostGrantsSqlFileLabel, "", "", "", "SQL file to run after loading grants", false)
+	setPflag(deployCmd, defaults.LogLogDirectoryLabel, "", "", defaults.Defaults().LogDirectory, "Where to store dbdeployer logs", false)
+	setPflag(deployCmd, defaults.RemoteAccessLabel, "", "", defaults.RemoteAccessValue, "defines the database access ", false)
+	setPflag(deployCmd, defaults.BindAddressLabel, "", "", defaults.BindAddressValue, "defines the database bind-address ", false)
+	setPflag(deployCmd, defaults.CustomMysqldLabel, "", "", "", "Uses an alternative mysqld (must be in the same directory as regular mysqld)", false)
+	setPflag(deployCmd, defaults.BinaryVersionLabel, "", "", "", "Specifies the version when the basedir directory name does not contain it (i.e. it is not x.x.xx)", false)
+	setPflag(deployCmd, defaults.DefaultsLabel, "", "", "", "Change defaults on-the-fly (--defaults=label:value)", true)
+	setPflag(deployCmd, defaults.InitOptionsLabel, "i", "INIT_OPTIONS", "", "mysqld options to run during initialization", true)
+	setPflag(deployCmd, defaults.MyCnfOptionsLabel, "c", "MY_CNF_OPTIONS", "", "mysqld options to add to my.sandbox.cnf", true)
+	setPflag(deployCmd, defaults.PreGrantsSqlFileLabel, "", "", "", "SQL file to run before loading grants", false)
+	setPflag(deployCmd, defaults.PreGrantsSqlLabel, "", "", "", "SQL queries to run before loading grants", true)
+	setPflag(deployCmd, defaults.PostGrantsSqlLabel, "", "", "", "SQL queries to run after loading grants", true)
+	setPflag(deployCmd, defaults.PostGrantsSqlFileLabel, "", "", "", "SQL file to run after loading grants", false)
 	// This option will allow to merge the template with an external my.cnf
 	// The options that are essential for the sandbox will be preserved
-	set_pflag(deployCmd, defaults.MyCnfFileLabel, "", "MY_CNF_FILE", "", "Alternative source file for my.sandbox.cnf", false)
-	set_pflag(deployCmd, defaults.DbUserLabel, "u", "", defaults.DbUserValue, "database user", false)
-	set_pflag(deployCmd, defaults.RplUserLabel, "", "", defaults.RplUserValue, "replication user", false)
-	set_pflag(deployCmd, defaults.DbPasswordLabel, "p", "", defaults.DbPasswordValue, "database password", false)
-	set_pflag(deployCmd, defaults.RplPasswordLabel, "", "", defaults.RplPasswordValue, "replication password", false)
-	set_pflag(deployCmd, defaults.UseTemplateLabel, "", "", "", "[template_name:file_name] Replace existing template with one from file", true)
-	set_pflag(deployCmd, defaults.SandboxDirectoryLabel, "", "", "", "Changes the default sandbox directory", false)
-	set_pflag(deployCmd, defaults.HistoryDirLabel, "", "", "", "Where to store mysql client history (default: in sandbox directory)", false)
+	setPflag(deployCmd, defaults.MyCnfFileLabel, "", "MY_CNF_FILE", "", "Alternative source file for my.sandbox.cnf", false)
+	setPflag(deployCmd, defaults.DbUserLabel, "u", "", defaults.DbUserValue, "database user", false)
+	setPflag(deployCmd, defaults.RplUserLabel, "", "", defaults.RplUserValue, "replication user", false)
+	setPflag(deployCmd, defaults.DbPasswordLabel, "p", "", defaults.DbPasswordValue, "database password", false)
+	setPflag(deployCmd, defaults.RplPasswordLabel, "", "", defaults.RplPasswordValue, "replication password", false)
+	setPflag(deployCmd, defaults.UseTemplateLabel, "", "", "", "[template_name:file_name] Replace existing template with one from file", true)
+	setPflag(deployCmd, defaults.SandboxDirectoryLabel, "", "", "", "Changes the default sandbox directory", false)
+	setPflag(deployCmd, defaults.HistoryDirLabel, "", "", "", "Where to store mysql client history (default: in sandbox directory)", false)
 }

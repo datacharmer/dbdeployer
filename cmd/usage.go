@@ -22,7 +22,7 @@ import (
 )
 
 func ShowUsage(cmd *cobra.Command, args []string) {
-	const basic_usage string = `
+	const basicUsage string = `
 	USING A SANDBOX
 
 Change directory to the newly created one (default: $SANDBOX_HOME/msb_VERSION 
@@ -76,7 +76,7 @@ if mysqlsh was installed, with preference to the binaries found in "basedir".
 This script is created only if the X plugin was enabled (5.7.12+ with --enable-mysqlx
 or 8.0.11+ without --disable-mysqlx)
 `
-	const multiple_usage string = ` USING MULTIPLE SERVER SANDBOX
+	const multipleUsage string = ` USING MULTIPLE SERVER SANDBOX
 On a replication sandbox, you have the same commands (run "dbdeployer usage single"), 
 with an "_all" suffix, meaning that you propagate the command to all the members. 
 Then you have "./m" as a shortcut to use the master, "./s1" and "./s2" to access 
@@ -104,12 +104,12 @@ The scripts "check_slaves" or "check_nodes" give the status of replication in th
 	}
 	switch request {
 	case "single":
-		fmt.Println(basic_usage)
+		fmt.Println(basicUsage)
 	case "multiple":
-		fmt.Println(multiple_usage)
+		fmt.Println(multipleUsage)
 	default:
-		fmt.Println(basic_usage)
-		fmt.Println(multiple_usage)
+		fmt.Println(basicUsage)
+		fmt.Println(multipleUsage)
 	}
 }
 

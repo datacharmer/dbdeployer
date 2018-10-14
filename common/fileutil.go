@@ -59,13 +59,13 @@ type ConfigOptions map[string][]KeyValue
 var CommandLineArgs []string
 
 func LogDirName() string {
-	log_dir_name := ""
+	logDirName := ""
 	topology := ""
-	name_qualifier := ""
-	use_replication := false
-	re_topology := regexp.MustCompile(`^--topology\s*=\s*(\S+)`)
-	re_single_primary := regexp.MustCompile(`^--single-primary`)
-	re_unwanted_chars := regexp.MustCompile(`[- ./()\[\]]`)
+	nameQualifier := ""
+	useReplication := false
+	reTopology := regexp.MustCompile(`^--topology\s*=\s*(\S+)`)
+	reSinglePrimary := regexp.MustCompile(`^--single-primary`)
+	reUnwantedChars := regexp.MustCompile(`[- ./()\[\]]`)
 	for _, arg := range CommandLineArgs {
 		if arg == "dbdeployer" || arg == "deploy" {
 			continue
@@ -74,63 +74,63 @@ func LogDirName() string {
 			if topology == "" {
 				topology = "master-slave"
 			}
-			use_replication = true
+			useReplication = true
 		}
 		if Includes(arg, `^--`) {
-			find_topology := re_topology.FindAllStringSubmatch(arg, -1)
-			if len(find_topology) > 0 {
-				topology = find_topology[0][1]
+			findTopology := reTopology.FindAllStringSubmatch(arg, -1)
+			if len(findTopology) > 0 {
+				topology = findTopology[0][1]
 			}
-			if re_single_primary.MatchString(arg) {
-				name_qualifier = "sp"
+			if reSinglePrimary.MatchString(arg) {
+				nameQualifier = "sp"
 			}
 		} else {
-			if log_dir_name != "" {
-				log_dir_name += "_"
+			if logDirName != "" {
+				logDirName += "_"
 			}
-			log_dir_name += arg
+			logDirName += arg
 		}
 	}
-	if !use_replication {
+	if !useReplication {
 		topology = ""
-		name_qualifier = ""
+		nameQualifier = ""
 	}
 	if topology != "" {
-		log_dir_name += "_" + topology
+		logDirName += "_" + topology
 	}
-	if name_qualifier != "" {
-		log_dir_name += "_" + name_qualifier
+	if nameQualifier != "" {
+		logDirName += "_" + nameQualifier
 	}
 	PID := os.Getpid()
-	log_dir_name = re_unwanted_chars.ReplaceAllString(log_dir_name, "_")
-	log_dir_name = fmt.Sprintf("%s-%d", log_dir_name, PID)
-	return log_dir_name
+	logDirName = reUnwantedChars.ReplaceAllString(logDirName, "_")
+	logDirName = fmt.Sprintf("%s-%d", logDirName, PID)
+	return logDirName
 }
 
 func ParseConfigFile(filename string) ConfigOptions {
 	config := make(ConfigOptions)
 	lines := SlurpAsLines(filename)
-	re_comment := regexp.MustCompile(`^\s*#`)
-	re_empty := regexp.MustCompile(`^\s*$`)
-	re_header := regexp.MustCompile(`\[\s*(\w+)\s*\]`)
-	re_k_v := regexp.MustCompile(`(\S+)\s*=\s*(.*)`)
-	current_header := ""
+	reComment := regexp.MustCompile(`^\s*#`)
+	reEmpty := regexp.MustCompile(`^\s*$`)
+	reHeader := regexp.MustCompile(`\[\s*(\w+)\s*\]`)
+	reKeyValue := regexp.MustCompile(`(\S+)\s*=\s*(.*)`)
+	currentHeader := ""
 	for _, line := range lines {
-		if re_comment.MatchString(line) || re_empty.MatchString(line) {
+		if reComment.MatchString(line) || reEmpty.MatchString(line) {
 			continue
 		}
-		headerList := re_header.FindAllStringSubmatch(line, -1)
+		headerList := reHeader.FindAllStringSubmatch(line, -1)
 		if headerList != nil {
 			header := headerList[0][1]
-			current_header = header
+			currentHeader = header
 		}
-		kvList := re_k_v.FindAllStringSubmatch(line, -1)
+		kvList := reKeyValue.FindAllStringSubmatch(line, -1)
 		if kvList != nil {
 			kv := KeyValue{
 				Key:   kvList[0][1],
 				Value: kvList[0][2],
 			}
-			config[current_header] = append(config[current_header], kv)
+			config[currentHeader] = append(config[currentHeader], kv)
 		}
 	}
 	/*for header, kvList := range config {
@@ -149,16 +149,16 @@ func WriteSandboxDescription(destination string, sd SandboxDescription) {
 	sd.CommandLine = strings.Join(CommandLineArgs, " ")
 	b, err := json.MarshalIndent(sd, " ", "\t")
 	ErrCheckExitf(err, 1, "error encoding sandbox description: %s", err)
-	json_string := fmt.Sprintf("%s", b)
+	jsonString := fmt.Sprintf("%s", b)
 	filename := destination + "/sbdescription.json"
-	WriteString(json_string, filename)
+	WriteString(jsonString, filename)
 }
 
-func ReadSandboxDescription(sandbox_directory string) (sd SandboxDescription) {
-	filename := sandbox_directory + "/sbdescription.json"
-	sb_blob := SlurpAsBytes(filename)
+func ReadSandboxDescription(sandboxDirectory string) (sd SandboxDescription) {
+	filename := sandboxDirectory + "/sbdescription.json"
+	sbBlob := SlurpAsBytes(filename)
 
-	err := json.Unmarshal(sb_blob, &sd)
+	err := json.Unmarshal(sbBlob, &sd)
 	ErrCheckExitf(err, 1, "error decoding sandbox description: %s", err)
 	return
 }
@@ -259,7 +259,7 @@ func FindInPath(filename string) string {
 	return path
 }
 
-func Run_cmd_with_args(c string, args []string) (error, string) {
+func RunCmdWithArgs(c string, args []string) (error, string) {
 	cmd := exec.Command(c, args...)
 	//var out bytes.Buffer
 	//var stderr bytes.Buffer
@@ -281,7 +281,7 @@ func Run_cmd_with_args(c string, args []string) (error, string) {
 	return err, string(out)
 }
 
-func Run_cmd_ctrl(c string, silent bool) (error, string) {
+func RunCmdCtrl(c string, silent bool) (error, string) {
 	//cmd := exec.Command(c, args...)
 	cmd := exec.Command(c, "")
 	//var out bytes.Buffer
@@ -309,8 +309,8 @@ func Run_cmd_ctrl(c string, silent bool) (error, string) {
 	return err, string(out)
 }
 
-func Run_cmd(c string) (error, string) {
-	return Run_cmd_ctrl(c, false)
+func RunCmd(c string) (error, string) {
+	return RunCmdCtrl(c, false)
 }
 
 func CopyFile(source, destination string) {
@@ -343,17 +343,17 @@ func AbsolutePath(value string) string {
 	return filename
 }
 
-func Mkdir(dir_name string) {
-	err := os.Mkdir(dir_name, 0755)
-	ErrCheckExitf(err, 1, "Error creating directory %s\n%s\n", dir_name, err)
+func Mkdir(dirName string) {
+	err := os.Mkdir(dirName, 0755)
+	ErrCheckExitf(err, 1, "Error creating directory %s\n%s\n", dirName, err)
 }
 
-func Rmdir(dir_name string) {
-	err := os.Remove(dir_name)
-	ErrCheckExitf(err, 1, "Error removing directory %s\n%s\n", dir_name, err)
+func Rmdir(dirName string) {
+	err := os.Remove(dirName)
+	ErrCheckExitf(err, 1, "Error removing directory %s\n%s\n", dirName, err)
 }
 
-func RmdirAll(dir_name string) {
-	err := os.RemoveAll(dir_name)
-	ErrCheckExitf(err, 1, "Error deep-removing directory %s\n%s\n", dir_name, err)
+func RmdirAll(dirName string) {
+	err := os.RemoveAll(dirName)
+	ErrCheckExitf(err, 1, "Error deep-removing directory %s\n%s\n", dirName, err)
 }

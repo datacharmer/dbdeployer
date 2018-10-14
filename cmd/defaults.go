@@ -40,9 +40,9 @@ func LoadDefaults(cmd *cobra.Command, args []string) {
 		common.Exit(1, "'load' requires a file name")
 	}
 	filename := args[0]
-	new_defaults := defaults.ReadDefaultsFile(filename)
-	if defaults.ValidateDefaults(new_defaults) {
-		defaults.WriteDefaultsFile(defaults.ConfigurationFile, new_defaults)
+	newDefaults := defaults.ReadDefaultsFile(filename)
+	if defaults.ValidateDefaults(newDefaults) {
+		defaults.WriteDefaultsFile(defaults.ConfigurationFile, newDefaults)
 	} else {
 		return
 	}

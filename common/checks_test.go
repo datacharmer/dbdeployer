@@ -26,12 +26,12 @@ func TestIsVersion(t *testing.T) {
 		expected  bool
 	}
 	var data = []testVersion{
-		testVersion{"1.2.3", true},
-		testVersion{"abc1.2.3", true},
-		testVersion{"1.2", false},
-		testVersion{"1.2.3abc", false},
-		testVersion{"abc1.2", false},
-		testVersion{"11.22.30", true},
+		{"1.2.3", true},
+		{"abc1.2.3", true},
+		{"1.2", false},
+		{"1.2.3abc", false},
+		{"abc1.2", false},
+		{"11.22.30", true},
 	}
 	for _, tv := range data {
 		result := IsVersion(tv.candidate)
@@ -47,15 +47,15 @@ func TestFindFreePort(t *testing.T) {
 		expected  int
 	}
 	var data = []testFreePort{
-		testFreePort{usedPorts: []int{}, basePort: 5000, howMany: 1, expected: 5000},
-		testFreePort{usedPorts: []int{4999, 5001}, basePort: 5000, howMany: 1, expected: 5000},
-		testFreePort{usedPorts: []int{3306, 1186, 33060}, basePort: 5000, howMany: 1, expected: 5000},
-		testFreePort{usedPorts: []int{3306, 1186, 33060, 5000}, basePort: 5000, howMany: 1, expected: 5001},
-		testFreePort{usedPorts: []int{5000, 5001, 5002}, basePort: 5000, howMany: 1, expected: 5003},
-		testFreePort{usedPorts: []int{5000, 5001, 5002}, basePort: 5000, howMany: 3, expected: 5003},
-		testFreePort{usedPorts: []int{5000, 5001, 5002, 5005}, basePort: 5000, howMany: 3, expected: 5006},
-		testFreePort{usedPorts: []int{5000, 5001, 5002, 5006, 5007, 5008}, basePort: 5000, howMany: 3, expected: 5003},
-		testFreePort{usedPorts: []int{5000, 5001, 5002, 5006, 5007, 5008}, basePort: 5000, howMany: 4, expected: 5009},
+		{usedPorts: []int{}, basePort: 5000, howMany: 1, expected: 5000},
+		{usedPorts: []int{4999, 5001}, basePort: 5000, howMany: 1, expected: 5000},
+		{usedPorts: []int{3306, 1186, 33060}, basePort: 5000, howMany: 1, expected: 5000},
+		{usedPorts: []int{3306, 1186, 33060, 5000}, basePort: 5000, howMany: 1, expected: 5001},
+		{usedPorts: []int{5000, 5001, 5002}, basePort: 5000, howMany: 1, expected: 5003},
+		{usedPorts: []int{5000, 5001, 5002}, basePort: 5000, howMany: 3, expected: 5003},
+		{usedPorts: []int{5000, 5001, 5002, 5005}, basePort: 5000, howMany: 3, expected: 5006},
+		{usedPorts: []int{5000, 5001, 5002, 5006, 5007, 5008}, basePort: 5000, howMany: 3, expected: 5003},
+		{usedPorts: []int{5000, 5001, 5002, 5006, 5007, 5008}, basePort: 5000, howMany: 4, expected: 5009},
 	}
 	for _, d := range data {
 		result := FindFreePort(d.basePort, d.usedPorts, d.howMany)

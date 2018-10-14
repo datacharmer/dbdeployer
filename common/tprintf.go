@@ -51,12 +51,12 @@ func TemplateFill(tmpl string, data StringMap) string {
 
 	// Adds timestamp and version info
 	timestamp := time.Now()
-	_, time_stamp_exists := data["DateTime"]
-	_, version_exists := data["AppVersion"]
-	if !time_stamp_exists {
+	_, timeStampExists := data["DateTime"]
+	_, versionExists := data["AppVersion"]
+	if !timeStampExists {
 		data["DateTime"] = timestamp.Format(time.UnixDate)
 	}
-	if !version_exists {
+	if !versionExists {
 		data["AppVersion"] = VersionDef
 	}
 	// Creates a template

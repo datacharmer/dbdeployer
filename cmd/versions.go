@@ -41,16 +41,16 @@ func ShowVersions(cmd *cobra.Command, args []string) {
 			}
 		}
 	}
-	max_width := 80
-	max_len := 0
+	maxWidth := 80
+	maxLen := 0
 	for _, dir := range dirs {
-		if len(dir) > max_len {
-			max_len = len(dir)
+		if len(dir) > maxLen {
+			maxLen = len(dir)
 		}
 	}
 	fmt.Printf("Basedir: %s\n", Basedir)
-	columns := int(max_width / (max_len + 2))
-	mask := fmt.Sprintf("%%-%ds", max_len+2)
+	columns := int(maxWidth / (maxLen + 2))
+	mask := fmt.Sprintf("%%-%ds", maxLen+2)
 	count := 0
 	for _, dir := range dirs {
 		fmt.Printf(mask, dir)

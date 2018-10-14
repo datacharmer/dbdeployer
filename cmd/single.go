@@ -28,37 +28,37 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func replace_template(template_name string, file_name string) {
-	group, _, contents := FindTemplate(template_name)
-	if !common.FileExists(file_name) {
-		common.Exitf(1, "File %s not found\n", file_name)
+func replaceTemplate(templateName string, fileName string) {
+	group, _, contents := FindTemplate(templateName)
+	if !common.FileExists(fileName) {
+		common.Exitf(1, "File %s not found\n", fileName)
 	}
-	fmt.Printf("Replacing template %s.%s [%d chars] with contents of file %s\n", group, template_name, len(contents), file_name)
-	new_contents := common.SlurpAsString(file_name)
-	if len(new_contents) == 0 {
-		common.Exitf(1, "File %s is empty\n", file_name)
+	fmt.Printf("Replacing template %s.%s [%d chars] with contents of file %s\n", group, templateName, len(contents), fileName)
+	newContents := common.SlurpAsString(fileName)
+	if len(newContents) == 0 {
+		common.Exitf(1, "File %s is empty\n", fileName)
 	}
-	var new_rec sandbox.TemplateDesc = sandbox.TemplateDesc{
-		Description: sandbox.AllTemplates[group][template_name].Description,
-		Notes:       sandbox.AllTemplates[group][template_name].Notes,
-		Contents:    new_contents,
+	var newRec = sandbox.TemplateDesc{
+		Description: sandbox.AllTemplates[group][templateName].Description,
+		Notes:       sandbox.AllTemplates[group][templateName].Notes,
+		Contents:    newContents,
 	}
-	sandbox.AllTemplates[group][template_name] = new_rec
+	sandbox.AllTemplates[group][templateName] = newRec
 }
 
-func check_template_change_request(request string) (template_name, file_name string) {
+func checkTemplateChangeRequest(request string) (templateName, fileName string) {
 	re := regexp.MustCompile(`(\w+):(\S+)`)
 	reqList := re.FindAllStringSubmatch(request, -1)
 	if len(reqList) == 0 {
 		common.Exitf(1, "request '%s' invalid. Required format is 'template_name:file_name'", request)
 	}
-	template_name = reqList[0][1]
-	file_name = reqList[0][2]
+	templateName = reqList[0][1]
+	fileName = reqList[0][2]
 	return
 }
 
-func process_defaults(new_defaults []string) {
-	for _, nd := range new_defaults {
+func processDefaults(newDefaults []string) {
+	for _, nd := range newDefaults {
 		list := strings.Split(nd, ":")
 		if list != nil && len(list) == 2 {
 			label := list[0]
@@ -75,31 +75,31 @@ func GetAbsolutePathFromFlag(cmd *cobra.Command, name string) string {
 	return common.AbsolutePath(value)
 }
 
-func check_if_abridged_version(version, basedir string) string {
-	full_pattern := regexp.MustCompile(`\d\.\d+\.\d+$`)
-	if full_pattern.MatchString(version) {
+func checkIfAbridgedVersion(version, basedir string) string {
+	fullPattern := regexp.MustCompile(`\d\.\d+\.\d+$`)
+	if fullPattern.MatchString(version) {
 		return version
 	}
-	valid_pattern := regexp.MustCompile(`\d+\.\d+$`)
-	if !valid_pattern.MatchString(version) {
+	validPattern := regexp.MustCompile(`\d+\.\d+$`)
+	if !validPattern.MatchString(version) {
 		return version
 	}
-	full_version := common.LatestVersion(basedir, version)
-	if full_version == "" {
+	fullVersion := common.LatestVersion(basedir, version)
+	if fullVersion == "" {
 		common.Exitf(1, "FATAL: no full version found for %s in %s\n", version, basedir)
 	} else {
-		fmt.Printf("# %s => %s\n", version, full_version)
-		version = full_version
+		fmt.Printf("# %s => %s\n", version, fullVersion)
+		version = fullVersion
 	}
 	return version
 }
 
-func check_for_root_value(value, label, default_val string) {
+func checkForRootValue(value, label, defaultVal string) {
 	if value == "root" {
 		common.Exit(1, fmt.Sprintf("option --%s cannot be 'root'", label),
 			"The 'root' user will be initialized regardless,",
 			"using the same password defined for the default db-user.",
-			fmt.Sprintf("The default user for this option is '%s'.", default_val))
+			fmt.Sprintf("The default user for this option is '%s'.", defaultVal))
 	}
 }
 
@@ -108,34 +108,34 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 
 	flags := cmd.Flags()
 
-	log_sb_operations, _ := flags.GetBool(defaults.LogSBOperationsLabel)
-	defaults.LogSBOperations = log_sb_operations
+	logSbOperations, _ := flags.GetBool(defaults.LogSBOperationsLabel)
+	defaults.LogSBOperations = logSbOperations
 
-	log_dir := GetAbsolutePathFromFlag(cmd, defaults.LogLogDirectoryLabel)
-	if log_dir != "" {
-		defaults.UpdateDefaults(defaults.LogLogDirectoryLabel, log_dir, false)
+	logDir := GetAbsolutePathFromFlag(cmd, defaults.LogLogDirectoryLabel)
+	if logDir != "" {
+		defaults.UpdateDefaults(defaults.LogLogDirectoryLabel, logDir, false)
 	}
 
-	template_requests, _ := flags.GetStringSlice(defaults.UseTemplateLabel)
-	for _, request := range template_requests {
-		tname, fname := check_template_change_request(request)
-		replace_template(tname, fname)
+	templateRequests, _ := flags.GetStringSlice(defaults.UseTemplateLabel)
+	for _, request := range templateRequests {
+		tname, fname := checkTemplateChangeRequest(request)
+		replaceTemplate(tname, fname)
 	}
 
 	basedir := GetAbsolutePathFromFlag(cmd, defaults.SandboxBinaryLabel)
 
 	sd.BasedirName = args[0]
-	version_from_option := false
+	versionFromOption := false
 	sd.Version, _ = flags.GetString(defaults.BinaryVersionLabel)
 	if sd.Version == "" {
 		sd.Version = args[0]
-		old_version := sd.Version
-		sd.Version = check_if_abridged_version(sd.Version, basedir)
-		if old_version != sd.Version {
+		oldVersion := sd.Version
+		sd.Version = checkIfAbridgedVersion(sd.Version, basedir)
+		if oldVersion != sd.Version {
 			sd.BasedirName = sd.Version
 		}
 	} else {
-		version_from_option = true
+		versionFromOption = true
 	}
 
 	if common.DirExists(sd.BasedirName) {
@@ -143,19 +143,19 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 		sd.BasedirName = common.AbsolutePath(sd.BasedirName)
 		// fmt.Printf("OLD bd <%s> - v: <%s>\n",basedir, sd.Version )
 		target := sd.BasedirName
-		old_basedir := basedir
+		oldBasedir := basedir
 		basedir = common.DirName(sd.BasedirName)
-		if old_basedir != defaults.Defaults().SandboxBinary {
+		if oldBasedir != defaults.Defaults().SandboxBinary {
 			// basedir was set using either an environment variable
 			// or a command line option
-			if old_basedir != basedir {
+			if oldBasedir != basedir {
 				// The new basedir is different from the one given by command line or env
 				common.Exit(1, "The Sandbox Binary directory was set twice,",
-					fmt.Sprintf(" using conflicting values: '%s' and '%s' ", old_basedir, basedir))
+					fmt.Sprintf(" using conflicting values: '%s' and '%s' ", oldBasedir, basedir))
 			}
 		}
 		sd.BasedirName = common.BaseName(sd.BasedirName)
-		if !version_from_option {
+		if !versionFromOption {
 			sd.Version = sd.BasedirName
 		}
 		if !common.IsVersion(sd.Version) {
@@ -193,8 +193,8 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	}
 	sd.LoadGrants = true
 	sd.SkipStart, _ = flags.GetBool(defaults.SkipStartLabel)
-	skip_load_grants, _ := flags.GetBool(defaults.SkipLoadGrantsLabel)
-	if skip_load_grants || sd.SkipStart {
+	skipLoadGrants, _ := flags.GetBool(defaults.SkipLoadGrantsLabel)
+	if skipLoadGrants || sd.SkipStart {
 		sd.LoadGrants = false
 	}
 	sd.SkipReportHost, _ = flags.GetBool(defaults.SkipReportHostLabel)
@@ -206,8 +206,8 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	sd.DbPassword, _ = flags.GetString(defaults.DbPasswordLabel)
 	sd.RplUser, _ = flags.GetString(defaults.RplUserLabel)
 
-	check_for_root_value(sd.DbUser, defaults.DbUserLabel, defaults.DbUserValue)
-	check_for_root_value(sd.RplUser, defaults.RplUserLabel, defaults.RplUserValue)
+	checkForRootValue(sd.DbUser, defaults.DbUserLabel, defaults.DbUserValue)
+	checkForRootValue(sd.RplUser, defaults.RplUserLabel, defaults.RplUserValue)
 
 	sd.RplPassword, _ = flags.GetString(defaults.RplPasswordLabel)
 	sd.RemoteAccess, _ = flags.GetString(defaults.RemoteAccessLabel)
@@ -235,26 +235,26 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 		sd.RunConcurrently = true
 	}
 
-	new_defaults, _ := flags.GetStringSlice(defaults.DefaultsLabel)
-	process_defaults(new_defaults)
+	newDefaults, _ := flags.GetStringSlice(defaults.DefaultsLabel)
+	processDefaults(newDefaults)
 
 	var gtid bool
 	var master bool
-	var repl_crash_safe bool
+	var replCrashSafe bool
 	master, _ = flags.GetBool(defaults.MasterLabel)
 	gtid, _ = flags.GetBool(defaults.GtidLabel)
-	repl_crash_safe, _ = flags.GetBool(defaults.ReplCrashSafeLabel)
+	replCrashSafe, _ = flags.GetBool(defaults.ReplCrashSafeLabel)
 	if master {
 		sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 		sd.ServerId = sd.Port
 	}
 	if gtid {
-		template_name := "gtid_options_56"
+		templateName := "gtid_options_56"
 		if common.GreaterOrEqualVersion(sd.Version, []int{5, 7, 0}) {
-			template_name = "gtid_options_57"
+			templateName = "gtid_options_57"
 		}
 		if common.GreaterOrEqualVersion(sd.Version, []int{5, 6, 9}) {
-			sd.GtidOptions = sandbox.SingleTemplates[template_name].Contents
+			sd.GtidOptions = sandbox.SingleTemplates[templateName].Contents
 			sd.ReplCrashSafeOptions = sandbox.SingleTemplates["repl_crash_safe_options"].Contents
 			sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 			sd.ServerId = sd.Port
@@ -262,7 +262,7 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 			common.Exitf(1, "--%s requires version 5.6.9+", defaults.GtidLabel)
 		}
 	}
-	if repl_crash_safe && sd.ReplCrashSafeOptions == "" {
+	if replCrashSafe && sd.ReplCrashSafeOptions == "" {
 		if common.GreaterOrEqualVersion(sd.Version, []int{5, 6, 2}) {
 			sd.ReplCrashSafeOptions = sandbox.SingleTemplates["repl_crash_safe_options"].Contents
 		} else {

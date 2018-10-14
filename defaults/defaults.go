@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -64,21 +63,17 @@ type DbdeployerDefaults struct {
 }
 
 const (
-	min_port_value int = 11000
-	max_port_value int = 30000
-	LineLength     int = 80
+	minPortValue int = 11000
+	maxPortValue int = 30000
 )
 
 var (
-	home_dir                string = os.Getenv("HOME")
-	ConfigurationDir        string = home_dir + "/.dbdeployer"
+	homeDir                 string = os.Getenv("HOME")
+	ConfigurationDir        string = homeDir + "/.dbdeployer"
 	ConfigurationFile       string = ConfigurationDir + "/config.json"
 	CustomConfigurationFile string = ""
 	SandboxRegistry         string = ConfigurationDir + "/sandboxes.json"
 	SandboxRegistryLock     string = ConfigurationDir + "/sandboxes.lock"
-	StarLine                string = strings.Repeat("*", LineLength)
-	DashLine                string = strings.Repeat("-", LineLength)
-	HashLine                string = strings.Repeat("#", LineLength)
 	LogSBOperations         bool   = os.Getenv("DBDEPLOYER_LOGGING") != ""
 
 	// This variable is changed to true when the "cmd" package is activated,
@@ -89,12 +84,12 @@ var (
 
 	factoryDefaults = DbdeployerDefaults{
 		Version:       common.CompatibleVersion,
-		SandboxHome:   home_dir + "/sandboxes",
-		SandboxBinary: home_dir + "/opt/mysql",
+		SandboxHome:   homeDir + "/sandboxes",
+		SandboxBinary: homeDir + "/opt/mysql",
 
 		UseSandboxCatalog: true,
 		LogSBOperations:   false,
-		LogDirectory:      home_dir + "/sandboxes/logs",
+		LogDirectory:      homeDir + "/sandboxes/logs",
 		//UseConcurrency :			   true,
 		MasterSlaveBasePort:           11000,
 		GroupReplicationBasePort:      12000,
@@ -143,7 +138,7 @@ func Defaults() DbdeployerDefaults {
 }
 
 func ShowDefaults(defaults DbdeployerDefaults) {
-	defaults = replace_literal_env_values(defaults)
+	defaults = replaceLiteralEnvValues(defaults)
 	if common.FileExists(ConfigurationFile) {
 		fmt.Printf("# Configuration file: %s\n", ConfigurationFile)
 	} else {
@@ -155,18 +150,18 @@ func ShowDefaults(defaults DbdeployerDefaults) {
 }
 
 func WriteDefaultsFile(filename string, defaults DbdeployerDefaults) {
-	defaults = replace_literal_env_values(defaults)
-	defaults_dir := common.DirName(filename)
-	if !common.DirExists(defaults_dir) {
-		common.Mkdir(defaults_dir)
+	defaults = replaceLiteralEnvValues(defaults)
+	defaultsDir := common.DirName(filename)
+	if !common.DirExists(defaultsDir) {
+		common.Mkdir(defaultsDir)
 	}
 	b, err := json.MarshalIndent(defaults, " ", "\t")
 	common.ErrCheckExitf(err, 1, "error encoding defaults: %s", err)
-	json_string := fmt.Sprintf("%s", b)
-	common.WriteString(json_string, filename)
+	jsonString := fmt.Sprintf("%s", b)
+	common.WriteString(jsonString, filename)
 }
 
-func expand_environment_variables(defaults DbdeployerDefaults) DbdeployerDefaults {
+func expandEnvironmentVariables(defaults DbdeployerDefaults) DbdeployerDefaults {
 	defaults.SandboxHome = common.ReplaceEnvVar(defaults.SandboxHome, "HOME")
 	defaults.SandboxHome = common.ReplaceEnvVar(defaults.SandboxHome, "PWD")
 	defaults.SandboxBinary = common.ReplaceEnvVar(defaults.SandboxBinary, "HOME")
@@ -174,7 +169,7 @@ func expand_environment_variables(defaults DbdeployerDefaults) DbdeployerDefault
 	return defaults
 }
 
-func replace_literal_env_values(defaults DbdeployerDefaults) DbdeployerDefaults {
+func replaceLiteralEnvValues(defaults DbdeployerDefaults) DbdeployerDefaults {
 	defaults.SandboxHome = common.ReplaceLiteralEnvVar(defaults.SandboxHome, "HOME")
 	defaults.SandboxHome = common.ReplaceLiteralEnvVar(defaults.SandboxHome, "PWD")
 	defaults.SandboxBinary = common.ReplaceLiteralEnvVar(defaults.SandboxBinary, "HOME")
@@ -183,15 +178,15 @@ func replace_literal_env_values(defaults DbdeployerDefaults) DbdeployerDefaults 
 }
 
 func ReadDefaultsFile(filename string) (defaults DbdeployerDefaults) {
-	defaults_blob := common.SlurpAsBytes(filename)
+	defaultsBlob := common.SlurpAsBytes(filename)
 
-	err := json.Unmarshal(defaults_blob, &defaults)
+	err := json.Unmarshal(defaultsBlob, &defaults)
 	common.ErrCheckExitf(err, 1, "error decoding defaults: %s", err)
-	defaults = expand_environment_variables(defaults)
+	defaults = expandEnvironmentVariables(defaults)
 	return
 }
 
-func check_int(name string, val, min, max int) bool {
+func checkInt(name string, val, min, max int) bool {
 	if val >= min && val <= max {
 		return true
 	}
@@ -200,23 +195,23 @@ func check_int(name string, val, min, max int) bool {
 }
 
 func ValidateDefaults(nd DbdeployerDefaults) bool {
-	var all_ints bool
-	all_ints = check_int("master-slave-base-port", nd.MasterSlaveBasePort, min_port_value, max_port_value) &&
-		check_int("group-replication-base-port", nd.GroupReplicationBasePort, min_port_value, max_port_value) &&
-		check_int("group-replication-sp-base-port", nd.GroupReplicationSpBasePort, min_port_value, max_port_value) &&
-		check_int("multiple-base-port", nd.MultipleBasePort, min_port_value, max_port_value) &&
-		check_int("fan-in-base-port", nd.FanInReplicationBasePort, min_port_value, max_port_value) &&
-		check_int("all-masters-base-port", nd.AllMastersReplicationBasePort, min_port_value, max_port_value) &&
+	var allInts bool
+	allInts = checkInt("master-slave-base-port", nd.MasterSlaveBasePort, minPortValue, maxPortValue) &&
+		checkInt("group-replication-base-port", nd.GroupReplicationBasePort, minPortValue, maxPortValue) &&
+		checkInt("group-replication-sp-base-port", nd.GroupReplicationSpBasePort, minPortValue, maxPortValue) &&
+		checkInt("multiple-base-port", nd.MultipleBasePort, minPortValue, maxPortValue) &&
+		checkInt("fan-in-base-port", nd.FanInReplicationBasePort, minPortValue, maxPortValue) &&
+		checkInt("all-masters-base-port", nd.AllMastersReplicationBasePort, minPortValue, maxPortValue) &&
 		// check_int("galera-base-port", nd.GaleraBasePort, min_port_value, max_port_value) &&
 		// check_int("pxc-base-port", nd.PxcBasePort, min_port_value, max_port_value) &&
 		// check_int("ndb-base-port", nd.NdbBasePort, min_port_value, max_port_value) &&
-		check_int("group-port-delta", nd.GroupPortDelta, 101, 299)
-	check_int("mysqlx-port-delta", nd.MysqlXPortDelta, 2000, 15000)
-	if !all_ints {
+		checkInt("group-port-delta", nd.GroupPortDelta, 101, 299)
+	checkInt("mysqlx-port-delta", nd.MysqlXPortDelta, 2000, 15000)
+	if !allInts {
 		return false
 	}
-	var no_conflicts bool
-	no_conflicts = nd.MultipleBasePort != nd.GroupReplicationSpBasePort &&
+	var noConflicts bool
+	noConflicts = nd.MultipleBasePort != nd.GroupReplicationSpBasePort &&
 		nd.MultipleBasePort != nd.GroupReplicationBasePort &&
 		nd.MultipleBasePort != nd.MasterSlaveBasePort &&
 		nd.MultipleBasePort != nd.FanInReplicationBasePort &&
@@ -235,12 +230,12 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		// nd.MultiplePrefix != nd.GaleraPrefix &&
 		// nd.MultiplePrefix != nd.PxcPrefix &&
 		nd.SandboxHome != nd.SandboxBinary
-	if !no_conflicts {
+	if !noConflicts {
 		fmt.Printf("Conflicts found in defaults values:\n")
 		ShowDefaults(nd)
 		return false
 	}
-	all_strings := nd.SandboxPrefix != "" &&
+	allStrings := nd.SandboxPrefix != "" &&
 		nd.MasterSlavePrefix != "" &&
 		nd.MasterName != "" &&
 		nd.MasterAbbr != "" &&
@@ -252,7 +247,7 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		nd.MultiplePrefix != "" &&
 		nd.SandboxHome != "" &&
 		nd.SandboxBinary != ""
-	if !all_strings {
+	if !allStrings {
 		fmt.Printf("One or more empty values found in defaults\n")
 		ShowDefaults(nd)
 		return false
@@ -283,35 +278,35 @@ func strToSlice(label, s string) []int {
 	return intList
 }
 
-func UpdateDefaults(label, value string, store_defaults bool) {
-	new_defaults := Defaults()
+func UpdateDefaults(label, value string, storeDefaults bool) {
+	newDefaults := Defaults()
 	switch label {
 	case "version":
-		new_defaults.Version = value
+		newDefaults.Version = value
 	case "sandbox-home":
-		new_defaults.SandboxHome = value
+		newDefaults.SandboxHome = value
 	case "sandbox-binary":
-		new_defaults.SandboxBinary = value
+		newDefaults.SandboxBinary = value
 	case "use-sandbox-catalog":
-		new_defaults.UseSandboxCatalog = common.TextToBool(value)
+		newDefaults.UseSandboxCatalog = common.TextToBool(value)
 	case "log-sb-operations":
-		new_defaults.LogSBOperations = common.TextToBool(value)
+		newDefaults.LogSBOperations = common.TextToBool(value)
 	case "log-directory":
-		new_defaults.LogDirectory = value
+		newDefaults.LogDirectory = value
 	//case "use-concurrency":
 	//	new_defaults.UseConcurrency = common.TextToBool(value)
 	case "master-slave-base-port":
-		new_defaults.MasterSlaveBasePort = common.Atoi(value)
+		newDefaults.MasterSlaveBasePort = common.Atoi(value)
 	case "group-replication-base-port":
-		new_defaults.GroupReplicationBasePort = common.Atoi(value)
+		newDefaults.GroupReplicationBasePort = common.Atoi(value)
 	case "group-replication-sp-base-port":
-		new_defaults.GroupReplicationSpBasePort = common.Atoi(value)
+		newDefaults.GroupReplicationSpBasePort = common.Atoi(value)
 	case "multiple-base-port":
-		new_defaults.MultipleBasePort = common.Atoi(value)
+		newDefaults.MultipleBasePort = common.Atoi(value)
 	case "fan-in-base-port":
-		new_defaults.FanInReplicationBasePort = common.Atoi(value)
+		newDefaults.FanInReplicationBasePort = common.Atoi(value)
 	case "all-masters-base-port":
-		new_defaults.AllMastersReplicationBasePort = common.Atoi(value)
+		newDefaults.AllMastersReplicationBasePort = common.Atoi(value)
 	// case "ndb-base-port":
 	//	 new_defaults.NdbBasePort = common.Atoi(value)
 	// case "galera-base-port":
@@ -319,35 +314,35 @@ func UpdateDefaults(label, value string, store_defaults bool) {
 	// case "pxc-base-port":
 	//	 new_defaults.PxcBasePort = common.Atoi(value)
 	case "group-port-delta":
-		new_defaults.GroupPortDelta = common.Atoi(value)
+		newDefaults.GroupPortDelta = common.Atoi(value)
 	case "mysqlx-port-delta":
-		new_defaults.MysqlXPortDelta = common.Atoi(value)
+		newDefaults.MysqlXPortDelta = common.Atoi(value)
 	case "master-name":
-		new_defaults.MasterName = value
+		newDefaults.MasterName = value
 	case "master-abbr":
-		new_defaults.MasterAbbr = value
+		newDefaults.MasterAbbr = value
 	case "node-prefix":
-		new_defaults.NodePrefix = value
+		newDefaults.NodePrefix = value
 	case "slave-prefix":
-		new_defaults.SlavePrefix = value
+		newDefaults.SlavePrefix = value
 	case "slave-abbr":
-		new_defaults.SlaveAbbr = value
+		newDefaults.SlaveAbbr = value
 	case "sandbox-prefix":
-		new_defaults.SandboxPrefix = value
+		newDefaults.SandboxPrefix = value
 	case "master-slave-prefix":
-		new_defaults.MasterSlavePrefix = value
+		newDefaults.MasterSlavePrefix = value
 	case "group-prefix":
-		new_defaults.GroupPrefix = value
+		newDefaults.GroupPrefix = value
 	case "group-sp-prefix":
-		new_defaults.GroupSpPrefix = value
+		newDefaults.GroupSpPrefix = value
 	case "multiple-prefix":
-		new_defaults.MultiplePrefix = value
+		newDefaults.MultiplePrefix = value
 	case "fan-in-prefix":
-		new_defaults.FanInPrefix = value
+		newDefaults.FanInPrefix = value
 	case "all-masters-prefix":
-		new_defaults.AllMastersPrefix = value
+		newDefaults.AllMastersPrefix = value
 	case "reserved-ports":
-		new_defaults.ReservedPorts = strToSlice("reserved-ports", value)
+		newDefaults.ReservedPorts = strToSlice("reserved-ports", value)
 	// case "galera-prefix":
 	// 	new_defaults.GaleraPrefix = value
 	// case "pxc-prefix":
@@ -357,9 +352,9 @@ func UpdateDefaults(label, value string, store_defaults bool) {
 	default:
 		common.Exitf(1, "Unrecognized label %s", label)
 	}
-	if ValidateDefaults(new_defaults) {
-		currentDefaults = new_defaults
-		if store_defaults {
+	if ValidateDefaults(newDefaults) {
+		currentDefaults = newDefaults
+		if storeDefaults {
 			WriteDefaultsFile(ConfigurationFile, Defaults())
 			fmt.Printf("# Updated %s -> \"%s\"\n", label, value)
 		}
@@ -373,14 +368,14 @@ func LoadConfiguration() {
 		// WriteDefaultsFile(ConfigurationFile, Defaults())
 		return
 	}
-	new_defaults := ReadDefaultsFile(ConfigurationFile)
-	if ValidateDefaults(new_defaults) {
-		currentDefaults = new_defaults
+	newDefaults := ReadDefaultsFile(ConfigurationFile)
+	if ValidateDefaults(newDefaults) {
+		currentDefaults = newDefaults
 	} else {
-		fmt.Println(StarLine)
+		fmt.Println(common.StarLine)
 		fmt.Printf("Defaults file %s not validated.\n", ConfigurationFile)
 		fmt.Println("Loading internal defaults")
-		fmt.Println(StarLine)
+		fmt.Println(common.StarLine)
 		fmt.Println("")
 		time.Sleep(1000 * time.Millisecond)
 	}

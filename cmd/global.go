@@ -21,48 +21,48 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, require_args bool, skip_missing bool) {
-	sandbox_dir := GetAbsolutePathFromFlag(cmd, "sandbox-home")
-	run_list := common.SandboxInfoToFileNames(common.GetInstalledSandboxes(sandbox_dir))
-	if len(run_list) == 0 {
-		common.Exitf(1, "No sandboxes found in %s", sandbox_dir)
+func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, requireArgs bool, skipMissing bool) {
+	sandboxDir := GetAbsolutePathFromFlag(cmd, "sandbox-home")
+	runList := common.SandboxInfoToFileNames(common.GetInstalledSandboxes(sandboxDir))
+	if len(runList) == 0 {
+		common.Exitf(1, "No sandboxes found in %s", sandboxDir)
 	}
-	if require_args && len(args) < 1 {
+	if requireArgs && len(args) < 1 {
 		common.Exitf(1, "Arguments required for command %s", executable)
 	}
-	for _, sb := range run_list {
-		single_use := true
-		full_dir_path := sandbox_dir + "/" + sb
-		cmd_file := full_dir_path + "/" + executable
-		real_executable := executable
-		if !common.ExecExists(cmd_file) {
-			cmd_file = full_dir_path + "/" + executable + "_all"
-			real_executable = executable + "_all"
-			single_use = false
+	for _, sb := range runList {
+		singleUse := true
+		fullDirPath := sandboxDir + "/" + sb
+		cmdFile := fullDirPath + "/" + executable
+		realExecutable := executable
+		if !common.ExecExists(cmdFile) {
+			cmdFile = fullDirPath + "/" + executable + "_all"
+			realExecutable = executable + "_all"
+			singleUse = false
 		}
-		if !common.ExecExists(cmd_file) {
-			if skip_missing {
-				fmt.Printf("# Sandbox %s: executable %s not found\n", full_dir_path, executable)
+		if !common.ExecExists(cmdFile) {
+			if skipMissing {
+				fmt.Printf("# Sandbox %s: executable %s not found\n", fullDirPath, executable)
 				continue
 			}
-			common.Exitf(1, "No %s or %s found in %s", executable, executable+"_all", full_dir_path)
+			common.Exitf(1, "No %s or %s found in %s", executable, executable+"_all", fullDirPath)
 		}
-		var cmd_args []string
+		var cmdArgs []string
 
-		if single_use && executable == "use" {
-			cmd_args = append(cmd_args, "-e")
+		if singleUse && executable == "use" {
+			cmdArgs = append(cmdArgs, "-e")
 		}
 		for _, arg := range args {
-			cmd_args = append(cmd_args, arg)
+			cmdArgs = append(cmdArgs, arg)
 		}
 		var err error
-		fmt.Printf("# Running \"%s\" on %s\n", real_executable, sb)
-		if len(cmd_args) > 0 {
-			err, _ = common.Run_cmd_with_args(cmd_file, cmd_args)
+		fmt.Printf("# Running \"%s\" on %s\n", realExecutable, sb)
+		if len(cmdArgs) > 0 {
+			err, _ = common.RunCmdWithArgs(cmdFile, cmdArgs)
 		} else {
-			err, _ = common.Run_cmd(cmd_file)
+			err, _ = common.RunCmd(cmdFile)
 		}
-		common.ErrCheckExitf(err, 1, "Error while running %s\n", cmd_file)
+		common.ErrCheckExitf(err, 1, "Error while running %s\n", cmdFile)
 		fmt.Println("")
 	}
 }

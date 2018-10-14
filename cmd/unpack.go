@@ -38,21 +38,21 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 			"You should create it or provide an alternate base directory using --sandbox-binary")
 	}
 	tarball := args[0]
-	re_version := regexp.MustCompile(`(\d+\.\d+\.\d+)`)
-	verList := re_version.FindAllStringSubmatch(tarball, -1)
-	detected_version := verList[0][0]
+	reVersion := regexp.MustCompile(`(\d+\.\d+\.\d+)`)
+	verList := reVersion.FindAllStringSubmatch(tarball, -1)
+	detectedVersion := verList[0][0]
 	// fmt.Printf(">> %#v %s\n",verList, detected_version)
 
-	is_shell, _ := flags.GetBool(defaults.ShellLabel)
+	isShell, _ := flags.GetBool(defaults.ShellLabel)
 	target, _ := flags.GetString(defaults.TargetServerLabel)
-	if !is_shell && target != "" {
+	if !isShell && target != "" {
 		common.Exit(1,
 			"unpack: Option --target-server can only be used with --shell")
 	}
 
 	Version, _ := flags.GetString(defaults.UnpackVersionLabel)
 	if Version == "" {
-		Version = detected_version
+		Version = detectedVersion
 	}
 	if Version == "" {
 		common.Exit(1,
@@ -67,7 +67,7 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	if target != "" {
 		destination = Basedir + "/" + target
 	}
-	if common.DirExists(destination) && !is_shell {
+	if common.DirExists(destination) && !isShell {
 		common.Exitf(1, "Destination directory %s exists already\n", destination)
 	}
 	var extension string = ".tar.gz"
@@ -78,7 +78,7 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	} else {
 		common.Exit(1, "Tarball extension must be .tar.gz")
 	}
-	if is_shell {
+	if isShell {
 		fmt.Printf("Merging shell tarball %s to %s\n", common.ReplaceLiteralHome(tarball), common.ReplaceLiteralHome(destination))
 		err := unpack.MergeShell(tarball, Basedir, destination, barename, verbosity)
 		common.ErrCheckExitf(err, 1, "Error while unpacking mysql shell tarball : %s", err)
@@ -88,10 +88,10 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	//verbosity_level := unpack.VERBOSE
 	err := unpack.UnpackTar(tarball, Basedir, verbosity)
 	common.ErrCheckExitf(err, 1, "%s", err)
-	final_name := Basedir + "/" + barename
-	if final_name != destination {
-		fmt.Printf("Renaming directory %s to %s\n", final_name, destination)
-		err = os.Rename(final_name, destination)
+	finalName := Basedir + "/" + barename
+	if finalName != destination {
+		fmt.Printf("Renaming directory %s to %s\n", finalName, destination)
+		err = os.Rename(finalName, destination)
 		common.ErrCheckExitf(err, 1, "%s", err)
 	}
 }
