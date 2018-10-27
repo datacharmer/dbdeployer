@@ -34,6 +34,12 @@
 			"revision": ""
 		},
 		{
+			"checksumSHA1": "8CE50MRM75NFWRlF4TLRQ5PwXeE=",
+			"path": "github.com/xi2/xz",
+			"revision": "48954b6210f8d154cb5f8484d3a3e1f83489309e",
+			"revisionTime": "2017-12-30T12:00:15Z"
+		},
+		{
 			"checksumSHA1": "ZSWoOPUNRr5+3dhkLK3C4cZAQPk=",
 			"path": "gopkg.in/yaml.v2",
 			"revision": ""

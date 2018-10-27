@@ -89,7 +89,12 @@ const (
 	FanInLabel          = "fan-in"
 	AllMastersLabel     = "all-masters"
 
-	// Instantiated in cmd/unpack.go
+	// Instantiated in cmd/unpack.go and unpack/unpack.go
+	GzExt              = ".gz"
+	TgzExt             = ".tgz"
+	TarExt             = ".tar"
+	TarGzExt           = ".tar.gz"
+	TarXzExt           = ".tar.xz"
 	VerbosityLabel     = "verbosity"
 	UnpackVersionLabel = "unpack-version"
 	PrefixLabel        = "prefix"

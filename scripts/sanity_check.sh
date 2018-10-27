@@ -19,7 +19,7 @@ exec_dir=$(dirname $0)
 cd $exec_dir
 cd ..
 
-local_items=(cmd defaults common unpack abbreviations concurrent sandbox)
+local_items=(.build cmd defaults common unpack abbreviations concurrent sandbox)
 exit_code=0
 spaces="        "
 function run {

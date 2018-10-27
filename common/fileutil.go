@@ -56,6 +56,8 @@ type KeyValue struct {
 
 type ConfigOptions map[string][]KeyValue
 
+const PublicDirectoryAttr = 0755
+
 var CommandLineArgs []string
 
 func LogDirName() string {
@@ -314,14 +316,14 @@ func RunCmd(c string) (error, string) {
 }
 
 func CopyFile(source, destination string) {
-	sfile, err := os.Stat(source)
+	sourceFile, err := os.Stat(source)
 	ErrCheckExitf(err, 1, "Error finding source file %s: %s", source, err)
-	fmode := sfile.Mode()
+	fileMode := sourceFile.Mode()
 	from, err := os.Open(source)
 	ErrCheckExitf(err, 1, "Error opening source file %s: %s", source, err)
 	defer from.Close()
 
-	to, err := os.OpenFile(destination, os.O_RDWR|os.O_CREATE, fmode) // 0666)
+	to, err := os.OpenFile(destination, os.O_RDWR|os.O_CREATE, fileMode) // 0666)
 	ErrCheckExitf(err, 1, "Error opening destination file %s: %s", destination, err)
 	defer to.Close()
 
@@ -344,7 +346,7 @@ func AbsolutePath(value string) string {
 }
 
 func Mkdir(dirName string) {
-	err := os.Mkdir(dirName, 0755)
+	err := os.Mkdir(dirName, PublicDirectoryAttr)
 	ErrCheckExitf(err, 1, "Error creating directory %s\n%s\n", dirName, err)
 }
 

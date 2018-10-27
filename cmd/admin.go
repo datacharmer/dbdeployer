@@ -256,7 +256,7 @@ var (
 	}
 
 	adminLockCmd = &cobra.Command{
-		Use:     "lock sandboxName",
+		Use:     "lock sandbox_name",
 		Aliases: []string{"preserve"},
 		Short:   "Locks a sandbox, preventing deletion",
 		Long: `Prevents deletion for a given sandbox.
@@ -266,14 +266,14 @@ Users can still delete locked sandboxes manually.`,
 	}
 
 	adminUnlockCmd = &cobra.Command{
-		Use:     "unlock sandboxName",
+		Use:     "unlock sandbox_name",
 		Aliases: []string{"unpreserve"},
 		Short:   "Unlocks a sandbox",
 		Long:    `Removes lock, allowing deletion of a given sandbox`,
 		Run:     UnlockSandbox,
 	}
 	adminUpgradeCmd = &cobra.Command{
-		Use:   "upgrade sandboxName newerSandbox",
+		Use:   "upgrade sandbox_name newer_sandbox",
 		Short: "Upgrades a sandbox to a newer version",
 		Long: `Upgrades a sandbox to a newer version.
 The sandbox with the new version must exist already.

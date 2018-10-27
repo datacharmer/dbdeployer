@@ -1,3 +1,10 @@
+1.13.0	27-Oct-2018
+	ADJUSTMENTS
+	- Added ability of unpacking "tar.xz" files (tarballs for Linux are 
+	  compressed with xz instead of gzip as of MySQL 8.0.12)
+	BUG FIXES
+	- Fixed minor issue in unpack-shell. The unpacker was trying to
+	  move the shell extracted directory to the server directory.
 1.12.4	14-Oct-2018 (not released)
 	- Code cleanup: fixed many code style violations
 	- Added unit test for abbreviations module.

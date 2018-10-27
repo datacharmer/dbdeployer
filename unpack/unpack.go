@@ -55,6 +55,8 @@ import (
 	"compress/gzip"
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/xi2/xz"
 	"io"
 	"os"
 	"path"
@@ -81,12 +83,37 @@ func condPrint(s string, nl bool, level int) {
 }
 
 func validSuffix(filename string) bool {
-	for _, suffix := range []string{".tgz", ".tar", ".tar.gz"} {
+	for _, suffix := range []string{defaults.TgzExt, defaults.TarExt, defaults.TarGzExt} {
 		if strings.HasSuffix(filename, suffix) {
 			return true
 		}
 	}
 	return false
+}
+
+func UnpackXzTar(filename string, destination string, verbosityLevel int) (err error) {
+	Verbose = verbosityLevel
+	if !common.FileExists(filename) {
+		return fmt.Errorf("file %s not found", filename)
+	}
+	if !common.DirExists(destination) {
+		return fmt.Errorf("directory %s not found", destination)
+	}
+	filename = common.AbsolutePath(filename)
+	os.Chdir(destination)
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	// Create an xz Reader
+	r, err := xz.NewReader(f, 0)
+	if err != nil {
+		return err
+	}
+	// Create a tar Reader
+	tr := tar.NewReader(r)
+	return unpackTarFiles(tr)
 }
 
 func UnpackTar(filename string, destination string, verbosityLevel int) (err error) {
@@ -110,7 +137,7 @@ func UnpackTar(filename string, destination string, verbosityLevel int) (err err
 	os.Chdir(destination)
 	var fileReader io.Reader = file
 	var decompressor *gzip.Reader
-	if strings.HasSuffix(filename, ".gz") {
+	if strings.HasSuffix(filename, defaults.GzExt) {
 		if decompressor, err = gzip.NewReader(file); err != nil {
 			return err
 		}
@@ -180,7 +207,7 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 		filename := sanitizedName(header.Name)
 		fileDir := path.Dir(filename)
 		if _, err := os.Stat(fileDir); os.IsNotExist(err) {
-			if err = os.MkdirAll(fileDir, 0755); err != nil {
+			if err = os.MkdirAll(fileDir, common.PublicDirectoryAttr); err != nil {
 				return err
 			}
 			condPrint(" + "+fileDir+" ", true, CHATTY)
@@ -190,11 +217,11 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 		}
 		switch header.Typeflag {
 		case tar.TypeDir:
-			if err = os.MkdirAll(filename, 0755); err != nil {
+			if err = os.MkdirAll(filename, common.PublicDirectoryAttr); err != nil {
 				return err
 			}
 		case tar.TypeReg:
-			if err = unpackTarFile(filename, header.Name, reader); err != nil {
+			if err = unpackTarFile(filename, reader); err != nil {
 				return err
 			}
 			os.Chmod(filename, filemode)
@@ -226,7 +253,7 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 	//return nil
 }
 
-func unpackTarFile(filename, tarFilename string,
+func unpackTarFile(filename string,
 	reader *tar.Reader) (err error) {
 	var writer *os.File
 	if writer, err = os.Create(filename); err != nil {

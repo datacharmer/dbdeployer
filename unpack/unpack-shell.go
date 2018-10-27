@@ -17,19 +17,20 @@ package unpack
 import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/defaults"
 	"io/ioutil"
 	"os"
 )
 
-func MergeShell(tarball, basedir, destination, barename string, verbosity int) error {
-	// fmt.Printf("<%s> <%s> <%s> <%s> %d\n",tarball, basedir, destination, barename, verbosity)
+func MergeShell(tarball, extension, basedir, destination, bareName string, verbosity int) error {
+	// fmt.Printf("<%s> <%s> <%s> <%s> %d\n",tarball, basedir, destination, bareName, verbosity)
 	if !common.DirExists(basedir) {
 		common.Exitf(1, "Unpack directory %s does not exist\n", destination)
 	}
 	if !common.DirExists(destination) {
 		common.Exitf(1, "Target server directory %s does not exist\n", destination)
 	}
-	extracted := basedir + "/" + barename
+	extracted := basedir + "/" + bareName
 	if common.DirExists(extracted) {
 		common.Exitf(1, "Unpacked shell directory %s already exists", extracted)
 	}
@@ -46,7 +47,15 @@ func MergeShell(tarball, basedir, destination, barename string, verbosity int) e
 		}
 	}
 
-	err := UnpackTar(tarball, basedir, verbosity)
+	var err error
+	switch extension {
+	case defaults.TarGzExt:
+		err = UnpackTar(tarball, basedir, verbosity)
+	case defaults.TarXzExt:
+		err = UnpackXzTar(tarball, basedir, verbosity)
+	default:
+		return fmt.Errorf("unrecognized extension %s\n", extension)
+	}
 	if err != nil {
 		return err
 	}

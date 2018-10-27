@@ -177,20 +177,30 @@ func CheckTarballOperatingSystem(basedir string) {
 			}
 			fmt.Println(DashLine)
 		}
-		Exitf(1, "Could not find any of the expected files for %s server: %s\n%s", currentOs, wantedFiles, DashLine)
+		Exitf(1, "Could not find any of the expected files for %s server: %s\n%s\n", currentOs, wantedFiles, DashLine)
 	}
+}
+
+// Returns true if the file name has a recognized tarball extension
+// for use with dbdeployer
+func IsATarball(fileName string) bool {
+	if strings.HasSuffix(fileName, ".tar.gz") ||
+		strings.HasSuffix(fileName, ".tar.xz") {
+		return true
+	}
+	return false
 }
 
 // Checks the initial argument for a sandbox deployment
 func CheckOrigin(args []string) {
 	if len(args) < 1 {
-		Exit(1, "This command requires the MySQL version (x.xx.xx) as argument ")
+		Exit(1, "This command requires the MySQL version (x.xx[.xx]) as argument ")
 	}
 	if len(args) > 1 {
-		Exit(1, "Extra argument detected. This command requires only the MySQL version (x.xx.xx) as argument ")
+		Exit(1, "Extra argument detected. This command requires only the MySQL version (x.xx[.xx]) as argument ")
 	}
 	origin := args[0]
-	if FileExists(origin) && strings.HasSuffix(origin, ".tar.gz") {
+	if FileExists(origin) && IsATarball(origin) {
 		Exit(1,
 			"Tarball detected. - If you want to use a tarball to create a sandbox,",
 			"you should first use the 'unpack' command")

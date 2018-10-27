@@ -60,7 +60,10 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 			"Flag --unpack-version becomes mandatory")
 	}
 	// This call used to ensure that the port provided is in the right format
-	common.VersionToPort(Version)
+	port := common.VersionToPort(Version)
+	if port == -1 {
+		common.Exitf(1, "Version %s not in the required format", Version)
+	}
 	Prefix, _ := flags.GetString(defaults.PrefixLabel)
 
 	destination := Basedir + "/" + Prefix + Version
@@ -70,25 +73,36 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	if common.DirExists(destination) && !isShell {
 		common.Exitf(1, "Destination directory %s exists already\n", destination)
 	}
-	var extension string = ".tar.gz"
 	extracted := path.Base(tarball)
-	var barename string
-	if strings.HasSuffix(tarball, extension) {
-		barename = extracted[0 : len(extracted)-len(extension)]
-	} else {
-		common.Exit(1, "Tarball extension must be .tar.gz")
+	var bareName string
+
+	var extractFunc func(string, string, int) error
+	var foundExtension string
+
+	switch {
+	case strings.HasSuffix(tarball, defaults.TarGzExt):
+		extractFunc = unpack.UnpackTar
+		foundExtension = defaults.TarGzExt
+	case strings.HasSuffix(tarball, defaults.TarXzExt):
+		extractFunc = unpack.UnpackXzTar
+		foundExtension = defaults.TarXzExt
+	default:
+		common.Exitf(1, "Tarball extension must be either '%s' or '%s'", defaults.TarGzExt, defaults.TarXzExt)
 	}
+	bareName = extracted[0 : len(extracted)-len(defaults.TarGzExt)]
 	if isShell {
 		fmt.Printf("Merging shell tarball %s to %s\n", common.ReplaceLiteralHome(tarball), common.ReplaceLiteralHome(destination))
-		err := unpack.MergeShell(tarball, Basedir, destination, barename, verbosity)
+		err := unpack.MergeShell(tarball, foundExtension, Basedir, destination, bareName, verbosity)
 		common.ErrCheckExitf(err, 1, "Error while unpacking mysql shell tarball : %s", err)
+		return
 	}
 
 	fmt.Printf("Unpacking tarball %s to %s\n", tarball, common.ReplaceLiteralHome(destination))
 	//verbosity_level := unpack.VERBOSE
-	err := unpack.UnpackTar(tarball, Basedir, verbosity)
+	// err := unpack.UnpackTar(tarball, Basedir, verbosity)
+	err := extractFunc(tarball, Basedir, verbosity)
 	common.ErrCheckExitf(err, 1, "%s", err)
-	finalName := Basedir + "/" + barename
+	finalName := Basedir + "/" + bareName
 	if finalName != destination {
 		fmt.Printf("Renaming directory %s to %s\n", finalName, destination)
 		err = os.Rename(finalName, destination)
@@ -102,7 +116,7 @@ var unpackCmd = &cobra.Command{
 	Args:    cobra.ExactArgs(1),
 	Aliases: []string{"extract", "untar", "unzip", "inflate", "expand"},
 	Short:   "unpack a tarball into the binary directory",
-	Long: `If you want to create a sandbox from a tarball, you first need to unpack it
+	Long: `If you want to create a sandbox from a tarball (.tar.gz or .tar.xz), you first need to unpack it
 into the sandbox-binary directory. This command carries out that task, so that afterwards 
 you can call 'deploy single', 'deploy multiple', and 'deploy replication' commands with only 
 the MySQL version for that tarball.

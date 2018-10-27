@@ -39,6 +39,25 @@ func TestIsVersion(t *testing.T) {
 	}
 }
 
+func TestIsATarball(t *testing.T) {
+	type testTarball struct {
+		candidate string
+		expected  bool
+	}
+	var data = []testTarball{
+		{"dummy.tar.gz", true},
+		{"dummy.tar.xz", true},
+		{"dummy.targz", false},
+		{"dummy.tar", false},
+		{"dummy.gz", false},
+		{"dummy.xz", false},
+	}
+	for _, tv := range data {
+		result := IsATarball(tv.candidate)
+		okEqualBool(fmt.Sprintf("is a tarball: %s", tv.candidate), tv.expected, result, t)
+	}
+}
+
 func TestFindFreePort(t *testing.T) {
 	type testFreePort struct {
 		usedPorts []int

@@ -1,3 +1,18 @@
+// DBDeployer - The MySQL Sandbox
+// Copyright © 2006-2018 Giuseppe Maxia
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
@@ -51,16 +66,16 @@ func main() {
 	}
 	version_code := common.TemplateFill(template, data)
 	/*
-	file, err := os.Open(version_dest_file)
-	if err != nil {
-		common.Exit(1, fmt.Sprintf("error opening file %s", version_dest_file))
-	}
-	defer file.Close()
-	writer := bufio.NewWriter(file)
-	written, err := writer.WriteString(version_code)
-	if err != nil {
-		common.Exit(1, fmt.Sprintf("error writing to file %s", version_dest_file))
-	}
+		file, err := os.Open(version_dest_file)
+		if err != nil {
+			common.Exit(1, fmt.Sprintf("error opening file %s", version_dest_file))
+		}
+		defer file.Close()
+		writer := bufio.NewWriter(file)
+		written, err := writer.WriteString(version_code)
+		if err != nil {
+			common.Exit(1, fmt.Sprintf("error writing to file %s", version_dest_file))
+		}
 	*/
 	common.WriteString(version_code, version_dest_file)
 	// fmt.Printf("Written %d bytes into %s\n", written, version_dest_file)
