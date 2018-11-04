@@ -140,6 +140,7 @@ func CheckTarballOperatingSystem(basedir string) {
 		isBinary bool
 	}
 	var findingList = map[string]OSFinding{
+		"libmysqlclient.a":             {"lib", "linux", "mysql", true}, // 4.1 and old 5.0 releases
 		"libmysqlclient.so":            {"lib", "linux", "mysql", true},
 		"libperconaserverclient.so":    {"lib", "linux", "percona", true},
 		"libperconaserverclient.dylib": {"lib", "darwin", "percona", true},
