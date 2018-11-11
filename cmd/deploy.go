@@ -22,6 +22,7 @@ import (
 	"github.com/spf13/cobra"
 	"math/rand"
 	"os"
+	"path"
 )
 
 var deployCmd = &cobra.Command{
@@ -31,7 +32,7 @@ var deployCmd = &cobra.Command{
 }
 
 func init() {
-	myloginCnf := os.Getenv("HOME") + "/.mylogin.cnf"
+	myloginCnf := path.Join(os.Getenv("HOME"), ".mylogin.cnf")
 	if common.FileExists(myloginCnf) {
 		// dbdeployer is not compatible with .mylogin.cnf,
 		// as it bypasses --defaults-file and --no-defaults.

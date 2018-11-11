@@ -34,6 +34,13 @@ type CleanupRec struct {
 
 var cleanupActions = NewStack()
 
+func IsEnvSet(envVar string) bool {
+	if os.Getenv(envVar) != "" {
+		return true
+	}
+	return false
+}
+
 // Given a path starting at the HOME directory
 // returns a string where the literal value for $HOME
 // is replaced by the string "$HOME"
@@ -181,6 +188,19 @@ func StringToIntSlice(val string) (numberList []int, err error) {
 		numberList = append(numberList, num)
 	}
 	return numberList, nil
+}
+
+// Given an array of integers, returns a string containing the numbers
+// separated by a dot
+func IntSliceToDottedString(val []int) string {
+	result := ""
+	for _, i := range val {
+		if result != "" {
+			result += "."
+		}
+		result += fmt.Sprintf("%d", i)
+	}
+	return result
 }
 
 // Adds an action to the list of clean-up operations

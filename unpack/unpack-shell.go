@@ -20,30 +20,31 @@ import (
 	"github.com/datacharmer/dbdeployer/defaults"
 	"io/ioutil"
 	"os"
+	"path"
 )
 
 func MergeShell(tarball, extension, basedir, destination, bareName string, verbosity int) error {
 	// fmt.Printf("<%s> <%s> <%s> <%s> %d\n",tarball, basedir, destination, bareName, verbosity)
 	if !common.DirExists(basedir) {
-		common.Exitf(1, "Unpack directory %s does not exist\n", destination)
+		common.Exitf(1, defaults.ErrNamedDirectoryNotFound, "unpack directory", destination)
 	}
 	if !common.DirExists(destination) {
-		common.Exitf(1, "Target server directory %s does not exist\n", destination)
+		common.Exitf(1, defaults.ErrNamedDirectoryNotFound, "target server directory", destination)
 	}
-	extracted := basedir + "/" + bareName
+	extracted := path.Join(basedir, bareName)
 	if common.DirExists(extracted) {
-		common.Exitf(1, "Unpacked shell directory %s already exists", extracted)
+		common.Exitf(1, defaults.ErrNamedDirectoryAlreadyExists, "unpacked shell directory", extracted)
 	}
 
 	var dirs = []string{"bin", "lib", "share"}
 	for _, dir := range dirs {
-		destPath := destination + "/" + dir
+		destPath := path.Join(destination, dir)
 		if !common.DirExists(destPath) {
-			common.Exitf(1, "Destination server directory %s does not exist in %s\n", dir, destination)
+			common.Exitf(1, "destination server directory %s does not exist in %s\n", dir, destination)
 		}
-		destPath = destination + "/" + dir + "/mysqlsh"
+		destPath = path.Join(destination, dir, "mysqlsh")
 		if dir != "bin" && common.DirExists(destPath) {
-			common.Exitf(1, "Destination shell directory %s/mysqlsh already exists in %s\n", dir, destination)
+			common.Exitf(1, "destination shell directory %s/mysqlsh already exists in %s\n", dir, destination)
 		}
 	}
 
@@ -63,22 +64,22 @@ func MergeShell(tarball, extension, basedir, destination, bareName string, verbo
 	defer os.RemoveAll(extracted)
 	common.AddToCleanupStack(common.RmdirAll, "RmdirAll", extracted)
 	for _, dir := range dirs {
-		fullPath := extracted + "/" + dir
+		fullPath := path.Join(extracted, dir)
 		if !common.DirExists(fullPath) {
-			common.Exitf(1, "Source shell directory %s does not exist in %s\n", dir, extracted)
+			common.Exitf(1, "source shell directory %s does not exist in %s\n", dir, extracted)
 		}
 	}
-	bin := extracted + "/bin"
+	bin := path.Join(extracted, "bin")
 	files, err := ioutil.ReadDir(bin)
 	if err != nil {
 		return err
 	}
 	dirs = []string{"lib", "share"}
 	for _, dir := range dirs {
-		sourceDir := extracted + "/" + dir + "/mysqlsh"
-		destDir := destination + "/" + dir + "/mysqlsh"
+		sourceDir := path.Join(extracted, dir, "mysqlsh")
+		destDir := path.Join(destination, dir, "mysqlsh")
 		if !common.DirExists(sourceDir) {
-			common.Exitf(1, "Source shell directory %s/mysqlsh does not exist in %s\n", dir, extracted)
+			common.Exitf(1, "source shell directory %s/mysqlsh does not exist in %s\n", dir, extracted)
 		}
 		if verbosity >= VERBOSE {
 			fmt.Printf("Move %s %s\n", sourceDir, destDir)

@@ -23,21 +23,22 @@ import (
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"os"
+	"path"
 )
 
 func main() {
 	// Searches for expanded sandboxes in $HOME/opt/mysql
-	sandbox_binary := os.Getenv("HOME") + "/opt/mysql"
+	sandbox_binary := path.Join(os.Getenv("HOME"), "opt", "mysql")
 
 	// For this to work, we need to have
 	// a MySQL tarball expanded in $HOME/opt/mysql/5.7.22
 	version := "5.7.22"
 
 	// Creates sandboxes in $HOME/sandboxes
-	sandbox_home := os.Getenv("HOME") + "/sandboxes"
+	sandbox_home := path.Join(os.Getenv("HOME"), "sandboxes")
 
 	// MySQL will look for binaries in $HOME/opt/mysql/5.7.22
-	basedir := sandbox_binary + "/" + version
+	basedir := path.Join(sandbox_binary, version)
 
 	// The unique port for this sandbox
 	port := 5722
@@ -73,11 +74,11 @@ func main() {
 	sandbox.CreateSingleSandbox(sdef)
 
 	// Invokes the sandbox self-testing script
-	common.RunCmd(sandbox_home + "/msb_5_7_22/test_sb")
+	common.RunCmd(path.Join(sandbox_home, "msb_5_7_22", "test_sb"))
 
 	// Removes the sandbox from disk
 	sandbox.RemoveSandbox(sandbox_home, "msb_5_7_22", false)
 
 	// Removes the sandbox from dbdeployer catalog
-	defaults.DeleteFromCatalog(sandbox_home + "/msb_5_7_22")
+	defaults.DeleteFromCatalog(path.Join(sandbox_home, "msb_5_7_22"))
 }

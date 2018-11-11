@@ -18,27 +18,9 @@ package sandbox
 import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"path"
 	"testing"
 )
-
-func okExecutableExists(t *testing.T, dir, executable string) {
-	fullPath := dir + "/" + executable
-	if common.ExecExists(fullPath) {
-		t.Logf("ok - %s exists\n", fullPath)
-	} else {
-		t.Logf("not ok - %s does not exist\n", fullPath)
-		t.Fail()
-	}
-}
-
-func okDirExists(t *testing.T, dir string) {
-	if common.DirExists(dir) {
-		t.Logf("ok - %s exists\n", dir)
-	} else {
-		t.Logf("not ok - %s does not exist\n", dir)
-		t.Fail()
-	}
-}
 
 func okPortExists(t *testing.T, dirName string, port int) {
 	sandboxList := defaults.ReadCatalog()
@@ -62,6 +44,25 @@ func okPortExists(t *testing.T, dirName string, port int) {
 	t.Fail()
 }
 
+func okExecutableExists(t *testing.T, dir, executable string) {
+	fullPath := path.Join(dir, executable)
+	if common.ExecExists(fullPath) {
+		t.Logf("ok - %s exists\n", fullPath)
+	} else {
+		t.Logf("not ok - %s does not exist\n", fullPath)
+		t.Fail()
+	}
+}
+
+func okDirExists(t *testing.T, dir string) {
+	if common.DirExists(dir) {
+		t.Logf("ok - %s exists\n", dir)
+	} else {
+		t.Logf("not ok - %s does not exist\n", dir)
+		t.Fail()
+	}
+}
+
 type versionRec struct {
 	version string
 	path    string
@@ -83,35 +84,34 @@ func TestCreateSandbox(t *testing.T) {
 		pathVersion := v.path
 		port := v.port
 		createMockVersion(mysqlVersion)
-		var sdef = SandboxDef{
-			Version:        mysqlVersion,
-			Basedir:        mockSandboxBinary + "/" + mysqlVersion,
-			SandboxDir:     mockSandboxHome,
-			DirName:        "msb_" + pathVersion,
-			LoadGrants:     true,
-			InstalledPorts: []int{1186, 3306, 33060},
+		var sandboxDef = SandboxDef{
+			Version:    mysqlVersion,
+			Basedir:    path.Join(mockSandboxBinary, mysqlVersion),
+			SandboxDir: mockSandboxHome,
+			DirName:    defaults.Defaults().SandboxPrefix + pathVersion,
+			LoadGrants: true,
+			// InstalledPorts: []int{1186, 3306, 33060},
+			InstalledPorts: defaults.Defaults().ReservedPorts,
 			Port:           port,
-			DbUser:         "msandbox",
-			RplUser:        "rsandbox",
-			DbPassword:     "msandbox",
-			RplPassword:    "rsandbox",
-			RemoteAccess:   "127.%",
-			BindAddress:    "127.0.0.1",
+			DbUser:         defaults.DbUserValue,
+			RplUser:        defaults.RplUserValue,
+			DbPassword:     defaults.DbPasswordValue,
+			RplPassword:    defaults.RplPasswordValue,
+			RemoteAccess:   defaults.RemoteAccessValue,
+			BindAddress:    defaults.BindAddressValue,
 		}
 
-		CreateSingleSandbox(sdef)
-		//exec_list := CreateSingleSandbox(sdef)
-		//t.Logf("%#v", exec_list)
-		okDirExists(t, sdef.Basedir)
-		sandboxDir := sdef.SandboxDir + "/msb_" + pathVersion
+		CreateSingleSandbox(sandboxDef)
+		okDirExists(t, sandboxDef.Basedir)
+		sandboxDir := path.Join(sandboxDef.SandboxDir, "msb_"+pathVersion)
 		okDirExists(t, sandboxDir)
 		t.Logf("%#v", sandboxDir)
-		okDirExists(t, sandboxDir+"/data")
-		okDirExists(t, sandboxDir+"/tmp")
+		okDirExists(t, path.Join(sandboxDir, "data"))
+		okDirExists(t, path.Join(sandboxDir, "tmp"))
 		okExecutableExists(t, sandboxDir, "start")
 		okExecutableExists(t, sandboxDir, "use")
 		okExecutableExists(t, sandboxDir, "stop")
-		okPortExists(t, sandboxDir, sdef.Port)
+		okPortExists(t, sandboxDir, sandboxDef.Port)
 	}
 	removeMockEnvironment("mock_dir")
 }

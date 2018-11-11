@@ -17,6 +17,7 @@ package common
 
 import (
 	"fmt"
+	"github.com/datacharmer/dbdeployer/compare"
 	"os"
 	"testing"
 )
@@ -131,10 +132,10 @@ func TestStringToIntSlice(t *testing.T) {
 
 	for _, sd := range data {
 		result, _ := StringToIntSlice(sd.input)
-		okEqualInt("slice size", len(sd.expected), len(result), t)
+		compare.OkEqualInt("slice size", len(sd.expected), len(result), t)
 		for N := 0; N < len(sd.expected); N++ {
 			if N < len(result) {
-				okEqualInt(fmt.Sprintf("slice element %d", N), sd.expected[N], result[N], t)
+				compare.OkEqualInt(fmt.Sprintf("slice element %d", N), sd.expected[N], result[N], t)
 			}
 		}
 	}

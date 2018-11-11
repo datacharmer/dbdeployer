@@ -22,6 +22,7 @@ import (
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
 	"os"
+	"path"
 	"strings"
 )
 
@@ -43,13 +44,13 @@ func FindTemplate(requested string) (group, templateName, contents string) {
 			}
 		}
 	}
-	common.Exitf(1, "template '%s' not found", requested)
+	common.Exitf(1, defaults.ErrTemplateNotFound, requested)
 	return
 }
 
 func ShowTemplate(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
-		common.Exit(1, "Argument required: template name")
+		common.Exitf(1, defaults.ErrArgumentRequired, "template name")
 	}
 	requested := args[0]
 	_, _, contents := FindTemplate(requested)
@@ -79,7 +80,7 @@ func GetTemplatesList(wanted string) (tlist []TemplateInfo) {
 		}
 	}
 	if !found {
-		common.Exitf(1, "group %s not found\n", wanted)
+		common.Exitf(1, defaults.ErrGroupNotFound, wanted)
 	}
 	return
 }
@@ -108,7 +109,7 @@ func ListTemplates(cmd *cobra.Command, args []string) {
 
 func RunDescribeTemplate(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
-		common.Exit(1, "Argument required: template name")
+		common.Exitf(1, defaults.ErrArgumentRequired, "template name")
 	}
 	requested := args[0]
 	flags := cmd.Flags()
@@ -143,7 +144,7 @@ func DescribeTemplate(requested string, completeListing bool) {
 func ExportTemplates(cmd *cobra.Command, args []string) {
 	if len(args) < 2 {
 		common.Exit(1,
-			"The export command requires two arguments: group_name and directory_name",
+			"the export command requires two arguments: group_name and directory_name",
 			"If group_name is 'all', it will export all groups")
 	}
 	wanted := args[0]
@@ -156,23 +157,23 @@ func ExportTemplates(cmd *cobra.Command, args []string) {
 		wanted = ""
 	}
 	if common.DirExists(dirName) {
-		common.Exitf(1, "# Directory <%s> already exists", dirName)
+		common.Exitf(1, defaults.ErrDirectoryAlreadyExists, dirName)
 	}
 	common.Mkdir(dirName)
-	common.WriteString(common.VersionDef, dirName+"/version.txt")
+	common.WriteString(common.VersionDef, path.Join(dirName, "version.txt"))
 
 	foundGroup := false
 	foundTemplate := false
 	for groupName, group := range sandbox.AllTemplates {
 		if groupName == wanted || wanted == "" {
 			foundGroup = true
-			groupDir := dirName + "/" + groupName
+			groupDir := path.Join(dirName, groupName)
 			if !common.DirExists(groupDir) {
 				common.Mkdir(groupDir)
 			}
 			for name, template := range group {
 				if templateName == "" || common.Includes(name, templateName) {
-					fileName := groupDir + "/" + name
+					fileName := path.Join(groupDir, name)
 					common.WriteString(common.TrimmedLines(template.Contents), fileName)
 					fmt.Printf("%s/%s exported\n", groupName, name)
 					foundTemplate = true
@@ -181,27 +182,27 @@ func ExportTemplates(cmd *cobra.Command, args []string) {
 		}
 	}
 	if !foundGroup {
-		common.Exitf(1, "Group %s not found", wanted)
+		common.Exitf(1, defaults.ErrGroupNotFound, wanted)
 	}
 	if !foundTemplate {
-		common.Exitf(1, "template %s not found", templateName)
+		common.Exitf(1, defaults.ErrTemplateNotFound, templateName)
 	}
 	fmt.Printf("Exported to %s\n", dirName)
 }
 
 // Called by rootCmd when dbdeployer starts
 func LoadTemplates() {
-	loadDir := defaults.ConfigurationDir + "/templates" + common.CompatibleVersion
+	loadDir := path.Join(defaults.ConfigurationDir, "templates"+common.CompatibleVersion)
 	if !common.DirExists(loadDir) {
 		return
 	}
 	for groupName, group := range sandbox.AllTemplates {
-		groupDir := loadDir + "/" + groupName
+		groupDir := path.Join(loadDir, groupName)
 		if !common.DirExists(groupDir) {
 			continue
 		}
 		for name, template := range group {
-			fileName := groupDir + "/" + name
+			fileName := path.Join(groupDir, name)
 			if !common.FileExists(fileName) {
 				continue
 			}
@@ -218,7 +219,7 @@ func LoadTemplates() {
 func ImportTemplates(cmd *cobra.Command, args []string) {
 	if len(args) < 2 {
 		common.Exit(1,
-			"The import command requires two arguments: group_name and dir_name",
+			"the import command requires two arguments: group_name and dir_name",
 			"If group_name is 'all', it will import all groups")
 	}
 	wanted := args[0]
@@ -227,35 +228,35 @@ func ImportTemplates(cmd *cobra.Command, args []string) {
 	}
 	dirName := args[1]
 	if !common.DirExists(dirName) {
-		common.Exitf(1, "# Directory <%s> doesn't exist", dirName)
+		common.Exitf(1, defaults.ErrDirectoryNotFound, dirName)
 	}
 	templateName := ""
 	if len(args) > 2 {
 		templateName = args[2]
 	}
-	versionFile := dirName + "/version.txt"
+	versionFile := path.Join(dirName, "version.txt")
 	if !common.FileExists(versionFile) {
-		common.Exitf(1, "File %s not found. Unable to validate templates.", versionFile)
+		common.Exitf(1, "file %s not found. Unable to validate templates.", versionFile)
 	}
 	templateVersion := strings.TrimSpace(common.SlurpAsString(versionFile))
 	versionList := common.VersionToList(templateVersion)
 	// fmt.Printf("%v\n",version_list)
 	compatibleVersionList := common.VersionToList(common.CompatibleVersion)
 	if versionList[0] < 0 {
-		common.Exitf(1, "Invalid version (%s) found in %s", templateVersion, versionFile)
+		common.Exitf(1, "invalid version (%s) found in %s", templateVersion, versionFile)
 	}
 	if !common.GreaterOrEqualVersion(templateVersion, compatibleVersionList) {
-		common.Exitf(1, "Templates are for version %s. The minimum compatible version is %s", templateVersion, common.CompatibleVersion)
+		common.Exitf(1, "templates are for version %s. The minimum compatible version is %s", templateVersion, common.CompatibleVersion)
 	}
 	foundGroup := false
 	foundTemplate := false
 	for groupName, group := range sandbox.AllTemplates {
-		groupDir := dirName + "/" + groupName
+		groupDir := path.Join(dirName, groupName)
 		if !common.DirExists(groupDir) {
 			continue
 		}
 		for name, _ := range group {
-			fileName := groupDir + "/" + name
+			fileName := path.Join(groupDir, name)
 			if !common.FileExists(fileName) {
 				continue
 			}
@@ -275,30 +276,30 @@ func ImportTemplates(cmd *cobra.Command, args []string) {
 			if !common.DirExists(defaults.ConfigurationDir) {
 				common.Mkdir(defaults.ConfigurationDir)
 			}
-			destinationDir := defaults.ConfigurationDir + "/templates" + common.CompatibleVersion
+			destinationDir := path.Join(defaults.ConfigurationDir, "templates"+common.CompatibleVersion)
 			if !common.DirExists(destinationDir) {
 				common.Mkdir(destinationDir)
 			}
-			destGroupDir := destinationDir + "/" + groupName
+			destGroupDir := path.Join(destinationDir, groupName)
 			if !common.DirExists(destGroupDir) {
 				common.Mkdir(destGroupDir)
 			}
-			destFile := destGroupDir + "/" + name
+			destFile := path.Join(destGroupDir, name)
 			common.WriteString(newContents, destFile)
 			fmt.Printf("# Template %s written to %s\n", name, destFile)
 		}
 	}
 	if !foundGroup {
-		common.Exitf(1, "Group %s not found", wanted)
+		common.Exitf(1, defaults.ErrGroupNotFound, wanted)
 	}
 	if !foundTemplate {
-		common.Exitf(1, "template %s not found", templateName)
+		common.Exitf(1, defaults.ErrTemplateNotFound, templateName)
 	}
 }
 
 func ResetTemplates(cmd *cobra.Command, args []string) {
 	// TODO: loop through the templates directories and remove all the ones that have compatible versions.
-	templatesDir := defaults.ConfigurationDir + "/templates" + common.CompatibleVersion
+	templatesDir := path.Join(defaults.ConfigurationDir, "templates"+common.CompatibleVersion)
 	if !common.DirExists(templatesDir) {
 		return
 	}

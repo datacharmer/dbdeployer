@@ -20,11 +20,6 @@ function upgrade_db {
     UPGRADE_FROM=$1
     UPGRADE_TO=$2
 
-    for dir in $UPGRADE_FROM $UPGRADE_TO 
-    do
-        check_version $dir
-    done
-
     upgrade_from_dir=msb_$(echo $UPGRADE_FROM | tr '.' '_')
     upgrade_to_dir=msb_$(echo $UPGRADE_TO | tr '.' '_')
 
@@ -57,8 +52,13 @@ function upgrade_db {
 
 ver_55=5.5.53
 ver_56=5.6.41
-ver_57=5.7.23
-ver_80=8.0.12
+ver_57=5.7.24
+ver_80=8.0.13
+
+for ver in $ver_55 $ver_56 $ver_57 $ver_80
+do
+    check_version $ver
+done
 
 header "Upgrading from $ver_55 to $ver_56"
 upgrade_db $ver_55 $ver_56

@@ -69,7 +69,7 @@ func debugPrint(descr string, v interface{}) {
 }
 
 func LoadAbbreviations() {
-	if os.Getenv("SKIP_ABBR") != "" {
+	if common.IsEnvSet("SKIP_ABBR") {
 		fmt.Printf("# Abbreviations suppressed by env variable SKIP_ABBR\n")
 		return
 	}
@@ -78,7 +78,7 @@ func LoadAbbreviations() {
 	var variables = make(common.StringMap)
 	var verboseAbbr bool = true
 	var replacementsUsed bool = false
-	if os.Getenv("SILENT_ABBR") != "" {
+	if common.IsEnvSet("SILENT_ABBR") {
 		verboseAbbr = false
 	}
 	if userDefinedFile != "" {
@@ -176,7 +176,7 @@ func LoadAbbreviations() {
 }
 
 func init() {
-	if os.Getenv("DEBUG_ABBR") != "" {
+	if common.IsEnvSet("DEBUG_ABBR") {
 		debugAbbr = true
 	}
 }

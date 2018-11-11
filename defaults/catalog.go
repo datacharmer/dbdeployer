@@ -81,9 +81,9 @@ func WriteCatalog(sc SandboxCatalog) {
 	if !enableCatalogManagement {
 		return
 	}
-	b, err := json.MarshalIndent(sc, " ", "\t")
+	byteBuf, err := json.MarshalIndent(sc, " ", "\t")
 	common.ErrCheckExitf(err, 1, "error encoding sandbox catalog: %s", err)
-	jsonString := fmt.Sprintf("%s", b)
+	jsonString := fmt.Sprintf("%s", byteBuf)
 	filename := SandboxRegistry
 	common.WriteString(jsonString, filename)
 }
@@ -154,7 +154,7 @@ func DeleteFromCatalog(sbName string) {
 }
 
 func init() {
-	if os.Getenv("SKIP_DBDEPLOYER_CATALOG") != "" {
+	if common.IsEnvSet("SKIP_DBDEPLOYER_CATALOG") {
 		enableCatalogManagement = false
 	}
 }

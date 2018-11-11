@@ -18,7 +18,6 @@ package common
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path"
 	"regexp"
 	"runtime"
@@ -34,7 +33,7 @@ type SandboxInfo struct {
 const lineLength = 80
 
 var (
-	portDebug bool   = os.Getenv("PORT_DEBUG") != ""
+	portDebug bool   = IsEnvSet("PORT_DEBUG")
 	DashLine  string = strings.Repeat("-", lineLength)
 	StarLine  string = strings.Repeat("*", lineLength)
 	HashLine  string = strings.Repeat("#", lineLength)
@@ -62,11 +61,11 @@ func GetInstalledSandboxes(sandboxHome string) (installedSandboxes []SandboxInfo
 		fname := f.Name()
 		fmode := f.Mode()
 		if fmode.IsDir() {
-			sbdesc := sandboxHome + "/" + fname + "/sbdescription.json"
-			start := sandboxHome + "/" + fname + "/start"
-			startAll := sandboxHome + "/" + fname + "/start_all"
-			noClear := sandboxHome + "/" + fname + "/no_clear"
-			noClearAll := sandboxHome + "/" + fname + "/no_clear_all"
+			sbdesc := path.Join(sandboxHome, fname, SandboxDescriptionName)
+			start := path.Join(sandboxHome, fname, "start")
+			startAll := path.Join(sandboxHome, fname, "start_all")
+			noClear := path.Join(sandboxHome, fname, "no_clear")
+			noClearAll := path.Join(sandboxHome, fname, "no_clear_all")
 			if FileExists(sbdesc) || FileExists(start) || FileExists(startAll) {
 				if FileExists(noClearAll) || FileExists(noClear) {
 					installedSandboxes = append(installedSandboxes, SandboxInfo{SandboxName: fname, Locked: true})
@@ -88,9 +87,9 @@ func GetInstalledPorts(sandboxHome string) []int {
 	var portCollection []int
 	var seenPorts = make(map[int]bool)
 	for _, fname := range files {
-		sbdesc := sandboxHome + "/" + fname + "/sbdescription.json"
+		sbdesc := path.Join(sandboxHome, fname, SandboxDescriptionName)
 		if FileExists(sbdesc) {
-			sbd := ReadSandboxDescription(sandboxHome + "/" + fname)
+			sbd := ReadSandboxDescription(path.Join(sandboxHome, fname))
 			if sbd.Nodes == 0 {
 				for _, p := range sbd.Port {
 					if !seenPorts[p] {
@@ -100,9 +99,9 @@ func GetInstalledPorts(sandboxHome string) []int {
 				}
 			} else {
 				var nodeDescr []SandboxDescription
-				innerFiles := SandboxInfoToFileNames(GetInstalledSandboxes(sandboxHome + "/" + fname))
+				innerFiles := SandboxInfoToFileNames(GetInstalledSandboxes(path.Join(sandboxHome, fname)))
 				for _, inner := range innerFiles {
-					innerSbdesc := sandboxHome + "/" + fname + "/" + inner + "/sbdescription.json"
+					innerSbdesc := path.Join(sandboxHome, fname, inner, SandboxDescriptionName)
 					if FileExists(innerSbdesc) {
 						sdNode := ReadSandboxDescription(fmt.Sprintf("%s/%s/%s", sandboxHome, fname, inner))
 						nodeDescr = append(nodeDescr, sdNode)
@@ -178,7 +177,7 @@ func CheckTarballOperatingSystem(basedir string) {
 			}
 			fmt.Println(DashLine)
 		}
-		Exitf(1, "Could not find any of the expected files for %s server: %s\n%s\n", currentOs, wantedFiles, DashLine)
+		Exitf(1, "could not find any of the expected files for %s server: %s\n%s\n", currentOs, wantedFiles, DashLine)
 	}
 }
 
@@ -195,15 +194,15 @@ func IsATarball(fileName string) bool {
 // Checks the initial argument for a sandbox deployment
 func CheckOrigin(args []string) {
 	if len(args) < 1 {
-		Exit(1, "This command requires the MySQL version (x.xx[.xx]) as argument ")
+		Exit(1, "this command requires the MySQL version (x.xx[.xx]) as argument ")
 	}
 	if len(args) > 1 {
-		Exit(1, "Extra argument detected. This command requires only the MySQL version (x.xx[.xx]) as argument ")
+		Exit(1, "extra argument detected. This command requires only the MySQL version (x.xx[.xx]) as argument ")
 	}
 	origin := args[0]
 	if FileExists(origin) && IsATarball(origin) {
 		Exit(1,
-			"Tarball detected. - If you want to use a tarball to create a sandbox,",
+			"tarball detected. - If you want to use a tarball to create a sandbox,",
 			"you should first use the 'unpack' command")
 	}
 }

@@ -72,7 +72,7 @@ func checkDefaultsFile() {
 		if common.FileExists(defaults.CustomConfigurationFile) {
 			defaults.ConfigurationFile = defaults.CustomConfigurationFile
 		} else {
-			common.Exitf(1, "*** File %s not found", defaults.CustomConfigurationFile)
+			common.Exitf(1, defaults.ErrFileNotFound, defaults.CustomConfigurationFile)
 		}
 	}
 	defaults.LoadConfiguration()

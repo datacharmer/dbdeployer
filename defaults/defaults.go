@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
 	"os"
+	"path"
 	"time"
 )
 
@@ -69,12 +70,12 @@ const (
 
 var (
 	homeDir                 string = os.Getenv("HOME")
-	ConfigurationDir        string = homeDir + "/.dbdeployer"
-	ConfigurationFile       string = ConfigurationDir + "/config.json"
+	ConfigurationDir        string = path.Join(homeDir, ".dbdeployer")
+	ConfigurationFile       string = path.Join(ConfigurationDir, "config.json")
 	CustomConfigurationFile string = ""
-	SandboxRegistry         string = ConfigurationDir + "/sandboxes.json"
-	SandboxRegistryLock     string = ConfigurationDir + "/sandboxes.lock"
-	LogSBOperations         bool   = os.Getenv("DBDEPLOYER_LOGGING") != ""
+	SandboxRegistry         string = path.Join(ConfigurationDir, "sandboxes.json")
+	SandboxRegistryLock     string = path.Join(ConfigurationDir, "sandboxes.lock")
+	LogSBOperations         bool   = common.IsEnvSet("DBDEPLOYER_LOGGING")
 
 	// This variable is changed to true when the "cmd" package is activated,
 	// meaning that we're using the command line interface of dbdeployer.
@@ -84,12 +85,12 @@ var (
 
 	factoryDefaults = DbdeployerDefaults{
 		Version:       common.CompatibleVersion,
-		SandboxHome:   homeDir + "/sandboxes",
-		SandboxBinary: homeDir + "/opt/mysql",
+		SandboxHome:   path.Join(homeDir, "sandboxes"),
+		SandboxBinary: path.Join(homeDir, "opt", "mysql"),
 
 		UseSandboxCatalog: true,
 		LogSBOperations:   false,
-		LogDirectory:      homeDir + "/sandboxes/logs",
+		LogDirectory:      path.Join(homeDir, "sandboxes", "logs"),
 		//UseConcurrency :			   true,
 		MasterSlaveBasePort:           11000,
 		GroupReplicationBasePort:      12000,
@@ -145,7 +146,7 @@ func ShowDefaults(defaults DbdeployerDefaults) {
 		fmt.Println("# Internal values:")
 	}
 	b, err := json.MarshalIndent(defaults, " ", "\t")
-	common.ErrCheckExitf(err, 1, "error encoding defaults: %s", err)
+	common.ErrCheckExitf(err, 1, ErrEncodingDefaults, err)
 	fmt.Printf("%s\n", b)
 }
 
@@ -156,7 +157,7 @@ func WriteDefaultsFile(filename string, defaults DbdeployerDefaults) {
 		common.Mkdir(defaultsDir)
 	}
 	b, err := json.MarshalIndent(defaults, " ", "\t")
-	common.ErrCheckExitf(err, 1, "error encoding defaults: %s", err)
+	common.ErrCheckExitf(err, 1, ErrEncodingDefaults, err)
 	jsonString := fmt.Sprintf("%s", b)
 	common.WriteString(jsonString, filename)
 }
@@ -181,7 +182,7 @@ func ReadDefaultsFile(filename string) (defaults DbdeployerDefaults) {
 	defaultsBlob := common.SlurpAsBytes(filename)
 
 	err := json.Unmarshal(defaultsBlob, &defaults)
-	common.ErrCheckExitf(err, 1, "error decoding defaults: %s", err)
+	common.ErrCheckExitf(err, 1, ErrEncodingDefaults, err)
 	defaults = expandEnvironmentVariables(defaults)
 	return
 }
@@ -266,14 +267,14 @@ func RemoveDefaultsFile() {
 		common.ErrCheckExitf(err, 1, "%s", err)
 		fmt.Printf("#File %s removed\n", ConfigurationFile)
 	} else {
-		common.Exitf(1, "Configuration file %s not found", ConfigurationFile)
+		common.Exitf(1, "configuration file %s not found", ConfigurationFile)
 	}
 }
 
 func strToSlice(label, s string) []int {
 	intList, err := common.StringToIntSlice(s)
 	if err != nil {
-		common.Exitf(1, "Bad input for %s: %s (%s) ", label, s, err)
+		common.Exitf(1, "bad input for %s: %s (%s) ", label, s, err)
 	}
 	return intList
 }
@@ -350,7 +351,7 @@ func UpdateDefaults(label, value string, storeDefaults bool) {
 	// case "ndb-prefix":
 	// 	new_defaults.NdbPrefix = value
 	default:
-		common.Exitf(1, "Unrecognized label %s", label)
+		common.Exitf(1, "unrecognized label %s", label)
 	}
 	if ValidateDefaults(newDefaults) {
 		currentDefaults = newDefaults
@@ -359,7 +360,7 @@ func UpdateDefaults(label, value string, storeDefaults bool) {
 			fmt.Printf("# Updated %s -> \"%s\"\n", label, value)
 		}
 	} else {
-		common.Exitf(1, "Invalid defaults data %s : %s", label, value)
+		common.Exitf(1, "invalid defaults data %s : %s", label, value)
 	}
 }
 

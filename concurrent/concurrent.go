@@ -17,8 +17,8 @@ package concurrent
 
 import (
 	"fmt"
+	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
-	"os"
 	"os/exec"
 	"sync"
 	"time"
@@ -167,10 +167,10 @@ func RunParallelTasksByPriority(execLists []ExecutionList) {
 }
 
 func init() {
-	if os.Getenv("DEBUG_CONCURRENCY") != "" {
+	if common.IsEnvSet("DEBUG_CONCURRENCY") {
 		DebugConcurrency = true
 	}
-	if os.Getenv("VERBOSE_CONCURRENCY") != "" {
+	if common.IsEnvSet("VERBOSE_CONCURRENCY") {
 		VerboseConcurrency = true
 	}
 }

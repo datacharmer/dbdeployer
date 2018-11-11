@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"sync"
 
 	"github.com/datacharmer/dbdeployer/common"
@@ -67,11 +68,11 @@ func NewLogger(logDir, logFileName string) (string, *Logger) {
 	if !common.DirExists(Defaults().LogDirectory) {
 		common.Mkdir(Defaults().LogDirectory)
 	}
-	fullLogDir := Defaults().LogDirectory + "/" + logDir
+	fullLogDir := path.Join(Defaults().LogDirectory, logDir)
 	if !common.DirExists(fullLogDir) {
 		common.Mkdir(fullLogDir)
 	}
-	var logFileFullName string = fmt.Sprintf("%s/%s.log", fullLogDir, logFileName)
+	var logFileFullName string = path.Join(fullLogDir, logFileName+".log")
 	var err error
 	var logFile *os.File
 	logFile, err = os.OpenFile(logFileFullName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)

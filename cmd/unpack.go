@@ -34,7 +34,7 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	verbosity, _ := flags.GetInt(defaults.VerbosityLabel)
 	if !common.DirExists(Basedir) {
 		common.Exit(1,
-			fmt.Sprintf("Directory %s does not exist.", Basedir),
+			fmt.Sprintf(defaults.ErrDirectoryNotFound, Basedir),
 			"You should create it or provide an alternate base directory using --sandbox-binary")
 	}
 	tarball := args[0]
@@ -62,16 +62,16 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	// This call used to ensure that the port provided is in the right format
 	port := common.VersionToPort(Version)
 	if port == -1 {
-		common.Exitf(1, "Version %s not in the required format", Version)
+		common.Exitf(1, "version %s not in the required format", Version)
 	}
 	Prefix, _ := flags.GetString(defaults.PrefixLabel)
 
-	destination := Basedir + "/" + Prefix + Version
+	destination := path.Join(Basedir, Prefix+Version)
 	if target != "" {
-		destination = Basedir + "/" + target
+		destination = path.Join(Basedir, target)
 	}
 	if common.DirExists(destination) && !isShell {
-		common.Exitf(1, "Destination directory %s exists already\n", destination)
+		common.Exitf(1, defaults.ErrNamedDirectoryAlreadyExists, "destination directory", destination)
 	}
 	extracted := path.Base(tarball)
 	var bareName string
@@ -87,13 +87,13 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 		extractFunc = unpack.UnpackXzTar
 		foundExtension = defaults.TarXzExt
 	default:
-		common.Exitf(1, "Tarball extension must be either '%s' or '%s'", defaults.TarGzExt, defaults.TarXzExt)
+		common.Exitf(1, "tarball extension must be either '%s' or '%s'", defaults.TarGzExt, defaults.TarXzExt)
 	}
 	bareName = extracted[0 : len(extracted)-len(defaults.TarGzExt)]
 	if isShell {
 		fmt.Printf("Merging shell tarball %s to %s\n", common.ReplaceLiteralHome(tarball), common.ReplaceLiteralHome(destination))
 		err := unpack.MergeShell(tarball, foundExtension, Basedir, destination, bareName, verbosity)
-		common.ErrCheckExitf(err, 1, "Error while unpacking mysql shell tarball : %s", err)
+		common.ErrCheckExitf(err, 1, "error while unpacking mysql shell tarball : %s", err)
 		return
 	}
 
@@ -102,7 +102,7 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	// err := unpack.UnpackTar(tarball, Basedir, verbosity)
 	err := extractFunc(tarball, Basedir, verbosity)
 	common.ErrCheckExitf(err, 1, "%s", err)
-	finalName := Basedir + "/" + bareName
+	finalName := path.Join(Basedir, bareName)
 	if finalName != destination {
 		fmt.Printf("Renaming directory %s to %s\n", finalName, destination)
 		err = os.Rename(finalName, destination)

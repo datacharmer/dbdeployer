@@ -17,6 +17,7 @@ package common
 
 import (
 	"fmt"
+	"github.com/datacharmer/dbdeployer/compare"
 	"os"
 	"regexp"
 	"testing"
@@ -49,7 +50,7 @@ func TestLogDirName(t *testing.T) {
 			CommandLineArgs = d.args
 			CommandLineArgs = append(CommandLineArgs, v)
 			result := LogDirName()
-			okEqualString(fmt.Sprintf("Log dir name [%v]", CommandLineArgs), result, fmt.Sprintf("%s-%s", expected, pid), t)
+			compare.OkEqualString(fmt.Sprintf("Log dir name [%v]", CommandLineArgs), result, fmt.Sprintf("%s-%s", expected, pid), t)
 		}
 	}
 }

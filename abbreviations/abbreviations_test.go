@@ -17,29 +17,10 @@ package abbreviations
 
 import (
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/compare"
 	"os"
 	"testing"
 )
-
-func okEqualSlices(t *testing.T, found, expected []string) {
-
-	if len(expected) != len(found) {
-		t.Logf("not ok - slice Found has %d elements, while slice Expected has %d\n", len(found), len(expected))
-		t.Logf("Found: %v", found)
-		t.Logf("Expected: %v", expected)
-		t.Fail()
-		return
-	}
-	for N := 0; N < len(found); N++ {
-		if found[N] == expected[N] {
-			t.Logf("ok - element %d of Found and the same in Expected are equal [%v]\n", N, found[N])
-		} else {
-			t.Logf("not ok - element %d of Found differs from the corresponding one in Expected. "+
-				"Expected '%s' - found: '%s'\n", N, expected[N], found[N])
-			t.Fail()
-		}
-	}
-}
 
 func TestLoadAbbreviations(t *testing.T) {
 	userDefinedFile = "/tmp/abbreviations.txt"
@@ -76,9 +57,9 @@ func TestLoadAbbreviations(t *testing.T) {
 	for _, d := range data {
 		os.Args = d.commandLine
 		LoadAbbreviations()
-		okEqualSlices(t, os.Args, d.expected)
+		compare.OkEqualStringSlices(t, os.Args, d.expected)
 	}
 
 	os.Args = saveArgs
-	okEqualSlices(t, os.Args, saveArgs)
+	compare.OkEqualStringSlices(t, os.Args, saveArgs)
 }

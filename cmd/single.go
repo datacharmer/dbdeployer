@@ -17,7 +17,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"path"
 	"regexp"
 	"strings"
@@ -31,12 +30,12 @@ import (
 func replaceTemplate(templateName string, fileName string) {
 	group, _, contents := FindTemplate(templateName)
 	if !common.FileExists(fileName) {
-		common.Exitf(1, "File %s not found\n", fileName)
+		common.Exitf(1, defaults.ErrFileNotFound, fileName)
 	}
 	fmt.Printf("Replacing template %s.%s [%d chars] with contents of file %s\n", group, templateName, len(contents), fileName)
 	newContents := common.SlurpAsString(fileName)
 	if len(newContents) == 0 {
-		common.Exitf(1, "File %s is empty\n", fileName)
+		common.Exitf(1, "file %s is empty\n", fileName)
 	}
 	var newRec = sandbox.TemplateDesc{
 		Description: sandbox.AllTemplates[group][templateName].Description,
@@ -71,7 +70,7 @@ func processDefaults(newDefaults []string) {
 func GetAbsolutePathFromFlag(cmd *cobra.Command, name string) string {
 	flags := cmd.Flags()
 	value, err := flags.GetString(name)
-	common.ErrCheckExitf(err, 1, "Error getting flag value for --%s", name)
+	common.ErrCheckExitf(err, 1, "error getting flag value for --%s", name)
 	return common.AbsolutePath(value)
 }
 
@@ -150,7 +149,7 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 			// or a command line option
 			if oldBasedir != basedir {
 				// The new basedir is different from the one given by command line or env
-				common.Exit(1, "The Sandbox Binary directory was set twice,",
+				common.Exit(1, "the Sandbox Binary directory was set twice,",
 					fmt.Sprintf(" using conflicting values: '%s' and '%s' ", oldBasedir, basedir))
 			}
 		}
@@ -159,14 +158,14 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 			sd.Version = sd.BasedirName
 		}
 		if !common.IsVersion(sd.Version) {
-			common.Exitf(1, "No version detected for directory %s", target)
+			common.Exitf(1, "no version detected for directory %s", target)
 		}
 		// fmt.Printf("NEW bd <%s> - v: <%s>\n",basedir, sd.Version )
 	}
 
 	sd.Port = common.VersionToPort(sd.Version)
 	if sd.Port < 0 {
-		common.Exitf(1, "Unsupported version format (%s)", sd.Version)
+		common.Exitf(1, "unsupported version format (%s)", sd.Version)
 	}
 	sd.UserPort, _ = flags.GetInt(defaults.PortLabel)
 	sd.BasePort, _ = flags.GetInt(defaults.BasePortLabel)
@@ -231,7 +230,7 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 		common.Exit(1, "flags --enable-mysqlx and --disable-mysqlx cannot be used together")
 	}
 	sd.RunConcurrently, _ = flags.GetBool(defaults.ConcurrentLabel)
-	if os.Getenv("RUN_CONCURRENTLY") != "" {
+	if common.IsEnvSet("RUN_CONCURRENTLY") {
 		sd.RunConcurrently = true
 	}
 
@@ -250,23 +249,26 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	}
 	if gtid {
 		templateName := "gtid_options_56"
-		if common.GreaterOrEqualVersion(sd.Version, []int{5, 7, 0}) {
+		// 5.7.0
+		if common.GreaterOrEqualVersion(sd.Version, defaults.MinimumEnhancedGtidVersion) {
 			templateName = "gtid_options_57"
 		}
-		if common.GreaterOrEqualVersion(sd.Version, []int{5, 6, 9}) {
+		// 5.6.9
+		if common.GreaterOrEqualVersion(sd.Version, defaults.MinimumGtidVersion) {
 			sd.GtidOptions = sandbox.SingleTemplates[templateName].Contents
 			sd.ReplCrashSafeOptions = sandbox.SingleTemplates["repl_crash_safe_options"].Contents
 			sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 			sd.ServerId = sd.Port
 		} else {
-			common.Exitf(1, "--%s requires version 5.6.9+", defaults.GtidLabel)
+			common.Exitf(1, defaults.ErrOptionRequiresVersion, defaults.GtidLabel, common.IntSliceToDottedString(defaults.MinimumGtidVersion))
 		}
 	}
 	if replCrashSafe && sd.ReplCrashSafeOptions == "" {
-		if common.GreaterOrEqualVersion(sd.Version, []int{5, 6, 2}) {
+		// 5.6.2
+		if common.GreaterOrEqualVersion(sd.Version, defaults.MinimumCrashSafeVersion) {
 			sd.ReplCrashSafeOptions = sandbox.SingleTemplates["repl_crash_safe_options"].Contents
 		} else {
-			common.Exitf(1, "--%s requires version 5.6.2+", defaults.ReplCrashSafeLabel)
+			common.Exitf(1, defaults.ErrOptionRequiresVersion, defaults.ReplCrashSafeLabel, common.IntSliceToDottedString(defaults.MinimumCrashSafeVersion))
 		}
 	}
 	return sd

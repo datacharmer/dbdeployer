@@ -49,14 +49,15 @@ func ReplicationSandbox(cmd *cobra.Command, args []string) {
 		if topology != defaults.MasterSlaveLabel {
 			common.Exit(1, "--semi-sync is only available with master/slave topology")
 		}
-		if common.GreaterOrEqualVersion(sd.Version, []int{5, 5, 1}) {
+		// 5.5.1
+		if common.GreaterOrEqualVersion(sd.Version, defaults.MinimumSemiSyncVersion) {
 			sd.SemiSyncOptions = sandbox.SingleTemplates["semisync_master_options"].Contents
 		} else {
-			common.Exit(1, "--semi-sync requires version 5.5.1+")
+			common.Exitf(1, "--semi-sync requires version %s+", common.IntSliceToDottedString(defaults.MinimumSemiSyncVersion))
 		}
 	}
 	if sd.SinglePrimary && topology != defaults.GroupLabel {
-		common.Exit(1, "Option 'single-primary' can only be used with 'group' topology ")
+		common.Exit(1, "option 'single-primary' can only be used with 'group' topology ")
 	}
 	origin := args[0]
 	if args[0] != sd.BasedirName {

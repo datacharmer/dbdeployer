@@ -18,76 +18,78 @@ package cmd
 import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
 	"os"
+	"path"
 )
 
 func UnpreserveSandbox(sandboxDir, sandboxName string) {
-	fullPath := sandboxDir + "/" + sandboxName
+	fullPath := path.Join(sandboxDir, sandboxName)
 	if !common.DirExists(fullPath) {
-		common.Exitf(1, "Directory '%s' not found", fullPath)
+		common.Exitf(1, defaults.ErrDirectoryNotFound, fullPath)
 	}
-	preserve := fullPath + "/no_clear_all"
+	preserve := path.Join(fullPath, defaults.ScriptNoClearAll)
 	if !common.ExecExists(preserve) {
-		preserve = fullPath + "/no_clear"
+		preserve = path.Join(fullPath, defaults.ScriptNoClear)
 	}
 	if !common.ExecExists(preserve) {
 		fmt.Printf("Sandbox %s is not locked\n", sandboxName)
 		return
 	}
 	isMultiple := true
-	clear := fullPath + "/clear_all"
+	clear := path.Join(fullPath, defaults.ScriptClearAll)
 	if !common.ExecExists(clear) {
-		clear = fullPath + "/clear"
+		clear = path.Join(fullPath, defaults.ScriptClear)
 		isMultiple = false
 	}
 	if !common.ExecExists(clear) {
-		common.Exitf(1, "Executable '%s' not found", clear)
+		common.Exitf(1, defaults.ErrExecutableNotFound, clear)
 	}
-	noClear := fullPath + "/no_clear"
+	noClear := path.Join(fullPath, defaults.ScriptNoClear)
 	if isMultiple {
-		noClear = fullPath + "/no_clear_all"
+		noClear = path.Join(fullPath, defaults.ScriptNoClearAll)
 	}
 	err := os.Remove(clear)
-	common.ErrCheckExitf(err, 1, "Error while removing %s \n%s", clear, err)
+	common.ErrCheckExitf(err, 1, defaults.ErrWhileRemoving, clear, err)
 	err = os.Rename(noClear, clear)
-	common.ErrCheckExitf(err, 1, "Error while renaming  script\n%s", err)
+	common.ErrCheckExitf(err, 1, defaults.ErrWhileRenamingScript, err)
 	fmt.Printf("Sandbox %s unlocked\n", sandboxName)
 }
 
 func PreserveSandbox(sandboxDir, sandboxName string) {
-	fullPath := sandboxDir + "/" + sandboxName
+	fullPath := path.Join(sandboxDir, sandboxName)
 	if !common.DirExists(fullPath) {
-		common.Exitf(1, "Directory '%s' not found", fullPath)
+		common.Exitf(1, defaults.ErrDirectoryNotFound, fullPath)
 	}
-	preserve := fullPath + "/no_clear_all"
+	preserve := path.Join(fullPath, defaults.ScriptNoClearAll)
 	if !common.ExecExists(preserve) {
-		preserve = fullPath + "/no_clear"
+		preserve = path.Join(fullPath, defaults.ScriptNoClear)
 	}
 	if common.ExecExists(preserve) {
 		fmt.Printf("Sandbox %s is already locked\n", sandboxName)
 		return
 	}
 	isMultiple := true
-	clear := fullPath + "/clear_all"
+	clear := path.Join(fullPath, defaults.ScriptClearAll)
 	if !common.ExecExists(clear) {
-		clear = fullPath + "/clear"
+		clear = path.Join(fullPath, defaults.ScriptClear)
 		isMultiple = false
 	}
 	if !common.ExecExists(clear) {
-		common.Exitf(1, "Executable '%s' not found", clear)
+		common.Exitf(1, defaults.ErrExecutableNotFound, clear)
 	}
-	noClear := fullPath + "/no_clear"
-	clearCmd := "clear"
-	noClearCmd := "no_clear"
+	noClear := path.Join(fullPath, defaults.ScriptNoClear)
+	clearCmd := defaults.ScriptClear
+	noClearCmd := defaults.ScriptNoClear
 	if isMultiple {
-		noClear = fullPath + "/no_clear_all"
-		clearCmd = "clear_all"
-		noClearCmd = "no_clear_all"
+		noClear = path.Join(fullPath, defaults.ScriptNoClearAll)
+		clearCmd = defaults.ScriptClearAll
+		noClearCmd = defaults.ScriptNoClearAll
 	}
 	err := os.Rename(clear, noClear)
-	common.ErrCheckExitf(err, 1, "Error while renaming script.\n%s", err)
+	common.ErrCheckExitf(err, 1, defaults.ErrWhileRenamingScript, err)
 	template := sandbox.SingleTemplates["sb_locked_template"].Contents
 	var data = common.StringMap{
 		"TemplateName": "sb_locked_template",
@@ -156,25 +158,25 @@ func UpgradeSandbox(sandboxDir, oldSandbox, newSandbox string) {
 		"8.0": "8.0",
 	}
 	err := os.Chdir(sandboxDir)
-	common.ErrCheckExitf(err, 1, "Error: can't change directory to %s", sandboxDir)
-	scripts := []string{"start", "stop", "my"}
+	common.ErrCheckExitf(err, 1, "can't change directory to %s", sandboxDir)
+	scripts := []string{defaults.ScriptStart, defaults.ScriptStop, defaults.ScriptMy}
 	for _, dir := range []string{oldSandbox, newSandbox} {
 		if !common.DirExists(dir) {
-			common.Exitf(1, "Error: Directory %s not found in %s", dir, sandboxDir)
+			common.Exitf(1, defaults.ErrDirectoryNotFoundInUpper, dir, sandboxDir)
 		}
 		for _, script := range scripts {
-			if !common.ExecExists(dir + "/" + script) {
-				common.Exit(1, fmt.Sprintf("Error: script %s not found in %s", script, dir),
+			if !common.ExecExists(path.Join(dir, script)) {
+				common.Exit(1, fmt.Sprintf(defaults.ErrScriptNotFoundInUpper, script, dir),
 					"The upgrade only works between SINGLE deployments")
 			}
 		}
 	}
 	newSbdesc := common.ReadSandboxDescription(newSandbox)
 	oldSbdesc := common.ReadSandboxDescription(oldSandbox)
-	mysqlUpgrade := newSbdesc.Basedir + "/bin/mysql_upgrade"
+	mysqlUpgrade := path.Join(newSbdesc.Basedir, "bin", "mysql_upgrade")
 	if !common.ExecExists(mysqlUpgrade) {
-		common.WriteString("", newSandbox+"/no_upgrade")
-		common.Exit(0, "mysql_upgrade not found in %s. Upgrade is not possible", newSbdesc.Basedir)
+		common.WriteString("", path.Join(newSandbox, "no_upgrade"))
+		common.Exitf(0, "mysql_upgrade not found in %s. Upgrade is not possible", newSbdesc.Basedir)
 	}
 	newVersionList := common.VersionToList(newSbdesc.Version)
 	newMajor := newVersionList[0]
@@ -187,10 +189,10 @@ func UpgradeSandbox(sandboxDir, oldSandbox, newSandbox string) {
 	newUpgradeVersion := fmt.Sprintf("%d.%d", newVersionList[0], newVersionList[1])
 	oldUpgradeVersion := fmt.Sprintf("%d.%d", oldVersionList[0], oldVersionList[1])
 	if oldMajor == 10 || newMajor == 10 {
-		common.Exit(1, "Upgrade from and to MariaDB is not supported")
+		common.Exit(1, "upgrade from and to MariaDB is not supported")
 	}
 	if common.GreaterOrEqualVersion(oldSbdesc.Version, newVersionList) {
-		common.Exitf(1, "Version %s must be greater than %s", newUpgradeVersion, oldUpgradeVersion)
+		common.Exitf(1, "version %s must be greater than %s", newUpgradeVersion, oldUpgradeVersion)
 	}
 	canBeUpgraded := false
 	if oldMajor < newMajor {
@@ -205,30 +207,30 @@ func UpgradeSandbox(sandboxDir, oldSandbox, newSandbox string) {
 		}
 	}
 	if !canBeUpgraded {
-		common.Exitf(1, "Version %s can only be upgraded to %s or to the same version with a higher revision", oldUpgradeVersion, possibleUpgrades[oldUpgradeVersion])
+		common.Exitf(1, "version '%s' can only be upgraded to '%s' or to the same version with a higher revision", oldUpgradeVersion, possibleUpgrades[oldUpgradeVersion])
 	}
-	newSandboxOldData := newSandbox + "/data-" + newSandbox
+	newSandboxOldData := path.Join(newSandbox, defaults.DataDirName+"-"+newSandbox)
 	if common.DirExists(newSandboxOldData) {
-		common.Exitf(1, "Sandbox %s is already the upgrade from an older version", newSandbox)
+		common.Exitf(1, "sandbox '%s' is already the upgrade from an older version", newSandbox)
 	}
-	err, _ = common.RunCmd(oldSandbox + "/stop")
-	common.ErrCheckExitf(err, 1, "Error while stopping sandbox %s", oldSandbox)
-	err, _ = common.RunCmd(newSandbox + "/stop")
-	common.ErrCheckExitf(err, 1, "Error while stopping sandbox %s", newSandbox)
-	mvArgs := []string{newSandbox + "/data", newSandboxOldData}
+	err, _ = common.RunCmd(path.Join(oldSandbox, defaults.ScriptStop))
+	common.ErrCheckExitf(err, 1, defaults.ErrWhileStoppingSandbox, oldSandbox)
+	err, _ = common.RunCmd(path.Join(newSandbox, defaults.ScriptStop))
+	common.ErrCheckExitf(err, 1, defaults.ErrWhileStoppingSandbox, newSandbox)
+	mvArgs := []string{path.Join(newSandbox, defaults.DataDirName), newSandboxOldData}
 	err, _ = common.RunCmdWithArgs("mv", mvArgs)
-	common.ErrCheckExitf(err, 1, "Error while moving data directory in sandbox %s", newSandbox)
+	common.ErrCheckExitf(err, 1, "error while moving data directory in sandbox %s", newSandbox)
 
-	mvArgs = []string{oldSandbox + "/data", newSandbox + "/data"}
+	mvArgs = []string{path.Join(oldSandbox, defaults.DataDirName), path.Join(newSandbox, defaults.DataDirName)}
 	err, _ = common.RunCmdWithArgs("mv", mvArgs)
-	common.ErrCheckExitf(err, 1, "Error while moving data directory from sandbox %s to %s", oldSandbox, newSandbox)
+	common.ErrCheckExitf(err, 1, "error while moving data directory from sandbox %s to %s", oldSandbox, newSandbox)
 	fmt.Printf("Data directory %s/data moved to %s/data \n", oldSandbox, newSandbox)
 
-	err, _ = common.RunCmd(newSandbox + "/start")
-	common.ErrCheckExitf(err, 1, "Error while starting sandbox %s", newSandbox)
+	err, _ = common.RunCmd(path.Join(newSandbox, defaults.ScriptStart))
+	common.ErrCheckExitf(err, 1, defaults.ErrWhileStartingSandbox, newSandbox)
 	upgradeArgs := []string{"sql_upgrade"}
-	err, _ = common.RunCmdWithArgs(newSandbox+"/my", upgradeArgs)
-	common.ErrCheckExitf(err, 1, "Error while running mysql_upgrade in %s", newSandbox)
+	err, _ = common.RunCmdWithArgs(path.Join(newSandbox, defaults.ScriptMy), upgradeArgs)
+	common.ErrCheckExitf(err, 1, "error while running mysql_upgrade in %s", newSandbox)
 	fmt.Println("")
 	fmt.Printf("The data directory from %s/data is preserved in %s\n", newSandbox, newSandboxOldData)
 	fmt.Printf("The data directory from %s/data is now used in %s/data\n", oldSandbox, newSandbox)

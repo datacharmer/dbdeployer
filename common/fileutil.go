@@ -23,6 +23,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -57,6 +58,7 @@ type KeyValue struct {
 type ConfigOptions map[string][]KeyValue
 
 const PublicDirectoryAttr = 0755
+const SandboxDescriptionName = "sbdescription.json"
 
 var CommandLineArgs []string
 
@@ -152,12 +154,12 @@ func WriteSandboxDescription(destination string, sd SandboxDescription) {
 	b, err := json.MarshalIndent(sd, " ", "\t")
 	ErrCheckExitf(err, 1, "error encoding sandbox description: %s", err)
 	jsonString := fmt.Sprintf("%s", b)
-	filename := destination + "/sbdescription.json"
+	filename := path.Join(destination, SandboxDescriptionName)
 	WriteString(jsonString, filename)
 }
 
 func ReadSandboxDescription(sandboxDirectory string) (sd SandboxDescription) {
-	filename := sandboxDirectory + "/sbdescription.json"
+	filename := path.Join(sandboxDirectory, SandboxDescriptionName)
 	sbBlob := SlurpAsBytes(filename)
 
 	err := json.Unmarshal(sbBlob, &sd)
@@ -317,18 +319,18 @@ func RunCmd(c string) (error, string) {
 
 func CopyFile(source, destination string) {
 	sourceFile, err := os.Stat(source)
-	ErrCheckExitf(err, 1, "Error finding source file %s: %s", source, err)
+	ErrCheckExitf(err, 1, "error finding source file %s: %s", source, err)
 	fileMode := sourceFile.Mode()
 	from, err := os.Open(source)
-	ErrCheckExitf(err, 1, "Error opening source file %s: %s", source, err)
+	ErrCheckExitf(err, 1, "error opening source file %s: %s", source, err)
 	defer from.Close()
 
 	to, err := os.OpenFile(destination, os.O_RDWR|os.O_CREATE, fileMode) // 0666)
-	ErrCheckExitf(err, 1, "Error opening destination file %s: %s", destination, err)
+	ErrCheckExitf(err, 1, "error opening destination file %s: %s", destination, err)
 	defer to.Close()
 
 	_, err = io.Copy(to, from)
-	ErrCheckExitf(err, 1, "Error copying from source %s to destination file %s: %s", source, destination, err)
+	ErrCheckExitf(err, 1, "error copying from source %s to destination file %s: %s", source, destination, err)
 }
 
 func BaseName(filename string) string {
@@ -341,21 +343,21 @@ func DirName(filename string) string {
 
 func AbsolutePath(value string) string {
 	filename, err := filepath.Abs(value)
-	ErrCheckExitf(err, 1, "Error getting absolute path for %s", value)
+	ErrCheckExitf(err, 1, "error getting absolute path for %s", value)
 	return filename
 }
 
 func Mkdir(dirName string) {
 	err := os.Mkdir(dirName, PublicDirectoryAttr)
-	ErrCheckExitf(err, 1, "Error creating directory %s\n%s\n", dirName, err)
+	ErrCheckExitf(err, 1, "error creating directory %s\n%s\n", dirName, err)
 }
 
 func Rmdir(dirName string) {
 	err := os.Remove(dirName)
-	ErrCheckExitf(err, 1, "Error removing directory %s\n%s\n", dirName, err)
+	ErrCheckExitf(err, 1, "error removing directory %s\n%s\n", dirName, err)
 }
 
 func RmdirAll(dirName string) {
 	err := os.RemoveAll(dirName)
-	ErrCheckExitf(err, 1, "Error deep-removing directory %s\n%s\n", dirName, err)
+	ErrCheckExitf(err, 1, "error deep-removing directory %s\n%s\n", dirName, err)
 }

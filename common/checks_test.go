@@ -17,6 +17,7 @@ package common
 
 import (
 	"fmt"
+	"github.com/datacharmer/dbdeployer/compare"
 	"testing"
 )
 
@@ -35,7 +36,7 @@ func TestIsVersion(t *testing.T) {
 	}
 	for _, tv := range data {
 		result := IsVersion(tv.candidate)
-		okEqualBool(fmt.Sprintf("is version: %s", tv.candidate), tv.expected, result, t)
+		compare.OkEqualBool(fmt.Sprintf("is version: %s", tv.candidate), tv.expected, result, t)
 	}
 }
 
@@ -54,7 +55,7 @@ func TestIsATarball(t *testing.T) {
 	}
 	for _, tv := range data {
 		result := IsATarball(tv.candidate)
-		okEqualBool(fmt.Sprintf("is a tarball: %s", tv.candidate), tv.expected, result, t)
+		compare.OkEqualBool(fmt.Sprintf("is a tarball: %s", tv.candidate), tv.expected, result, t)
 	}
 }
 
@@ -78,6 +79,6 @@ func TestFindFreePort(t *testing.T) {
 	}
 	for _, d := range data {
 		result := FindFreePort(d.basePort, d.usedPorts, d.howMany)
-		okEqualInt(fmt.Sprintf("Free ports %v : %d:%d", d.usedPorts, d.basePort, d.howMany), d.expected, result, t)
+		compare.OkEqualInt(fmt.Sprintf("Free ports %v : %d:%d", d.usedPorts, d.basePort, d.howMany), d.expected, result, t)
 	}
 }

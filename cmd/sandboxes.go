@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"fmt"
+	"path"
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
@@ -66,9 +67,9 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 		//if fmode.IsDir() {
 		fname := sbinfo.SandboxName
 		description := "single"
-		sbdesc := SandboxHome + "/" + fname + "/sbdescription.json"
+		sbdesc := path.Join(SandboxHome, fname, common.SandboxDescriptionName)
 		if common.FileExists(sbdesc) {
-			sbd := common.ReadSandboxDescription(SandboxHome + "/" + fname)
+			sbd := common.ReadSandboxDescription(path.Join(SandboxHome, fname))
 			locked := ""
 			if sbinfo.Locked {
 				locked = "(LOCKED)"
@@ -84,9 +85,9 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 				description = fmt.Sprintf("%-20s %10s [%s]", sbd.SBType, sbd.Version, portText)
 			} else {
 				var nodeDescr []common.SandboxDescription
-				innerFiles := common.SandboxInfoToFileNames(common.GetInstalledSandboxes(SandboxHome + "/" + fname))
+				innerFiles := common.SandboxInfoToFileNames(common.GetInstalledSandboxes(path.Join(SandboxHome, fname)))
 				for _, inner := range innerFiles {
-					innerSbdesc := SandboxHome + "/" + fname + "/" + inner + "/sbdescription.json"
+					innerSbdesc := path.Join(SandboxHome, fname, inner, common.SandboxDescriptionName)
 					if common.FileExists(innerSbdesc) {
 						sdNode := common.ReadSandboxDescription(fmt.Sprintf("%s/%s/%s", SandboxHome, fname, inner))
 						nodeDescr = append(nodeDescr, sdNode)
@@ -107,12 +108,12 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 			dirs = append(dirs, fmt.Sprintf("%-25s : %s %s", fname, description, locked))
 		} else {
 			locked := ""
-			noClear := SandboxHome + "/" + fname + "/no_clear"
-			noClearAll := SandboxHome + "/" + fname + "/no_clear_all"
-			start := SandboxHome + "/" + fname + "/start"
-			startAll := SandboxHome + "/" + fname + "/start_all"
-			initializeSlaves := SandboxHome + "/" + fname + "/initialize_slaves"
-			initializeNodes := SandboxHome + "/" + fname + "/initialize_nodes"
+			noClear := path.Join(SandboxHome, fname, defaults.ScriptNoClear)
+			noClearAll := path.Join(SandboxHome, fname, defaults.ScriptNoClearAll)
+			start := path.Join(SandboxHome, fname, defaults.ScriptStart)
+			startAll := path.Join(SandboxHome, fname, defaults.ScriptStartAll)
+			initializeSlaves := path.Join(SandboxHome, fname, defaults.ScriptInitializeSlaves)
+			initializeNodes := path.Join(SandboxHome, fname, defaults.ScriptInitializeNodes)
 			if common.FileExists(noClear) || common.FileExists(noClearAll) {
 				locked = "(LOCKED)"
 			}

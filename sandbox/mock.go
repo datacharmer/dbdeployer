@@ -18,6 +18,7 @@ package sandbox
 import (
 	"fmt"
 	"os"
+	"path"
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
@@ -43,7 +44,7 @@ func setMockEnvironment(mockUpperDir string) {
 		mockUpperDir = defaultMockDir
 	}
 	if common.DirExists(mockUpperDir) {
-		common.Exitf(1, "Mock directory %s already exists. Aborting", mockUpperDir)
+		common.Exitf(1, "mock directory %s already exists. Aborting", mockUpperDir)
 	}
 	PWD := os.Getenv("PWD")
 	home := fmt.Sprintf("%s/%s/home", PWD, mockUpperDir)
@@ -68,7 +69,7 @@ func setMockEnvironment(mockUpperDir string) {
 
 func removeMockEnvironment(mockUpperDir string) {
 	if !common.DirExists(mockUpperDir) {
-		common.Exitf(1, "Mock directory %s doesn't exist. Aborting", mockUpperDir)
+		common.Exitf(1, "mock directory %s doesn't exist. Aborting", mockUpperDir)
 	}
 	os.RemoveAll(mockUpperDir)
 	os.Setenv("HOME", saveHome)
@@ -79,14 +80,17 @@ func removeMockEnvironment(mockUpperDir string) {
 
 func createMockVersion(version string) {
 	if mockSandboxBinary == "" {
-		common.Exit(1, "Mock directory not set yet. - Call setMockEnvironment() first")
+		common.Exit(1, "mock directory not set yet. - Call setMockEnvironment() first")
 	}
 	_, logger := defaults.NewLogger(common.LogDirName(), "mock")
-	versionDir := fmt.Sprintf("%s/%s", mockSandboxBinary, version)
+	versionDir := path.Join(mockSandboxBinary, version)
+	binDir := path.Join(versionDir, "bin")
+	libDir := path.Join(versionDir, "lib")
+	scriptsDir := path.Join(versionDir, "scripts")
 	common.Mkdir(versionDir)
-	common.Mkdir(versionDir + "/bin")
-	common.Mkdir(versionDir + "/scripts")
-	common.Mkdir(versionDir + "/lib")
+	common.Mkdir(binDir)
+	common.Mkdir(scriptsDir)
+	common.Mkdir(libDir)
 	var emptyData = common.StringMap{}
 	currentOs := runtime.GOOS
 	extension := ""
@@ -100,15 +104,15 @@ func createMockVersion(version string) {
 	}
 	libmysqlclientFileName := fmt.Sprintf("libmysqlclient.%s", extension)
 	writeScript(logger, MockTemplates, "mysqld", "no_op_mock_template",
-		versionDir+"/bin", emptyData, true)
+		binDir, emptyData, true)
 	writeScript(logger, MockTemplates, "mysql", "no_op_mock_template",
-		versionDir+"/bin", emptyData, true)
+		binDir, emptyData, true)
 	writeScript(logger, MockTemplates, "mysql_install_db", "no_op_mock_template",
-		versionDir+"/scripts", emptyData, true)
+		scriptsDir, emptyData, true)
 	writeScript(logger, MockTemplates, libmysqlclientFileName, "no_op_mock_template",
-		versionDir+"/lib", emptyData, true)
+		libDir, emptyData, true)
 	writeScript(logger, MockTemplates, "mysqld_safe", "mysqld_safe_mock_template",
-		versionDir+"/bin", emptyData, true)
+		binDir, emptyData, true)
 }
 
 func init() {

@@ -24,6 +24,7 @@ import (
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
 	"os"
+	"path"
 )
 
 func DeleteSandbox(cmd *cobra.Command, args []string) {
@@ -37,7 +38,7 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 	sandboxName := args[0]
 	confirm, _ := flags.GetBool(defaults.ConfirmLabel)
 	runConcurrently, _ := flags.GetBool(defaults.ConcurrentLabel)
-	if os.Getenv("RUN_CONCURRENTLY") != "" {
+	if common.IsEnvSet("RUN_CONCURRENTLY") {
 		runConcurrently = true
 	}
 	skipConfirm, _ := flags.GetBool(defaults.SkipConfirmLabel)
@@ -102,7 +103,7 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 	}
 	concurrent.RunParallelTasksByPriority(execLists)
 	for _, sb := range deletionList {
-		fullPath := sandboxDir + "/" + sb.SandboxName
+		fullPath := path.Join(sandboxDir, sb.SandboxName)
 		if !sb.Locked {
 			defaults.DeleteFromCatalog(fullPath)
 		}

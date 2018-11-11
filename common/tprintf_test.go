@@ -17,19 +17,9 @@ package common
 
 import (
 	"fmt"
-	"regexp"
+	"github.com/datacharmer/dbdeployer/compare"
 	"testing"
 )
-
-func okMatchesString(label, val, regex string, t *testing.T) {
-	re := regexp.MustCompile(regex)
-	if re.MatchString(val) {
-		t.Logf("ok - %s: %s matches '%s'\n", label, val, regex)
-	} else {
-		t.Logf("not ok - %s: String '%s'  doesn't match '%s'", label, val, regex)
-		t.Fail()
-	}
-}
 
 func TestTemplateFill(t *testing.T) {
 	var template string = `[{{.AppVersion}}] {{.Article}} {{.Adjective}} {{.Noun}} {{.Verb}} {{.Object}}`
@@ -73,5 +63,5 @@ func TestTemplateFill(t *testing.T) {
 	result := TemplateFill(template, data)
 	//             Sun Oct    7  07: 42: 24 CEST 2018
 	reExpected := `\w+ \w+\s+\d+ \d+:\d+:\d+ \w+ \d+`
-	okMatchesString("Timestamp", result, reExpected, t)
+	compare.OkMatchesString("Timestamp", result, reExpected, t)
 }

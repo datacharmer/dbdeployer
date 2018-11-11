@@ -23,14 +23,15 @@ import (
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"os"
+	"path"
 )
 
 func main() {
 	// Searches for expanded sandboxes in $HOME/opt/mysql
-	sandbox_binary := os.Getenv("HOME") + "/opt/mysql"
+	sandbox_binary := path.Join(os.Getenv("HOME"), "opt", "mysql")
 
 	// Creates sandboxes in $HOME/sandboxes
-	sandbox_home := os.Getenv("HOME") + "/sandboxes"
+	sandbox_home := path.Join(os.Getenv("HOME"), "sandboxes")
 
 	// For this to work, we need to have
 	// a MySQL tarball expanded in $HOME/opt/mysql/5.7.22
@@ -45,17 +46,17 @@ func main() {
 	port2 := 5625
 
 	// MySQL will look for binaries in $HOME/opt/mysql/5.7.22
-	basedir1 := sandbox_binary + "/" + version1 // This is what dbdeployer expects
+	basedir1 := path.Join(sandbox_binary, version1) // This is what dbdeployer expects
 	// i.e. a name containing the full version
 
 	// MySQL will look for binaries in $HOME/opt/mysql/my-5.6
-	basedir2 := sandbox_binary + "/my-5.6" // This is a deviation from dbdeployer
+	basedir2 := path.Join(sandbox_binary, "my-5.6") // This is a deviation from dbdeployer
 	// paradigm, using a non-standard name
 	// for the base directory
 
 	// Username and password for this sandbox
-	user := "msandbox"
-	password := "msandbox"
+	user := defaults.DbUserValue
+	password := defaults.DbPasswordValue
 
 	// Creates the base target directory if it doesn't exist
 	if !common.DirExists(sandbox_home) {
@@ -98,14 +99,14 @@ func main() {
 	sandbox.CreateSingleSandbox(sdef)
 
 	// Invokes the sandbox self-testing script
-	common.RunCmd(sandbox_home + "/" + sandbox_name1 + "/test_sb")
-	common.RunCmd(sandbox_home + "/" + sandbox_name2 + "/test_sb")
+	common.RunCmd(path.Join(sandbox_home, sandbox_name1, "test_sb"))
+	common.RunCmd(path.Join(sandbox_home, sandbox_name2, "test_sb"))
 
 	// Removes the sandbox from disk
 	sandbox.RemoveSandbox(sandbox_home, sandbox_name1, false)
 	sandbox.RemoveSandbox(sandbox_home, sandbox_name2, false)
 
 	// Removes the sandbox from dbdeployer catalog
-	defaults.DeleteFromCatalog(sandbox_home + "/" + sandbox_name1)
-	defaults.DeleteFromCatalog(sandbox_home + "/" + sandbox_name2)
+	defaults.DeleteFromCatalog(path.Join(sandbox_home, sandbox_name1))
+	defaults.DeleteFromCatalog(path.Join(sandbox_home, sandbox_name2))
 }
