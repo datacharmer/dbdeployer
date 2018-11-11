@@ -594,7 +594,7 @@ fi
 
 # Finding the latest release of every major version
 
-[ -z "$short_versions" ] && short_versions=(5.0 5.1 5.5 5.6 5.7 8.0)
+[ -z "$short_versions" ] && short_versions=(4.1 5.0 5.1 5.5 5.6 5.7 8.0)
 
 [ -z "$group_short_versions" ] && group_short_versions=(5.7 8.0)
 [ -z "$dd_short_versions" ] && dd_short_versions=(8.0)
@@ -631,12 +631,21 @@ for v in ${short_versions[*]}
 do
     #ls $BINARY_DIR | grep "^$v" | ./sort_versions | tail -n 1
     latest=$(ls "$BINARY_DIR" | grep "^$v" | ./sort_versions | tail -n 1)
+    oldest=$(ls "$BINARY_DIR" | grep "^$v" | ./sort_versions | head -n 1)
     if [ -n "$latest" ]
     then
         all_versions[$count]=$latest
         count=$((count+1))
     else
         echo "No versions found for $v"
+    fi
+    if [ -n "$oldest" ]
+    then
+        if [ "$oldest" != "$latest" -a "$v" == "5.0" ]
+        then
+            all_versions[$count]=$oldest
+            count=$((count+1))
+        fi
     fi
 done
 
@@ -867,26 +876,41 @@ function pre_post_operations {
     do
         echo "#pre-post operations $V"
         outfile=/tmp/pre-post-$V.txt
-        (set -x
-        dbdeployer deploy single $V \
-            --pre-grants-sql="select 'preversion' as label, @@version" \
-            --pre-grants-sql="select 'preschema' as label, count(*) as PRE from information_schema.schemata" \
-            --pre-grants-sql="select 'preusers' as label, count(*) as PRE from mysql.user" \
-            --post-grants-sql="select 'postversion' as label, @@version" \
-            --post-grants-sql="select 'postschema' as label, count(*) as POST from information_schema.schemata" \
-            --post-grants-sql="select 'postusers' as label, count(*) as POST from mysql.user" > $outfile 2>&1
-        )
+        is41=$(echo $V | grep '^4\.1')
+        if [ -n "$is41" ]
+        then
+            (set -x
+            dbdeployer deploy single $V \
+                --pre-grants-sql="select 'preversion' as label, version()" \
+                --pre-grants-sql="select 'preusers' as label, count(*) as PRE from mysql.user" \
+                --post-grants-sql="select 'postversion' as label, version()" \
+                --post-grants-sql="select 'postusers' as label, count(*) as POST from mysql.user" > $outfile 2>&1
+            )
+        else
+            (set -x
+            dbdeployer deploy single $V \
+                --pre-grants-sql="select 'preversion' as label, version()" \
+                --pre-grants-sql="select 'preschema' as label, count(*) as PRE from information_schema.schemata" \
+                --pre-grants-sql="select 'preusers' as label, count(*) as PRE from mysql.user" \
+                --post-grants-sql="select 'postversion' as label, version()" \
+                --post-grants-sql="select 'postschema' as label, count(*) as POST from information_schema.schemata" \
+                --post-grants-sql="select 'postusers' as label, count(*) as POST from mysql.user" > $outfile 2>&1
+            )
+            pre_schema=$(grep preschema $outfile | awk '{print $4}')
+            post_schema=$(grep postschema $outfile | awk '{print $4}')
+        fi
         # Gets the line with a given label.
         # retrieves the fourth element in the line
         pre_users=$(grep preusers $outfile | awk '{print $4}')
         post_users=$(grep postusers $outfile | awk '{print $4}')
         pre_version=$(grep preversion $outfile | awk '{print $4}')
         post_version=$(grep postversion $outfile | awk '{print $4}')
-        pre_schema=$(grep preschema $outfile | awk '{print $4}')
-        post_schema=$(grep postschema $outfile | awk '{print $4}')
         # cat $outfile
         ok_greater "post grants users more than pre" $post_users $pre_users
-        ok_greater_equal "same or more schemas before and after grants" $post_schema $pre_schema
+        if [ -z "$is41" ]
+        then
+            ok_greater_equal "same or more schemas before and after grants" $post_schema $pre_schema
+        fi
         ok_contains "Version" $pre_version $V
         ok_contains "Version" $post_version $V
         results "pre/post $V"

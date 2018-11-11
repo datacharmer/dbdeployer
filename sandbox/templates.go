@@ -870,7 +870,12 @@ else
         echo "not ok - port detected ($port) but expected was $expected_port"
         fail=$((fail+1))
     fi
-	ro_query='use mysql; select count(*) from information_schema.tables where table_schema=schema()'
+	if [[ $MYSQL_VERSION_MAJOR -ge 5 ]]
+    then
+	    ro_query='use mysql; select count(*) from information_schema.tables where table_schema=schema()'
+    else
+	    ro_query='show tables from mysql'
+    fi
     create_query='create table if not exists test.txyz(i int)'
     drop_query='drop table if exists test.txyz'
     test_query msandbox_ro 'select 1' 0
@@ -1008,6 +1013,10 @@ exit 0
 	sbIncludeTemplate string = `
 export SBDIR="{{.SandboxDir}}"
 export BASEDIR={{.Basedir}}
+export MYSQL_VERSION={{.Version}}
+export MYSQL_VERSION_MAJOR={{.VersionMajor}}
+export MYSQL_VERSION_MINOR={{.VersionMinor}}
+export MYSQL_VERSION_REV={{.VersionRev}}
 export DATADIR=$SBDIR/data
 export LD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$LD_LIBRARY_PATH
 export DYLD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$DYLD_LIBRARY_PATH

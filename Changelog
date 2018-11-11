@@ -1,3 +1,14 @@
+1.14.0	11-Nov-2018
+	Code readability improvements:
+	- Added function IsEnvSet
+	- Added variables for fetures minimum versions
+	- Added constants for sandbox script names
+	- Added constants for most used error messages
+	- Added comparison functions for testing in a separate package
+	- Replaced manual path composition with path.Join
+	NEW FEATURES:
+	- Added support for MySQL 4.1
+	- Added version info to sandbox scripts
 1.13.0	27-Oct-2018
 	ADJUSTMENTS
 	- Added ability of unpacking "tar.xz" files (tarballs for Linux are 

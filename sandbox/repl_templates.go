@@ -496,7 +496,13 @@ for S in $SLAVES
 do
 	echo "# slave $S"
 	# $SBDIR/{{.NodeLabel}}$S/use test -e "show tables from test"
-    found_tables=$($SBDIR/{{.NodeLabel}}$S/use test -BN -e "select count(*) from information_schema.tables where table_schema='test'")
+
+	if [[ $MYSQL_VERSION_MAJOR -ge 5 ]]
+    then
+        found_tables=$($SBDIR/{{.NodeLabel}}$S/use test -BN -e "select count(*) from information_schema.tables where table_schema='test'")
+    else
+        found_tables=$($SBDIR/{{.NodeLabel}}$S/use test -BN -e "show tables from test" | wc -l | tr -d '\t ')
+    fi
 	ok_equal $found_tables $total_tables "Slaves received tables from all masters"
 done
 
