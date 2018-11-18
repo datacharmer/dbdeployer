@@ -16,9 +16,13 @@
 package sandbox
 
 import (
+	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/compare"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"os"
 	"path"
+	"strings"
 	"testing"
 )
 
@@ -69,8 +73,14 @@ type versionRec struct {
 	port    int
 }
 
-func TestCreateSandbox(t *testing.T) {
-	setMockEnvironment("mock_dir")
+var singleScriptNames = []string{"start", "stop", "status", "restart", "clear", "send_kill", "use"}
+
+func testCreateMockSandbox(t *testing.T) {
+	err := setMockEnvironment("mock_dir")
+	if err != nil {
+		t.Fatal("mock dir creation failed")
+	}
+	compare.OkIsNil("mock creation", err, t)
 	var versions = []versionRec{
 		{"5.0.89", "5_0_89", 5089},
 		{"5.1.67", "5_1_67", 5167},
@@ -83,7 +93,8 @@ func TestCreateSandbox(t *testing.T) {
 		mysqlVersion := v.version
 		pathVersion := v.path
 		port := v.port
-		createMockVersion(mysqlVersion)
+		err = createMockVersion(mysqlVersion)
+		compare.OkIsNil("version creation", err, t)
 		var sandboxDef = SandboxDef{
 			Version:    mysqlVersion,
 			Basedir:    path.Join(mockSandboxBinary, mysqlVersion),
@@ -101,17 +112,165 @@ func TestCreateSandbox(t *testing.T) {
 			BindAddress:    defaults.BindAddressValue,
 		}
 
-		CreateSingleSandbox(sandboxDef)
+		err := CreateStandaloneSandbox(sandboxDef)
+		if err != nil {
+			t.Logf("Sandbox %s %s\n", mysqlVersion, pathVersion)
+			t.Logf(defaults.ErrCreatingSandbox, err)
+			t.Fail()
+		}
 		okDirExists(t, sandboxDef.Basedir)
 		sandboxDir := path.Join(sandboxDef.SandboxDir, "msb_"+pathVersion)
 		okDirExists(t, sandboxDir)
 		t.Logf("%#v", sandboxDir)
 		okDirExists(t, path.Join(sandboxDir, "data"))
 		okDirExists(t, path.Join(sandboxDir, "tmp"))
-		okExecutableExists(t, sandboxDir, "start")
-		okExecutableExists(t, sandboxDir, "use")
-		okExecutableExists(t, sandboxDir, "stop")
+		for _, script := range singleScriptNames {
+			okExecutableExists(t, sandboxDir, script)
+		}
 		okPortExists(t, sandboxDir, sandboxDef.Port)
 	}
-	removeMockEnvironment("mock_dir")
+	err = removeMockEnvironment("mock_dir")
+	compare.OkIsNil("removal", err, t)
+}
+
+func testCreateStandaloneSandbox(t *testing.T) {
+
+	latestVersion := preCreationChecks(t)
+	t.Logf("latest: %s\n", latestVersion)
+	pathVersion := strings.Replace(latestVersion, ".", "_", -1)
+	port := common.VersionToPort(latestVersion)
+	var sandboxDef = SandboxDef{
+		Version:        latestVersion,
+		Basedir:        path.Join(defaults.Defaults().SandboxBinary, latestVersion),
+		SandboxDir:     defaults.Defaults().SandboxHome,
+		DirName:        defaults.Defaults().SandboxPrefix + pathVersion,
+		LoadGrants:     true,
+		InstalledPorts: defaults.Defaults().ReservedPorts,
+		Port:           port,
+		DbUser:         defaults.DbUserValue,
+		RplUser:        defaults.RplUserValue,
+		DbPassword:     defaults.DbPasswordValue,
+		RplPassword:    defaults.RplPasswordValue,
+		RemoteAccess:   defaults.RemoteAccessValue,
+		BindAddress:    defaults.BindAddressValue,
+	}
+
+	if common.IsEnvSet("SHOW_SANDBOX_DEF") {
+		t.Logf("%s", SandboxDefToJson(sandboxDef))
+	}
+
+	err := CreateStandaloneSandbox(sandboxDef)
+	if err != nil {
+		t.Fatal(fmt.Sprintf(defaults.ErrCreatingSandbox, err))
+	}
+
+	sandboxDir := path.Join(sandboxDef.SandboxDir, "msb_"+pathVersion)
+	okDirExists(t, sandboxDir)
+	okDirExists(t, path.Join(sandboxDir, "data"))
+	okDirExists(t, path.Join(sandboxDir, "tmp"))
+	for _, script := range singleScriptNames {
+		okExecutableExists(t, sandboxDir, script)
+	}
+	okPortExists(t, sandboxDir, sandboxDef.Port)
+	err, _ = RemoveSandbox(defaults.Defaults().SandboxHome, sandboxDef.DirName, false)
+	if err != nil {
+		t.Fatal(fmt.Sprint(defaults.ErrWhileRemoving, sandboxDef.SandboxDir, err))
+	}
+	err = defaults.DeleteFromCatalog(sandboxDir)
+	if err != nil {
+		t.Fatal(fmt.Sprintf(defaults.ErrRemovingFromCatalog, sandboxDef.SandboxDir))
+	}
+}
+
+func preCreationChecks(t *testing.T) string {
+	if common.IsEnvSet("SKIP_REAL_SANDBOX_TEST") || common.IsEnvSet("TRAVIS") {
+		t.Skip("User choice")
+	}
+	sandboxBinary := os.Getenv("SANDBOX_BINARY")
+	if sandboxBinary == "" {
+		sandboxBinary = defaults.Defaults().SandboxBinary
+	}
+	if !common.DirExists(sandboxBinary) {
+		t.Skip("SANDBOX_BINARY directory not found")
+	}
+	err, versions := common.GetVersionsFromDir(sandboxBinary)
+	if err != nil || len(versions) == 0 {
+		t.Skip("error while retrieving versions")
+	}
+	wantedVersion := os.Getenv("WANTED_VERSION")
+	if wantedVersion == "" {
+		wantedVersion = "5.7"
+	}
+	sortedVersions := common.SortVersionsSubset(versions, wantedVersion)
+	if len(sortedVersions) < 1 {
+		t.Skip("no items found for version ", wantedVersion, "\n")
+	}
+	latestVersion := sortedVersions[len(sortedVersions)-1]
+	return latestVersion
+}
+
+func testCreateReplicationSandbox(t *testing.T) {
+	latestVersion := preCreationChecks(t)
+
+	t.Logf("latest: %s\n", latestVersion)
+	pathVersion := strings.Replace(latestVersion, ".", "_", -1)
+	t.Logf("path: %s\n", pathVersion)
+	var sandboxDef = SandboxDef{
+		Version:        latestVersion,
+		Basedir:        path.Join(defaults.Defaults().SandboxBinary, latestVersion),
+		SandboxDir:     defaults.Defaults().SandboxHome,
+		DirName:        defaults.Defaults().MasterSlavePrefix + pathVersion,
+		LoadGrants:     false,
+		InstalledPorts: defaults.Defaults().ReservedPorts,
+		DbUser:         defaults.DbUserValue,
+		RplUser:        defaults.RplUserValue,
+		DbPassword:     defaults.DbPasswordValue,
+		RplPassword:    defaults.RplPasswordValue,
+		RemoteAccess:   defaults.RemoteAccessValue,
+		BindAddress:    defaults.BindAddressValue,
+	}
+
+	if common.IsEnvSet("SHOW_SANDBOX_DEF") {
+		t.Logf("%s", SandboxDefToJson(sandboxDef))
+	}
+
+	err := CreateReplicationSandbox(sandboxDef, latestVersion, defaults.MasterSlaveLabel, 3, "127.0.0.1", "1", "2,3")
+	if err != nil {
+		t.Fatal(fmt.Sprintf(defaults.ErrCreatingSandbox, err))
+	}
+
+	sandboxDir := path.Join(sandboxDef.SandboxDir, defaults.Defaults().MasterSlavePrefix+pathVersion)
+	okDirExists(t, sandboxDir)
+	dirs := []string{
+		defaults.Defaults().MasterName,
+		defaults.Defaults().NodePrefix + "1",
+		defaults.Defaults().NodePrefix + "2",
+	}
+	for _, dir := range dirs {
+		okDirExists(t, path.Join(sandboxDir, dir))
+		okDirExists(t, path.Join(sandboxDir, dir, "data"))
+		okDirExists(t, path.Join(sandboxDir, dir, "tmp"))
+		for _, script := range singleScriptNames {
+			okExecutableExists(t, path.Join(sandboxDir, dir), script)
+		}
+	}
+	for _, script := range singleScriptNames {
+		okExecutableExists(t, sandboxDir, script+"_all")
+	}
+	err, _ = RemoveSandbox(defaults.Defaults().SandboxHome, sandboxDef.DirName, false)
+	if err != nil {
+		t.Fatal(fmt.Sprint(defaults.ErrWhileRemoving, sandboxDef.SandboxDir, err))
+	}
+	t.Logf("sandbox to delete: %s\n", sandboxDef.SandboxDir)
+	err = defaults.DeleteFromCatalog(sandboxDir)
+	if err != nil {
+		t.Fatal(fmt.Sprintf(defaults.ErrRemovingFromCatalog, sandboxDef.SandboxDir))
+	}
+}
+
+
+func TestCreateSandbox(t *testing.T) {
+	t.Run("single", testCreateStandaloneSandbox)
+	t.Run("replication", testCreateReplicationSandbox)
+	t.Run("mock", testCreateMockSandbox)
 }

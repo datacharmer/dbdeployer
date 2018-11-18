@@ -972,6 +972,11 @@ then
 	echo $MOCKMSG
 fi
 
+# If MOCKARGS is set, the script will display its arguments
+if [ -n "$MOCKARGS" ]
+then
+	echo "[$exit_code] $0 $@"
+fi
 exit $exit_code`
 
 	mysqldSafeMockTemplate string = `#!/bin/bash

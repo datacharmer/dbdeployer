@@ -25,31 +25,32 @@ import (
 	"strings"
 )
 
-func checkNodeLists(nodes int, mlist, slist []int) {
+func checkNodeLists(nodes int, mlist, slist []int) error {
 	for _, N := range mlist {
 		if N > nodes {
-			common.Exitf(1, "master num '%d' greater than number of nodes (%d)", N, nodes)
+			return fmt.Errorf("master num '%d' greater than number of nodes (%d)", N, nodes)
 		}
 	}
 	for _, N := range slist {
 		if N > nodes {
-			common.Exitf(1, "slave num '%d' greater than number of nodes (%d)", N, nodes)
+			return fmt.Errorf("slave num '%d' greater than number of nodes (%d)", N, nodes)
 		}
 	}
 	for _, M := range mlist {
 		for _, S := range slist {
 			if S == M {
-				common.Exitf(1, "overlapping values: %d is in both master and slave list", M)
+				return fmt.Errorf("overlapping values: %d is in both master and slave list", M)
 			}
 		}
 	}
 	totalNodes := len(mlist) + len(slist)
 	if totalNodes != nodes {
-		common.Exitf(1, "mismatched values: masters (%d) + slaves (%d) = %d. Expected: %d", len(mlist), len(slist), totalNodes, nodes)
+		return fmt.Errorf("mismatched values: masters (%d) + slaves (%d) = %d. Expected: %d", len(mlist), len(slist), totalNodes, nodes)
 	}
+	return nil
 }
 
-func nodesListToIntSlice(nodesList string, nodes int) (intList []int) {
+func nodesListToIntSlice(nodesList string, nodes int) (err error, intList []int) {
 	separator := " "
 	if common.Includes(nodesList, ",") {
 		separator = ","
@@ -65,22 +66,24 @@ func nodesListToIntSlice(nodesList string, nodes int) (intList []int) {
 	list := strings.Split(nodesList, separator)
 	// fmt.Printf("# separator: <%s> %#v\n",separator, list)
 	if len(list) == 0 {
-		common.Exitf(1, "empty nodes list given (%s)", nodesList)
+		return fmt.Errorf("empty nodes list given (%s)", nodesList), []int{}
 	}
 	for _, s := range list {
 		if s != "" {
 			num, err := strconv.Atoi(s)
-			common.ErrCheckExitf(err, 1, "error converting node number '%s' to int", s)
+			if err != nil {
+				return fmt.Errorf("error converting node number '%s' to int: %s", s, err), []int{}
+			}
 			intList = append(intList, num)
 		}
 	}
 	if len(intList) == 0 {
-		fmt.Printf("List '%s' is empty\n", nodesList)
+		return fmt.Errorf("List '%s' is empty\n", nodesList), []int{}
 	}
 	if len(intList) > nodes {
-		fmt.Printf("List '%s' is greater than the expected number of nodes (%d)\n", nodesList, nodes)
+		return fmt.Errorf("List '%s' is greater than the expected number of nodes (%d)\n", nodesList, nodes), []int{}
 	}
-	return
+	return nil, intList
 }
 
 func makeNodesList(nodes int) (nodesList string) {
@@ -90,12 +93,22 @@ func makeNodesList(nodes int) (nodesList string) {
 	return nodesList
 }
 
-func CreateAllMastersReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) {
+func CreateAllMastersReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
 	sandboxDef.SBType = "all-masters"
 
-	fileName, logger := defaults.NewLogger(common.LogDirName(), defaults.AllMastersLabel)
-	sandboxDef.LogFileName = common.ReplaceLiteralHome(fileName)
-	sandboxDef.Logger = logger
+	var logger *defaults.Logger
+	if sandboxDef.Logger != nil {
+		logger = sandboxDef.Logger
+	} else {
+		var fileName string
+		var err error
+		err, fileName, logger = defaults.NewLogger(common.LogDirName(), defaults.AllMastersLabel)
+		if err != nil {
+			return err
+		}
+		sandboxDef.LogFileName = common.ReplaceLiteralHome(fileName)
+	}
+
 	sandboxDef.GtidOptions = SingleTemplates["gtid_options_57"].Contents
 	sandboxDef.ReplCrashSafeOptions = SingleTemplates["repl_crash_safe_options"].Contents
 	if sandboxDef.DirName == "" {
@@ -110,11 +123,14 @@ func CreateAllMastersReplication(sandboxDef SandboxDef, origin string, nodes int
 	slaveAbbr := defaults.Defaults().SlaveAbbr
 	masterLabel := defaults.Defaults().MasterName
 	slaveLabel := defaults.Defaults().SlavePrefix
-	data := CreateMultipleSandbox(sandboxDef, origin, nodes)
+	_, data := CreateMultipleSandbox(sandboxDef, origin, nodes)
 
 	sandboxDef.SandboxDir = data["SandboxDir"].(string)
 	masterList := makeNodesList(nodes)
-	slist := nodesListToIntSlice(masterList, nodes)
+	err, slaveList := nodesListToIntSlice(masterList, nodes)
+	if err != nil {
+		return err
+	}
 	data["MasterIp"] = masterIp
 	data["MasterAbbr"] = masterAbbr
 	data["MasterLabel"] = masterLabel
@@ -126,22 +142,44 @@ func CreateAllMastersReplication(sandboxDef SandboxDef, origin string, nodes int
 	data["RplPassword"] = sandboxDef.RplPassword
 	data["NodeLabel"] = defaults.Defaults().NodePrefix
 	logger.Printf("Writing master and slave scripts in %s\n", sandboxDef.SandboxDir)
-	for _, node := range slist {
+	for _, node := range slaveList {
 		data["Node"] = node
-		writeScript(logger, ReplicationTemplates, fmt.Sprintf("s%d", node), "slave_template", sandboxDir, data, true)
-		writeScript(logger, ReplicationTemplates, fmt.Sprintf("m%d", node), "slave_template", sandboxDir, data, true)
+		err = writeScript(logger, ReplicationTemplates, fmt.Sprintf("s%d", node), "slave_template", sandboxDir, data, true)
+		if err != nil {
+			return err
+		}
+		err = writeScript(logger, ReplicationTemplates, fmt.Sprintf("m%d", node), "slave_template", sandboxDir, data, true)
+		if err != nil {
+			return err
+		}
 	}
 	logger.Printf("Writing all-masters replication scripts in %s\n", sandboxDef.SandboxDir)
-	writeScript(logger, ReplicationTemplates, defaults.ScriptTestReplication, "multi_source_test_template", sandboxDir, data, true)
-	writeScript(logger, ReplicationTemplates, defaults.ScriptUseAllSlaves, "multi_source_use_slaves_template", sandboxDir, data, true)
-	writeScript(logger, ReplicationTemplates, defaults.ScriptUseAllMasters, "multi_source_use_masters_template", sandboxDir, data, true)
-	writeScript(logger, ReplicationTemplates, defaults.ScriptCheckMsNodes, "check_multi_source_template", sandboxDir, data, true)
-	writeScript(logger, ReplicationTemplates, defaults.ScriptInitializeMsNodes, "multi_source_template", sandboxDir, data, true)
+	sbMulti := ScriptBatch{
+		tc:         ReplicationTemplates,
+		logger:     logger,
+		data:       data,
+		sandboxDir: sandboxDir,
+		scripts: []ScriptDef{
+			{defaults.ScriptTestReplication, "multi_source_test_template", true},
+			{defaults.ScriptUseAllSlaves, "multi_source_use_slaves_template", true},
+			{defaults.ScriptUseAllMasters, "multi_source_use_masters_template", true},
+			{defaults.ScriptCheckMsNodes, "check_multi_source_template", true},
+			{defaults.ScriptInitializeMsNodes, "multi_source_template", true},
+		},
+	}
+	err = writeScripts(sbMulti)
+	if err != nil {
+		return err
+	}
 	if !sandboxDef.SkipStart {
 		logger.Printf("Initializing all-masters replication \n")
 		fmt.Println(path.Join(common.ReplaceLiteralHome(sandboxDir), defaults.ScriptInitializeMsNodes))
-		common.RunCmd(path.Join(sandboxDir, defaults.ScriptInitializeMsNodes))
+		err, _ = common.RunCmd(path.Join(sandboxDir, defaults.ScriptInitializeMsNodes))
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func normalizeNodeList(list string) string {
@@ -149,12 +187,22 @@ func normalizeNodeList(list string) string {
 	return re.ReplaceAllString(list, " ")
 }
 
-func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp, masterList, slaveList string) {
+func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp, masterList, slaveList string) error {
 	sandboxDef.SBType = "fan-in"
 
-	fileName, logger := defaults.NewLogger(common.LogDirName(), defaults.FanInLabel)
-	sandboxDef.LogFileName = fileName
-	sandboxDef.Logger = logger
+	var logger *defaults.Logger
+	if sandboxDef.Logger != nil {
+		logger = sandboxDef.Logger
+	} else {
+		var fileName string
+		var err error
+		err, fileName, logger = defaults.NewLogger(common.LogDirName(), defaults.FanInLabel)
+		if err != nil {
+			return err
+		}
+		sandboxDef.LogFileName = common.ReplaceLiteralHome(fileName)
+	}
+
 	sandboxDef.GtidOptions = SingleTemplates["gtid_options_57"].Contents
 	sandboxDef.ReplCrashSafeOptions = SingleTemplates["repl_crash_safe_options"].Contents
 	if sandboxDef.DirName == "" {
@@ -165,10 +213,19 @@ func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	}
 	sandboxDir := sandboxDef.SandboxDir
 	sandboxDef.SandboxDir = common.DirName(sandboxDef.SandboxDir)
-	mlist := nodesListToIntSlice(masterList, nodes)
-	slist := nodesListToIntSlice(slaveList, nodes)
-	checkNodeLists(nodes, mlist, slist)
-	data := CreateMultipleSandbox(sandboxDef, origin, nodes)
+	err, mlist := nodesListToIntSlice(masterList, nodes)
+	if err != nil {
+		return err
+	}
+	err, slist := nodesListToIntSlice(slaveList, nodes)
+	if err != nil {
+		return err
+	}
+	err = checkNodeLists(nodes, mlist, slist)
+	if err != nil {
+		return err
+	}
+	_, data := CreateMultipleSandbox(sandboxDef, origin, nodes)
 
 	sandboxDef.SandboxDir = data["SandboxDir"].(string)
 	masterAbbr := defaults.Defaults().MasterAbbr
@@ -188,21 +245,43 @@ func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	logger.Printf("Writing master and slave scripts in %s\n", sandboxDef.SandboxDir)
 	for _, slave := range slist {
 		data["Node"] = slave
-		writeScript(logger, ReplicationTemplates, fmt.Sprintf("s%d", slave), "slave_template", sandboxDir, data, true)
+		err = writeScript(logger, ReplicationTemplates, fmt.Sprintf("s%d", slave), "slave_template", sandboxDir, data, true)
+		if err != nil {
+			return err
+		}
+	}
+	sbMulti := ScriptBatch{
+		tc:         ReplicationTemplates,
+		logger:     logger,
+		data:       data,
+		sandboxDir: sandboxDir,
+		scripts: []ScriptDef{
+			{defaults.ScriptTestReplication, "multi_source_test_template", true},
+			{defaults.ScriptCheckMsNodes, "check_multi_source_template", true},
+			{defaults.ScriptUseAllSlaves, "multi_source_use_slaves_template", true},
+			{defaults.ScriptUseAllMasters, "multi_source_use_masters_template", true},
+			{defaults.ScriptInitializeMsNodes, "multi_source_template", true},
+		},
 	}
 	for _, master := range mlist {
 		data["Node"] = master
-		writeScript(logger, ReplicationTemplates, fmt.Sprintf("m%d", master), "slave_template", sandboxDir, data, true)
+		err = writeScript(logger, ReplicationTemplates, fmt.Sprintf("m%d", master), "slave_template", sandboxDir, data, true)
+		if err != nil {
+			return err
+		}
 	}
 	logger.Printf("writing fan-in replication scripts in %s\n", sandboxDef.SandboxDir)
-	writeScript(logger, ReplicationTemplates, defaults.ScriptTestReplication, "multi_source_test_template", sandboxDir, data, true)
-	writeScript(logger, ReplicationTemplates, defaults.ScriptCheckMsNodes, "check_multi_source_template", sandboxDir, data, true)
-	writeScript(logger, ReplicationTemplates, defaults.ScriptUseAllSlaves, "multi_source_use_slaves_template", sandboxDir, data, true)
-	writeScript(logger, ReplicationTemplates, defaults.ScriptUseAllMasters, "multi_source_use_masters_template", sandboxDir, data, true)
-	writeScript(logger, ReplicationTemplates, defaults.ScriptInitializeMsNodes, "multi_source_template", sandboxDir, data, true)
+	err = writeScripts(sbMulti)
+	if err != nil {
+		return err
+	}
 	if !sandboxDef.SkipStart {
 		logger.Printf("Initializing fan-in replication\n")
 		fmt.Println(path.Join(common.ReplaceLiteralHome(sandboxDir), defaults.ScriptInitializeMsNodes))
-		common.RunCmd(path.Join(sandboxDir, defaults.ScriptInitializeMsNodes))
+		err, _ = common.RunCmd(path.Join(sandboxDir, defaults.ScriptInitializeMsNodes))
+		if err != nil {
+			return fmt.Errorf("error initializing fan-in sandbox: %s", err)
+		}
 	}
+	return nil
 }

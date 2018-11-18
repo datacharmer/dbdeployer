@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"path"
 	"regexp"
 	"strings"
@@ -123,6 +124,9 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 
 	basedir := GetAbsolutePathFromFlag(cmd, defaults.SandboxBinaryLabel)
 
+	if os.Getenv("SANDBOX_BINARY") == "" {
+		_ = os.Setenv("SANDBOX_BINARY", basedir)
+	}
 	sd.BasedirName = args[0]
 	versionFromOption := false
 	sd.Version, _ = flags.GetString(defaults.BinaryVersionLabel)
@@ -280,7 +284,10 @@ func SingleSandbox(cmd *cobra.Command, args []string) {
 	sd = FillSdef(cmd, args)
 	// When deploying a single sandbox, we disable concurrency
 	sd.RunConcurrently = false
-	sandbox.CreateSingleSandbox(sd)
+	err := sandbox.CreateStandaloneSandbox(sd)
+	if err != nil {
+		common.Exitf(1, defaults.ErrCreatingSandbox, err)
+	}
 }
 
 var singleCmd = &cobra.Command{

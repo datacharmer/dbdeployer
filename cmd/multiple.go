@@ -35,7 +35,10 @@ func MultipleSandbox(cmd *cobra.Command, args []string) {
 	if args[0] != sd.BasedirName {
 		origin = sd.BasedirName
 	}
-	sandbox.CreateMultipleSandbox(sd, origin, nodes)
+	err, _ := sandbox.CreateMultipleSandbox(sd, origin, nodes)
+	if err != nil {
+		common.Exitf(1, defaults.ErrCreatingSandbox, err)
+	}
 }
 
 var multipleCmd = &cobra.Command{

@@ -39,12 +39,12 @@ var (
 	mockSandboxHome   string
 )
 
-func setMockEnvironment(mockUpperDir string) {
+func setMockEnvironment(mockUpperDir string) error {
 	if mockUpperDir == "" {
 		mockUpperDir = defaultMockDir
 	}
 	if common.DirExists(mockUpperDir) {
-		common.Exitf(1, "mock directory %s already exists. Aborting", mockUpperDir)
+		return fmt.Errorf("mock directory %s already exists. Aborting", mockUpperDir)
 	}
 	PWD := os.Getenv("PWD")
 	home := fmt.Sprintf("%s/%s/home", PWD, mockUpperDir)
@@ -56,6 +56,9 @@ func setMockEnvironment(mockUpperDir string) {
 	common.Mkdir(sandboxBinaryUpper)
 	common.Mkdir(mockSandboxBinary)
 	common.Mkdir(mockSandboxHome)
+	saveHome = os.Getenv("HOME")
+	saveSandboxBinary = os.Getenv("SANDBOX_BINARY")
+	saveSandboxHome = os.Getenv("SANDBOX_HOME")
 	os.Setenv("HOME", home)
 	os.Setenv("SANDBOX_HOME", mockSandboxHome)
 	os.Setenv("SANDBOX_BINARY", mockSandboxBinary)
@@ -65,24 +68,32 @@ func setMockEnvironment(mockUpperDir string) {
 	defaults.ConfigurationFile = home + ".dbdeployer/config.json"
 	defaults.SandboxRegistry = home + ".dbdeployer/sandboxes.json"
 	defaults.SandboxRegistryLock = home + ".dbdeployer/sandboxes.lock"
+	return nil
 }
 
-func removeMockEnvironment(mockUpperDir string) {
+func removeMockEnvironment(mockUpperDir string) error {
 	if !common.DirExists(mockUpperDir) {
-		common.Exitf(1, "mock directory %s doesn't exist. Aborting", mockUpperDir)
+		return fmt.Errorf("mock directory %s doesn't exist. Aborting", mockUpperDir)
 	}
-	os.RemoveAll(mockUpperDir)
+	err := os.RemoveAll(mockUpperDir)
+	if err != nil {
+		return err
+	}
 	os.Setenv("HOME", saveHome)
 	os.Setenv("SANDBOX_HOME", saveSandboxHome)
 	os.Setenv("SANDBOX_BINARY", saveSandboxBinary)
-	os.Setenv("SLEEP_TIME", saveSleepTime)
+	os.Setenv("SLEEP_TIME", "")
+	return nil
 }
 
-func createMockVersion(version string) {
+func createMockVersion(version string) error {
 	if mockSandboxBinary == "" {
-		common.Exit(1, "mock directory not set yet. - Call setMockEnvironment() first")
+		return fmt.Errorf("mock directory not set yet. - Call setMockEnvironment() first")
 	}
-	_, logger := defaults.NewLogger(common.LogDirName(), "mock")
+	err, _, logger := defaults.NewLogger(common.LogDirName(), "mock")
+	if err != nil {
+		return err
+	}
 	versionDir := path.Join(mockSandboxBinary, version)
 	binDir := path.Join(versionDir, "bin")
 	libDir := path.Join(versionDir, "lib")
@@ -100,36 +111,45 @@ func createMockVersion(version string) {
 	case "darwin":
 		extension = "dylib"
 	default:
-		common.Exitf(1, "unhandled operating system %s", currentOs)
+		return fmt.Errorf("unhandled operating system %s", currentOs)
 	}
 	libmysqlclientFileName := fmt.Sprintf("libmysqlclient.%s", extension)
-	writeScript(logger, MockTemplates, "mysqld", "no_op_mock_template",
-		binDir, emptyData, true)
-	writeScript(logger, MockTemplates, "mysql", "no_op_mock_template",
-		binDir, emptyData, true)
-	writeScript(logger, MockTemplates, "mysql_install_db", "no_op_mock_template",
+	err = writeScripts(ScriptBatch{
+		tc:         MockTemplates,
+		data:       emptyData,
+		sandboxDir: binDir,
+		logger:     logger,
+		scripts: []ScriptDef{
+			{"mysqld", "no_op_mock_template", true},
+			{"mysql", "no_op_mock_template", true},
+			{"mysqld_safe", "mysqld_safe_mock_template", true},
+		},
+	})
+	if err != nil {
+		return err
+	}
+	//writeScript(logger, MockTemplates, "mysqld", "no_op_mock_template",
+	//	binDir, emptyData, true)
+	//writeScript(logger, MockTemplates, "mysql", "no_op_mock_template",
+	//	binDir, emptyData, true)
+	err = writeScript(logger, MockTemplates, "mysql_install_db", "no_op_mock_template",
 		scriptsDir, emptyData, true)
-	writeScript(logger, MockTemplates, libmysqlclientFileName, "no_op_mock_template",
+	if err != nil {
+		return err
+	}
+	err = writeScript(logger, MockTemplates, libmysqlclientFileName, "no_op_mock_template",
 		libDir, emptyData, true)
-	writeScript(logger, MockTemplates, "mysqld_safe", "mysqld_safe_mock_template",
-		binDir, emptyData, true)
+	if err != nil {
+		return err
+	}
+	//writeScript(logger, MockTemplates, "mysqld_safe", "mysqld_safe_mock_template",
+	//	binDir, emptyData, true)
+	return nil
 }
 
 func init() {
-	mockSandboxBinary = os.Getenv("SANDBOX_BINARY")
-	if mockSandboxBinary != "" {
-		saveSandboxBinary = mockSandboxBinary
-	}
-	mockSandboxHome = os.Getenv("SANDBOX_HOME")
-	if mockSandboxHome != "" {
-		saveSandboxHome = mockSandboxHome
-	}
-	home := os.Getenv("HOME")
-	if home != "" {
-		saveHome = home
-	}
-	sleepTime := os.Getenv("SLEEP_TIME")
-	if sleepTime != "" {
-		saveSleepTime = sleepTime
-	}
+	saveSandboxBinary = os.Getenv("SANDBOX_BINARY")
+	saveSandboxHome = os.Getenv("SANDBOX_HOME")
+	saveHome = os.Getenv("HOME")
+	saveSleepTime = os.Getenv("SLEEP_TIME")
 }

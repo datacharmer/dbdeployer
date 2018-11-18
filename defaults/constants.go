@@ -183,6 +183,8 @@ const (
 	ErrFeatureRequiresVersion      = "'%s' requires MySQL version '%s'+"
 	ErrArgumentRequired            = "argument required: %s"
 	ErrEncodingDefaults            = "error encoding defaults: '%s'"
+	ErrCreatingSandbox             = "error creating sandbox: '%s'"
+	ErrRemovingFromCatalog         = "error removing sandbox '%s' from catalog"
 )
 
 // Go doesn't allow constants to be compound types. Thus we use variables here.

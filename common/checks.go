@@ -17,7 +17,9 @@ package common
 
 import (
 	"fmt"
+	"golang-experiments/cobratest/common"
 	"io/ioutil"
+	"os"
 	"path"
 	"regexp"
 	"runtime"
@@ -43,11 +45,42 @@ type PortMap map[int]bool
 
 var MaxAllowedPort int = 64000
 
+// Returns a list of inner sandboxes
 func SandboxInfoToFileNames(sbList []SandboxInfo) (fileNames []string) {
 	for _, sbinfo := range sbList {
 		fileNames = append(fileNames, sbinfo.SandboxName)
 	}
 	return
+}
+
+// Returns the list of versions available for deployment
+func GetVersionsFromDir(basedir string ) (error, []string) {
+	var dirs []string
+	files, err := ioutil.ReadDir(basedir)
+	if err != nil {
+		return fmt.Errorf("error reading directory %s: %s", basedir, err), dirs
+	}
+	for _, f := range files {
+		fname := f.Name()
+		fmode := f.Mode()
+		//fmt.Printf("%#v\n", fmode)
+		if fmode.IsDir() {
+			//fmt.Println(fname)
+			mysqld := path.Join(basedir, fname, "bin", "mysqld")
+			if common.FileExists(mysqld) {
+				dirs = append(dirs, fname)
+			}
+		}
+	}
+	return nil, dirs
+}
+
+func GetAvailableVersions() (error, []string) {
+	basedir := os.Getenv("SANDBOX_BINARY")
+	if basedir == "" {
+		return fmt.Errorf("variable SANDBOX_BINARY not set"), []string{}
+	}
+	return GetVersionsFromDir(basedir)
 }
 
 // Gets a list of installed sandboxes from the $SANDBOX_HOME directory

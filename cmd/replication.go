@@ -64,7 +64,10 @@ func ReplicationSandbox(cmd *cobra.Command, args []string) {
 		origin = sd.BasedirName
 	}
 	//fmt.Printf("%#v\n",sd)
-	sandbox.CreateReplicationSandbox(sd, origin, topology, nodes, masterIp, masterList, slaveList)
+	err := sandbox.CreateReplicationSandbox(sd, origin, topology, nodes, masterIp, masterList, slaveList)
+	if err != nil {
+		common.Exitf(1, defaults.ErrCreatingSandbox, err)
+	}
 }
 
 // replicationCmd represents the replication command

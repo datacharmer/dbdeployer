@@ -17,7 +17,6 @@ package sandbox
 
 import (
 	"fmt"
-	"os"
 	"path"
 	"regexp"
 	"time"
@@ -47,7 +46,7 @@ loose-group-replication-single-primary-mode=off
 `
 )
 
-func getBaseMysqlxPort(basePort int, sdef SandboxDef, nodes int) int {
+func getBaseMysqlxPort(basePort int, sdef SandboxDef, nodes int) (error, int) {
 	baseMysqlxPort := basePort + defaults.Defaults().MysqlXPortDelta
 	// 8.0.11
 	if common.GreaterOrEqualVersion(sdef.Version, defaults.MinimumMysqlxDefaultVersion) {
@@ -58,17 +57,32 @@ func getBaseMysqlxPort(basePort int, sdef SandboxDef, nodes int) int {
 		baseMysqlxPort = firstGroupPort - 1
 		for N := 1; N <= nodes; N++ {
 			checkPort := baseMysqlxPort + N
-			CheckPort("get_base_mysqlx_port", sdef.SandboxDir, sdef.InstalledPorts, checkPort)
+			err := CheckPort("get_base_mysqlx_port", sdef.SandboxDir, sdef.InstalledPorts, checkPort)
+			if err != nil {
+				return err, 0
+			}
 		}
 	}
-	return baseMysqlxPort
+	return nil, baseMysqlxPort
 }
 
-func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) {
+func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
 	var execLists []concurrent.ExecutionList
+	var err error
 
-	fileName, logger := defaults.NewLogger(common.LogDirName(), "group-replication")
-	sandboxDef.LogFileName = common.ReplaceLiteralHome(fileName)
+	var logger *defaults.Logger
+	if sandboxDef.Logger != nil {
+		logger = sandboxDef.Logger
+	} else {
+		var fileName string
+		var err error
+		err, fileName, logger = defaults.NewLogger(common.LogDirName(), "group-replication")
+		if err != nil {
+			return err
+		}
+		sandboxDef.LogFileName = common.ReplaceLiteralHome(fileName)
+	}
+
 	vList := common.VersionToList(sandboxDef.Version)
 	rev := vList[2]
 	basePort := sandboxDef.Port + defaults.Defaults().GroupReplicationBasePort + (rev * 100)
@@ -81,11 +95,13 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 
 	baseServerId := 0
 	if nodes < 3 {
-		fmt.Println("Can't run group replication with less than 3 nodes")
-		os.Exit(1)
+		return fmt.Errorf("Can't run group replication with less than 3 nodes")
 	}
 	if common.DirExists(sandboxDef.SandboxDir) {
-		sandboxDef = CheckDirectory(sandboxDef)
+		err, sandboxDef = CheckDirectory(sandboxDef)
+		if err != nil {
+			return err
+		}
 	}
 	// FindFreePort returns the first free port, but base_port will be used
 	// with a counter. Thus the availability will be checked using
@@ -96,12 +112,21 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	firstGroupPort = common.FindFreePort(baseGroupPort+1, sandboxDef.InstalledPorts, nodes)
 	baseGroupPort = firstGroupPort - 1
 	for checkPort := basePort + 1; checkPort < basePort+nodes+1; checkPort++ {
-		CheckPort("CreateGroupReplication", sandboxDef.SandboxDir, sandboxDef.InstalledPorts, checkPort)
+		err = CheckPort("CreateGroupReplication", sandboxDef.SandboxDir, sandboxDef.InstalledPorts, checkPort)
+		if err != nil {
+			return err
+		}
 	}
 	for checkPort := baseGroupPort + 1; checkPort < baseGroupPort+nodes+1; checkPort++ {
-		CheckPort("CreateGroupReplication-group", sandboxDef.SandboxDir, sandboxDef.InstalledPorts, checkPort)
+		err = CheckPort("CreateGroupReplication-group", sandboxDef.SandboxDir, sandboxDef.InstalledPorts, checkPort)
+		if err != nil {
+			return err
+		}
 	}
-	baseMysqlxPort := getBaseMysqlxPort(basePort, sandboxDef, nodes)
+	err, baseMysqlxPort := getBaseMysqlxPort(basePort, sandboxDef, nodes)
+	if err != nil {
+		return err
+	}
 	common.Mkdir(sandboxDef.SandboxDir)
 	common.AddToCleanupStack(common.Rmdir, "Rmdir", sandboxDef.SandboxDir)
 	logger.Printf("Creating directory %s\n", sandboxDef.SandboxDir)
@@ -121,9 +146,18 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 			}
 			slaveList += fmt.Sprintf("%d", N)
 		}
-		mlist := nodesListToIntSlice(masterList, nodes)
-		slist := nodesListToIntSlice(slaveList, nodes)
-		checkNodeLists(nodes, mlist, slist)
+		err, mlist := nodesListToIntSlice(masterList, nodes)
+		if err != nil {
+			return err
+		}
+		err, slist := nodesListToIntSlice(slaveList, nodes)
+		if err != nil {
+			return err
+		}
+		err = checkNodeLists(nodes, mlist, slist)
+		if err != nil {
+			return err
+		}
 	}
 	changeMasterExtra := ""
 	nodeLabel := defaults.Defaults().NodePrefix
@@ -250,7 +284,10 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		sandboxDef.NodeNum = i
 		// fmt.Printf("%#v\n",sdef)
 		logger.Printf("Create single sandbox for node %d\n", i)
-		execList := CreateSingleSandbox(sandboxDef)
+		err, execList := CreateChildSandbox(sandboxDef)
+		if err != nil {
+			return fmt.Errorf(defaults.ErrCreatingSandbox, err)
+		}
 		for _, list := range execList {
 			execLists = append(execLists, list)
 		}
@@ -268,35 +305,72 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 			"SandboxDir":        sandboxDef.SandboxDir,
 		}
 		logger.Printf("Create node script for node %d\n", i)
-		writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sandboxDef.SandboxDir, dataNode, true)
+		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sandboxDef.SandboxDir, dataNode, true)
+		if err != nil {
+			return err
+		}
 	}
 	logger.Printf("Writing sandbox description in %s\n", sandboxDef.SandboxDir)
 	common.WriteSandboxDescription(sandboxDef.SandboxDir, sbDesc)
 	defaults.UpdateCatalog(sandboxDef.SandboxDir, sbItem)
 
 	logger.Printf("Writing group replication scripts\n")
-	writeScript(logger, MultipleTemplates, defaults.ScriptStartAll, "start_multi_template", sandboxDef.SandboxDir, data, true)
-	writeScript(logger, MultipleTemplates, defaults.ScriptRestartAll, "restart_multi_template", sandboxDef.SandboxDir, data, true)
-	writeScript(logger, MultipleTemplates, defaults.ScriptStatusAll, "status_multi_template", sandboxDef.SandboxDir, data, true)
-	writeScript(logger, MultipleTemplates, defaults.ScriptTestSbAll, "test_sb_multi_template", sandboxDef.SandboxDir, data, true)
-	writeScript(logger, MultipleTemplates, defaults.ScriptStopAll, "stop_multi_template", sandboxDef.SandboxDir, data, true)
-	writeScript(logger, MultipleTemplates, defaults.ScriptClearAll, "clear_multi_template", sandboxDef.SandboxDir, data, true)
-	writeScript(logger, MultipleTemplates, defaults.ScriptSendKillAll, "send_kill_multi_template", sandboxDef.SandboxDir, data, true)
-	writeScript(logger, MultipleTemplates, defaults.ScriptUseAll, "use_multi_template", sandboxDef.SandboxDir, data, true)
-	writeScript(logger, ReplicationTemplates, defaults.ScriptUseAllSlaves, "multi_source_use_slaves_template", sandboxDef.SandboxDir, data, true)
-	writeScript(logger, ReplicationTemplates, defaults.ScriptUseAllMasters, "multi_source_use_masters_template", sandboxDef.SandboxDir, data, true)
-	writeScript(logger, GroupTemplates, defaults.ScriptInitializeNodes, "init_nodes_template", sandboxDef.SandboxDir, data, true)
-	writeScript(logger, GroupTemplates, defaults.ScriptCheckNodes, "check_nodes_template", sandboxDef.SandboxDir, data, true)
-	//writeScript(logger, ReplicationTemplates, "test_replication", "test_replication_template", sdef.SandboxDir, data, true)
-	writeScript(logger, ReplicationTemplates, defaults.ScriptTestReplication, "multi_source_test_template", sandboxDef.SandboxDir, data, true)
+	sbMultiple := ScriptBatch{
+		tc:         MultipleTemplates,
+		logger:     logger,
+		data:       data,
+		sandboxDir: sandboxDef.SandboxDir,
+		scripts: []ScriptDef{
+			{defaults.ScriptStartAll, "start_multi_template", true},
+			{defaults.ScriptRestartAll, "restart_multi_template", true},
+			{defaults.ScriptStatusAll, "status_multi_template", true},
+			{defaults.ScriptTestSbAll, "test_sb_multi_template", true},
+			{defaults.ScriptStopAll, "stop_multi_template", true},
+			{defaults.ScriptClearAll, "clear_multi_template", true},
+			{defaults.ScriptSendKillAll, "send_kill_multi_template", true},
+			{defaults.ScriptUseAll, "use_multi_template", true},
+		},
+	}
+	sbRepl := ScriptBatch{
+		tc:         ReplicationTemplates,
+		logger:     logger,
+		data:       data,
+		sandboxDir: sandboxDef.SandboxDir,
+		scripts: []ScriptDef{
+			{defaults.ScriptUseAllSlaves, "multi_source_use_slaves_template", true},
+			{defaults.ScriptUseAllMasters, "multi_source_use_masters_template", true},
+			{defaults.ScriptTestReplication, "multi_source_test_template", true},
+		},
+	}
+	sbGroup := ScriptBatch{
+		tc:         GroupTemplates,
+		logger:     logger,
+		data:       data,
+		sandboxDir: sandboxDef.SandboxDir,
+		scripts: []ScriptDef{
+			{defaults.ScriptInitializeNodes, "init_nodes_template", true},
+			{defaults.ScriptCheckNodes, "check_nodes_template", true},
+		},
+	}
+
+	for _, sb := range []ScriptBatch{sbMultiple, sbRepl, sbGroup} {
+		err := writeScripts(sb)
+		if err != nil {
+			return err
+		}
+	}
 
 	logger.Printf("Running parallel tasks\n")
 	concurrent.RunParallelTasksByPriority(execLists)
 	if !sandboxDef.SkipStart {
 		fmt.Println(path.Join(common.ReplaceLiteralHome(sandboxDef.SandboxDir), defaults.ScriptInitializeNodes))
 		logger.Printf("Running group replication initialization script\n")
-		common.RunCmd(path.Join(sandboxDef.SandboxDir, defaults.ScriptInitializeNodes))
+		err, _ := common.RunCmd(path.Join(sandboxDef.SandboxDir, defaults.ScriptInitializeNodes))
+		if err != nil {
+			return fmt.Errorf("error initializing group replication: %s", err)
+		}
 	}
 	fmt.Printf("Replication directory installed in %s\n", common.ReplaceLiteralHome(sandboxDef.SandboxDir))
 	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
+	return nil
 }

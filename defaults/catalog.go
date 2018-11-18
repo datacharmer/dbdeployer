@@ -63,8 +63,8 @@ func setLock(label string) bool {
 			return false
 		}
 	}
-	common.WriteString(label, lockFile)
-	return true
+	err := common.WriteString(label, lockFile)
+	return err == nil
 }
 
 func releaseLock() {
@@ -73,19 +73,19 @@ func releaseLock() {
 	}
 	lockFile := SandboxRegistryLock
 	if common.FileExists(lockFile) {
-		os.Remove(lockFile)
+		_ = os.Remove(lockFile)
 	}
 }
 
-func WriteCatalog(sc SandboxCatalog) {
+func WriteCatalog(sc SandboxCatalog) error {
 	if !enableCatalogManagement {
-		return
+		return nil
 	}
 	byteBuf, err := json.MarshalIndent(sc, " ", "\t")
 	common.ErrCheckExitf(err, 1, "error encoding sandbox catalog: %s", err)
 	jsonString := fmt.Sprintf("%s", byteBuf)
 	filename := SandboxRegistry
-	common.WriteString(jsonString, filename)
+	return common.WriteString(jsonString, filename)
 }
 
 func ReadCatalog() (sc SandboxCatalog) {
@@ -103,12 +103,12 @@ func ReadCatalog() (sc SandboxCatalog) {
 	return
 }
 
-func UpdateCatalog(sbName string, details SandboxItem) {
+func UpdateCatalog(sbName string, details SandboxItem) error {
 	details.DbDeployerVersion = common.VersionDef
 	details.Timestamp = time.Now().Format(time.UnixDate)
 	details.CommandLine = strings.Join(common.CommandLineArgs, " ")
 	if !enableCatalogManagement {
-		return
+		return nil
 	}
 	// fmt.Printf("+%s\n",sb_name)
 	if setLock(sbName) {
@@ -118,25 +118,27 @@ func UpdateCatalog(sbName string, details SandboxItem) {
 			current = make(SandboxCatalog)
 		}
 		current[sbName] = details
-		WriteCatalog(current)
+		err := WriteCatalog(current)
 		releaseLock()
+		return err
 		// fmt.Printf("+unlocked\n")
 	} else {
 		fmt.Printf("%s\n", common.HashLine)
 		fmt.Printf("# Could not get lock on %s\n", SandboxRegistryLock)
 		fmt.Printf("%s\n", common.HashLine)
+		return fmt.Errorf("could not get lock on %s", SandboxRegistryLock)
 	}
 }
 
-func DeleteFromCatalog(sbName string) {
+func DeleteFromCatalog(sbName string) error {
 	if !enableCatalogManagement {
-		return
+		return nil
 	}
 	if setLock(sbName) {
 		current := ReadCatalog()
 		defer releaseLock()
 		if current == nil {
-			return
+			return nil
 		}
 		//for name, _ := range current {
 		//	if strings.HasPrefix(name, sb_name) {
@@ -144,12 +146,14 @@ func DeleteFromCatalog(sbName string) {
 		//	}
 		//}
 		delete(current, sbName)
-		WriteCatalog(current)
+		err := WriteCatalog(current)
 		releaseLock()
+		return err
 	} else {
 		fmt.Printf("%s\n", common.HashLine)
 		fmt.Printf("# Could not get lock on %s\n", SandboxRegistryLock)
 		fmt.Printf("%s\n", common.HashLine)
+		return fmt.Errorf("could not get lock on %s", SandboxRegistryLock)
 	}
 }
 

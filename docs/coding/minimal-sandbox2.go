@@ -36,27 +36,35 @@ func main() {
 	// For this to work, we need to have
 	// a MySQL tarball expanded in $HOME/opt/mysql/5.7.22
 	version1 := "5.7.22"
-	version2 := "5.6.25"
+	version2 := "5.6.33"
 
-	sandbox_name1 := "msb_5_7_22"
-	sandbox_name2 := "msb_5_6_25"
+	sandboxName1 := "msb_5_7_22"
+	sandboxName2 := "msb_5_6_33"
 
 	// The unique ports for these sandboxes
 	port1 := 5722
-	port2 := 5625
+	port2 := 5633
 
 	// MySQL will look for binaries in $HOME/opt/mysql/5.7.22
 	basedir1 := path.Join(sandbox_binary, version1) // This is what dbdeployer expects
 	// i.e. a name containing the full version
 
 	// MySQL will look for binaries in $HOME/opt/mysql/my-5.6
-	basedir2 := path.Join(sandbox_binary, "my-5.6") // This is a deviation from dbdeployer
+	basedir2 := path.Join(sandbox_binary, "my-5.6")
+	basedir2a := path.Join(sandbox_binary, "5.6.33")
+	if !common.DirExists(basedir2) {
+		if common.DirExists(basedir2a) {
+			err := os.Symlink(basedir2a, basedir2)
+			if err != nil {
+				common.Exitf(1, "error creating a symlink between %s and %s", basedir2a, basedir2)
+			}
+		} else {
+			common.Exitf(1, defaults.ErrDirectoryNotFound, basedir2)
+		}
+	}
+	// This is a deviation from dbdeployer
 	// paradigm, using a non-standard name
 	// for the base directory
-
-	// Username and password for this sandbox
-	user := defaults.DbUserValue
-	password := defaults.DbPasswordValue
 
 	// Creates the base target directory if it doesn't exist
 	if !common.DirExists(sandbox_home) {
@@ -70,7 +78,7 @@ func main() {
 		Version:    version1,
 		Basedir:    basedir1,
 		SandboxDir: sandbox_home,
-		DirName:    sandbox_name1,
+		DirName:    sandboxName1,
 		LoadGrants: true,
 		// This is the list of ports to ignore
 		// when checking if the designated port is
@@ -79,34 +87,58 @@ func main() {
 		// You will see that the sandbox will install using 3307
 		InstalledPorts: []int{1186, 3306, 33060},
 		Port:           port1,
-		DbUser:         user,
-		DbPassword:     password,
-		RplUser:        "r" + user,
-		RplPassword:    "r" + password,
+		DbUser:         defaults.DbUserValue,      // "msandbox"
+		DbPassword:     defaults.DbPasswordValue,  // "msandbox"
+		RplUser:        defaults.RplUserValue,     // "rsandbox"
+		RplPassword:    defaults.RplPasswordValue, // "rsandbox"
 		RemoteAccess:   "127.%",
 		BindAddress:    "127.0.0.1",
 	}
 
 	// Calls the sandbox creation
-	sandbox.CreateSingleSandbox(sdef)
+	err := sandbox.CreateStandaloneSandbox(sdef)
+	if err != nil {
+		common.Exitf(1, defaults.ErrCreatingSandbox, err)
+	}
 
 	sdef.Version = version2
 	sdef.Basedir = basedir2
-	sdef.DirName = sandbox_name2
+	sdef.DirName = sandboxName2
 	sdef.Port = port2
 
 	// Calls the sandbox creation for the second sandbox
-	sandbox.CreateSingleSandbox(sdef)
+	err = sandbox.CreateStandaloneSandbox(sdef)
+	if err != nil {
+		common.Exitf(1, defaults.ErrCreatingSandbox, err)
+	}
 
 	// Invokes the sandbox self-testing script
-	common.RunCmd(path.Join(sandbox_home, sandbox_name1, "test_sb"))
-	common.RunCmd(path.Join(sandbox_home, sandbox_name2, "test_sb"))
+	err, _ = common.RunCmd(path.Join(sandbox_home, sandboxName1, "test_sb"))
+	if err != nil {
+		common.Exitf(1, "error running test for sandbox 2: %s", err)
+	}
+	err, _ = common.RunCmd(path.Join(sandbox_home, sandboxName2, "test_sb"))
+	if err != nil {
+		common.Exitf(1, "error running test for sandbox 2: %s", err)
+	}
 
 	// Removes the sandbox from disk
-	sandbox.RemoveSandbox(sandbox_home, sandbox_name1, false)
-	sandbox.RemoveSandbox(sandbox_home, sandbox_name2, false)
+	err, _ = sandbox.RemoveSandbox(sandbox_home, sandboxName1, false)
+	if err != nil {
+		common.Exitf(1, defaults.ErrWhileDeletingSandbox, err)
+	}
+	err, _ = sandbox.RemoveSandbox(sandbox_home, sandboxName2, false)
+	if err != nil {
+		common.Exitf(1, defaults.ErrWhileDeletingSandbox, err)
+	}
 
 	// Removes the sandbox from dbdeployer catalog
-	defaults.DeleteFromCatalog(path.Join(sandbox_home, sandbox_name1))
-	defaults.DeleteFromCatalog(path.Join(sandbox_home, sandbox_name2))
+	err = defaults.DeleteFromCatalog(path.Join(sandbox_home, sandboxName1))
+	if err != nil {
+		common.Exitf(1, defaults.ErrRemovingFromCatalog, sandboxName1)
+	}
+	err = defaults.DeleteFromCatalog(path.Join(sandbox_home, sandboxName2))
+	if err != nil {
+		common.Exitf(1, defaults.ErrRemovingFromCatalog, sandboxName2)
+	}
 }

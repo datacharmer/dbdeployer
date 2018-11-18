@@ -147,7 +147,7 @@ func ParseConfigFile(filename string) ConfigOptions {
 	return config
 }
 
-func WriteSandboxDescription(destination string, sd SandboxDescription) {
+func WriteSandboxDescription(destination string, sd SandboxDescription) error {
 	sd.DbDeployerVersion = VersionDef
 	sd.Timestamp = time.Now().Format(time.UnixDate)
 	sd.CommandLine = strings.Join(CommandLineArgs, " ")
@@ -155,7 +155,7 @@ func WriteSandboxDescription(destination string, sd SandboxDescription) {
 	ErrCheckExitf(err, 1, "error encoding sandbox description: %s", err)
 	jsonString := fmt.Sprintf("%s", b)
 	filename := path.Join(destination, SandboxDescriptionName)
-	WriteString(jsonString, filename)
+	return WriteString(jsonString, filename)
 }
 
 func ReadSandboxDescription(sandboxDirectory string) (sd SandboxDescription) {

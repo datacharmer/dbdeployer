@@ -21,6 +21,24 @@ import (
 	"testing"
 )
 
+func OkIsNil(label string, val interface{}, t *testing.T) {
+	if val == nil {
+		t.Logf("ok - %s is nil\n", label)
+	} else {
+		t.Logf("not ok - %s is NOT nil\n", label)
+		t.Fail()
+	}
+}
+
+func OkIsNotNil(label string, val interface{}, t *testing.T) {
+	if val != nil {
+		t.Logf("ok - %s is not nil\n", label)
+	} else {
+		t.Logf("not ok - %s is nil\n", label)
+		t.Fail()
+	}
+}
+
 // Compares two integers
 func OkEqualInt(label string, a, b int, t *testing.T) {
 	if a == b {

@@ -241,16 +241,14 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 				condPrint(fmt.Sprintf("%s -> %s", filename, header.Linkname), true, CHATTY)
 				err := os.Symlink(header.Linkname, filename)
 				if err != nil {
-					common.Exit(1,
-						fmt.Sprintf("%#v", header),
-						fmt.Sprintf("# ERROR: %s", err))
+					return fmt.Errorf("%#v\n#ERROR: %s", header, err)
 				}
 			} else {
-				common.Exitf(1, "file %s is a symlink, but no link information was provided\n", filename)
+				return fmt.Errorf("file %s is a symlink, but no link information was provided\n", filename)
 			}
 		}
 	}
-	//return nil
+	// return nil
 }
 
 func unpackTarFile(filename string,

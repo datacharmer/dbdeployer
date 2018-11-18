@@ -32,7 +32,7 @@ type Node struct {
 	Name     string
 }
 
-func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) common.StringMap {
+func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (error, common.StringMap) {
 
 	var execLists []concurrent.ExecutionList
 
@@ -40,16 +40,20 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) comm
 	if sbType == "" {
 		sbType = "multiple"
 	}
+	var err error
 	var logger *defaults.Logger
 	if sandboxDef.Logger != nil {
 		logger = sandboxDef.Logger
 	} else {
-		sandboxDef.LogFileName, logger = defaults.NewLogger(common.LogDirName(), sbType)
+		err, sandboxDef.LogFileName, logger = defaults.NewLogger(common.LogDirName(), sbType)
+		if err != nil {
+			return err, common.StringMap{}
+		}
 		sandboxDef.LogFileName = common.ReplaceLiteralHome(sandboxDef.LogFileName)
 	}
 	Basedir := sandboxDef.Basedir
 	if !common.DirExists(Basedir) {
-		common.Exitf(1, defaults.ErrBaseDirectoryNotFound, Basedir)
+		return fmt.Errorf(defaults.ErrBaseDirectoryNotFound, Basedir), common.StringMap{}
 	}
 	if sandboxDef.DirName == "" {
 		sandboxDef.SandboxDir = path.Join(sandboxDef.SandboxDir, defaults.Defaults().MultiplePrefix+common.VersionToName(origin))
@@ -57,7 +61,10 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) comm
 		sandboxDef.SandboxDir = path.Join(sandboxDef.SandboxDir, sandboxDef.DirName)
 	}
 	if common.DirExists(sandboxDef.SandboxDir) {
-		sandboxDef = CheckDirectory(sandboxDef)
+		err, sandboxDef = CheckDirectory(sandboxDef)
+		if err != nil {
+			return err, common.StringMap{}
+		}
 	}
 
 	vList := common.VersionToList(sandboxDef.Version)
@@ -72,9 +79,15 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) comm
 	firstPort := common.FindFreePort(basePort+1, sandboxDef.InstalledPorts, nodes)
 	basePort = firstPort - 1
 	for checkPort := basePort + 1; checkPort < basePort+nodes; checkPort++ {
-		CheckPort("CreateMultipleSandbox", sandboxDef.SandboxDir, sandboxDef.InstalledPorts, checkPort)
+		err := CheckPort("CreateMultipleSandbox", sandboxDef.SandboxDir, sandboxDef.InstalledPorts, checkPort)
+		if err != nil {
+			return err, common.StringMap{}
+		}
 	}
-	baseMysqlxPort := getBaseMysqlxPort(basePort, sandboxDef, nodes)
+	err, baseMysqlxPort := getBaseMysqlxPort(basePort, sandboxDef, nodes)
+	if err != nil {
+		return err, common.StringMap{}
+	}
 	common.Mkdir(sandboxDef.SandboxDir)
 	logger.Printf("Created directory %s\n", sandboxDef.SandboxDir)
 	logger.Printf("Multiple Sandbox Definition: %s\n", SandboxDefToJson(sandboxDef))
@@ -84,7 +97,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) comm
 	sandboxDef.ReplOptions = SingleTemplates["replication_options"].Contents
 	baseServerId := 0
 	if nodes < 2 {
-		common.Exit(1, "only one node requested. For single sandbox deployment, use the 'single' command")
+		return fmt.Errorf("only one node requested. For single sandbox deployment, use the 'single' command"), common.StringMap{}
 	}
 	timestamp := time.Now()
 	var data = common.StringMap{
@@ -154,7 +167,10 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) comm
 			logger.Printf("installing and starting %s %d", nodeLabel, i)
 		}
 		logger.Printf("Creating single sandbox for node %d\n", i)
-		execList := CreateSingleSandbox(sandboxDef)
+		err, execList := CreateChildSandbox(sandboxDef)
+		if err != nil {
+			return fmt.Errorf(defaults.ErrCreatingSandbox, err), common.StringMap{}
+		}
 		for _, list := range execList {
 			execLists = append(execLists, list)
 		}
@@ -168,26 +184,41 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) comm
 		}
 		logger.Printf("Creating node script for node %d\n", i)
 		logger.Printf("Defining multiple sandbox node inner data: %v\n", StringMapToJson(dataNode))
-		writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sandboxDef.SandboxDir, dataNode, true)
+		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sandboxDef.SandboxDir, dataNode, true)
+		if err != nil {
+			return err, data
+		}
 	}
 	logger.Printf("Write sandbox description\n")
 	common.WriteSandboxDescription(sandboxDef.SandboxDir, sbDesc)
 	defaults.UpdateCatalog(sandboxDef.SandboxDir, sbItem)
 
 	logger.Printf("Write multiple sandbox scripts\n")
-	writeScript(logger, MultipleTemplates, defaults.ScriptStartAll, "start_multi_template", sandboxDef.SandboxDir, data, true)
-	writeScript(logger, MultipleTemplates, defaults.ScriptRestartAll, "restart_multi_template", sandboxDef.SandboxDir, data, true)
-	writeScript(logger, MultipleTemplates, defaults.ScriptStatusAll, "status_multi_template", sandboxDef.SandboxDir, data, true)
-	writeScript(logger, MultipleTemplates, defaults.ScriptTestSbAll, "test_sb_multi_template", sandboxDef.SandboxDir, data, true)
-	writeScript(logger, MultipleTemplates, defaults.ScriptStopAll, "stop_multi_template", sandboxDef.SandboxDir, data, true)
-	writeScript(logger, MultipleTemplates, defaults.ScriptClearAll, "clear_multi_template", sandboxDef.SandboxDir, data, true)
-	writeScript(logger, MultipleTemplates, defaults.ScriptSendKillAll, "send_kill_multi_template", sandboxDef.SandboxDir, data, true)
-	writeScript(logger, MultipleTemplates, defaults.ScriptUseAll, "use_multi_template", sandboxDef.SandboxDir, data, true)
+	sbMultiple := ScriptBatch{
+		tc:         MultipleTemplates,
+		logger:     logger,
+		sandboxDir: sandboxDef.SandboxDir,
+		data:       data,
+		scripts: []ScriptDef{
+			{defaults.ScriptStartAll, "start_multi_template", true},
+			{defaults.ScriptRestartAll, "restart_multi_template", true},
+			{defaults.ScriptStatusAll, "status_multi_template", true},
+			{defaults.ScriptTestSbAll, "test_sb_multi_template", true},
+			{defaults.ScriptStopAll, "stop_multi_template", true},
+			{defaults.ScriptClearAll, "clear_multi_template", true},
+			{defaults.ScriptSendKillAll, "send_kill_multi_template", true},
+			{defaults.ScriptUseAll, "use_multi_template", true},
+		},
+	}
 
+	err = writeScripts(sbMultiple)
+	if err != nil {
+		return err, data
+	}
 	logger.Printf("Run concurrent tasks\n")
 	concurrent.RunParallelTasksByPriority(execLists)
 
 	fmt.Printf("%s directory installed in %s\n", sbType, common.ReplaceLiteralHome(sandboxDef.SandboxDir))
 	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
-	return data
+	return nil, data
 }

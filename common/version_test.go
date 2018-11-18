@@ -15,7 +15,10 @@
 
 package common
 
-import "testing"
+import (
+	"github.com/datacharmer/dbdeployer/compare"
+	"testing"
+)
 
 type versionPort struct {
 	version string
@@ -99,6 +102,7 @@ func TestCustomUuid(t *testing.T) {
 		{15000, 1, "00015000-1111-1111-1111-111111111111"},
 		{25000, 2, "00025000-2222-2222-2222-222222222222"},
 		{12987, 7, "00012987-7777-7777-7777-777777777777"},
+		{20742, 1, "00020742-1111-1111-1111-111111111111"},
 		{8004, 0, "00008004-0000-0000-0000-000000008004"},
 		{8004, 11, "00008004-0011-0011-0011-000000008004"},
 		{8004, 3452, "00008004-3452-3452-3452-000000008004"},
@@ -107,7 +111,7 @@ func TestCustomUuid(t *testing.T) {
 		{6000, 235281, "00006000-0023-0000-0000-000000006000"},
 	}
 	for _, sample := range uuidSamples {
-		newUuid := MakeCustomizedUuid(sample.port, sample.nodeNum)
+		_, newUuid := MakeCustomizedUuid(sample.port, sample.nodeNum)
 		if newUuid == sample.expected {
 			t.Logf("ok     %5d %6d => %s \n", sample.port, sample.nodeNum, newUuid)
 		} else {
@@ -115,6 +119,9 @@ func TestCustomUuid(t *testing.T) {
 			t.Fail()
 		}
 	}
+	err, newUuid := MakeCustomizedUuid(5000, 10000001)
+	compare.OkEqualString("over boundaries node", newUuid, "", t)
+	compare.OkIsNotNil("over boundaries node", err, t)
 }
 
 type expectedData struct {

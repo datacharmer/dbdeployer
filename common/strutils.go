@@ -66,7 +66,7 @@ func ReplaceHomeVar(path string) string {
 	return ReplaceEnvVar(path, "HOME")
 }
 
-func MakeCustomizedUuid(port, nodeNum int) string {
+func MakeCustomizedUuid(port, nodeNum int) (error, string) {
 	reDigit := regexp.MustCompile(`\d`)
 	group1 := fmt.Sprintf("%08d", port)
 	group2 := fmt.Sprintf("%04d-%04d-%04d", nodeNum, nodeNum, nodeNum)
@@ -81,13 +81,12 @@ func MakeCustomizedUuid(port, nodeNum int) string {
 	// But we keep the rule so that a valid UUID will be formatted in any case.
 	case nodeNum >= 10000 && nodeNum <= 99999:
 		group2 = fmt.Sprintf("%04d-%04d-%04d", 0, int(nodeNum/10000), nodeNum-10000*int(nodeNum/10000))
-	case nodeNum >= 100000:
+	case nodeNum >= 100000 && nodeNum < 1000000:
 		group2 = fmt.Sprintf("%04d-%04d-%04d", int(nodeNum/10000), 0, 0)
 	case nodeNum >= 1000000:
-		fmt.Printf("Node num out of boundaries: %d\n", nodeNum)
-		os.Exit(1)
+		return fmt.Errorf("Node num out of boundaries: %d\n", nodeNum), ""
 	}
-	return fmt.Sprintf("%s-%s-%s", group1, group2, group3)
+	return nil, fmt.Sprintf("%s-%s-%s", group1, group2, group3)
 }
 
 func Includes(mainString, contained string) bool {
@@ -100,10 +99,23 @@ func Includes(mainString, contained string) bool {
 // this function returns an ordered list, taking into account the
 // components of the versions, so that 5.6.2 sorts lower than 5.6.11
 // while a text sort would put 5.6.11 before 5.6.2
-func SortVersions(versions []string) (sorted []string) {
+// If wanted is not empty, it will be interpreted as a short version to match.
+// For example, when wanted is "5.6", only the versions starting with '5.6' will be considered.
+func SortVersionsSubset(versions []string, wanted string) (sorted []string) {
 	type versionList struct {
 		text      string
 		majMinRev []int
+	}
+	wantedMaj := 0
+	wantedMin := 0
+	if wanted!= "" {
+		verList := strings.Split(wanted, ".")
+		if len(verList) > 0 {
+			wantedMaj, _ = strconv.Atoi(verList[0])
+		}
+		if len(verList) > 1 {
+			wantedMin, _ = strconv.Atoi(verList[1])
+		}
 	}
 	var vlist []versionList
 	for _, line := range versions {
@@ -113,7 +125,19 @@ func SortVersions(versions []string) (sorted []string) {
 			majMinRev: vl,
 		}
 		if vl[0] > 0 {
-			vlist = append(vlist, rec)
+			willAppend := true
+			if wantedMaj > 0 {
+				if vl[0] == wantedMaj {
+					if vl[1] != wantedMin {
+						willAppend = false
+					}
+				} else {
+					willAppend = false
+				}
+			}
+			if willAppend {
+				vlist = append(vlist, rec)
+			}
 		}
 	}
 	sort.Slice(vlist, func(a, b int) bool {
@@ -131,6 +155,10 @@ func SortVersions(versions []string) (sorted []string) {
 		sorted = append(sorted, v.text)
 	}
 	return
+}
+
+func SortVersions(versions []string) []string {
+	return SortVersionsSubset(versions, "")
 }
 
 func LatestVersion(searchDir, pattern string) string {

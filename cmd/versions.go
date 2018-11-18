@@ -19,29 +19,14 @@ import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/spf13/cobra"
-	"io/ioutil"
-	"path"
 )
 
 // Shows the MySQL versions available in $SANDBOX_BINARY
 // (default $HOME/opt/mysql)
 func ShowVersions(cmd *cobra.Command, args []string) {
 	Basedir := GetAbsolutePathFromFlag(cmd, "sandbox-binary")
-	files, err := ioutil.ReadDir(Basedir)
+	err, dirs := common.GetVersionsFromDir(Basedir)
 	common.ErrCheckExitf(err, 1, "error reading directory %s: %s", Basedir, err)
-	var dirs []string
-	for _, f := range files {
-		fname := f.Name()
-		fmode := f.Mode()
-		//fmt.Printf("%#v\n", fmode)
-		if fmode.IsDir() {
-			//fmt.Println(fname)
-			mysqld := path.Join(Basedir, fname, "bin", "mysqld")
-			if common.FileExists(mysqld) {
-				dirs = append(dirs, fname)
-			}
-		}
-	}
 	maxWidth := 80
 	maxLen := 0
 	for _, dir := range dirs {

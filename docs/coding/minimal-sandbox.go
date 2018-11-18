@@ -35,7 +35,7 @@ func main() {
 	version := "5.7.22"
 
 	// Creates sandboxes in $HOME/sandboxes
-	sandbox_home := path.Join(os.Getenv("HOME"), "sandboxes")
+	sandboxHome := path.Join(os.Getenv("HOME"), "sandboxes")
 
 	// MySQL will look for binaries in $HOME/opt/mysql/5.7.22
 	basedir := path.Join(sandbox_binary, version)
@@ -43,42 +43,52 @@ func main() {
 	// The unique port for this sandbox
 	port := 5722
 
-	// Username and password for this sandbox
-	user := "msandbox"
-	password := "msandbox"
+	sandboxName := "msb_5_7_22"
 
-	if !common.DirExists(sandbox_home) {
-		common.Mkdir(sandbox_home)
+	if !common.DirExists(sandboxHome) {
+		common.Mkdir(sandboxHome)
 	}
 
 	// Minimum data to be filled for a simple sandbox.
 	// See sandbox/sandbox.go for the full description
 	// of this data structure
-	var sdef = sandbox.SandboxDef{
+	var sandboxDef = sandbox.SandboxDef{
 		Version:        version,
 		Basedir:        basedir,
-		SandboxDir:     sandbox_home,
-		DirName:        "msb_5_7_22",
+		SandboxDir:     sandboxHome,
+		DirName:        sandboxName,
 		LoadGrants:     true,
 		InstalledPorts: []int{1186, 3306, 33060},
 		Port:           port,
-		DbUser:         user,
-		DbPassword:     password,
-		RplUser:        "r" + user,
-		RplPassword:    "r" + password,
+		DbUser:         defaults.DbUserValue,      // "msandbox"
+		DbPassword:     defaults.DbPasswordValue,  // "msandbox"
+		RplUser:        defaults.RplUserValue,     // "rsandbox"
+		RplPassword:    defaults.RplPasswordValue, // "rsandbox"
 		RemoteAccess:   "127.%",
 		BindAddress:    "127.0.0.1",
 	}
 
 	// Calls the sandbox creation
-	sandbox.CreateSingleSandbox(sdef)
+	err := sandbox.CreateStandaloneSandbox(sandboxDef)
+	if err != nil {
+		common.Exitf(1, defaults.ErrCreatingSandbox, err)
+	}
 
 	// Invokes the sandbox self-testing script
-	common.RunCmd(path.Join(sandbox_home, "msb_5_7_22", "test_sb"))
+	err, _ = common.RunCmd(path.Join(sandboxHome, "msb_5_7_22", "test_sb"))
+	if err != nil {
+		common.Exitf(1, "error executing sandbox test: %s", err)
+	}
 
 	// Removes the sandbox from disk
-	sandbox.RemoveSandbox(sandbox_home, "msb_5_7_22", false)
+	err, _ = sandbox.RemoveSandbox(sandboxHome, "msb_5_7_22", false)
+	if err != nil {
+		common.Exitf(1, defaults.ErrWhileDeletingSandbox, err)
+	}
 
 	// Removes the sandbox from dbdeployer catalog
-	defaults.DeleteFromCatalog(path.Join(sandbox_home, "msb_5_7_22"))
+	err = defaults.DeleteFromCatalog(path.Join(sandboxHome, "msb_5_7_22"))
+	if err != nil {
+		common.Exitf(1, defaults.ErrRemovingFromCatalog, sandboxName)
+	}
 }

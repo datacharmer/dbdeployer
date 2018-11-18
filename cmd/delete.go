@@ -95,7 +95,10 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 		if sb.Locked {
 			fmt.Printf("Sandbox %s is locked\n", sb.SandboxName)
 		} else {
-			execList := sandbox.RemoveSandbox(sandboxDir, sb.SandboxName, runConcurrently)
+			err, execList := sandbox.RemoveSandbox(sandboxDir, sb.SandboxName, runConcurrently)
+			if err != nil {
+				common.Exitf(1, defaults.ErrWhileDeletingSandbox, err)
+			}
 			for _, list := range execList {
 				execLists = append(execLists, list)
 			}
@@ -105,7 +108,10 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 	for _, sb := range deletionList {
 		fullPath := path.Join(sandboxDir, sb.SandboxName)
 		if !sb.Locked {
-			defaults.DeleteFromCatalog(fullPath)
+			err := defaults.DeleteFromCatalog(fullPath)
+			if err != nil {
+				common.Exitf(1, defaults.ErrRemovingFromCatalog, fullPath)
+			}
 		}
 	}
 }
