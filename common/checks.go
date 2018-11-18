@@ -17,7 +17,6 @@ package common
 
 import (
 	"fmt"
-	"golang-experiments/cobratest/common"
 	"io/ioutil"
 	"os"
 	"path"
@@ -67,7 +66,7 @@ func GetVersionsFromDir(basedir string) (error, []string) {
 		if fmode.IsDir() {
 			//fmt.Println(fname)
 			mysqld := path.Join(basedir, fname, "bin", "mysqld")
-			if common.FileExists(mysqld) {
+			if FileExists(mysqld) {
 				dirs = append(dirs, fname)
 			}
 		}
