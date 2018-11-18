@@ -257,7 +257,7 @@ func CreateStandaloneSandbox(sandboxDef SandboxDef) (err error) {
 }
 
 func sbError(reason, format string, args ...interface{}) error {
-	return fmt.Errorf(reason + " " + format, args...)
+	return fmt.Errorf(reason+" "+format, args...)
 }
 
 func createSingleSandbox(sandboxDef SandboxDef) (err error, execList []concurrent.ExecutionList) {
@@ -550,7 +550,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (err error, execList []concurren
 		execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 0, Command: eCommand})
 	} else {
 		logger.Printf("Running init_db script \n")
-		initDbScript :=path.Join(sandboxDir, defaults.ScriptInitDb)
+		initDbScript := path.Join(sandboxDir, defaults.ScriptInitDb)
 		if !common.FileExists(initDbScript) {
 			return fmt.Errorf(defaults.ErrFileNotFound, initDbScript), emptyExecutionList
 		}

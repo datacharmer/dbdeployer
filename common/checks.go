@@ -54,7 +54,7 @@ func SandboxInfoToFileNames(sbList []SandboxInfo) (fileNames []string) {
 }
 
 // Returns the list of versions available for deployment
-func GetVersionsFromDir(basedir string ) (error, []string) {
+func GetVersionsFromDir(basedir string) (error, []string) {
 	var dirs []string
 	files, err := ioutil.ReadDir(basedir)
 	if err != nil {

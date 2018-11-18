@@ -108,7 +108,7 @@ func SortVersionsSubset(versions []string, wanted string) (sorted []string) {
 	}
 	wantedMaj := 0
 	wantedMin := 0
-	if wanted!= "" {
+	if wanted != "" {
 		verList := strings.Split(wanted, ".")
 		if len(verList) > 0 {
 			wantedMaj, _ = strconv.Atoi(verList[0])

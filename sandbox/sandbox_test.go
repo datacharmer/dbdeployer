@@ -268,7 +268,6 @@ func testCreateReplicationSandbox(t *testing.T) {
 	}
 }
 
-
 func TestCreateSandbox(t *testing.T) {
 	t.Run("single", testCreateStandaloneSandbox)
 	t.Run("replication", testCreateReplicationSandbox)
