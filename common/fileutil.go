@@ -335,6 +335,8 @@ func CopyFile(source, destination string) {
 // These lines should:
 // 1) Do not exit. Return errors instead.
 // 2) Wrappers for 1 single line will be removed to use errors instead
+// 3) I am commenting out these lines just to force a failure wherever they are being called. That way
+//    will be easier to detect all the places where they should be changed/removed.
 
 // func BaseName(filename string) string {
 // 	return filepath.Base(filename)
