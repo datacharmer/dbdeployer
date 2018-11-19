@@ -284,9 +284,9 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		sandboxDef.NodeNum = i
 		// fmt.Printf("%#v\n",sdef)
 		logger.Printf("Create single sandbox for node %d\n", i)
-		err, execList := CreateChildSandbox(sandboxDef)
+		execList, err := CreateSingleConcurrentSandbox(sandboxDef)
 		if err != nil {
-			return fmt.Errorf(defaults.ErrCreatingSandbox, err)
+			common.Exit(1, err.Error())
 		}
 		for _, list := range execList {
 			execLists = append(execLists, list)
