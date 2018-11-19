@@ -537,7 +537,11 @@ func createSingleSandbox(sandboxDef SandboxDef, runConcurrently bool) ([]concurr
 		}
 	}
 
-	writeScript(logger, SingleTemplates, defaults.ScriptInitDb, "init_db_template", sandboxDir, data, true)
+	err := writeScript(logger, SingleTemplates, defaults.ScriptInitDb, "init_db_template", sandboxDir, data, true)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot write init_db_template script")
+	}
+
 	if runConcurrently {
 		var eCommand = concurrent.ExecCommand{
 			Cmd:  path.Join(sandboxDir, defaults.ScriptInitDb),
