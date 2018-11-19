@@ -250,7 +250,10 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		sandboxDef.NodeNum = i
 		// fmt.Printf("%#v\n",sdef)
 		logger.Printf("Create single sandbox for node %d\n", i)
-		execList := CreateSingleSandbox(sandboxDef)
+		execList, err := CreateSingleConcurrentSandbox(sandboxDef)
+		if err != nil {
+			common.Exit(1, err.Error())
+		}
 		for _, list := range execList {
 			execLists = append(execLists, list)
 		}

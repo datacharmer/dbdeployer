@@ -23,6 +23,7 @@ import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/pkg/errors"
 )
 
 type Slave struct {
@@ -33,7 +34,7 @@ type Slave struct {
 	MasterPort int
 }
 
-func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) {
+func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
 
 	var execLists []concurrent.ExecutionList
 
@@ -122,7 +123,11 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	sandboxDef.NodeNum = 1
 	sandboxDef.SBType = "replication-node"
 	logger.Printf("Creating single sandbox for master\n")
-	execList := CreateSingleSandbox(sandboxDef)
+	execList, err := CreateSingleConcurrentSandbox(sandboxDef)
+	if err != nil {
+		return errors.Wrap(err, "cannot create a single sandbox for master")
+	}
+
 	for _, list := range execList {
 		execLists = append(execLists, list)
 	}
@@ -266,8 +271,10 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		logger.Printf("Run replication initialization script \n")
 		common.RunCmd(path.Join(sandboxDef.SandboxDir, initializeSlaves))
 	}
-	fmt.Printf("Replication directory installed in %s\n", common.ReplaceLiteralHome(sandboxDef.SandboxDir))
-	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
+	// TODO: Improve logging
+	//fmt.Printf("Replication directory installed in %s\n", common.ReplaceLiteralHome(sandboxDef.SandboxDir))
+	//fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
+	return nil
 }
 
 func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, nodes int, masterIp, masterList, slaveList string) {

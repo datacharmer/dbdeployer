@@ -24,7 +24,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -333,31 +332,35 @@ func CopyFile(source, destination string) {
 	ErrCheckExitf(err, 1, "error copying from source %s to destination file %s: %s", source, destination, err)
 }
 
-func BaseName(filename string) string {
-	return filepath.Base(filename)
-}
+// These lines should:
+// 1) Do not exit. Return errors instead.
+// 2) Wrappers for 1 single line will be removed to use errors instead
 
-func DirName(filename string) string {
-	return filepath.Dir(filename)
-}
+// func BaseName(filename string) string {
+// 	return filepath.Base(filename)
+// }
+//
+// func DirName(filename string) string {
+// 	return filepath.Dir(filename)
+// }
 
-func AbsolutePath(value string) string {
-	filename, err := filepath.Abs(value)
-	ErrCheckExitf(err, 1, "error getting absolute path for %s", value)
-	return filename
-}
+// func AbsolutePath(value string) string {
+// 	filename, err := filepath.Abs(value)
+// 	ErrCheckExitf(err, 1, "error getting absolute path for %s", value)
+// 	return filename
+// }
 
-func Mkdir(dirName string) {
-	err := os.Mkdir(dirName, PublicDirectoryAttr)
-	ErrCheckExitf(err, 1, "error creating directory %s\n%s\n", dirName, err)
-}
+// func Mkdir(dirName string) {
+// 	err := os.Mkdir(dirName, PublicDirectoryAttr)
+// 	ErrCheckExitf(err, 1, "error creating directory %s\n%s\n", dirName, err)
+// }
 
-func Rmdir(dirName string) {
-	err := os.Remove(dirName)
-	ErrCheckExitf(err, 1, "error removing directory %s\n%s\n", dirName, err)
-}
-
-func RmdirAll(dirName string) {
-	err := os.RemoveAll(dirName)
-	ErrCheckExitf(err, 1, "error deep-removing directory %s\n%s\n", dirName, err)
-}
+// func Rmdir(dirName string) {
+// 	err := os.Remove(dirName)
+// 	ErrCheckExitf(err, 1, "error removing directory %s\n%s\n", dirName, err)
+// }
+//
+// func RmdirAll(dirName string) {
+// 	err := os.RemoveAll(dirName)
+// 	ErrCheckExitf(err, 1, "error deep-removing directory %s\n%s\n", dirName, err)
+// }

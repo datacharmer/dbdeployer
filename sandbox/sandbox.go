@@ -25,6 +25,7 @@ import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/pkg/errors"
 )
 
 type SandboxDef struct {
@@ -169,7 +170,7 @@ func CheckDirectory(sandboxDef SandboxDef) SandboxDef {
 	return sandboxDef
 }
 
-func CheckPort(caller string, sandboxType string, installedPorts []int, port int) {
+func CheckPort(caller string, sandboxType string, installedPorts []int, port int) error {
 	conflict := 0
 	for _, p := range installedPorts {
 		if p == port {
@@ -177,8 +178,9 @@ func CheckPort(caller string, sandboxType string, installedPorts []int, port int
 		}
 	}
 	if conflict > 0 {
-		common.Exitf(1, "port conflict detected for %s (%s). Port %d is already used", sandboxType, caller, conflict)
+		return fmt.Errorf("port conflict detected for %s (%s). Port %d is already used", sandboxType, caller, conflict)
 	}
+	return nil
 }
 
 func FixServerUuid(sandboxDef SandboxDef) (uuidFile, newUuid string) {
@@ -214,8 +216,17 @@ func setMysqlxProperties(sandboxDef SandboxDef, globalTmpDir string) SandboxDef 
 	return sandboxDef
 }
 
-func CreateSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.ExecutionList) {
+func CreateSingleSandbox(sandboxDef SandboxDef) error {
+	_, err := createSingleSandbox(sandboxDef, false)
+	return err
+}
 
+func CreateSingleConcurrentSandbox(sandboxDef SandboxDef) (execList []concurrent.ExecutionList, err error) {
+	return createSingleSandbox(sandboxDef, true)
+}
+
+func createSingleSandbox(sandboxDef SandboxDef, runConcurrently bool) ([]concurrent.ExecutionList, error) {
+	execList := make([]concurrent.ExecutionList, 0)
 	var sandboxDir string
 
 	if sandboxDef.SBType == "" {
@@ -229,11 +240,11 @@ func CreateSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	sandboxDef.LogFileName = common.ReplaceLiteralHome(fname)
 	logger.Printf("Single Sandbox Definition: %s\n", SandboxDefToJson(sandboxDef))
 	if !common.DirExists(sandboxDef.Basedir) {
-		common.Exitf(1, defaults.ErrBaseDirectoryNotFound, sandboxDef.Basedir)
+		return nil, fmt.Errorf("%s %s", defaults.ErrBaseDirectoryNotFound, sandboxDef.Basedir)
 	}
 
 	if sandboxDef.Port <= 1024 {
-		common.Exitf(1, "port for sandbox must be > 1024 (given:%d)", sandboxDef.Port)
+		return nil, fmt.Errorf("port for sandbox must be > 1024 (given:%d)", sandboxDef.Port)
 	}
 
 	versionFname := common.VersionToName(sandboxDef.Version)
@@ -268,7 +279,7 @@ func CreateSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	if sandboxDef.EnableMysqlX {
 		// 5.7.12
 		if !common.GreaterOrEqualVersion(sandboxDef.Version, defaults.MinimumMysqlxVersion) {
-			common.Exitf(1, defaults.ErrOptionRequiresVersion, "enable-mysqlx", common.IntSliceToDottedString(defaults.MinimumMysqlxVersion))
+			return nil, fmt.Errorf("%s %s %s", defaults.ErrOptionRequiresVersion, "enable-mysqlx", common.IntSliceToDottedString(defaults.MinimumMysqlxVersion))
 		}
 		// If the version is 8.0.11 or later, MySQL X is enabled already
 		// 8.0.11
@@ -290,9 +301,10 @@ func CreateSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		}
 		sandboxDef.PostGrantsSql = append(sandboxDef.PostGrantsSql, SingleTemplates["expose_dd_tables"].Contents)
 		if sandboxDef.CustomMysqld != "" && sandboxDef.CustomMysqld != "mysqld-debug" {
-			common.Exit(1,
-				fmt.Sprintf("--expose-dd-tables requires mysqld-debug. A different file was indicated (--custom-mysqld=%s)", sandboxDef.CustomMysqld),
-				"Either use \"mysqld-debug\" or remove --custom-mysqld")
+			return nil,
+				fmt.Errorf("--expose-dd-tables requires mysqld-debug. A different file was indicated (--custom-mysqld=%s). "+
+					"Either use 'mysqld-debug' or remove --custom-mysqld",
+					sandboxDef.CustomMysqld)
 		}
 		sandboxDef.CustomMysqld = "mysqld-debug"
 		logger.Printf("Using mysqld-debug for this sandbox\n")
@@ -300,9 +312,10 @@ func CreateSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	if sandboxDef.CustomMysqld != "" {
 		customMysqld := path.Join(sandboxDef.Basedir, "bin", sandboxDef.CustomMysqld)
 		if !common.ExecExists(customMysqld) {
-			common.Exit(1,
-				fmt.Sprintf("File %s not found or not executable", customMysqld),
-				fmt.Sprintf("The file \"%s\" (defined with --custom-mysqld) must be in the same directory as the regular mysqld", sandboxDef.CustomMysqld))
+			return nil,
+				fmt.Errorf("File %s not found or not executable"+
+					"The file %q (defined with --custom-mysqld) must be in the same directory as the regular mysqld",
+					customMysqld, sandboxDef.CustomMysqld)
 		}
 		pluginDebugDir := fmt.Sprintf("%s/lib/plugin/debug", sandboxDef.Basedir)
 		if sandboxDef.CustomMysqld == "mysqld-debug" && common.DirExists(pluginDebugDir) {
@@ -361,9 +374,8 @@ func CreateSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	}
 	if usingPlugins {
 		if !rightPluginDir {
-			common.Exit(1,
-				"the request of using mysqld-debug can't be honored.",
-				"This deployment is using a plugin, but the debug",
+			return nil, fmt.Errorf("the request of using mysqld-debug can't be honored." +
+				"This deployment is using a plugin, but the debug " +
 				"directory for plugins was not found")
 		}
 	}
@@ -419,17 +431,28 @@ func CreateSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	if common.DirExists(sandboxDir) {
 		sandboxDef = CheckDirectory(sandboxDef)
 	}
-	logger.Printf("Checking port %d using CheckPort\n", sandboxDef.Port)
-	CheckPort("CreateSingleSandbox", sandboxDef.SBType, sandboxDef.InstalledPorts, sandboxDef.Port)
 
-	common.Mkdir(sandboxDir)
+	logger.Printf("Checking port %d using CheckPort\n", sandboxDef.Port)
+	if err := CheckPort("CreateSingleSandbox", sandboxDef.SBType, sandboxDef.InstalledPorts, sandboxDef.Port); err != nil {
+		return nil, err
+	}
+
+	if err := os.MkdirAll(sandboxDir, os.ModePerm); err != nil {
+		return nil, errors.Wrapf(err, "cannot create sandbodx dir %s", sandboxDir)
+	}
 
 	logger.Printf("Created directory %s\n", sandboxDef.SandboxDir)
 	logger.Printf("Single Sandbox template data: %s\n", StringMapToJson(data))
 
-	common.Mkdir(dataDir)
+	if err := os.MkdirAll(dataDir, os.ModePerm); err != nil {
+		return nil, errors.Wrapf(err, "cannot create data dir %s", dataDir)
+	}
+
 	logger.Printf("Created directory %s\n", dataDir)
-	common.Mkdir(tmpDir)
+	if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil {
+		return nil, errors.Wrapf(err, "cannot create tmp dir %s", tmpDir)
+	}
+
 	logger.Printf("Created directory %s\n", tmpDir)
 	script := path.Join(sandboxDef.Basedir, "scripts", "mysql_install_db")
 	initScriptFlags := ""
@@ -438,7 +461,7 @@ func CreateSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		initScriptFlags = "--initialize-insecure"
 	}
 	if !common.ExecExists(script) {
-		common.Exitf(1, defaults.ErrScriptNotFound, script)
+		return nil, fmt.Errorf("%s %s", defaults.ErrScriptNotFound, script)
 	}
 	if len(sandboxDef.InitOptions) > 0 {
 		for _, op := range sandboxDef.InitOptions {
@@ -464,7 +487,7 @@ func CreateSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	}
 
 	writeScript(logger, SingleTemplates, defaults.ScriptInitDb, "init_db_template", sandboxDir, data, true)
-	if sandboxDef.RunConcurrently {
+	if runConcurrently {
 		var eCommand = concurrent.ExecCommand{
 			Cmd:  path.Join(sandboxDir, defaults.ScriptInitDb),
 			Args: []string{},
@@ -573,7 +596,7 @@ func CreateSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			common.WriteStrings(sandboxDef.PostGrantsSql, postGrantSqlFile, ";")
 		}
 	}
-	if !sandboxDef.SkipStart && sandboxDef.RunConcurrently {
+	if !sandboxDef.SkipStart && runConcurrently {
 		var eCommand2 = concurrent.ExecCommand{
 			Cmd:  path.Join(sandboxDir, defaults.ScriptStart),
 			Args: []string{},
@@ -614,7 +637,7 @@ func CreateSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			}
 		}
 	}
-	return
+	return execList, nil
 }
 
 func writeScript(logger *defaults.Logger, tempVar TemplateCollection, name, templateName, directory string, data common.StringMap, makeExecutable bool) {
@@ -663,27 +686,37 @@ func getLogDirFromSbDescription(fullPath string) string {
 	return logDirectory
 }
 
-func RemoveSandbox(sandboxDir, sandbox string, runConcurrently bool) (execList []concurrent.ExecutionList) {
+func RemoveSandboxConcurrently(sandboxDir, sandbox string) ([]concurrent.ExecutionList, error) {
+	return removeSandbox(sandboxDir, sandbox, true)
+}
+
+func RemoveSandbox(sandboxDir, sandbox string) error {
+	_, err := removeSandbox(sandboxDir, sandbox, false)
+	return err
+}
+
+func removeSandbox(sandboxDir, sandbox string, runConcurrently bool) ([]concurrent.ExecutionList, error) {
+	execList := make([]concurrent.ExecutionList, 0)
 	fullPath := path.Join(sandboxDir, sandbox)
 	if !common.DirExists(fullPath) {
-		common.Exitf(1, defaults.ErrDirectoryNotFound, fullPath)
+		return nil, fmt.Errorf("%s %s", defaults.ErrDirectoryNotFound, fullPath)
 	}
+
 	preserve := path.Join(fullPath, defaults.ScriptNoClearAll)
 	if !common.ExecExists(preserve) {
 		preserve = path.Join(fullPath, defaults.ScriptNoClear)
 	}
 	if common.ExecExists(preserve) {
-		fmt.Printf("The sandbox %s is locked\n", sandbox)
-		fmt.Printf("You need to unlock it with \"dbdeployer admin unlock\"\n")
-		return
+		return nil, fmt.Errorf("The sandbox %s is locked. You need to unlock it with 'dbdeployer admin unlock'", sandbox)
 	}
+
 	logDirectory := getLogDirFromSbDescription(fullPath)
 	stop := path.Join(fullPath, defaults.ScriptStopAll)
 	if !common.ExecExists(stop) {
 		stop = path.Join(fullPath, defaults.ScriptStop)
 	}
 	if !common.ExecExists(stop) {
-		common.Exitf(1, defaults.ErrExecutableNotFound, stop)
+		return nil, fmt.Errorf("%s %s", defaults.ErrExecutableNotFound, stop)
 	}
 
 	if runConcurrently {
@@ -694,10 +727,12 @@ func RemoveSandbox(sandboxDir, sandbox string, runConcurrently bool) (execList [
 		execList = append(execList, concurrent.ExecutionList{Logger: nil, Priority: 0, Command: eCommand1})
 	} else {
 		if defaults.UsingDbDeployer {
-			fmt.Printf("Running %s\n", stop)
+			// TODO: improve logging
+			//fmt.Printf("Running %s\n", stop)
 		}
-		err, _ := common.RunCmd(stop)
-		common.ErrCheckExitf(err, 1, defaults.ErrWhileStoppingSandbox, fullPath)
+		if err, _ := common.RunCmd(stop); err != nil {
+			return nil, fmt.Errorf("%s %s", defaults.ErrWhileStoppingSandbox, fullPath)
+		}
 	}
 
 	rmTargets := []string{fullPath, logDirectory}
@@ -719,15 +754,17 @@ func RemoveSandbox(sandboxDir, sandbox string, runConcurrently bool) (execList [
 				cmdStr += " " + item
 			}
 			if defaults.UsingDbDeployer && target != logDirectory {
-				fmt.Printf("Running %s\n", cmdStr)
+				// TODO: improve logging
+				// fmt.Printf("Running %s\n", cmdStr)
 			}
 			err, _ := common.RunCmdWithArgs("rm", rmArgs)
 			common.ErrCheckExitf(err, 1, defaults.ErrWhileDeletingDir, target)
 			if defaults.UsingDbDeployer && target != logDirectory {
-				fmt.Printf("Directory %s deleted\n", target)
+				// TODO: improve logging
+				// fmt.Printf("Directory %s deleted\n", target)
 			}
 		}
 	}
-	// fmt.Printf("%#v\n",execList)
-	return
+
+	return execList, nil
 }
