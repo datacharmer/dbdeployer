@@ -14,6 +14,12 @@
 			"revision": ""
 		},
 		{
+			"checksumSHA1": "18YrywDvb67HU8xYF5vqKMgelx0=",
+			"path": "github.com/pkg/errors",
+			"revision": "c059e472caf75dbe73903f6521a20abac245b17f",
+			"revisionTime": "2018-09-11T06:21:13Z"
+		},
+		{
 			"checksumSHA1": "OnCHuYYPIZycyCb0gQ8Ua+Blp3U=",
 			"path": "github.com/russross/blackfriday",
 			"revision": ""
@@ -29,7 +35,7 @@
 			"revision": ""
 		},
 		{
-			"checksumSHA1": "k5TsfhX2vvfffYbZQ4fMKtL5+cA=",
+			"checksumSHA1": "qNGXoUv7sHm2l8FGbrFqrrb7X+Q=",
 			"path": "github.com/spf13/pflag",
 			"revision": ""
 		},

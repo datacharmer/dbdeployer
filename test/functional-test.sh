@@ -871,7 +871,6 @@ function pre_post_operations {
     #   * we can run more than one query before and after
     #   * we can compare values before and after the grants were loaded
     #   * we can run queries containing commas without errors.
-    #     (see ./pflag/README.md)
     for V in ${all_versions[*]}
     do
         echo "#pre-post operations $V"
