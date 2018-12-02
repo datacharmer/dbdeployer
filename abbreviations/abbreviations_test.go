@@ -34,7 +34,11 @@ func TestLoadAbbreviations(t *testing.T) {
 		"sbs sandboxes --header",
 		"msbdef --sandbox-directory={{.sb}} --base-port={{.port}}",
 	}
-	common.WriteStrings(abbreviations, userDefinedFile, "\n")
+	err := common.WriteStrings(abbreviations, userDefinedFile, "\n")
+	compare.OkIsNil("writing abbreviations", err, t)
+	if err != nil {
+		t.Fatalf("can't write abbreviation file %s", userDefinedFile)
+	}
 	saveArgs := os.Args
 	var data = []abbrData{
 		{

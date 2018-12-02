@@ -21,6 +21,7 @@ package main
 import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"os"
 	"path"
@@ -59,7 +60,7 @@ func main() {
 				common.Exitf(1, "error creating a symlink between %s and %s", basedir2a, basedir2)
 			}
 		} else {
-			common.Exitf(1, defaults.ErrDirectoryNotFound, basedir2)
+			common.Exitf(1, globals.ErrDirectoryNotFound, basedir2)
 		}
 	}
 	// This is a deviation from dbdeployer
@@ -87,10 +88,10 @@ func main() {
 		// You will see that the sandbox will install using 3307
 		InstalledPorts: []int{1186, 3306, 33060},
 		Port:           port1,
-		DbUser:         defaults.DbUserValue,      // "msandbox"
-		DbPassword:     defaults.DbPasswordValue,  // "msandbox"
-		RplUser:        defaults.RplUserValue,     // "rsandbox"
-		RplPassword:    defaults.RplPasswordValue, // "rsandbox"
+		DbUser:         globals.DbUserValue,      // "msandbox"
+		DbPassword:     globals.DbPasswordValue,  // "msandbox"
+		RplUser:        globals.RplUserValue,     // "rsandbox"
+		RplPassword:    globals.RplPasswordValue, // "rsandbox"
 		RemoteAccess:   "127.%",
 		BindAddress:    "127.0.0.1",
 	}
@@ -98,7 +99,7 @@ func main() {
 	// Calls the sandbox creation
 	err := sandbox.CreateStandaloneSandbox(sdef)
 	if err != nil {
-		common.Exitf(1, defaults.ErrCreatingSandbox, err)
+		common.Exitf(1, globals.ErrCreatingSandbox, err)
 	}
 
 	sdef.Version = version2
@@ -109,36 +110,36 @@ func main() {
 	// Calls the sandbox creation for the second sandbox
 	err = sandbox.CreateStandaloneSandbox(sdef)
 	if err != nil {
-		common.Exitf(1, defaults.ErrCreatingSandbox, err)
+		common.Exitf(1, globals.ErrCreatingSandbox, err)
 	}
 
 	// Invokes the sandbox self-testing script
-	err, _ = common.RunCmd(path.Join(sandbox_home, sandboxName1, "test_sb"))
+	_, err = common.RunCmd(path.Join(sandbox_home, sandboxName1, "test_sb"))
 	if err != nil {
 		common.Exitf(1, "error running test for sandbox 2: %s", err)
 	}
-	err, _ = common.RunCmd(path.Join(sandbox_home, sandboxName2, "test_sb"))
+	_, err = common.RunCmd(path.Join(sandbox_home, sandboxName2, "test_sb"))
 	if err != nil {
 		common.Exitf(1, "error running test for sandbox 2: %s", err)
 	}
 
 	// Removes the sandbox from disk
-	err, _ = sandbox.RemoveSandbox(sandbox_home, sandboxName1, false)
+	_, err = sandbox.RemoveSandbox(sandbox_home, sandboxName1, false)
 	if err != nil {
-		common.Exitf(1, defaults.ErrWhileDeletingSandbox, err)
+		common.Exitf(1, globals.ErrWhileDeletingSandbox, err)
 	}
-	err, _ = sandbox.RemoveSandbox(sandbox_home, sandboxName2, false)
+	_, err = sandbox.RemoveSandbox(sandbox_home, sandboxName2, false)
 	if err != nil {
-		common.Exitf(1, defaults.ErrWhileDeletingSandbox, err)
+		common.Exitf(1, globals.ErrWhileDeletingSandbox, err)
 	}
 
 	// Removes the sandbox from dbdeployer catalog
 	err = defaults.DeleteFromCatalog(path.Join(sandbox_home, sandboxName1))
 	if err != nil {
-		common.Exitf(1, defaults.ErrRemovingFromCatalog, sandboxName1)
+		common.Exitf(1, globals.ErrRemovingFromCatalog, sandboxName1)
 	}
 	err = defaults.DeleteFromCatalog(path.Join(sandbox_home, sandboxName2))
 	if err != nil {
-		common.Exitf(1, defaults.ErrRemovingFromCatalog, sandboxName2)
+		common.Exitf(1, globals.ErrRemovingFromCatalog, sandboxName2)
 	}
 }

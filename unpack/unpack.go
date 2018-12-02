@@ -55,7 +55,8 @@ import (
 	"compress/gzip"
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/pkg/errors"
 	"github.com/xi2/xz"
 	"io"
 	"os"
@@ -83,7 +84,7 @@ func condPrint(s string, nl bool, level int) {
 }
 
 func validSuffix(filename string) bool {
-	for _, suffix := range []string{defaults.TgzExt, defaults.TarExt, defaults.TarGzExt} {
+	for _, suffix := range []string{globals.TgzExt, globals.TarExt, globals.TarGzExt} {
 		if strings.HasSuffix(filename, suffix) {
 			return true
 		}
@@ -99,8 +100,14 @@ func UnpackXzTar(filename string, destination string, verbosityLevel int) (err e
 	if !common.DirExists(destination) {
 		return fmt.Errorf("directory %s not found", destination)
 	}
-	filename = common.AbsolutePath(filename)
-	os.Chdir(destination)
+	filename, err = common.AbsolutePath(filename)
+	if err != nil {
+		return err
+	}
+	err = os.Chdir(destination)
+	if err != nil {
+		return errors.Wrapf(err, "error changing directory to %s", destination)
+	}
 	f, err := os.Open(filename)
 	if err != nil {
 		return err
@@ -134,10 +141,13 @@ func UnpackTar(filename string, destination string, verbosityLevel int) (err err
 		return err
 	}
 	defer file.Close()
-	os.Chdir(destination)
+	err = os.Chdir(destination)
+	if err != nil {
+		return errors.Wrapf(err, "error changing directory to %s", destination)
+	}
 	var fileReader io.Reader = file
 	var decompressor *gzip.Reader
-	if strings.HasSuffix(filename, defaults.GzExt) {
+	if strings.HasSuffix(filename, globals.GzExt) {
 		if decompressor, err = gzip.NewReader(file); err != nil {
 			return err
 		}
@@ -207,7 +217,7 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 		filename := sanitizedName(header.Name)
 		fileDir := path.Dir(filename)
 		if _, err := os.Stat(fileDir); os.IsNotExist(err) {
-			if err = os.MkdirAll(fileDir, common.PublicDirectoryAttr); err != nil {
+			if err = os.MkdirAll(fileDir, globals.PublicDirectoryAttr); err != nil {
 				return err
 			}
 			condPrint(" + "+fileDir+" ", true, CHATTY)
@@ -217,14 +227,17 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 		}
 		switch header.Typeflag {
 		case tar.TypeDir:
-			if err = os.MkdirAll(filename, common.PublicDirectoryAttr); err != nil {
+			if err = os.MkdirAll(filename, globals.PublicDirectoryAttr); err != nil {
 				return err
 			}
 		case tar.TypeReg:
 			if err = unpackTarFile(filename, reader); err != nil {
 				return err
 			}
-			os.Chmod(filename, filemode)
+			err = os.Chmod(filename, filemode)
+			if err != nil {
+				return err
+			}
 			count++
 			condPrint(filename, true, CHATTY)
 			if count%10 == 0 {

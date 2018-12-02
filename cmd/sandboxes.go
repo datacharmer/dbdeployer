@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/datacharmer/dbdeployer/globals"
 	"path"
 
 	"github.com/datacharmer/dbdeployer/common"
@@ -26,7 +27,8 @@ import (
 )
 
 func ShowSandboxesFromCatalog(currentSandboxHome string, header bool) {
-	sandboxList := defaults.ReadCatalog()
+	sandboxList, err := defaults.ReadCatalog()
+	common.ErrCheckExitf(err, 1, "error getting sandboxes from catalog: %s", err)
 	if len(sandboxList) == 0 {
 		return
 	}
@@ -52,26 +54,30 @@ func ShowSandboxesFromCatalog(currentSandboxHome string, header bool) {
 // Shows installed sandboxes
 func ShowSandboxes(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
-	SandboxHome, _ := flags.GetString(defaults.SandboxHomeLabel)
-	readCatalog, _ := flags.GetBool(defaults.CatalogLabel)
-	useHeader, _ := flags.GetBool(defaults.HeaderLabel)
+	SandboxHome, _ := flags.GetString(globals.SandboxHomeLabel)
+	readCatalog, _ := flags.GetBool(globals.CatalogLabel)
+	useHeader, _ := flags.GetBool(globals.HeaderLabel)
 	if readCatalog {
 		ShowSandboxesFromCatalog(SandboxHome, useHeader)
 		return
 	}
-	sandboxList := common.GetInstalledSandboxes(SandboxHome)
+	var sandboxList []common.SandboxInfo
+	var err error
+	// If the sandbox directory hasn't been created yet, we start with an empty list
+	if common.DirExists(SandboxHome) {
+		sandboxList, err = common.GetInstalledSandboxes(SandboxHome)
+		common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList, err)
+	}
 	var dirs []string
-	for _, sbinfo := range sandboxList {
-		//fname := f.Name()
-		//fmode := f.Mode()
-		//if fmode.IsDir() {
-		fname := sbinfo.SandboxName
+	for _, sandboxInfo := range sandboxList {
+		fileName := sandboxInfo.SandboxName
 		description := "single"
-		sbdesc := path.Join(SandboxHome, fname, common.SandboxDescriptionName)
-		if common.FileExists(sbdesc) {
-			sbd := common.ReadSandboxDescription(path.Join(SandboxHome, fname))
+		sbDesc := path.Join(SandboxHome, fileName, globals.SandboxDescriptionName)
+		if common.FileExists(sbDesc) {
+			sbd, err := common.ReadSandboxDescription(path.Join(SandboxHome, fileName))
+			common.ErrCheckExitf(err, 1, "error reading sandbox description from %s", fileName)
 			locked := ""
-			if sbinfo.Locked {
+			if sandboxInfo.Locked {
 				locked = "(LOCKED)"
 			}
 			if sbd.Nodes == 0 {
@@ -84,17 +90,20 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 				}
 				description = fmt.Sprintf("%-20s %10s [%s]", sbd.SBType, sbd.Version, portText)
 			} else {
-				var nodeDescr []common.SandboxDescription
-				innerFiles := common.SandboxInfoToFileNames(common.GetInstalledSandboxes(path.Join(SandboxHome, fname)))
+				var nodeDescriptions []common.SandboxDescription
+				innerSandboxList, err := common.GetInstalledSandboxes(path.Join(SandboxHome, fileName))
+				common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList, err)
+				innerFiles := common.SandboxInfoToFileNames(innerSandboxList)
 				for _, inner := range innerFiles {
-					innerSbdesc := path.Join(SandboxHome, fname, inner, common.SandboxDescriptionName)
-					if common.FileExists(innerSbdesc) {
-						sdNode := common.ReadSandboxDescription(fmt.Sprintf("%s/%s/%s", SandboxHome, fname, inner))
-						nodeDescr = append(nodeDescr, sdNode)
+					innerSbDesc := path.Join(SandboxHome, fileName, inner, globals.SandboxDescriptionName)
+					if common.FileExists(innerSbDesc) {
+						sbNode, err := common.ReadSandboxDescription(fmt.Sprintf("%s/%s/%s", SandboxHome, fileName, inner))
+						common.ErrCheckExitf(err, 1, "error reading sandbox description from %s/%s/%s", SandboxHome, fileName, inner)
+						nodeDescriptions = append(nodeDescriptions, sbNode)
 					}
 				}
 				ports := ""
-				for _, nd := range nodeDescr {
+				for _, nd := range nodeDescriptions {
 					for _, p := range nd.Port {
 						if ports != "" {
 							ports += " "
@@ -105,15 +114,15 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 				//ports += " ]"
 				description = fmt.Sprintf("%-20s %10s [%s]", sbd.SBType, sbd.Version, ports)
 			}
-			dirs = append(dirs, fmt.Sprintf("%-25s : %s %s", fname, description, locked))
+			dirs = append(dirs, fmt.Sprintf("%-25s : %s %s", fileName, description, locked))
 		} else {
 			locked := ""
-			noClear := path.Join(SandboxHome, fname, defaults.ScriptNoClear)
-			noClearAll := path.Join(SandboxHome, fname, defaults.ScriptNoClearAll)
-			start := path.Join(SandboxHome, fname, defaults.ScriptStart)
-			startAll := path.Join(SandboxHome, fname, defaults.ScriptStartAll)
-			initializeSlaves := path.Join(SandboxHome, fname, defaults.ScriptInitializeSlaves)
-			initializeNodes := path.Join(SandboxHome, fname, defaults.ScriptInitializeNodes)
+			noClear := path.Join(SandboxHome, fileName, globals.ScriptNoClear)
+			noClearAll := path.Join(SandboxHome, fileName, globals.ScriptNoClearAll)
+			start := path.Join(SandboxHome, fileName, globals.ScriptStart)
+			startAll := path.Join(SandboxHome, fileName, globals.ScriptStartAll)
+			initializeSlaves := path.Join(SandboxHome, fileName, globals.ScriptInitializeSlaves)
+			initializeNodes := path.Join(SandboxHome, fileName, globals.ScriptInitializeNodes)
 			if common.FileExists(noClear) || common.FileExists(noClearAll) {
 				locked = "(LOCKED)"
 			}
@@ -127,7 +136,7 @@ func ShowSandboxes(cmd *cobra.Command, args []string) {
 				description = "group replication"
 			}
 			if common.FileExists(start) || common.FileExists(startAll) {
-				dirs = append(dirs, fmt.Sprintf("%-20s : *%s* %s ", fname, description, locked))
+				dirs = append(dirs, fmt.Sprintf("%-20s : *%s* %s ", fileName, description, locked))
 			}
 		}
 	}
@@ -160,6 +169,6 @@ they were deployed.
 func init() {
 	rootCmd.AddCommand(sandboxesCmd)
 
-	sandboxesCmd.Flags().BoolP(defaults.CatalogLabel, "", false, "Use sandboxes catalog instead of scanning directory")
-	sandboxesCmd.Flags().BoolP(defaults.HeaderLabel, "", false, "Shows header with catalog output")
+	sandboxesCmd.Flags().BoolP(globals.CatalogLabel, "", false, "Use sandboxes catalog instead of scanning directory")
+	sandboxesCmd.Flags().BoolP(globals.HeaderLabel, "", false, "Shows header with catalog output")
 }

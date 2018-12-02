@@ -17,6 +17,7 @@ package common
 
 import (
 	"bytes"
+	"github.com/datacharmer/dbdeployer/globals"
 	"regexp"
 	"text/template"
 	"time"
@@ -31,17 +32,11 @@ type StringMap map[string]interface{}
 func TrimmedLines(s string) string {
 	// matches the start of the text followed by an EOL
 	re := regexp.MustCompile(`(?m)\A\s*$`)
-	s = re.ReplaceAllString(s, "")
+	s = re.ReplaceAllString(s, globals.EmptyString)
 
 	re = regexp.MustCompile(`(?m)^\t\t`)
-	s = re.ReplaceAllString(s, "")
+	s = re.ReplaceAllString(s, globals.EmptyString)
 	return s
-	/*
-
-		// matches the start of every line, followed by any spaces
-		re = regexp.MustCompile(`(?m)^\s*`)
-		return re.ReplaceAllString(s, "")
-	*/
 }
 
 // TemplateFill passed template string is formatted using its operands and returns the resulting string.
@@ -60,12 +55,12 @@ func TemplateFill(tmpl string, data StringMap) string {
 		data["AppVersion"] = VersionDef
 	}
 	// Creates a template
-	t := template.Must(template.New("tmp").Parse(tmpl))
+	processTemplate := template.Must(template.New("tmp").Parse(tmpl))
 	buf := &bytes.Buffer{}
 
 	// If an error occurs, returns an empty string
-	if err := t.Execute(buf, data); err != nil {
-		return ""
+	if err := processTemplate.Execute(buf, data); err != nil {
+		return globals.EmptyString
 	}
 
 	// Returns the populated template

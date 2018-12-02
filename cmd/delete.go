@@ -21,6 +21,7 @@ import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
 	"os"
@@ -36,13 +37,14 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 	}
 	flags := cmd.Flags()
 	sandboxName := args[0]
-	confirm, _ := flags.GetBool(defaults.ConfirmLabel)
-	runConcurrently, _ := flags.GetBool(defaults.ConcurrentLabel)
+	confirm, _ := flags.GetBool(globals.ConfirmLabel)
+	runConcurrently, _ := flags.GetBool(globals.ConcurrentLabel)
 	if common.IsEnvSet("RUN_CONCURRENTLY") {
 		runConcurrently = true
 	}
-	skipConfirm, _ := flags.GetBool(defaults.SkipConfirmLabel)
-	sandboxDir := GetAbsolutePathFromFlag(cmd, "sandbox-home")
+	skipConfirm, _ := flags.GetBool(globals.SkipConfirmLabel)
+	sandboxDir, err := GetAbsolutePathFromFlag(cmd, "sandbox-home")
+	common.ErrCheckExitf(err, 1, "error finding absolute path for 'sandbox-home'")
 
 	deletionList := []common.SandboxInfo{{SandboxName: sandboxName, Locked: false}}
 	if sandboxName == "ALL" || sandboxName == "all" {
@@ -50,7 +52,8 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 		if skipConfirm {
 			confirm = false
 		}
-		deletionList = common.GetInstalledSandboxes(sandboxDir)
+		deletionList, err = common.GetInstalledSandboxes(sandboxDir)
+		common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList)
 	}
 	if len(deletionList) == 0 {
 		fmt.Printf("Nothing to delete in %s\n", sandboxDir)
@@ -95,9 +98,9 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 		if sb.Locked {
 			fmt.Printf("Sandbox %s is locked\n", sb.SandboxName)
 		} else {
-			err, execList := sandbox.RemoveSandbox(sandboxDir, sb.SandboxName, runConcurrently)
+			execList, err := sandbox.RemoveSandbox(sandboxDir, sb.SandboxName, runConcurrently)
 			if err != nil {
-				common.Exitf(1, defaults.ErrWhileDeletingSandbox, err)
+				common.Exitf(1, globals.ErrWhileDeletingSandbox, err)
 			}
 			for _, list := range execList {
 				execLists = append(execLists, list)
@@ -110,7 +113,7 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 		if !sb.Locked {
 			err := defaults.DeleteFromCatalog(fullPath)
 			if err != nil {
-				common.Exitf(1, defaults.ErrRemovingFromCatalog, fullPath)
+				common.Exitf(1, globals.ErrRemovingFromCatalog, fullPath)
 			}
 		}
 	}
@@ -132,7 +135,7 @@ Warning: this command is irreversible!`,
 func init() {
 	rootCmd.AddCommand(deleteCmd)
 
-	deleteCmd.Flags().BoolP(defaults.SkipConfirmLabel, "", false, "Skips confirmation with multiple deletions.")
-	deleteCmd.Flags().BoolP(defaults.ConfirmLabel, "", false, "Requires confirmation.")
-	deleteCmd.Flags().BoolP(defaults.ConcurrentLabel, "", false, "Runs multiple deletion tasks concurrently.")
+	deleteCmd.Flags().BoolP(globals.SkipConfirmLabel, "", false, "Skips confirmation with multiple deletions.")
+	deleteCmd.Flags().BoolP(globals.ConfirmLabel, "", false, "Requires confirmation.")
+	deleteCmd.Flags().BoolP(globals.ConcurrentLabel, "", false, "Runs multiple deletion tasks concurrently.")
 }

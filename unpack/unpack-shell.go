@@ -17,7 +17,7 @@ package unpack
 import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
 	"io/ioutil"
 	"os"
 	"path"
@@ -26,14 +26,14 @@ import (
 func MergeShell(tarball, extension, basedir, destination, bareName string, verbosity int) error {
 	// fmt.Printf("<%s> <%s> <%s> <%s> %d\n",tarball, basedir, destination, bareName, verbosity)
 	if !common.DirExists(basedir) {
-		return fmt.Errorf(defaults.ErrNamedDirectoryNotFound, "unpack directory", destination)
+		return fmt.Errorf(globals.ErrNamedDirectoryNotFound, "unpack directory", destination)
 	}
 	if !common.DirExists(destination) {
-		return fmt.Errorf(defaults.ErrNamedDirectoryNotFound, "target server directory", destination)
+		return fmt.Errorf(globals.ErrNamedDirectoryNotFound, "target server directory", destination)
 	}
 	extracted := path.Join(basedir, bareName)
 	if common.DirExists(extracted) {
-		return fmt.Errorf(defaults.ErrNamedDirectoryAlreadyExists, "unpacked shell directory", extracted)
+		return fmt.Errorf(globals.ErrNamedDirectoryAlreadyExists, "unpacked shell directory", extracted)
 	}
 
 	var dirs = []string{"bin", "lib", "share"}
@@ -50,9 +50,9 @@ func MergeShell(tarball, extension, basedir, destination, bareName string, verbo
 
 	var err error
 	switch extension {
-	case defaults.TarGzExt:
+	case globals.TarGzExt:
 		err = UnpackTar(tarball, basedir, verbosity)
-	case defaults.TarXzExt:
+	case globals.TarXzExt:
 		err = UnpackXzTar(tarball, basedir, verbosity)
 	default:
 		return fmt.Errorf("unrecognized extension %s\n", extension)
@@ -96,7 +96,10 @@ func MergeShell(tarball, extension, basedir, destination, bareName string, verbo
 		if verbosity >= VERBOSE {
 			fmt.Printf("Copy %s %s \n", sourceFile, destFile)
 		}
-		common.CopyFile(sourceFile, destFile)
+		err := common.CopyFile(sourceFile, destFile)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

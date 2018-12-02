@@ -19,6 +19,8 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
 	"os"
@@ -57,11 +59,9 @@ type KeyValue struct {
 
 type ConfigOptions map[string][]KeyValue
 
-const PublicDirectoryAttr = 0755
-const SandboxDescriptionName = "sbdescription.json"
-
 var CommandLineArgs []string
 
+// Returns the name of the log directory
 func LogDirName() string {
 	logDirName := ""
 	topology := ""
@@ -111,9 +111,13 @@ func LogDirName() string {
 	return logDirName
 }
 
-func ParseConfigFile(filename string) ConfigOptions {
+// Reads a MySQL configuration file and returns its structured contents
+func ParseConfigFile(filename string) (ConfigOptions, error) {
 	config := make(ConfigOptions)
-	lines := SlurpAsLines(filename)
+	lines, err := SlurpAsLines(filename)
+	if err != nil {
+		return ConfigOptions{}, errors.Wrapf(err, "error reading configuration file %s", filename)
+	}
 	reComment := regexp.MustCompile(`^\s*#`)
 	reEmpty := regexp.MustCompile(`^\s*$`)
 	reHeader := regexp.MustCompile(`\[\s*(\w+)\s*\]`)
@@ -137,39 +141,48 @@ func ParseConfigFile(filename string) ConfigOptions {
 			config[currentHeader] = append(config[currentHeader], kv)
 		}
 	}
-	/*for header, kvList := range config {
-		fmt.Printf("%s \n", header)
-		for N, kv := range kvList {
-			fmt.Printf("%d %s : %s \n", N, kv.key, kv.value)
-		}
-		fmt.Printf("\n")
-	}*/
-	return config
+	return config, nil
 }
 
+// Writes the description of a sandbox in the appropriate directory
 func WriteSandboxDescription(destination string, sd SandboxDescription) error {
 	sd.DbDeployerVersion = VersionDef
 	sd.Timestamp = time.Now().Format(time.UnixDate)
 	sd.CommandLine = strings.Join(CommandLineArgs, " ")
 	b, err := json.MarshalIndent(sd, " ", "\t")
-	ErrCheckExitf(err, 1, "error encoding sandbox description: %s", err)
+	if err != nil {
+		return errors.Wrapf(err, "error encoding sandbox description")
+	}
 	jsonString := fmt.Sprintf("%s", b)
-	filename := path.Join(destination, SandboxDescriptionName)
+	filename := path.Join(destination, globals.SandboxDescriptionName)
 	return WriteString(jsonString, filename)
 }
 
-func ReadSandboxDescription(sandboxDirectory string) (sd SandboxDescription) {
-	filename := path.Join(sandboxDirectory, SandboxDescriptionName)
-	sbBlob := SlurpAsBytes(filename)
+// Reads sandbox description from a given directory
+func ReadSandboxDescription(sandboxDirectory string) (SandboxDescription, error) {
+	filename := path.Join(sandboxDirectory, globals.SandboxDescriptionName)
+	if !FileExists(filename) {
+		return SandboxDescription{}, errors.Wrapf(fmt.Errorf("file not found %s", filename), "Sandbox description file not found")
+	}
+	sbBlob, err := SlurpAsBytes(filename)
+	if err != nil {
+		return SandboxDescription{}, errors.Wrapf(err, "error reading from file %s", filename)
+	}
+	var sd SandboxDescription
 
-	err := json.Unmarshal(sbBlob, &sd)
-	ErrCheckExitf(err, 1, "error decoding sandbox description: %s", err)
-	return
+	err = json.Unmarshal(sbBlob, &sd)
+	if err != nil {
+		return SandboxDescription{}, errors.Wrapf(err, "error decoding sandbox description")
+	}
+	return sd, nil
 }
 
-func SlurpAsLines(filename string) []string {
+// Reads a file and returns its lines as a string slice
+func SlurpAsLines(filename string) ([]string, error) {
 	f, err := os.Open(filename)
-	ErrCheckExitf(err, 1, "error opening file %s: %s", filename, err)
+	if err != nil {
+		return globals.EmptyStrings, errors.Wrapf(err, "error opening file %s", filename)
+	}
 	defer f.Close()
 
 	var lines []string
@@ -178,38 +191,54 @@ func SlurpAsLines(filename string) []string {
 		lines = append(lines, scanner.Text())
 	}
 	if err := scanner.Err(); err != nil {
-		Exitf(1, "%s", err)
+		return globals.EmptyStrings, errors.Wrapf(err, "error reading file %s", filename)
 	}
-	return lines
+	return lines, nil
 }
 
-func SlurpAsString(filename string) string {
-	b := SlurpAsBytes(filename)
-	str := string(b)
-	return str
+// Reads a file and returns its contents as a single string
+func SlurpAsString(filename string) (string, error) {
+	b, err := SlurpAsBytes(filename)
+	var str string
+	if err == nil {
+		str = string(b)
+	}
+	return str, errors.Wrapf(err, "SlurpAsString")
 }
 
-func SlurpAsBytes(filename string) []byte {
+// reads a file and returns its contents as a byte slice
+func SlurpAsBytes(filename string) ([]byte, error) {
 	b, err := ioutil.ReadFile(filename)
-	ErrCheckExitf(err, 1, "error reading from file %s: %s", filename, err)
-	return b
+	if err != nil {
+		return globals.EmptyBytes, errors.Wrapf(err, "error reading from file %s", filename)
+	}
+	return b, nil
 }
 
+// Writes a string slice into a file
+// The file is created
 func WriteStrings(lines []string, filename string, termination string) error {
 	file, err := os.Create(filename)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "error creating file %s", filename)
 	}
 	defer file.Close()
 
 	w := bufio.NewWriter(file)
 	for _, line := range lines {
 		//fmt.Fprintln(w, line+termination)
-		fmt.Fprintf(w, "%s", line+termination)
+		N, err := fmt.Fprintf(w, "%s", line+termination)
+		if err != nil {
+			return errors.Wrapf(err, "error writing to file %s ", filename)
+		}
+		if N == 0 {
+			return nil
+		}
 	}
 	return w.Flush()
 }
 
+// append a string slice into an existing file
 func AppendStrings(lines []string, filename string, termination string) error {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -219,15 +248,23 @@ func AppendStrings(lines []string, filename string, termination string) error {
 
 	w := bufio.NewWriter(file)
 	for _, line := range lines {
-		fmt.Fprintln(w, line+termination)
+		N, err := fmt.Fprintln(w, line+termination)
+		if err != nil {
+			return errors.Wrapf(err, "error writing to file %s ", filename)
+		}
+		if N == 0 {
+			return nil
+		}
 	}
 	return w.Flush()
 }
 
+// append a string into an existing file
 func WriteString(line string, filename string) error {
 	return WriteStrings([]string{line}, filename, "")
 }
 
+// returns true if a given file exists
 func FileExists(filename string) bool {
 	_, err := os.Stat(filename)
 	if os.IsNotExist(err) {
@@ -236,6 +273,7 @@ func FileExists(filename string) bool {
 	return true
 }
 
+// returns true if a given directory exists
 func DirExists(filename string) bool {
 	f, err := os.Stat(filename)
 	if os.IsNotExist(err) {
@@ -245,25 +283,29 @@ func DirExists(filename string) bool {
 	return filemode.IsDir()
 }
 
+// Returns the full path of an executable, or an empty string if the executable is not found
 func Which(filename string) string {
-	path, err := exec.LookPath(filename)
+	filePath, err := exec.LookPath(filename)
 	if err == nil {
-		return path
+		return filePath
 	}
-	return ""
+	return globals.EmptyString
 }
 
+// returns true if a given executable exists
 func ExecExists(filename string) bool {
 	_, err := exec.LookPath(filename)
 	return err == nil
 }
 
+// Same as Which
 func FindInPath(filename string) string {
-	path, _ := exec.LookPath(filename)
-	return path
+	filePath, _ := exec.LookPath(filename)
+	return filePath
 }
 
-func RunCmdWithArgs(c string, args []string) (error, string) {
+// Runs a command with arguments
+func RunCmdWithArgs(c string, args []string) (string, error) {
 	cmd := exec.Command(c, args...)
 	//var out bytes.Buffer
 	//var stderr bytes.Buffer
@@ -276,24 +318,15 @@ func RunCmdWithArgs(c string, args []string) (error, string) {
 		fmt.Printf("err: %s\n", err)
 		fmt.Printf("cmd: %s %s\n", c, args)
 		fmt.Printf("stdout: %s\n", out)
-		//fmt.Printf("stderr: %s\n", stderr.String())
-		// os.Exit(1)
 	} else {
-		//fmt.Printf("%s", out.String())
 		fmt.Printf("%s", out)
 	}
-	return err, string(out)
+	return string(out), err
 }
 
-func RunCmdCtrl(c string, silent bool) (error, string) {
-	//cmd := exec.Command(c, args...)
+// Runs a command, with optional quiet output
+func RunCmdCtrl(c string, silent bool) (string, error) {
 	cmd := exec.Command(c, "")
-	//var out bytes.Buffer
-	//var stderr bytes.Buffer
-	//cmd.Stdout = &out
-	//cmd.Stderr = &stderr
-
-	//err := cmd.Run()
 	var out []byte
 	var err error
 	out, err = cmd.Output()
@@ -301,62 +334,83 @@ func RunCmdCtrl(c string, silent bool) (error, string) {
 		fmt.Printf("err: %s\n", err)
 		fmt.Printf("cmd: %s\n", c)
 		fmt.Printf("stdout: %s\n", out)
-		//fmt.Printf("stdout: %s\n", out.String())
-		//fmt.Printf("stderr: %s\n", stderr.String())
-		// os.Exit(1)
 	} else {
 		if !silent {
-			//fmt.Printf("%s", out.String())
 			fmt.Printf("%s", out)
 		}
 	}
-	return err, string(out)
+	return string(out), err
 }
 
-func RunCmd(c string) (error, string) {
+// Runs a command
+func RunCmd(c string) (string, error) {
 	return RunCmdCtrl(c, false)
 }
 
-func CopyFile(source, destination string) {
+// Copies a file
+func CopyFile(source, destination string) error {
 	sourceFile, err := os.Stat(source)
-	ErrCheckExitf(err, 1, "error finding source file %s: %s", source, err)
+	if err != nil {
+		return errors.Wrapf(err, "error finding source file %s", source)
+	}
+
 	fileMode := sourceFile.Mode()
 	from, err := os.Open(source)
-	ErrCheckExitf(err, 1, "error opening source file %s: %s", source, err)
+	if err != nil {
+		return errors.Wrapf(err, "error opening source file %s", source)
+	}
 	defer from.Close()
 
 	to, err := os.OpenFile(destination, os.O_RDWR|os.O_CREATE, fileMode) // 0666)
-	ErrCheckExitf(err, 1, "error opening destination file %s: %s", destination, err)
+	if err != nil {
+		return errors.Wrapf(err, "error opening destination file %s", destination)
+	}
 	defer to.Close()
 
 	_, err = io.Copy(to, from)
-	ErrCheckExitf(err, 1, "error copying from source %s to destination file %s: %s", source, destination, err)
+	if err != nil {
+		return errors.Wrapf(err, "error copying from source %s to destination file %s", source, destination)
+	}
+	return nil
 }
 
+// Returns the base name of a file
 func BaseName(filename string) string {
 	return filepath.Base(filename)
 }
 
+// Returns the directory name of a file
 func DirName(filename string) string {
 	return filepath.Dir(filename)
 }
 
-func AbsolutePath(value string) string {
+// Returns the absolute path of a file
+func AbsolutePath(value string) (string, error) {
 	filename, err := filepath.Abs(value)
-	ErrCheckExitf(err, 1, "error getting absolute path for %s", value)
-	return filename
+	if err != nil {
+		return "", errors.Wrapf(err, "error getting absolute path for %s", value)
+	}
+	return filename, nil
 }
 
+// ------------------------------------------------------------------------------------
+// The functions below this point are intended only for use with a command line client,
+// and may not be suitable for other client types
+// ------------------------------------------------------------------------------------
+
+// Creates a directory, and exits if an error occurs
 func Mkdir(dirName string) {
-	err := os.Mkdir(dirName, PublicDirectoryAttr)
+	err := os.Mkdir(dirName, globals.PublicDirectoryAttr)
 	ErrCheckExitf(err, 1, "error creating directory %s\n%s\n", dirName, err)
 }
 
+// Removes a directory, and exits if an error occurs
 func Rmdir(dirName string) {
 	err := os.Remove(dirName)
 	ErrCheckExitf(err, 1, "error removing directory %s\n%s\n", dirName, err)
 }
 
+// Removes a directory with its contents, and exits if an error occurs
 func RmdirAll(dirName string) {
 	err := os.RemoveAll(dirName)
 	ErrCheckExitf(err, 1, "error deep-removing directory %s\n%s\n", dirName, err)

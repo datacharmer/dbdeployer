@@ -19,7 +19,7 @@ import (
 	//"fmt"
 
 	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
 )
@@ -28,16 +28,17 @@ func MultipleSandbox(cmd *cobra.Command, args []string) {
 	var sd sandbox.SandboxDef
 	common.CheckOrigin(args)
 	flags := cmd.Flags()
-	sd = FillSdef(cmd, args)
-	nodes, _ := flags.GetInt(defaults.NodesLabel)
+	sd, err := FillSdef(cmd, args)
+	common.ErrCheckExitf(err, 1, "error filling sandbox definition")
+	nodes, _ := flags.GetInt(globals.NodesLabel)
 	sd.SBType = "multiple"
 	origin := args[0]
 	if args[0] != sd.BasedirName {
 		origin = sd.BasedirName
 	}
-	err, _ := sandbox.CreateMultipleSandbox(sd, origin, nodes)
+	_, err = sandbox.CreateMultipleSandbox(sd, origin, nodes)
 	if err != nil {
-		common.Exitf(1, defaults.ErrCreatingSandbox, err)
+		common.Exitf(1, globals.ErrCreatingSandbox, err)
 	}
 }
 
@@ -59,5 +60,5 @@ Use the "unpack" command to get the tarball into the right directory.
 
 func init() {
 	deployCmd.AddCommand(multipleCmd)
-	multipleCmd.PersistentFlags().IntP(defaults.NodesLabel, "n", defaults.NodesValue, "How many nodes will be installed")
+	multipleCmd.PersistentFlags().IntP(globals.NodesLabel, "n", globals.NodesValue, "How many nodes will be installed")
 }

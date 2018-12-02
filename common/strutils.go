@@ -34,6 +34,7 @@ type CleanupRec struct {
 
 var cleanupActions = NewStack()
 
+// Checks whether a given environment variable is set
 func IsEnvSet(envVar string) bool {
 	if os.Getenv(envVar) != "" {
 		return true
@@ -48,12 +49,16 @@ func ReplaceLiteralHome(path string) string {
 	return ReplaceLiteralEnvVar(path, "HOME")
 }
 
+// Replaces the literal value of an environment variable with its name
+// for example, if "$HOME" resolves to "/home/goofy" the string "/home/goofy/some/path" would become "$HOME/some/path"
 func ReplaceLiteralEnvVar(name string, envVar string) string {
 	value := os.Getenv(envVar)
 	re := regexp.MustCompile(value)
 	return re.ReplaceAllString(name, "$$"+envVar)
 }
 
+// Replaces the environment variable `envVar` with its value
+// for example, if "$HOME" resolves to "/home/goofy" the string "$HOME/some/path" would become "/home/goofy/some/path"
 func ReplaceEnvVar(name string, envVar string) string {
 	value := os.Getenv(envVar)
 	re := regexp.MustCompile(`\$` + envVar + `\b`)
@@ -66,7 +71,12 @@ func ReplaceHomeVar(path string) string {
 	return ReplaceEnvVar(path, "HOME")
 }
 
-func MakeCustomizedUuid(port, nodeNum int) (error, string) {
+// Creates a "human readable" and predictable UUID using some
+// pre-defined elements.
+// Used to replace the random UUID created by MySQL 5.6+,
+// with the purpose of returning easy to read server identifiers that
+// can be processed visually.
+func MakeCustomizedUuid(port, nodeNum int) (string, error) {
 	reDigit := regexp.MustCompile(`\d`)
 	group1 := fmt.Sprintf("%08d", port)
 	group2 := fmt.Sprintf("%04d-%04d-%04d", nodeNum, nodeNum, nodeNum)
@@ -84,15 +94,15 @@ func MakeCustomizedUuid(port, nodeNum int) (error, string) {
 	case nodeNum >= 100000 && nodeNum < 1000000:
 		group2 = fmt.Sprintf("%04d-%04d-%04d", int(nodeNum/10000), 0, 0)
 	case nodeNum >= 1000000:
-		return fmt.Errorf("Node num out of boundaries: %d\n", nodeNum), ""
+		return "", fmt.Errorf("Node num out of boundaries: %d\n", nodeNum)
 	}
-	return nil, fmt.Sprintf("%s-%s-%s", group1, group2, group3)
+	return fmt.Sprintf("%s-%s-%s", group1, group2, group3), nil
 }
 
+// Return true is `contained` is a sub-string of `mainString`
 func Includes(mainString, contained string) bool {
 	re := regexp.MustCompile(contained)
 	return re.MatchString(mainString)
-
 }
 
 // Given a list of version strings (in the format x.x.x)
@@ -119,7 +129,11 @@ func SortVersionsSubset(versions []string, wanted string) (sorted []string) {
 	}
 	var vlist []versionList
 	for _, line := range versions {
-		vl := VersionToList(line)
+		vl, err := VersionToList(line)
+		if err != nil {
+			fmt.Printf("%s\n", err)
+			return versions
+		}
 		rec := versionList{
 			text:      line,
 			majMinRev: vl,
@@ -161,35 +175,7 @@ func SortVersions(versions []string) []string {
 	return SortVersionsSubset(versions, "")
 }
 
-func LatestVersion(searchDir, pattern string) string {
-	files, err := ioutil.ReadDir(searchDir)
-	ErrCheckExitf(err, 1, "ERROR reading directory %s: %s", searchDir, err)
-	var matchingList []string
-	validPattern := regexp.MustCompile(`\d+\.\d+$`)
-	if !validPattern.MatchString(pattern) {
-		Exit(1, "Invalid pattern. Must be '#.#'")
-	}
-	re := regexp.MustCompile(fmt.Sprintf(`^%s\.\d+$`, pattern))
-	for _, f := range files {
-		fmode := f.Mode()
-		if fmode.IsDir() && re.MatchString(f.Name()) {
-			matchingList = append(matchingList, f.Name())
-		}
-	}
-	sortedList := SortVersions(matchingList)
-	if len(sortedList) > 0 {
-		latest := sortedList[len(sortedList)-1]
-		return latest
-	}
-	return ""
-}
-
-func Atoi(val string) int {
-	num, err := strconv.Atoi(val)
-	ErrCheckExitf(err, 1, fmt.Sprintf("Not a valid number: %s (%s)", val, err))
-	return num
-}
-
+// Returns true if the input value is either of "true", "yes", "1"
 func TextToBool(value string) (result bool) {
 	value = strings.ToLower(value)
 	switch value {
@@ -206,6 +192,7 @@ func TextToBool(value string) (result bool) {
 }
 
 // Given a string containing comma-separated integers, returns an array of integers
+// Example: an input of "1,2,3" returns []int{1, 2, 3}
 func StringToIntSlice(val string) (numberList []int, err error) {
 	list := strings.Split(val, ",")
 	for _, item := range list {
@@ -219,7 +206,8 @@ func StringToIntSlice(val string) (numberList []int, err error) {
 }
 
 // Given an array of integers, returns a string containing the numbers
-// separated by a dot
+// separated by a dot.
+// For example: an input of []int{1, 2, 3} returns "1.2.3"
 func IntSliceToDottedString(val []int) string {
 	result := ""
 	for _, i := range val {
@@ -229,6 +217,24 @@ func IntSliceToDottedString(val []int) string {
 		result += fmt.Sprintf("%d", i)
 	}
 	return result
+}
+
+// Removes a slash (if any) at the end of a given string
+func RemoveTrailingSlash(s string) string {
+	re := regexp.MustCompile(`/$`)
+	return re.ReplaceAllString(s, "")
+}
+
+// ------------------------------------------------------------------------------------
+// The functions below this point are intended only for use with a command line client,
+// and may not be suitable for other client types
+// ------------------------------------------------------------------------------------
+
+// Converts a string to an integer. Exits on error
+func Atoi(val string) int {
+	num, err := strconv.Atoi(val)
+	ErrCheckExitf(err, 1, fmt.Sprintf("Not a valid number: %s (%s)", val, err))
+	return num
 }
 
 // Adds an action to the list of clean-up operations
@@ -279,7 +285,26 @@ func Exit(exitCode int, messages ...string) {
 	os.Exit(exitCode)
 }
 
-func RemoveTrailingSlash(s string) string {
-	re := regexp.MustCompile(`/$`)
-	return re.ReplaceAllString(s, "")
+// Returns the latest version among the ones found in a Sandbox binary directory
+func LatestVersion(searchDir, pattern string) string {
+	files, err := ioutil.ReadDir(searchDir)
+	ErrCheckExitf(err, 1, "ERROR reading directory %s: %s", searchDir, err)
+	var matchingList []string
+	validPattern := regexp.MustCompile(`\d+\.\d+$`)
+	if !validPattern.MatchString(pattern) {
+		Exit(1, "Invalid pattern. Must be '#.#'")
+	}
+	re := regexp.MustCompile(fmt.Sprintf(`^%s\.\d+$`, pattern))
+	for _, f := range files {
+		fmode := f.Mode()
+		if fmode.IsDir() && re.MatchString(f.Name()) {
+			matchingList = append(matchingList, f.Name())
+		}
+	}
+	sortedList := SortVersions(matchingList)
+	if len(sortedList) > 0 {
+		latest := sortedList[len(sortedList)-1]
+		return latest
+	}
+	return ""
 }

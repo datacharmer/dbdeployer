@@ -17,6 +17,9 @@ package sandbox
 
 import (
 	"fmt"
+	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/pkg/errors"
+	"os"
 	"path"
 	"time"
 
@@ -32,9 +35,10 @@ type Node struct {
 	Name     string
 }
 
-func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (error, common.StringMap) {
+func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (common.StringMap, error) {
 
 	var execLists []concurrent.ExecutionList
+	var emptyStringMap = common.StringMap{}
 
 	sbType := sandboxDef.SBType
 	if sbType == "" {
@@ -45,15 +49,15 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (err
 	if sandboxDef.Logger != nil {
 		logger = sandboxDef.Logger
 	} else {
-		err, sandboxDef.LogFileName, logger = defaults.NewLogger(common.LogDirName(), sbType)
+		logger, sandboxDef.LogFileName, err = defaults.NewLogger(common.LogDirName(), sbType)
 		if err != nil {
-			return err, common.StringMap{}
+			return emptyStringMap, err
 		}
 		sandboxDef.LogFileName = common.ReplaceLiteralHome(sandboxDef.LogFileName)
 	}
 	Basedir := sandboxDef.Basedir
 	if !common.DirExists(Basedir) {
-		return fmt.Errorf(defaults.ErrBaseDirectoryNotFound, Basedir), common.StringMap{}
+		return emptyStringMap, fmt.Errorf(globals.ErrBaseDirectoryNotFound, Basedir)
 	}
 	if sandboxDef.DirName == "" {
 		sandboxDef.SandboxDir = path.Join(sandboxDef.SandboxDir, defaults.Defaults().MultiplePrefix+common.VersionToName(origin))
@@ -61,13 +65,13 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (err
 		sandboxDef.SandboxDir = path.Join(sandboxDef.SandboxDir, sandboxDef.DirName)
 	}
 	if common.DirExists(sandboxDef.SandboxDir) {
-		err, sandboxDef = CheckDirectory(sandboxDef)
+		sandboxDef, err = CheckDirectory(sandboxDef)
 		if err != nil {
-			return err, common.StringMap{}
+			return emptyStringMap, err
 		}
 	}
 
-	vList := common.VersionToList(sandboxDef.Version)
+	vList, err := common.VersionToList(sandboxDef.Version)
 	rev := vList[2]
 	basePort := sandboxDef.Port + defaults.Defaults().MultipleBasePort + (rev * 100)
 	if sandboxDef.BasePort > 0 {
@@ -76,19 +80,25 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (err
 	// FindFreePort returns the first free port, but base_port will be used
 	// with a counter. Thus the availability will be checked using
 	// "base_port + 1"
-	firstPort := common.FindFreePort(basePort+1, sandboxDef.InstalledPorts, nodes)
+	firstPort, err := common.FindFreePort(basePort+1, sandboxDef.InstalledPorts, nodes)
+	if err != nil {
+		return emptyStringMap, errors.Wrapf(err, "error getting free port for multiple deployment")
+	}
 	basePort = firstPort - 1
 	for checkPort := basePort + 1; checkPort < basePort+nodes; checkPort++ {
 		err := CheckPort("CreateMultipleSandbox", sandboxDef.SandboxDir, sandboxDef.InstalledPorts, checkPort)
 		if err != nil {
-			return err, common.StringMap{}
+			return emptyStringMap, err
 		}
 	}
-	err, baseMysqlxPort := getBaseMysqlxPort(basePort, sandboxDef, nodes)
+	baseMysqlxPort, err := getBaseMysqlxPort(basePort, sandboxDef, nodes)
 	if err != nil {
-		return err, common.StringMap{}
+		return emptyStringMap, err
 	}
-	common.Mkdir(sandboxDef.SandboxDir)
+	err = os.Mkdir(sandboxDef.SandboxDir, globals.PublicDirectoryAttr)
+	if err != nil {
+		return emptyStringMap, err
+	}
 	logger.Printf("Created directory %s\n", sandboxDef.SandboxDir)
 	logger.Printf("Multiple Sandbox Definition: %s\n", SandboxDefToJson(sandboxDef))
 
@@ -97,7 +107,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (err
 	sandboxDef.ReplOptions = SingleTemplates["replication_options"].Contents
 	baseServerId := 0
 	if nodes < 2 {
-		return fmt.Errorf("only one node requested. For single sandbox deployment, use the 'single' command"), common.StringMap{}
+		return emptyStringMap, fmt.Errorf("only one node requested. For single sandbox deployment, use the 'single' command")
 	}
 	timestamp := time.Now()
 	var data = common.StringMap{
@@ -150,7 +160,11 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (err
 		sbItem.Nodes = append(sbItem.Nodes, sandboxDef.DirName)
 		sbItem.Port = append(sbItem.Port, sandboxDef.Port)
 		sbDesc.Port = append(sbDesc.Port, sandboxDef.Port)
-		if common.GreaterOrEqualVersion(sandboxDef.Version, defaults.MinimumMysqlxDefaultVersion) {
+		isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
+		if err != nil {
+			return emptyStringMap, err
+		}
+		if isMinimumMySQLXDefault {
 			sandboxDef.MysqlXPort = baseMysqlxPort + i
 			if !sandboxDef.DisableMysqlX {
 				sbDesc.Port = append(sbDesc.Port, baseMysqlxPort+i)
@@ -167,9 +181,9 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (err
 			logger.Printf("installing and starting %s %d", nodeLabel, i)
 		}
 		logger.Printf("Creating single sandbox for node %d\n", i)
-		err, execList := CreateChildSandbox(sandboxDef)
+		execList, err := CreateChildSandbox(sandboxDef)
 		if err != nil {
-			return fmt.Errorf(defaults.ErrCreatingSandbox, err), common.StringMap{}
+			return emptyStringMap, fmt.Errorf(globals.ErrCreatingSandbox, err)
 		}
 		for _, list := range execList {
 			execLists = append(execLists, list)
@@ -186,12 +200,18 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (err
 		logger.Printf("Defining multiple sandbox node inner data: %v\n", StringMapToJson(dataNode))
 		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sandboxDef.SandboxDir, dataNode, true)
 		if err != nil {
-			return err, data
+			return data, err
 		}
 	}
 	logger.Printf("Write sandbox description\n")
-	common.WriteSandboxDescription(sandboxDef.SandboxDir, sbDesc)
-	defaults.UpdateCatalog(sandboxDef.SandboxDir, sbItem)
+	err = common.WriteSandboxDescription(sandboxDef.SandboxDir, sbDesc)
+	if err != nil {
+		return emptyStringMap, errors.Wrapf(err, "unable to write sandbox description")
+	}
+	err = defaults.UpdateCatalog(sandboxDef.SandboxDir, sbItem)
+	if err != nil {
+		return emptyStringMap, errors.Wrapf(err, "unable to update catalog")
+	}
 
 	logger.Printf("Write multiple sandbox scripts\n")
 	sbMultiple := ScriptBatch{
@@ -200,25 +220,25 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (err
 		sandboxDir: sandboxDef.SandboxDir,
 		data:       data,
 		scripts: []ScriptDef{
-			{defaults.ScriptStartAll, "start_multi_template", true},
-			{defaults.ScriptRestartAll, "restart_multi_template", true},
-			{defaults.ScriptStatusAll, "status_multi_template", true},
-			{defaults.ScriptTestSbAll, "test_sb_multi_template", true},
-			{defaults.ScriptStopAll, "stop_multi_template", true},
-			{defaults.ScriptClearAll, "clear_multi_template", true},
-			{defaults.ScriptSendKillAll, "send_kill_multi_template", true},
-			{defaults.ScriptUseAll, "use_multi_template", true},
+			{globals.ScriptStartAll, "start_multi_template", true},
+			{globals.ScriptRestartAll, "restart_multi_template", true},
+			{globals.ScriptStatusAll, "status_multi_template", true},
+			{globals.ScriptTestSbAll, "test_sb_multi_template", true},
+			{globals.ScriptStopAll, "stop_multi_template", true},
+			{globals.ScriptClearAll, "clear_multi_template", true},
+			{globals.ScriptSendKillAll, "send_kill_multi_template", true},
+			{globals.ScriptUseAll, "use_multi_template", true},
 		},
 	}
 
 	err = writeScripts(sbMultiple)
 	if err != nil {
-		return err, data
+		return data, err
 	}
 	logger.Printf("Run concurrent tasks\n")
 	concurrent.RunParallelTasksByPriority(execLists)
 
 	fmt.Printf("%s directory installed in %s\n", sbType, common.ReplaceLiteralHome(sandboxDef.SandboxDir))
 	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
-	return nil, data
+	return data, nil
 }

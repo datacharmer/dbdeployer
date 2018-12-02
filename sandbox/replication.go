@@ -17,6 +17,9 @@ package sandbox
 
 import (
 	"fmt"
+	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/pkg/errors"
+	"os"
 	"path"
 	"time"
 
@@ -43,7 +46,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	} else {
 		var fileName string
 		var err error
-		err, fileName, logger = defaults.NewLogger(common.LogDirName(), "master-slave-replication")
+		logger, fileName, err = defaults.NewLogger(common.LogDirName(), "master-slave-replication")
 		if err != nil {
 			return err
 		}
@@ -51,7 +54,10 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	}
 
 	sandboxDef.ReplOptions = SingleTemplates["replication_options"].Contents
-	vList := common.VersionToList(sandboxDef.Version)
+	vList, err := common.VersionToList(sandboxDef.Version)
+	if err != nil {
+		return err
+	}
 	rev := vList[2]
 	basePort := sandboxDef.Port + defaults.Defaults().MasterSlaveBasePort + (rev * 100)
 	if sandboxDef.BasePort > 0 {
@@ -62,9 +68,12 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	// FindFreePort returns the first free port, but base_port will be used
 	// with a counter. Thus the availability will be checked using
 	// "base_port + 1"
-	firstPort := common.FindFreePort(basePort+1, sandboxDef.InstalledPorts, nodes)
+	firstPort, err := common.FindFreePort(basePort+1, sandboxDef.InstalledPorts, nodes)
+	if err != nil {
+		return errors.Wrapf(err, "error detecting free port for replication")
+	}
 	basePort = firstPort - 1
-	err, baseMysqlxPort := getBaseMysqlxPort(basePort, sandboxDef, nodes)
+	baseMysqlxPort, err := getBaseMysqlxPort(basePort, sandboxDef, nodes)
 	if err != nil {
 		return err
 	}
@@ -78,7 +87,10 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	if nodes < 2 {
 		return fmt.Errorf("can't run replication with less than 2 nodes")
 	}
-	common.Mkdir(sandboxDef.SandboxDir)
+	err = os.Mkdir(sandboxDef.SandboxDir, globals.PublicDirectoryAttr)
+	if err != nil {
+		return err
+	}
 	logger.Printf("Created directory %s\n", sandboxDef.SandboxDir)
 	logger.Printf("Replication Sandbox Definition: %s\n", SandboxDefToJson(sandboxDef))
 	common.AddToCleanupStack(common.Rmdir, "Rmdir", sandboxDef.SandboxDir)
@@ -93,7 +105,11 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		logger.Printf("Adding MASTER_AUTO_POSITION to slaves setup\n")
 	}
 	// 8.0.11
-	if common.GreaterOrEqualVersion(sandboxDef.Version, defaults.MinimumNativeAuthPluginVersion) {
+	isMinimumNativeAuthPlugin, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumNativeAuthPluginVersion)
+	if err != nil {
+		return err
+	}
+	if isMinimumNativeAuthPlugin {
 		if !sandboxDef.NativeAuthPlugin {
 			changeMasterExtra += ", GET_MASTER_PUBLIC_KEY=1"
 			logger.Printf("Adding GET_MASTER_PUBLIC_KEY to slaves setup \n")
@@ -139,9 +155,9 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	sandboxDef.NodeNum = 1
 	sandboxDef.SBType = "replication-node"
 	logger.Printf("Creating single sandbox for master\n")
-	err, execList := CreateChildSandbox(sandboxDef)
+	execList, err := CreateChildSandbox(sandboxDef)
 	if err != nil {
-		return fmt.Errorf(defaults.ErrCreatingSandbox, err)
+		return fmt.Errorf(globals.ErrCreatingSandbox, err)
 	}
 	for _, list := range execList {
 		execLists = append(execLists, list)
@@ -149,7 +165,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 
 	sbDesc := common.SandboxDescription{
 		Basedir: sandboxDef.Basedir,
-		SBType:  defaults.MasterSlaveLabel,
+		SBType:  globals.MasterSlaveLabel,
 		Version: sandboxDef.Version,
 		Port:    []int{sandboxDef.Port},
 		Nodes:   slaves,
@@ -171,7 +187,11 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	}
 
 	// 8.0.11
-	if common.GreaterOrEqualVersion(sandboxDef.Version, defaults.MinimumMysqlxDefaultVersion) {
+	isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
+	if err != nil {
+		return err
+	}
+	if isMinimumMySQLXDefault {
 		sandboxDef.MysqlXPort = baseMysqlxPort + 1
 		if !sandboxDef.DisableMysqlX {
 			sbDesc.Port = append(sbDesc.Port, baseMysqlxPort+1)
@@ -209,7 +229,11 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		sbItem.Port = append(sbItem.Port, sandboxDef.Port)
 		sbDesc.Port = append(sbDesc.Port, sandboxDef.Port)
 		// 8.0.11
-		if common.GreaterOrEqualVersion(sandboxDef.Version, defaults.MinimumMysqlxDefaultVersion) {
+		isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
+		if err != nil {
+			return err
+		}
+		if isMinimumMySQLXDefault {
 			sandboxDef.MysqlXPort = baseMysqlxPort + i + 1
 			if !sandboxDef.DisableMysqlX {
 				sbDesc.Port = append(sbDesc.Port, baseMysqlxPort+i+1)
@@ -230,9 +254,9 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 			sandboxDef.SemiSyncOptions = SingleTemplates["semisync_slave_options"].Contents
 		}
 		logger.Printf("Creating single sandbox for slave %d\n", i)
-		err, execListNode := CreateChildSandbox(sandboxDef)
+		execListNode, err := CreateChildSandbox(sandboxDef)
 		if err != nil {
-			return fmt.Errorf(defaults.ErrCreatingSandbox, err)
+			return fmt.Errorf(globals.ErrCreatingSandbox, err)
 		}
 		for _, list := range execListNode {
 			execLists = append(execLists, list)
@@ -264,9 +288,15 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		// writeScript(logger, ReplicationTemplates, fmt.Sprintf("%s%d", slaveAbbr, i), "slave_template", sandboxDef.SandboxDir, dataSlave, true)
 		// writeScript(logger, ReplicationTemplates, fmt.Sprintf("n%d", i+1), "slave_template", sandboxDef.SandboxDir, dataSlave, true)
 	}
-	common.WriteSandboxDescription(sandboxDef.SandboxDir, sbDesc)
+	err = common.WriteSandboxDescription(sandboxDef.SandboxDir, sbDesc)
+	if err != nil {
+		return errors.Wrapf(err, "unable to write sandbox description")
+	}
 	logger.Printf("Create sandbox description\n")
-	defaults.UpdateCatalog(sandboxDef.SandboxDir, sbItem)
+	err = defaults.UpdateCatalog(sandboxDef.SandboxDir, sbItem)
+	if err != nil {
+		return errors.Wrapf(err, "unable to update catalog")
+	}
 
 	initializeSlaves := "initialize_" + slaveLabel + "s"
 	checkSlaves := "check_" + slaveLabel + "s"
@@ -277,16 +307,16 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		sandboxDir: sandboxDef.SandboxDir,
 		data:       data,
 		scripts: []ScriptDef{
-			{defaults.ScriptStartAll, "start_all_template", true},
-			{defaults.ScriptRestartAll, "restart_all_template", true},
-			{defaults.ScriptStatusAll, "status_all_template", true},
-			{defaults.ScriptTestSbAll, "test_sb_all_template", true},
-			{defaults.ScriptStopAll, "stop_all_template", true},
-			{defaults.ScriptClearAll, "clear_all_template", true},
-			{defaults.ScriptSendKillAll, "send_kill_all_template", true},
-			{defaults.ScriptUseAll, "use_all_template", true},
-			{defaults.ScriptUseAllSlaves, "use_all_slaves_template", true},
-			{defaults.ScriptUseAllMasters, "use_all_masters_template", true},
+			{globals.ScriptStartAll, "start_all_template", true},
+			{globals.ScriptRestartAll, "restart_all_template", true},
+			{globals.ScriptStatusAll, "status_all_template", true},
+			{globals.ScriptTestSbAll, "test_sb_all_template", true},
+			{globals.ScriptStopAll, "stop_all_template", true},
+			{globals.ScriptClearAll, "clear_all_template", true},
+			{globals.ScriptSendKillAll, "send_kill_all_template", true},
+			{globals.ScriptUseAll, "use_all_template", true},
+			{globals.ScriptUseAllSlaves, "use_all_slaves_template", true},
+			{globals.ScriptUseAllMasters, "use_all_masters_template", true},
 			{initializeSlaves, "init_slaves_template", true},
 			{checkSlaves, "check_slaves_template", true},
 			{masterAbbr, "master_template", true},
@@ -308,7 +338,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	if !sandboxDef.SkipStart {
 		fmt.Println(path.Join(common.ReplaceLiteralHome(sandboxDef.SandboxDir), initializeSlaves))
 		logger.Printf("Run replication initialization script \n")
-		err, _ = common.RunCmd(path.Join(sandboxDef.SandboxDir, initializeSlaves))
+		_, err = common.RunCmd(path.Join(sandboxDef.SandboxDir, initializeSlaves))
 		if err != nil {
 			return err
 		}
@@ -322,41 +352,54 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 
 	Basedir := sdef.Basedir
 	if !common.DirExists(Basedir) {
-		return fmt.Errorf(defaults.ErrBaseDirectoryNotFound, Basedir)
+		return fmt.Errorf(globals.ErrBaseDirectoryNotFound, Basedir)
 	}
 
 	sandboxDir := sdef.SandboxDir
 	switch topology {
-	case defaults.MasterSlaveLabel:
+	case globals.MasterSlaveLabel:
 		sdef.SandboxDir = path.Join(sdef.SandboxDir, defaults.Defaults().MasterSlavePrefix+common.VersionToName(origin))
-	case defaults.GroupLabel:
+	case globals.GroupLabel:
 		if sdef.SinglePrimary {
 			sdef.SandboxDir = path.Join(sdef.SandboxDir, defaults.Defaults().GroupSpPrefix+common.VersionToName(origin))
 		} else {
 			sdef.SandboxDir = path.Join(sdef.SandboxDir, defaults.Defaults().GroupPrefix+common.VersionToName(origin))
 		}
 		// 5.7.17
-		if !common.GreaterOrEqualVersion(sdef.Version, defaults.MinimumGroupReplVersion) {
-			return fmt.Errorf(defaults.ErrFeatureRequiresVersion, "group replication", common.IntSliceToDottedString(defaults.MinimumGroupReplVersion))
+		isMinimumGroupRepl, err := common.GreaterOrEqualVersion(sdef.Version, globals.MinimumGroupReplVersion)
+		if err != nil {
+			return err
 		}
-	case defaults.FanInLabel:
+		if !isMinimumGroupRepl {
+			return fmt.Errorf(globals.ErrFeatureRequiresVersion, "group replication", common.IntSliceToDottedString(globals.MinimumGroupReplVersion))
+		}
+	case globals.FanInLabel:
 		// 5.7.9
-		if !common.GreaterOrEqualVersion(sdef.Version, defaults.MinimumMultiSourceReplVersion) {
-			return fmt.Errorf(defaults.ErrFeatureRequiresVersion, "multi-source replication", common.IntSliceToDottedString(defaults.MinimumMultiSourceReplVersion))
+		isMinimumMultiSource, err := common.GreaterOrEqualVersion(sdef.Version, globals.MinimumMultiSourceReplVersion)
+		if err != nil {
+			return err
+		}
+		if !isMinimumMultiSource {
+			return fmt.Errorf(globals.ErrFeatureRequiresVersion, "multi-source replication", common.IntSliceToDottedString(globals.MinimumMultiSourceReplVersion))
 		}
 		sdef.SandboxDir = path.Join(sdef.SandboxDir, defaults.Defaults().FanInPrefix+common.VersionToName(origin))
-	case defaults.AllMastersLabel:
+	case globals.AllMastersLabel:
 		// 5.7.9
-		if !common.GreaterOrEqualVersion(sdef.Version, defaults.MinimumMultiSourceReplVersion) {
-			return fmt.Errorf(defaults.ErrFeatureRequiresVersion, "multi-source replication", common.IntSliceToDottedString(defaults.MinimumMultiSourceReplVersion))
+
+		isMinimumMultiSource, err := common.GreaterOrEqualVersion(sdef.Version, globals.MinimumMultiSourceReplVersion)
+		if err != nil {
+			return err
+		}
+		if !isMinimumMultiSource {
+			return fmt.Errorf(globals.ErrFeatureRequiresVersion, "multi-source replication", common.IntSliceToDottedString(globals.MinimumMultiSourceReplVersion))
 		}
 		sdef.SandboxDir = path.Join(sdef.SandboxDir, defaults.Defaults().AllMastersPrefix+common.VersionToName(origin))
 	default:
 		return fmt.Errorf("unrecognized topology. Accepted: '%s', '%s', '%s', '%s'",
-			defaults.MasterSlaveLabel,
-			defaults.GroupLabel,
-			defaults.FanInLabel,
-			defaults.AllMastersLabel)
+			globals.MasterSlaveLabel,
+			globals.GroupLabel,
+			globals.FanInLabel,
+			globals.AllMastersLabel)
 	}
 	if sdef.DirName != "" {
 		sdef.SandboxDir = path.Join(sandboxDir, sdef.DirName)
@@ -364,7 +407,7 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 
 	if common.DirExists(sdef.SandboxDir) {
 		var err error
-		err, sdef = CheckDirectory(sdef)
+		sdef, err = CheckDirectory(sdef)
 		if err != nil {
 			return err
 		}
@@ -375,13 +418,13 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 	}
 	var err error
 	switch topology {
-	case defaults.MasterSlaveLabel:
+	case globals.MasterSlaveLabel:
 		err = CreateMasterSlaveReplication(sdef, origin, nodes, masterIp)
-	case defaults.GroupLabel:
+	case globals.GroupLabel:
 		err = CreateGroupReplication(sdef, origin, nodes, masterIp)
-	case defaults.FanInLabel:
+	case globals.FanInLabel:
 		err = CreateFanInReplication(sdef, origin, nodes, masterIp, masterList, slaveList)
-	case defaults.AllMastersLabel:
+	case globals.AllMastersLabel:
 		err = CreateAllMastersReplication(sdef, origin, nodes, masterIp)
 	}
 	return err

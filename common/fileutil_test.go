@@ -54,3 +54,55 @@ func TestLogDirName(t *testing.T) {
 		}
 	}
 }
+
+func TestParseConfigFile(t *testing.T) {
+	var sampleConfig = ConfigOptions{
+		"label1": {
+			KeyValue{Key: "one", Value: "1"},
+			KeyValue{Key: "two", Value: "2"},
+		},
+		"label2": {
+			{"abc", "hello"},
+			{"def", "world"},
+		},
+	}
+	var sampleConfigText1 = `
+[label1]
+one=1
+two=2
+[label2]
+abc=hello
+def=world
+`
+	var sampleConfigText2 = `
+# sample comment
+[label1]
+one     =    1
+
+# another sample comment
+
+two     =   2
+
+[label2]
+abc = hello
+def = world
+
+`
+	var sampleConfigFile = "/tmp/sample_config.ini"
+	for _, sampleConfigText := range []string{sampleConfigText1, sampleConfigText2} {
+		err := WriteString(sampleConfigText, sampleConfigFile)
+		compare.OkIsNil("written to sample file", err, t)
+		readConfig, err := ParseConfigFile(sampleConfigFile)
+		compare.OkIsNil("read from sample file", err, t)
+		for k, _ := range sampleConfig {
+			val, ok := readConfig[k]
+			compare.OkEqualBool("key", ok, true, t)
+			count := 0
+			for _, item := range val {
+				compare.OkEqualString(fmt.Sprintf("key: %s", k), sampleConfig[k][count].Key, item.Key, t)
+				compare.OkEqualString(fmt.Sprintf("val: %s", k), sampleConfig[k][count].Value, item.Value, t)
+				count++
+			}
+		}
+	}
+}

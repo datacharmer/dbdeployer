@@ -17,6 +17,8 @@ package common
 
 import (
 	"fmt"
+	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
 	"path"
@@ -31,18 +33,9 @@ type SandboxInfo struct {
 	Locked      bool
 }
 
-const lineLength = 80
-
-var (
-	portDebug bool   = IsEnvSet("PORT_DEBUG")
-	DashLine  string = strings.Repeat("-", lineLength)
-	StarLine  string = strings.Repeat("*", lineLength)
-	HashLine  string = strings.Repeat("#", lineLength)
-)
+var portDebug bool = IsEnvSet("PORT_DEBUG")
 
 type PortMap map[int]bool
-
-var MaxAllowedPort int = 64000
 
 // Returns a list of inner sandboxes
 func SandboxInfoToFileNames(sbList []SandboxInfo) (fileNames []string) {
@@ -53,11 +46,11 @@ func SandboxInfoToFileNames(sbList []SandboxInfo) (fileNames []string) {
 }
 
 // Returns the list of versions available for deployment
-func GetVersionsFromDir(basedir string) (error, []string) {
+func GetVersionsFromDir(basedir string) ([]string, error) {
 	var dirs []string
 	files, err := ioutil.ReadDir(basedir)
 	if err != nil {
-		return fmt.Errorf("error reading directory %s: %s", basedir, err), dirs
+		return dirs, fmt.Errorf("error reading directory %s: %s", basedir, err)
 	}
 	for _, f := range files {
 		fname := f.Name()
@@ -71,29 +64,31 @@ func GetVersionsFromDir(basedir string) (error, []string) {
 			}
 		}
 	}
-	return nil, dirs
+	return dirs, nil
 }
 
-func GetAvailableVersions() (error, []string) {
+func GetAvailableVersions() ([]string, error) {
 	basedir := os.Getenv("SANDBOX_BINARY")
 	if basedir == "" {
-		return fmt.Errorf("variable SANDBOX_BINARY not set"), []string{}
+		return []string{}, fmt.Errorf("variable SANDBOX_BINARY not set")
 	}
 	return GetVersionsFromDir(basedir)
 }
 
 // Gets a list of installed sandboxes from the $SANDBOX_HOME directory
-func GetInstalledSandboxes(sandboxHome string) (installedSandboxes []SandboxInfo) {
+func GetInstalledSandboxes(sandboxHome string) (installedSandboxes []SandboxInfo, err error) {
 	if !DirExists(sandboxHome) {
-		return
+		return installedSandboxes, fmt.Errorf("directory SandboxHome not found")
 	}
 	files, err := ioutil.ReadDir(sandboxHome)
-	ErrCheckExitf(err, 1, "%s", err)
+	if err != nil {
+		return installedSandboxes, err
+	}
 	for _, f := range files {
 		fname := f.Name()
 		fmode := f.Mode()
 		if fmode.IsDir() {
-			sbdesc := path.Join(sandboxHome, fname, SandboxDescriptionName)
+			sbdesc := path.Join(sandboxHome, fname, globals.SandboxDescriptionName)
 			start := path.Join(sandboxHome, fname, "start")
 			startAll := path.Join(sandboxHome, fname, "start_all")
 			noClear := path.Join(sandboxHome, fname, "no_clear")
@@ -111,17 +106,25 @@ func GetInstalledSandboxes(sandboxHome string) (installedSandboxes []SandboxInfo
 }
 
 // Collects a list of used ports from deployed sandboxes
-func GetInstalledPorts(sandboxHome string) []int {
-	files := SandboxInfoToFileNames(GetInstalledSandboxes(sandboxHome))
+func GetInstalledPorts(sandboxHome string) ([]int, error) {
+	installedSandboxes, err := GetInstalledSandboxes(sandboxHome)
+	if err != nil {
+		return []int{}, err
+	}
+
+	files := SandboxInfoToFileNames(installedSandboxes)
 	// If there is a file sbdescription.json in the top directory
 	// it will be included in the reporting
 	files = append(files, "")
 	var portCollection []int
 	var seenPorts = make(map[int]bool)
 	for _, fname := range files {
-		sbdesc := path.Join(sandboxHome, fname, SandboxDescriptionName)
+		sbdesc := path.Join(sandboxHome, fname, globals.SandboxDescriptionName)
 		if FileExists(sbdesc) {
-			sbd := ReadSandboxDescription(path.Join(sandboxHome, fname))
+			sbd, err := ReadSandboxDescription(path.Join(sandboxHome, fname))
+			if err != nil {
+				return []int{}, errors.Wrap(err, "error reading sandbox description")
+			}
 			if sbd.Nodes == 0 {
 				for _, p := range sbd.Port {
 					if !seenPorts[p] {
@@ -131,11 +134,18 @@ func GetInstalledPorts(sandboxHome string) []int {
 				}
 			} else {
 				var nodeDescr []SandboxDescription
-				innerFiles := SandboxInfoToFileNames(GetInstalledSandboxes(path.Join(sandboxHome, fname)))
+				innerInstalledSandboxes, err := GetInstalledSandboxes(sandboxHome)
+				if err != nil {
+					return []int{}, err
+				}
+				innerFiles := SandboxInfoToFileNames(innerInstalledSandboxes)
 				for _, inner := range innerFiles {
-					innerSbdesc := path.Join(sandboxHome, fname, inner, SandboxDescriptionName)
+					innerSbdesc := path.Join(sandboxHome, fname, inner, globals.SandboxDescriptionName)
 					if FileExists(innerSbdesc) {
-						sdNode := ReadSandboxDescription(fmt.Sprintf("%s/%s/%s", sandboxHome, fname, inner))
+						sdNode, err := ReadSandboxDescription(fmt.Sprintf("%s/%s/%s", sandboxHome, fname, inner))
+						if err != nil {
+							return []int{}, errors.Wrapf(err, "error reading inner sandbox description %s/%s/%s", sandboxHome, fname, inner)
+						}
 						nodeDescr = append(nodeDescr, sdNode)
 					}
 				}
@@ -151,7 +161,7 @@ func GetInstalledPorts(sandboxHome string) []int {
 		}
 	}
 	// fmt.Printf("%v\n",port_collection)
-	return portCollection
+	return portCollection, nil
 }
 
 /* Checks that the extracted tarball directory
@@ -161,7 +171,7 @@ func GetInstalledPorts(sandboxHome string) []int {
    * using a Linux tarball on a Mac or vice-versa
    * using a source or test tarball instead of a binaries one.
 */
-func CheckTarballOperatingSystem(basedir string) {
+func CheckTarballOperatingSystem(basedir string) error {
 	currentOs := runtime.GOOS
 	// fmt.Printf("<%s>\n",currentOs)
 	type OSFinding struct {
@@ -195,9 +205,9 @@ func CheckTarballOperatingSystem(basedir string) {
 		}
 	}
 	if !wantedOsFound {
-		fmt.Println(DashLine)
+		fmt.Println(globals.DashLine)
 		fmt.Printf("Looking for *%s* binaries\n", currentOs)
-		fmt.Println(DashLine)
+		fmt.Println(globals.DashLine)
 		if len(foundList) > 0 {
 			fmt.Printf("# Found the following:\n")
 		}
@@ -207,10 +217,11 @@ func CheckTarballOperatingSystem(basedir string) {
 			if rec.OS == "source" {
 				fmt.Printf("THIS IS A SOURCE TARBALL. YOU NEED TO USE A *BINARY* TARBALL\n")
 			}
-			fmt.Println(DashLine)
+			fmt.Println(globals.DashLine)
 		}
-		Exitf(1, "could not find any of the expected files for %s server: %s\n%s\n", currentOs, wantedFiles, DashLine)
+		return fmt.Errorf("could not find any of the expected files for %s server: %s\n%s\n", currentOs, wantedFiles, globals.DashLine)
 	}
+	return nil
 }
 
 // Returns true if the file name has a recognized tarball extension
@@ -240,11 +251,12 @@ func CheckOrigin(args []string) {
 }
 
 // Creates a sandbox directory if it does not exist
-func CheckSandboxDir(sandboxHome string) {
+func CheckSandboxDir(sandboxHome string) error {
 	if !DirExists(sandboxHome) {
 		fmt.Printf("Creating directory %s\n", sandboxHome)
-		Mkdir(sandboxHome)
+		return os.Mkdir(sandboxHome, globals.PublicDirectoryAttr)
 	}
+	return nil
 }
 
 // Returns true if a given string looks contains a version
@@ -259,7 +271,7 @@ func IsVersion(version string) bool {
 
 // Gets three integers for a version string
 // Converts "1.2.3" into []int{1, 2, 3}
-func VersionToList(version string) []int {
+func VersionToList(version string) ([]int, error) {
 	// A valid version must be made of 3 integers
 	re1 := regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+)$`)
 	// Also valid version is 3 numbers with a prefix
@@ -272,18 +284,23 @@ func VersionToList(version string) []int {
 		verList = verList2
 	}
 	if verList == nil {
-		fmt.Printf("Required version format: x.x.xx - Got '%s'\n", version)
-		return []int{-1}
-		//os.Exit(1)
+		return []int{-1}, fmt.Errorf("required version format: x.x.xx - Got '%s'", version)
 	}
 
-	major, err1 := strconv.Atoi(verList[0][1])
-	minor, err2 := strconv.Atoi(verList[0][2])
-	rev, err3 := strconv.Atoi(verList[0][3])
-	if err1 != nil || err2 != nil || err3 != nil {
-		return []int{-1}
+	var intList = make([]int, 3)
+	newCount := 0
+	for N, item := range verList[0] {
+		if N == 0 {
+			continue
+		}
+		intVal, err := strconv.Atoi(item)
+		if err != nil {
+			return []int{-1}, fmt.Errorf("(%d) error converting %s (list: %+v) [%s] ", N, version, verList, err)
+		}
+		intList[newCount] = intVal
+		newCount++
 	}
-	return []int{major, minor, rev}
+	return intList, nil
 }
 
 // Converts a version string into a name.
@@ -296,12 +313,12 @@ func VersionToName(version string) string {
 
 // Converts a version string into a port number
 // e.g. "5.6.33" -> 5633
-func VersionToPort(version string) int {
-	verList := VersionToList(version)
-	major := verList[0]
-	if major < 0 {
-		return -1
+func VersionToPort(version string) (int, error) {
+	verList, err := VersionToList(version)
+	if err != nil {
+		return -1, fmt.Errorf("error converting %s into a version", version)
 	}
+	major := verList[0]
 	minor := verList[1]
 	rev := verList[2]
 	//if major < 0 || minor < 0 || rev < 0 {
@@ -310,10 +327,10 @@ func VersionToPort(version string) int {
 	completeVersion := fmt.Sprintf("%d%d%02d", major, minor, rev)
 	// fmt.Println(completeVersion)
 	i, err := strconv.Atoi(completeVersion)
-	if err == nil {
-		return i
+	if err != nil {
+		return -1, fmt.Errorf("error converting %d%d%02d to version", major, minor, rev)
 	}
-	return -1
+	return i, nil
 }
 
 // Checks if a version string is greater or equal a given numeric version
@@ -323,23 +340,29 @@ func VersionToPort(version string) int {
 // Note: MariaDB versions are skipped. The function returns false for MariaDB 10+
 // So far (2018-02-19) this comparison holds, because MariaDB behaves like 5.5+ for
 // the purposes of sandbox deployment
-func GreaterOrEqualVersion(version string, comparedTo []int) bool {
-	var cmajor, cminor, crev int = comparedTo[0], comparedTo[1], comparedTo[2]
-	verList := VersionToList(version)
+func GreaterOrEqualVersion(version string, comparedTo []int) (bool, error) {
+	if len(comparedTo) != 3 {
+		return false, errors.Wrapf(fmt.Errorf("invalid slice size: %v", comparedTo), "GreaterOrEqualVersion:")
+	}
+	var compMajor, compMinor, compRev int = comparedTo[0], comparedTo[1], comparedTo[2]
+	verList, err := VersionToList(version)
+	if err != nil {
+		return false, errors.Wrapf(err, "VersionToList")
+	}
 	major := verList[0]
 	if major < 0 {
-		return false
+		return false, errors.Wrapf(err, "major < 0")
 	}
 	minor := verList[1]
 	rev := verList[2]
 
+	// TODO: MariaDB 10.4 has changed behavior with regards to the above assumptions - Needs some more work
 	if major == 10 {
-		return false
+		return false, nil
 	}
-	sversion := fmt.Sprintf("%02d%02d%02d", major, minor, rev)
-	scompare := fmt.Sprintf("%02d%02d%02d", cmajor, cminor, crev)
-	// fmt.Printf("<%s><%s>\n", sversion, scompare)
-	return sversion >= scompare
+	versionText := fmt.Sprintf("%02d%02d%02d", major, minor, rev)
+	compareText := fmt.Sprintf("%02d%02d%02d", compMajor, compMinor, compRev)
+	return versionText >= compareText, nil
 }
 
 // Finds the first free port available, starting at
@@ -347,7 +370,7 @@ func GreaterOrEqualVersion(version string, comparedTo []int) bool {
 // usedPorts is a map of ports already used by other sandboxes.
 // This function should not be used alone, but through FindFreePort
 // Returns the first free port
-func FindFreePortSingle(requestedPort int, usedPorts PortMap) int {
+func FindFreePortSingle(requestedPort int, usedPorts PortMap) (int, error) {
 	foundPort := 0
 	candidatePort := requestedPort
 	for foundPort == 0 {
@@ -360,12 +383,13 @@ func FindFreePortSingle(requestedPort int, usedPorts PortMap) int {
 			foundPort = candidatePort
 		}
 		candidatePort += 1
-		if candidatePort > MaxAllowedPort {
-			Exit(1, fmt.Sprintf("FATAL (FindFreePortSingle): Could not find a free port starting at %d.", requestedPort),
-				fmt.Sprintf("Maximum limit for port value (%d) reached", MaxAllowedPort))
+		if candidatePort > globals.MaxAllowedPort {
+			return -1,
+				fmt.Errorf("FATAL (FindFreePortSingle): Could not find a free port starting at %d.\n"+
+					"Maximum limit for port value (%d) reached", requestedPort, globals.MaxAllowedPort)
 		}
 	}
-	return foundPort
+	return foundPort, nil
 }
 
 // Finds the a range of howMany free ports available, starting at
@@ -373,7 +397,7 @@ func FindFreePortSingle(requestedPort int, usedPorts PortMap) int {
 // usedPorts is a map of ports already used by other sandboxes.
 // This function should not be used alone, but through FindFreePort
 // Returns the first port of the requested range
-func FindFreePortRange(basePort int, usedPorts PortMap, howMany int) int {
+func FindFreePortRange(basePort int, usedPorts PortMap, howMany int) (int, error) {
 	var foundPort int = 0
 	requestedPort := basePort
 	candidatePort := requestedPort
@@ -397,19 +421,20 @@ func FindFreePortRange(basePort int, usedPorts PortMap, howMany int) int {
 				numPorts += 1
 			}
 			counter++
-			if candidatePort > MaxAllowedPort {
-				Exit(1, fmt.Sprintf("FATAL (FindFreePortRange): Could not find a free range of %d ports starting at %d.", howMany, requestedPort),
-					fmt.Sprintf("Maximum limit for port value (%d) reached", MaxAllowedPort))
+			if candidatePort > globals.MaxAllowedPort {
+				return -1, fmt.Errorf("FATAL (FindFreePortRange): \n"+
+					"Could not find a free range of %d ports starting at %d.\n"+
+					"Maximum limit for port value (%d) reached", howMany, requestedPort, globals.MaxAllowedPort)
 			}
 		}
 		if numPorts == howMany {
 			foundPort = candidatePort
 		} else {
-			Exit(1, "FATAL: FindFreePortRange should never reach this point",
-				fmt.Sprintf("requested: %d - used: %v - candidate: %d", requestedPort, usedPorts, candidatePort))
+			return -1, fmt.Errorf("FATAL: FindFreePortRange should never reach this point\n"+
+				"requested: %d - used: %v - candidate: %d", requestedPort, usedPorts, candidatePort)
 		}
 	}
-	return foundPort
+	return foundPort, nil
 }
 
 // Finds the a range of howMany free ports available, starting at
@@ -418,7 +443,7 @@ func FindFreePortRange(basePort int, usedPorts PortMap, howMany int) int {
 // Calls either FindFreePortRange or FindFreePortSingle, depending on the
 // amount of ports requested
 // Returns the first port of the requested range
-func FindFreePort(basePort int, installedPorts []int, howMany int) int {
+func FindFreePort(basePort int, installedPorts []int, howMany int) (int, error) {
 	if portDebug {
 		fmt.Printf("FindFreePort: requested: %d - used: %v - howMany: %d\n", basePort, installedPorts, howMany)
 	}

@@ -21,6 +21,7 @@ package main
 import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"os"
 	"path"
@@ -46,7 +47,10 @@ func main() {
 	sandboxName := "msb_5_7_22"
 
 	if !common.DirExists(sandboxHome) {
-		common.Mkdir(sandboxHome)
+		err := os.Mkdir(sandboxHome, globals.PublicDirectoryAttr)
+		if err != nil {
+			common.Exitf(1, globals.ErrCreatingDirectory, sandboxHome, err)
+		}
 	}
 
 	// Minimum data to be filled for a simple sandbox.
@@ -60,10 +64,10 @@ func main() {
 		LoadGrants:     true,
 		InstalledPorts: []int{1186, 3306, 33060},
 		Port:           port,
-		DbUser:         defaults.DbUserValue,      // "msandbox"
-		DbPassword:     defaults.DbPasswordValue,  // "msandbox"
-		RplUser:        defaults.RplUserValue,     // "rsandbox"
-		RplPassword:    defaults.RplPasswordValue, // "rsandbox"
+		DbUser:         globals.DbUserValue,      // "msandbox"
+		DbPassword:     globals.DbPasswordValue,  // "msandbox"
+		RplUser:        globals.RplUserValue,     // "rsandbox"
+		RplPassword:    globals.RplPasswordValue, // "rsandbox"
 		RemoteAccess:   "127.%",
 		BindAddress:    "127.0.0.1",
 	}
@@ -71,24 +75,24 @@ func main() {
 	// Calls the sandbox creation
 	err := sandbox.CreateStandaloneSandbox(sandboxDef)
 	if err != nil {
-		common.Exitf(1, defaults.ErrCreatingSandbox, err)
+		common.Exitf(1, globals.ErrCreatingSandbox, err)
 	}
 
 	// Invokes the sandbox self-testing script
-	err, _ = common.RunCmd(path.Join(sandboxHome, "msb_5_7_22", "test_sb"))
+	_, err = common.RunCmd(path.Join(sandboxHome, "msb_5_7_22", "test_sb"))
 	if err != nil {
 		common.Exitf(1, "error executing sandbox test: %s", err)
 	}
 
 	// Removes the sandbox from disk
-	err, _ = sandbox.RemoveSandbox(sandboxHome, "msb_5_7_22", false)
+	_, err = sandbox.RemoveSandbox(sandboxHome, "msb_5_7_22", false)
 	if err != nil {
-		common.Exitf(1, defaults.ErrWhileDeletingSandbox, err)
+		common.Exitf(1, globals.ErrWhileDeletingSandbox, err)
 	}
 
 	// Removes the sandbox from dbdeployer catalog
 	err = defaults.DeleteFromCatalog(path.Join(sandboxHome, "msb_5_7_22"))
 	if err != nil {
-		common.Exitf(1, defaults.ErrRemovingFromCatalog, sandboxName)
+		common.Exitf(1, globals.ErrRemovingFromCatalog, sandboxName)
 	}
 }

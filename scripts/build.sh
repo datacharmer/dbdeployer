@@ -46,7 +46,7 @@ then
     dependencies=(github.com/spf13/cobra github.com/spf13/pflag github.com/spf13/cobra/doc)
 fi
 
-local_items=(cmd defaults main.go common unpack abbreviations concurrent sandbox)
+local_items=(cmd defaults main.go common globals unpack abbreviations concurrent sandbox)
 
 function find_in_path {
     wanted=$1

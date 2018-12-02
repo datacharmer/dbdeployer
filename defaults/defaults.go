@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/globals"
 	"os"
 	"path"
 	"time"
@@ -64,24 +65,22 @@ type DbdeployerDefaults struct {
 }
 
 const (
-	minPortValue int = 11000
-	maxPortValue int = 30000
+	minPortValue            int    = 11000
+	maxPortValue            int    = 30000
+	ConfigurationDirName    string = ".dbdeployer"
+	ConfigurationFileName   string = "config.json"
+	SandboxRegistryName     string = "sandboxes.json"
+	SandboxRegistryLockName string = "sandboxes.lock"
 )
 
 var (
 	homeDir                 string = os.Getenv("HOME")
-	ConfigurationDir        string = path.Join(homeDir, ".dbdeployer")
-	ConfigurationFile       string = path.Join(ConfigurationDir, "config.json")
+	ConfigurationDir        string = path.Join(homeDir, ConfigurationDirName)
+	ConfigurationFile       string = path.Join(ConfigurationDir, ConfigurationFileName)
 	CustomConfigurationFile string = ""
-	SandboxRegistry         string = path.Join(ConfigurationDir, "sandboxes.json")
-	SandboxRegistryLock     string = path.Join(ConfigurationDir, "sandboxes.lock")
+	SandboxRegistry         string = path.Join(ConfigurationDir, SandboxRegistryName)
+	SandboxRegistryLock     string = path.Join(ConfigurationDir, SandboxRegistryLockName)
 	LogSBOperations         bool   = common.IsEnvSet("DBDEPLOYER_LOGGING")
-
-	// This variable is changed to true when the "cmd" package is activated,
-	// meaning that we're using the command line interface of dbdeployer.
-	// It is used to make decisions whether to write messages to the screen
-	// when calling sandbox creation functions from other apps.
-	UsingDbDeployer bool = false
 
 	factoryDefaults = DbdeployerDefaults{
 		Version:       common.CompatibleVersion,
@@ -146,7 +145,7 @@ func ShowDefaults(defaults DbdeployerDefaults) {
 		fmt.Println("# Internal values:")
 	}
 	b, err := json.MarshalIndent(defaults, " ", "\t")
-	common.ErrCheckExitf(err, 1, ErrEncodingDefaults, err)
+	common.ErrCheckExitf(err, 1, globals.ErrEncodingDefaults, err)
 	fmt.Printf("%s\n", b)
 }
 
@@ -157,9 +156,10 @@ func WriteDefaultsFile(filename string, defaults DbdeployerDefaults) {
 		common.Mkdir(defaultsDir)
 	}
 	b, err := json.MarshalIndent(defaults, " ", "\t")
-	common.ErrCheckExitf(err, 1, ErrEncodingDefaults, err)
+	common.ErrCheckExitf(err, 1, globals.ErrEncodingDefaults, err)
 	jsonString := fmt.Sprintf("%s", b)
-	common.WriteString(jsonString, filename)
+	err = common.WriteString(jsonString, filename)
+	common.ErrCheckExitf(err, 1, "error writing defaults file")
 }
 
 func expandEnvironmentVariables(defaults DbdeployerDefaults) DbdeployerDefaults {
@@ -179,10 +179,11 @@ func replaceLiteralEnvValues(defaults DbdeployerDefaults) DbdeployerDefaults {
 }
 
 func ReadDefaultsFile(filename string) (defaults DbdeployerDefaults) {
-	defaultsBlob := common.SlurpAsBytes(filename)
+	defaultsBlob, err := common.SlurpAsBytes(filename)
+	common.ErrCheckExitf(err, 1, "error reading defaults file %s: %s", filename, err)
 
-	err := json.Unmarshal(defaultsBlob, &defaults)
-	common.ErrCheckExitf(err, 1, ErrEncodingDefaults, err)
+	err = json.Unmarshal(defaultsBlob, &defaults)
+	common.ErrCheckExitf(err, 1, globals.ErrEncodingDefaults, err)
 	defaults = expandEnvironmentVariables(defaults)
 	return
 }
@@ -253,8 +254,13 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		ShowDefaults(nd)
 		return false
 	}
-	versionList := common.VersionToList(common.CompatibleVersion)
-	if !common.GreaterOrEqualVersion(nd.Version, versionList) {
+	versionList, err := common.VersionToList(common.CompatibleVersion)
+	if err != nil {
+		return false
+	}
+	compatibleVersion, err := common.GreaterOrEqualVersion(nd.Version, versionList)
+	common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
+	if !compatibleVersion {
 		fmt.Printf("Provided defaults are for version %s. Current version is %s\n", nd.Version, common.CompatibleVersion)
 		return false
 	}
@@ -373,10 +379,10 @@ func LoadConfiguration() {
 	if ValidateDefaults(newDefaults) {
 		currentDefaults = newDefaults
 	} else {
-		fmt.Println(common.StarLine)
+		fmt.Println(globals.StarLine)
 		fmt.Printf("Defaults file %s not validated.\n", ConfigurationFile)
 		fmt.Println("Loading internal defaults")
-		fmt.Println(common.StarLine)
+		fmt.Println(globals.StarLine)
 		fmt.Println("")
 		time.Sleep(1000 * time.Millisecond)
 	}

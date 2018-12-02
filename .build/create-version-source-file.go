@@ -24,59 +24,55 @@ import (
 	"time"
 )
 
-func get_file_date(filename string) string {
+func getFileDate(filename string) string {
 	file, err := os.Stat(filename)
 	if err != nil {
-		common.Exit(1, fmt.Sprintf("Error getting timestamp for file %s (%s)", filename, err))
+		common.Exit(1, fmt.Sprintf("error getting timestamp for file %s (%s)", filename, err))
 	}
-	modified_time := file.ModTime()
-	return modified_time.Format("2006-01-02")
+	modifiedTime := file.ModTime()
+	return modifiedTime.Format("2006-01-02")
 }
 
 func main() {
-	templates_dir := ".build"
-	if !common.DirExists(templates_dir) {
-		os.Chdir("..")
-		if !common.DirExists(templates_dir) {
+	templatesDir := ".build"
+	if !common.DirExists(templatesDir) {
+		err := os.Chdir("..")
+		common.ErrCheckExitf(err, 1, "error changing directory to %s/..", templatesDir)
+		if !common.DirExists(templatesDir) {
 			common.Exit(1, "Directory .build/ not found")
 		}
 	}
-	version_dest_file := "common/version.go"
+	versionDestFile := "common/version.go"
 
-	if !common.FileExists(version_dest_file) {
-		common.Exit(1, fmt.Sprintf("File %s not found", version_dest_file))
+	if !common.FileExists(versionDestFile) {
+		common.Exit(1, fmt.Sprintf("File %s not found", versionDestFile))
 	}
-	version_template := templates_dir + "/version_template.txt"
-	template := common.SlurpAsString(version_template)
+	version_template := templatesDir + "/version_template.txt"
+	template, err := common.SlurpAsString(version_template)
+	common.ErrCheckExitf(err, 1, "error reading version template")
 
-	version_file := templates_dir + "/VERSION"
-	version := strings.TrimSpace(common.SlurpAsString(version_file))
-	version_date := get_file_date(version_file)
+	versionFile := templatesDir + "/VERSION"
+	versionText, err := common.SlurpAsString(versionFile)
+	common.ErrCheckExitf(err, 1, "error reading version file")
 
-	compatible_version_file := templates_dir + "/COMPATIBLE_VERSION"
-	compatible_version := strings.TrimSpace(common.SlurpAsString(compatible_version_file))
-	compatible_version_date := get_file_date(compatible_version_file)
+	version := strings.TrimSpace(versionText)
+	versionDate := getFileDate(versionFile)
+
+	compatibleVersionFile := templatesDir + "/COMPATIBLE_VERSION"
+	compatibleVersionText, err := common.SlurpAsString(compatibleVersionFile)
+	common.ErrCheckExitf(err, 1, "error reading compatible version file")
+	compatibleVersion := strings.TrimSpace(compatibleVersionText)
+	compatibleVersionDate := getFileDate(compatibleVersionFile)
 
 	var data = common.StringMap{
 		"Version":               version,
-		"VersionDate":           version_date,
-		"CompatibleVersion":     compatible_version,
-		"CompatibleVersionDate": compatible_version_date,
+		"VersionDate":           versionDate,
+		"CompatibleVersion":     compatibleVersion,
+		"CompatibleVersionDate": compatibleVersionDate,
 		"Timestamp":             time.Now().Format("2006-01-02 15:04"),
 	}
-	version_code := common.TemplateFill(template, data)
-	/*
-		file, err := os.Open(version_dest_file)
-		if err != nil {
-			common.Exit(1, fmt.Sprintf("error opening file %s", version_dest_file))
-		}
-		defer file.Close()
-		writer := bufio.NewWriter(file)
-		written, err := writer.WriteString(version_code)
-		if err != nil {
-			common.Exit(1, fmt.Sprintf("error writing to file %s", version_dest_file))
-		}
-	*/
-	common.WriteString(version_code, version_dest_file)
-	// fmt.Printf("Written %d bytes into %s\n", written, version_dest_file)
+	versionCode := common.TemplateFill(template, data)
+
+	err = common.WriteString(versionCode, versionDestFile)
+	common.ErrCheckExitf(err, 1, "error writing version code file %s", versionDestFile)
 }

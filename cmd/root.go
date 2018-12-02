@@ -18,6 +18,7 @@ package cmd
 import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/spf13/cobra"
 	"os"
 	//"github.com/davecgh/go-spew/spew"
@@ -67,12 +68,12 @@ func setPflag(cmd *cobra.Command, key string, abbr string, envVar string, defaul
 
 func checkDefaultsFile() {
 	flags := rootCmd.Flags()
-	defaults.CustomConfigurationFile, _ = flags.GetString(defaults.ConfigLabel)
+	defaults.CustomConfigurationFile, _ = flags.GetString(globals.ConfigLabel)
 	if defaults.CustomConfigurationFile != defaults.ConfigurationFile {
 		if common.FileExists(defaults.CustomConfigurationFile) {
 			defaults.ConfigurationFile = defaults.CustomConfigurationFile
 		} else {
-			common.Exitf(1, defaults.ErrFileNotFound, defaults.CustomConfigurationFile)
+			common.Exitf(1, globals.ErrFileNotFound, defaults.CustomConfigurationFile)
 		}
 	}
 	defaults.LoadConfiguration()
@@ -82,13 +83,13 @@ func checkDefaultsFile() {
 func init() {
 	cobra.OnInitialize(checkDefaultsFile)
 	// spew.Dump(rootCmd)
-	rootCmd.PersistentFlags().StringVar(&defaults.CustomConfigurationFile, defaults.ConfigLabel, defaults.ConfigurationFile, "configuration file")
-	setPflag(rootCmd, defaults.SandboxHomeLabel, "", "SANDBOX_HOME", defaults.Defaults().SandboxHome, "Sandbox deployment directory", false)
-	setPflag(rootCmd, defaults.SandboxBinaryLabel, "", "SANDBOX_BINARY", defaults.Defaults().SandboxBinary, "Binary repository", false)
+	rootCmd.PersistentFlags().StringVar(&defaults.CustomConfigurationFile, globals.ConfigLabel, defaults.ConfigurationFile, "configuration file")
+	setPflag(rootCmd, globals.SandboxHomeLabel, "", "SANDBOX_HOME", defaults.Defaults().SandboxHome, "Sandbox deployment directory", false)
+	setPflag(rootCmd, globals.SandboxBinaryLabel, "", "SANDBOX_BINARY", defaults.Defaults().SandboxBinary, "Binary repository", false)
 
 	rootCmd.InitDefaultVersionFlag()
 
 	// Indicates that we're using dbdeployer command line interface
 	// rather than calling its sandbox creation functions from other apps.
-	defaults.UsingDbDeployer = true
+	globals.UsingDbDeployer = true
 }

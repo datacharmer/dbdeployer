@@ -61,22 +61,22 @@ func GetOperationNumber(caller string) string {
 	return operationId
 }
 
-func NewLogger(logDir, logFileName string) (error, string, *Logger) {
+func NewLogger(logDir, logFileName string) (*Logger, string, error) {
 	noLogger := &Logger{logger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime)}
 	if !LogSBOperations {
-		return nil, "", noLogger
+		return noLogger, "", nil
 	}
 	if !common.DirExists(Defaults().LogDirectory) {
 		err := os.Mkdir(Defaults().LogDirectory, 0755)
 		if err != nil {
-			return err, "", noLogger
+			return noLogger, "", err
 		}
 	}
 	fullLogDir := path.Join(Defaults().LogDirectory, logDir)
 	if !common.DirExists(fullLogDir) {
 		err := os.Mkdir(fullLogDir, 0755)
 		if err != nil {
-			return err, "", noLogger
+			return noLogger, "", err
 		}
 	}
 	var logFileFullName string = path.Join(fullLogDir, logFileName+".log")
@@ -84,9 +84,9 @@ func NewLogger(logDir, logFileName string) (error, string, *Logger) {
 	var logFile *os.File
 	logFile, err = os.OpenFile(logFileFullName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
-		return fmt.Errorf("error opening log file %s : %v", logFileFullName, err), "", noLogger
+		return noLogger, "", fmt.Errorf("error opening log file %s : %v", logFileFullName, err)
 	}
-	return nil, logFileFullName, &Logger{logger: log.New(logFile, "", log.Ldate|log.Ltime)}
+	return &Logger{logger: log.New(logFile, "", log.Ldate|log.Ltime)}, logFileFullName, nil
 }
 
 func CallFuncName() string {

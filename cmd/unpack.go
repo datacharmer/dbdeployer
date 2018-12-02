@@ -17,24 +17,25 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/datacharmer/dbdeployer/globals"
 	"os"
 	"path"
 	"regexp"
 	"strings"
 
 	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/unpack"
 	"github.com/spf13/cobra"
 )
 
 func UnpackTarball(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
-	Basedir := GetAbsolutePathFromFlag(cmd, "sandbox-binary")
-	verbosity, _ := flags.GetInt(defaults.VerbosityLabel)
+	Basedir, err := GetAbsolutePathFromFlag(cmd, "sandbox-binary")
+	common.ErrCheckExitf(err, 1, "error getting absolute path for 'sandbox-binary'")
+	verbosity, _ := flags.GetInt(globals.VerbosityLabel)
 	if !common.DirExists(Basedir) {
 		common.Exit(1,
-			fmt.Sprintf(defaults.ErrDirectoryNotFound, Basedir),
+			fmt.Sprintf(globals.ErrDirectoryNotFound, Basedir),
 			"You should create it or provide an alternate base directory using --sandbox-binary")
 	}
 	tarball := args[0]
@@ -43,14 +44,14 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	detectedVersion := verList[0][0]
 	// fmt.Printf(">> %#v %s\n",verList, detected_version)
 
-	isShell, _ := flags.GetBool(defaults.ShellLabel)
-	target, _ := flags.GetString(defaults.TargetServerLabel)
+	isShell, _ := flags.GetBool(globals.ShellLabel)
+	target, _ := flags.GetString(globals.TargetServerLabel)
 	if !isShell && target != "" {
 		common.Exit(1,
 			"unpack: Option --target-server can only be used with --shell")
 	}
 
-	Version, _ := flags.GetString(defaults.UnpackVersionLabel)
+	Version, _ := flags.GetString(globals.UnpackVersionLabel)
 	if Version == "" {
 		Version = detectedVersion
 	}
@@ -60,18 +61,18 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 			"Flag --unpack-version becomes mandatory")
 	}
 	// This call used to ensure that the port provided is in the right format
-	port := common.VersionToPort(Version)
-	if port == -1 {
+	_, err = common.VersionToPort(Version)
+	if err != nil {
 		common.Exitf(1, "version %s not in the required format", Version)
 	}
-	Prefix, _ := flags.GetString(defaults.PrefixLabel)
+	Prefix, _ := flags.GetString(globals.PrefixLabel)
 
 	destination := path.Join(Basedir, Prefix+Version)
 	if target != "" {
 		destination = path.Join(Basedir, target)
 	}
 	if common.DirExists(destination) && !isShell {
-		common.Exitf(1, defaults.ErrNamedDirectoryAlreadyExists, "destination directory", destination)
+		common.Exitf(1, globals.ErrNamedDirectoryAlreadyExists, "destination directory", destination)
 	}
 	extracted := path.Base(tarball)
 	var bareName string
@@ -80,16 +81,16 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	var foundExtension string
 
 	switch {
-	case strings.HasSuffix(tarball, defaults.TarGzExt):
+	case strings.HasSuffix(tarball, globals.TarGzExt):
 		extractFunc = unpack.UnpackTar
-		foundExtension = defaults.TarGzExt
-	case strings.HasSuffix(tarball, defaults.TarXzExt):
+		foundExtension = globals.TarGzExt
+	case strings.HasSuffix(tarball, globals.TarXzExt):
 		extractFunc = unpack.UnpackXzTar
-		foundExtension = defaults.TarXzExt
+		foundExtension = globals.TarXzExt
 	default:
-		common.Exitf(1, "tarball extension must be either '%s' or '%s'", defaults.TarGzExt, defaults.TarXzExt)
+		common.Exitf(1, "tarball extension must be either '%s' or '%s'", globals.TarGzExt, globals.TarXzExt)
 	}
-	bareName = extracted[0 : len(extracted)-len(defaults.TarGzExt)]
+	bareName = extracted[0 : len(extracted)-len(globals.TarGzExt)]
 	if isShell {
 		fmt.Printf("Merging shell tarball %s to %s\n", common.ReplaceLiteralHome(tarball), common.ReplaceLiteralHome(destination))
 		err := unpack.MergeShell(tarball, foundExtension, Basedir, destination, bareName, verbosity)
@@ -100,7 +101,7 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	fmt.Printf("Unpacking tarball %s to %s\n", tarball, common.ReplaceLiteralHome(destination))
 	//verbosity_level := unpack.VERBOSE
 	// err := unpack.UnpackTar(tarball, Basedir, verbosity)
-	err := extractFunc(tarball, Basedir, verbosity)
+	err = extractFunc(tarball, Basedir, verbosity)
 	common.ErrCheckExitf(err, 1, "%s", err)
 	finalName := path.Join(Basedir, bareName)
 	if finalName != destination {
@@ -139,9 +140,9 @@ If there is already an expanded tarball with the same version, a new one can be 
 func init() {
 	rootCmd.AddCommand(unpackCmd)
 
-	unpackCmd.PersistentFlags().Int(defaults.VerbosityLabel, 1, "Level of verbosity during unpack (0=none, 2=maximum)")
-	unpackCmd.PersistentFlags().String(defaults.UnpackVersionLabel, "", "which version is contained in the tarball")
-	unpackCmd.PersistentFlags().String(defaults.PrefixLabel, "", "Prefix for the final expanded directory")
-	unpackCmd.PersistentFlags().Bool(defaults.ShellLabel, false, "Unpack a shell tarball into the corresponding server directory")
-	unpackCmd.PersistentFlags().String(defaults.TargetServerLabel, "", "Uses a different server to unpack a shell tarball")
+	unpackCmd.PersistentFlags().Int(globals.VerbosityLabel, 1, "Level of verbosity during unpack (0=none, 2=maximum)")
+	unpackCmd.PersistentFlags().String(globals.UnpackVersionLabel, "", "which version is contained in the tarball")
+	unpackCmd.PersistentFlags().String(globals.PrefixLabel, "", "Prefix for the final expanded directory")
+	unpackCmd.PersistentFlags().Bool(globals.ShellLabel, false, "Unpack a shell tarball into the corresponding server directory")
+	unpackCmd.PersistentFlags().String(globals.TargetServerLabel, "", "Uses a different server to unpack a shell tarball")
 }

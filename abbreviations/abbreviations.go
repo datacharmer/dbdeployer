@@ -90,7 +90,10 @@ func LoadAbbreviations() {
 		}
 		return
 	}
-	abbrLines := common.SlurpAsLines(abbrevFile)
+	abbrLines, err := common.SlurpAsLines(abbrevFile)
+	if err != nil {
+		common.Exitf(1, "error reading abbreviation file")
+	}
 	// Loads abbreviations from file
 	for _, abbreviation := range abbrLines {
 		abbreviation = strings.TrimSpace(abbreviation)

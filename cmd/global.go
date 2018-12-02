@@ -18,14 +18,17 @@ package cmd
 import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/spf13/cobra"
 	"path"
 )
 
 func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, requireArgs bool, skipMissing bool) {
-	sandboxDir := GetAbsolutePathFromFlag(cmd, "sandbox-home")
-	runList := common.SandboxInfoToFileNames(common.GetInstalledSandboxes(sandboxDir))
+	sandboxDir, err := GetAbsolutePathFromFlag(cmd, "sandbox-home")
+	common.ErrCheckExitf(err, 1, "error defining absolute path for 'sandbox-home'")
+	sandboxList, err := common.GetInstalledSandboxes(sandboxDir)
+	common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList)
+	runList := common.SandboxInfoToFileNames(sandboxList)
 	if len(runList) == 0 {
 		common.Exitf(1, "no sandboxes found in %s", sandboxDir)
 	}
@@ -60,9 +63,9 @@ func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 		var err error
 		fmt.Printf("# Running \"%s\" on %s\n", realExecutable, sb)
 		if len(cmdArgs) > 0 {
-			err, _ = common.RunCmdWithArgs(cmdFile, cmdArgs)
+			_, err = common.RunCmdWithArgs(cmdFile, cmdArgs)
 		} else {
-			err, _ = common.RunCmd(cmdFile)
+			_, err = common.RunCmd(cmdFile)
 		}
 		common.ErrCheckExitf(err, 1, "error while running %s\n", cmdFile)
 		fmt.Println("")
@@ -70,31 +73,31 @@ func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 }
 
 func StartAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, defaults.ScriptStart, args, false, false)
+	GlobalRunCommand(cmd, globals.ScriptStart, args, false, false)
 }
 
 func RestartAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, defaults.ScriptRestart, args, false, false)
+	GlobalRunCommand(cmd, globals.ScriptRestart, args, false, false)
 }
 
 func StopAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, defaults.ScriptStop, args, false, false)
+	GlobalRunCommand(cmd, globals.ScriptStop, args, false, false)
 }
 
 func StatusAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, defaults.ScriptStatus, args, false, false)
+	GlobalRunCommand(cmd, globals.ScriptStatus, args, false, false)
 }
 
 func TestAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, defaults.ScriptTestSb, args, false, false)
+	GlobalRunCommand(cmd, globals.ScriptTestSb, args, false, false)
 }
 
 func TestReplicationAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, defaults.ScriptTestReplication, args, false, true)
+	GlobalRunCommand(cmd, globals.ScriptTestReplication, args, false, true)
 }
 
 func UseAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, defaults.ScriptUse, args, true, false)
+	GlobalRunCommand(cmd, globals.ScriptUse, args, true, false)
 }
 
 var (

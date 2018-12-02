@@ -1047,7 +1047,7 @@ function multi_source_operations {
         run dbdeployer deploy replication $V --topology=fan-in
         run dbdeployer deploy replication $V --topology=fan-in \
             --sandbox-directory=fan_in_msb2_$v_path \
-            --base-port=24000 \
+            --base-port=31000 \
             --nodes=4 \
             --master-list='1,2' \
             --slave-list='3:4'

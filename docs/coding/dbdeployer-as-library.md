@@ -27,6 +27,8 @@ var sdef =	sandbox.SandboxDef{
 This is the full structure of SandboxDef:
 
 ```go
+package sandbox
+
 type SandboxDef struct {
 	DirName           string    // name of the directory cointaining the sandbox
 	SBType            string    // Type of sandbox (single, multiple, replication-node, group-node)
@@ -77,22 +79,24 @@ type SandboxDef struct {
 }
 ```
 
-Then you can call the function ``sandbox.CreateSingleSandbox(sdef)``.
+Then you can call the function ``sandbox.CreateStandaloneSandbox(sdef)``.
 
 This will create a fully functional single sandbox that you can then use like any other created by dbdeployer.
 
 To remove a sandbox, you need two steps:
 
 ``` go
-	sandbox.RemoveSandbox(sandbox_home, "msb_5_7_22", false)
-	defaults.DeleteFromCatalog(sandbox_home+"/msb_5_7_22")
+	_, err := sandbox.RemoveSandbox(sandbox_home, "msb_5_7_22", false)
+	// handle the error
+	err := defaults.DeleteFromCatalog(sandbox_home+"/msb_5_7_22")
+	// handle the error
 ```
 
 See the sample source file ``minimal-sandbox.go`` for a working example.
 
 If you want to create multiple sandboxes, things are a bit more complicated. ``dbdeployer`` uses a concurrent execution engine that needs to be used with care.
 
-Function ``CreateSingleSandbox`` returns a slice of ``concurrent.ExecutionList``, a structure made of a priority index and commands to run. When sandboxes are created with concurrency, ``CreateSingleSandbox`` will create the sandbox directory and all the scripts, but won't run any expensive tasks, such as database initialization and start. Instead, it will add those commands to the execution list. The calling function (replication or multiple sandbox call) will queue all the execution lists, and then pass the final list to ``defaults.RunParallelTasksByPriority`` which organizes the tasks by priorities and then runs concurrently the ones that have the same priority level until no task is left in the queue.
+Function ``CreateChildSandbox`` returns a slice of ``concurrent.ExecutionList``, a structure made of a priority index and commands to run. When sandboxes are created with concurrency, ``CreateSingleSandbox`` will create the sandbox directory and all the scripts, but won't run any expensive tasks, such as database initialization and start. Instead, it will add those commands to the execution list. The calling function (replication or multiple sandbox call) will queue all the execution lists, and then pass the final list to ``defaults.RunParallelTasksByPriority`` which organizes the tasks by priorities and then runs concurrently the ones that have the same priority level until no task is left in the queue.
 
 For example, we may have:
 

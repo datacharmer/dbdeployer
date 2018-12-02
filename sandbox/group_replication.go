@@ -17,6 +17,9 @@ package sandbox
 
 import (
 	"fmt"
+	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/pkg/errors"
+	"os"
 	"path"
 	"regexp"
 	"time"
@@ -46,24 +49,31 @@ loose-group-replication-single-primary-mode=off
 `
 )
 
-func getBaseMysqlxPort(basePort int, sdef SandboxDef, nodes int) (error, int) {
+func getBaseMysqlxPort(basePort int, sdef SandboxDef, nodes int) (int, error) {
 	baseMysqlxPort := basePort + defaults.Defaults().MysqlXPortDelta
 	// 8.0.11
-	if common.GreaterOrEqualVersion(sdef.Version, defaults.MinimumMysqlxDefaultVersion) {
+	isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sdef.Version, globals.MinimumMysqlxDefaultVersion)
+	if err != nil {
+		return 0, err
+	}
+	if isMinimumMySQLXDefault {
 		// FindFreePort returns the first free port, but base_port will be used
 		// with a counter. Thus the availability will be checked using
 		// "base_port + 1"
-		firstGroupPort := common.FindFreePort(baseMysqlxPort+1, sdef.InstalledPorts, nodes)
+		firstGroupPort, err := common.FindFreePort(baseMysqlxPort+1, sdef.InstalledPorts, nodes)
+		if err != nil {
+			return -1, errors.Wrapf(err, "error finding a free port for MySQLX")
+		}
 		baseMysqlxPort = firstGroupPort - 1
 		for N := 1; N <= nodes; N++ {
 			checkPort := baseMysqlxPort + N
 			err := CheckPort("get_base_mysqlx_port", sdef.SandboxDir, sdef.InstalledPorts, checkPort)
 			if err != nil {
-				return err, 0
+				return 0, err
 			}
 		}
 	}
-	return nil, baseMysqlxPort
+	return baseMysqlxPort, nil
 }
 
 func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
@@ -76,14 +86,17 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	} else {
 		var fileName string
 		var err error
-		err, fileName, logger = defaults.NewLogger(common.LogDirName(), "group-replication")
+		logger, fileName, err = defaults.NewLogger(common.LogDirName(), "group-replication")
 		if err != nil {
 			return err
 		}
 		sandboxDef.LogFileName = common.ReplaceLiteralHome(fileName)
 	}
 
-	vList := common.VersionToList(sandboxDef.Version)
+	vList, err := common.VersionToList(sandboxDef.Version)
+	if err != nil {
+		return err
+	}
 	rev := vList[2]
 	basePort := sandboxDef.Port + defaults.Defaults().GroupReplicationBasePort + (rev * 100)
 	if sandboxDef.SinglePrimary {
@@ -98,7 +111,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		return fmt.Errorf("Can't run group replication with less than 3 nodes")
 	}
 	if common.DirExists(sandboxDef.SandboxDir) {
-		err, sandboxDef = CheckDirectory(sandboxDef)
+		sandboxDef, err = CheckDirectory(sandboxDef)
 		if err != nil {
 			return err
 		}
@@ -106,10 +119,16 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	// FindFreePort returns the first free port, but base_port will be used
 	// with a counter. Thus the availability will be checked using
 	// "base_port + 1"
-	firstGroupPort := common.FindFreePort(basePort+1, sandboxDef.InstalledPorts, nodes)
+	firstGroupPort, err := common.FindFreePort(basePort+1, sandboxDef.InstalledPorts, nodes)
+	if err != nil {
+		return errors.Wrapf(err, "error retrieving free port for replication")
+	}
 	basePort = firstGroupPort - 1
 	baseGroupPort := basePort + defaults.Defaults().GroupPortDelta
-	firstGroupPort = common.FindFreePort(baseGroupPort+1, sandboxDef.InstalledPorts, nodes)
+	firstGroupPort, err = common.FindFreePort(baseGroupPort+1, sandboxDef.InstalledPorts, nodes)
+	if err != nil {
+		return errors.Wrapf(err, "error retrieving group replication free port")
+	}
 	baseGroupPort = firstGroupPort - 1
 	for checkPort := basePort + 1; checkPort < basePort+nodes+1; checkPort++ {
 		err = CheckPort("CreateGroupReplication", sandboxDef.SandboxDir, sandboxDef.InstalledPorts, checkPort)
@@ -123,11 +142,14 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 			return err
 		}
 	}
-	err, baseMysqlxPort := getBaseMysqlxPort(basePort, sandboxDef, nodes)
+	baseMysqlxPort, err := getBaseMysqlxPort(basePort, sandboxDef, nodes)
 	if err != nil {
 		return err
 	}
-	common.Mkdir(sandboxDef.SandboxDir)
+	err = os.Mkdir(sandboxDef.SandboxDir, globals.PublicDirectoryAttr)
+	if err != nil {
+		return err
+	}
 	common.AddToCleanupStack(common.Rmdir, "Rmdir", sandboxDef.SandboxDir)
 	logger.Printf("Creating directory %s\n", sandboxDef.SandboxDir)
 	timestamp := time.Now()
@@ -146,11 +168,11 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 			}
 			slaveList += fmt.Sprintf("%d", N)
 		}
-		err, mlist := nodesListToIntSlice(masterList, nodes)
+		mlist, err := nodesListToIntSlice(masterList, nodes)
 		if err != nil {
 			return err
 		}
-		err, slist := nodesListToIntSlice(slaveList, nodes)
+		slist, err := nodesListToIntSlice(slaveList, nodes)
 		if err != nil {
 			return err
 		}
@@ -269,7 +291,11 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		sandboxDef.ReplOptions += fmt.Sprintf("\nloose-group-replication-local-address=%s:%d\n", masterIp, groupPort)
 		sandboxDef.ReplOptions += fmt.Sprintf("\nloose-group-replication-group-seeds=%s\n", connectionString)
 		// 8.0.11
-		if common.GreaterOrEqualVersion(sandboxDef.Version, defaults.MinimumMysqlxDefaultVersion) {
+		isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
+		if err != nil {
+			return err
+		}
+		if isMinimumMySQLXDefault {
 			sandboxDef.MysqlXPort = baseMysqlxPort + i
 			if !sandboxDef.DisableMysqlX {
 				sbDesc.Port = append(sbDesc.Port, baseMysqlxPort+i)
@@ -284,9 +310,9 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		sandboxDef.NodeNum = i
 		// fmt.Printf("%#v\n",sdef)
 		logger.Printf("Create single sandbox for node %d\n", i)
-		err, execList := CreateChildSandbox(sandboxDef)
+		execList, err := CreateChildSandbox(sandboxDef)
 		if err != nil {
-			return fmt.Errorf(defaults.ErrCreatingSandbox, err)
+			return fmt.Errorf(globals.ErrCreatingSandbox, err)
 		}
 		for _, list := range execList {
 			execLists = append(execLists, list)
@@ -311,8 +337,14 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		}
 	}
 	logger.Printf("Writing sandbox description in %s\n", sandboxDef.SandboxDir)
-	common.WriteSandboxDescription(sandboxDef.SandboxDir, sbDesc)
-	defaults.UpdateCatalog(sandboxDef.SandboxDir, sbItem)
+	err = common.WriteSandboxDescription(sandboxDef.SandboxDir, sbDesc)
+	if err != nil {
+		return errors.Wrapf(err, "unable to write sandbox description")
+	}
+	err = defaults.UpdateCatalog(sandboxDef.SandboxDir, sbItem)
+	if err != nil {
+		return errors.Wrapf(err, "unable to update catalog")
+	}
 
 	logger.Printf("Writing group replication scripts\n")
 	sbMultiple := ScriptBatch{
@@ -321,14 +353,14 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []ScriptDef{
-			{defaults.ScriptStartAll, "start_multi_template", true},
-			{defaults.ScriptRestartAll, "restart_multi_template", true},
-			{defaults.ScriptStatusAll, "status_multi_template", true},
-			{defaults.ScriptTestSbAll, "test_sb_multi_template", true},
-			{defaults.ScriptStopAll, "stop_multi_template", true},
-			{defaults.ScriptClearAll, "clear_multi_template", true},
-			{defaults.ScriptSendKillAll, "send_kill_multi_template", true},
-			{defaults.ScriptUseAll, "use_multi_template", true},
+			{globals.ScriptStartAll, "start_multi_template", true},
+			{globals.ScriptRestartAll, "restart_multi_template", true},
+			{globals.ScriptStatusAll, "status_multi_template", true},
+			{globals.ScriptTestSbAll, "test_sb_multi_template", true},
+			{globals.ScriptStopAll, "stop_multi_template", true},
+			{globals.ScriptClearAll, "clear_multi_template", true},
+			{globals.ScriptSendKillAll, "send_kill_multi_template", true},
+			{globals.ScriptUseAll, "use_multi_template", true},
 		},
 	}
 	sbRepl := ScriptBatch{
@@ -337,9 +369,9 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []ScriptDef{
-			{defaults.ScriptUseAllSlaves, "multi_source_use_slaves_template", true},
-			{defaults.ScriptUseAllMasters, "multi_source_use_masters_template", true},
-			{defaults.ScriptTestReplication, "multi_source_test_template", true},
+			{globals.ScriptUseAllSlaves, "multi_source_use_slaves_template", true},
+			{globals.ScriptUseAllMasters, "multi_source_use_masters_template", true},
+			{globals.ScriptTestReplication, "multi_source_test_template", true},
 		},
 	}
 	sbGroup := ScriptBatch{
@@ -348,8 +380,8 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []ScriptDef{
-			{defaults.ScriptInitializeNodes, "init_nodes_template", true},
-			{defaults.ScriptCheckNodes, "check_nodes_template", true},
+			{globals.ScriptInitializeNodes, "init_nodes_template", true},
+			{globals.ScriptCheckNodes, "check_nodes_template", true},
 		},
 	}
 
@@ -363,9 +395,9 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	logger.Printf("Running parallel tasks\n")
 	concurrent.RunParallelTasksByPriority(execLists)
 	if !sandboxDef.SkipStart {
-		fmt.Println(path.Join(common.ReplaceLiteralHome(sandboxDef.SandboxDir), defaults.ScriptInitializeNodes))
+		fmt.Println(path.Join(common.ReplaceLiteralHome(sandboxDef.SandboxDir), globals.ScriptInitializeNodes))
 		logger.Printf("Running group replication initialization script\n")
-		err, _ := common.RunCmd(path.Join(sandboxDef.SandboxDir, defaults.ScriptInitializeNodes))
+		_, err := common.RunCmd(path.Join(sandboxDef.SandboxDir, globals.ScriptInitializeNodes))
 		if err != nil {
 			return fmt.Errorf("error initializing group replication: %s", err)
 		}

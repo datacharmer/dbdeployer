@@ -17,6 +17,8 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/pkg/errors"
 	"os"
 	"path"
 	"regexp"
@@ -31,10 +33,13 @@ import (
 func replaceTemplate(templateName string, fileName string) {
 	group, _, contents := FindTemplate(templateName)
 	if !common.FileExists(fileName) {
-		common.Exitf(1, defaults.ErrFileNotFound, fileName)
+		common.Exitf(1, globals.ErrFileNotFound, fileName)
 	}
 	fmt.Printf("Replacing template %s.%s [%d chars] with contents of file %s\n", group, templateName, len(contents), fileName)
-	newContents := common.SlurpAsString(fileName)
+	newContents, err := common.SlurpAsString(fileName)
+	if err != nil {
+		common.Exitf(1, "%+v", err)
+	}
 	if len(newContents) == 0 {
 		common.Exitf(1, "file %s is empty\n", fileName)
 	}
@@ -68,11 +73,16 @@ func processDefaults(newDefaults []string) {
 	}
 }
 
-func GetAbsolutePathFromFlag(cmd *cobra.Command, name string) string {
+func GetAbsolutePathFromFlag(cmd *cobra.Command, name string) (string, error) {
 	flags := cmd.Flags()
 	value, err := flags.GetString(name)
 	common.ErrCheckExitf(err, 1, "error getting flag value for --%s", name)
-	return common.AbsolutePath(value)
+	filePath, err := common.AbsolutePath(value)
+	if err == nil {
+		return filePath, nil
+	} else {
+		return "", errors.Wrap(err, "")
+	}
 }
 
 func checkIfAbridgedVersion(version, basedir string) string {
@@ -103,33 +113,38 @@ func checkForRootValue(value, label, defaultVal string) {
 	}
 }
 
-func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
+func FillSdef(cmd *cobra.Command, args []string) (sandbox.SandboxDef, error) {
 	var sd sandbox.SandboxDef
 
 	flags := cmd.Flags()
 
-	logSbOperations, _ := flags.GetBool(defaults.LogSBOperationsLabel)
+	logSbOperations, _ := flags.GetBool(globals.LogSBOperationsLabel)
 	defaults.LogSBOperations = logSbOperations
 
-	logDir := GetAbsolutePathFromFlag(cmd, defaults.LogLogDirectoryLabel)
+	logDir, err := GetAbsolutePathFromFlag(cmd, globals.LogLogDirectoryLabel)
+	if err != nil {
+		return sd, err
+	}
 	if logDir != "" {
-		defaults.UpdateDefaults(defaults.LogLogDirectoryLabel, logDir, false)
+		defaults.UpdateDefaults(globals.LogLogDirectoryLabel, logDir, false)
 	}
 
-	templateRequests, _ := flags.GetStringSlice(defaults.UseTemplateLabel)
+	templateRequests, _ := flags.GetStringSlice(globals.UseTemplateLabel)
 	for _, request := range templateRequests {
 		tname, fname := checkTemplateChangeRequest(request)
 		replaceTemplate(tname, fname)
 	}
 
-	basedir := GetAbsolutePathFromFlag(cmd, defaults.SandboxBinaryLabel)
-
+	basedir, err := GetAbsolutePathFromFlag(cmd, globals.SandboxBinaryLabel)
+	if err != nil {
+		return sd, err
+	}
 	if os.Getenv("SANDBOX_BINARY") == "" {
 		_ = os.Setenv("SANDBOX_BINARY", basedir)
 	}
 	sd.BasedirName = args[0]
 	versionFromOption := false
-	sd.Version, _ = flags.GetString(defaults.BinaryVersionLabel)
+	sd.Version, _ = flags.GetString(globals.BinaryVersionLabel)
 	if sd.Version == "" {
 		sd.Version = args[0]
 		oldVersion := sd.Version
@@ -142,8 +157,12 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	}
 
 	if common.DirExists(sd.BasedirName) {
+		var err error
 		sd.BasedirName = common.RemoveTrailingSlash(sd.BasedirName)
-		sd.BasedirName = common.AbsolutePath(sd.BasedirName)
+		sd.BasedirName, err = common.AbsolutePath(sd.BasedirName)
+		if err != nil {
+			return sd, errors.Wrapf(err, "couldn't get an absolute path for %s", sd.BasedirName)
+		}
 		// fmt.Printf("OLD bd <%s> - v: <%s>\n",basedir, sd.Version )
 		target := sd.BasedirName
 		oldBasedir := basedir
@@ -167,13 +186,14 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 		// fmt.Printf("NEW bd <%s> - v: <%s>\n",basedir, sd.Version )
 	}
 
-	sd.Port = common.VersionToPort(sd.Version)
+	sd.Port, err = common.VersionToPort(sd.Version)
+	common.ErrCheckExitf(err, 1, "can't convert '%s' into port number", sd.Version)
 	if sd.Port < 0 {
 		common.Exitf(1, "unsupported version format (%s)", sd.Version)
 	}
-	sd.UserPort, _ = flags.GetInt(defaults.PortLabel)
-	sd.BasePort, _ = flags.GetInt(defaults.BasePortLabel)
-	sd.DirName, _ = flags.GetString(defaults.SandboxDirectoryLabel)
+	sd.UserPort, _ = flags.GetInt(globals.PortLabel)
+	sd.BasePort, _ = flags.GetInt(globals.BasePortLabel)
+	sd.DirName, _ = flags.GetString(globals.SandboxDirectoryLabel)
 
 	if sd.UserPort > 0 {
 		sd.Port = sd.UserPort
@@ -185,68 +205,79 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 		common.Exitf(1, "basedir '%s' not found", sd.Basedir)
 	}
 
-	common.CheckTarballOperatingSystem(sd.Basedir)
+	err = common.CheckTarballOperatingSystem(sd.Basedir)
+	common.ErrCheckExitf(err, 1, "incorrect tarball detected")
 
-	sd.SandboxDir = GetAbsolutePathFromFlag(cmd, defaults.SandboxHomeLabel)
+	sd.SandboxDir, err = GetAbsolutePathFromFlag(cmd, globals.SandboxHomeLabel)
+	if err != nil {
+		return sd, err
+	}
 
-	common.CheckSandboxDir(sd.SandboxDir)
-	sd.InstalledPorts = common.GetInstalledPorts(sd.SandboxDir)
+	err = common.CheckSandboxDir(sd.SandboxDir)
+	if err != nil {
+		return sd, err
+	}
+	sd.InstalledPorts, err = common.GetInstalledPorts(sd.SandboxDir)
+	if err != nil {
+		return sd, err
+	}
+
 	for _, p := range defaults.Defaults().ReservedPorts {
 		sd.InstalledPorts = append(sd.InstalledPorts, p)
 	}
 	sd.LoadGrants = true
-	sd.SkipStart, _ = flags.GetBool(defaults.SkipStartLabel)
-	skipLoadGrants, _ := flags.GetBool(defaults.SkipLoadGrantsLabel)
+	sd.SkipStart, _ = flags.GetBool(globals.SkipStartLabel)
+	skipLoadGrants, _ := flags.GetBool(globals.SkipLoadGrantsLabel)
 	if skipLoadGrants || sd.SkipStart {
 		sd.LoadGrants = false
 	}
-	sd.SkipReportHost, _ = flags.GetBool(defaults.SkipReportHostLabel)
-	sd.SkipReportPort, _ = flags.GetBool(defaults.SkipReportPortLabel)
-	sd.DisableMysqlX, _ = flags.GetBool(defaults.DisableMysqlXLabel)
-	sd.EnableMysqlX, _ = flags.GetBool(defaults.EnableMysqlXLabel)
-	sd.HistoryDir, _ = flags.GetString(defaults.HistoryDirLabel)
-	sd.DbUser, _ = flags.GetString(defaults.DbUserLabel)
-	sd.DbPassword, _ = flags.GetString(defaults.DbPasswordLabel)
-	sd.RplUser, _ = flags.GetString(defaults.RplUserLabel)
+	sd.SkipReportHost, _ = flags.GetBool(globals.SkipReportHostLabel)
+	sd.SkipReportPort, _ = flags.GetBool(globals.SkipReportPortLabel)
+	sd.DisableMysqlX, _ = flags.GetBool(globals.DisableMysqlXLabel)
+	sd.EnableMysqlX, _ = flags.GetBool(globals.EnableMysqlXLabel)
+	sd.HistoryDir, _ = flags.GetString(globals.HistoryDirLabel)
+	sd.DbUser, _ = flags.GetString(globals.DbUserLabel)
+	sd.DbPassword, _ = flags.GetString(globals.DbPasswordLabel)
+	sd.RplUser, _ = flags.GetString(globals.RplUserLabel)
 
-	checkForRootValue(sd.DbUser, defaults.DbUserLabel, defaults.DbUserValue)
-	checkForRootValue(sd.RplUser, defaults.RplUserLabel, defaults.RplUserValue)
+	checkForRootValue(sd.DbUser, globals.DbUserLabel, globals.DbUserValue)
+	checkForRootValue(sd.RplUser, globals.RplUserLabel, globals.RplUserValue)
 
-	sd.RplPassword, _ = flags.GetString(defaults.RplPasswordLabel)
-	sd.RemoteAccess, _ = flags.GetString(defaults.RemoteAccessLabel)
-	sd.BindAddress, _ = flags.GetString(defaults.BindAddressLabel)
-	sd.CustomMysqld, _ = flags.GetString(defaults.CustomMysqldLabel)
-	sd.InitOptions, _ = flags.GetStringSlice(defaults.InitOptionsLabel)
-	sd.MyCnfOptions, _ = flags.GetStringSlice(defaults.MyCnfOptionsLabel)
-	sd.PreGrantsSqlFile, _ = flags.GetString(defaults.PreGrantsSqlFileLabel)
-	sd.PreGrantsSql, _ = flags.GetStringSlice(defaults.PreGrantsSqlLabel)
-	sd.PostGrantsSql, _ = flags.GetStringSlice(defaults.PostGrantsSqlLabel)
-	sd.PostGrantsSqlFile, _ = flags.GetString(defaults.PostGrantsSqlFileLabel)
-	sd.MyCnfFile, _ = flags.GetString(defaults.MyCnfFileLabel)
-	sd.NativeAuthPlugin, _ = flags.GetBool(defaults.NativeAuthPluginLabel)
-	sd.KeepUuid, _ = flags.GetBool(defaults.KeepServerUuidLabel)
-	sd.Force, _ = flags.GetBool(defaults.ForceLabel)
-	sd.ExposeDdTables, _ = flags.GetBool(defaults.ExposeDdTablesLabel)
-	sd.InitGeneralLog, _ = flags.GetBool(defaults.InitGeneralLogLabel)
-	sd.EnableGeneralLog, _ = flags.GetBool(defaults.EnableGeneralLogLabel)
+	sd.RplPassword, _ = flags.GetString(globals.RplPasswordLabel)
+	sd.RemoteAccess, _ = flags.GetString(globals.RemoteAccessLabel)
+	sd.BindAddress, _ = flags.GetString(globals.BindAddressLabel)
+	sd.CustomMysqld, _ = flags.GetString(globals.CustomMysqldLabel)
+	sd.InitOptions, _ = flags.GetStringSlice(globals.InitOptionsLabel)
+	sd.MyCnfOptions, _ = flags.GetStringSlice(globals.MyCnfOptionsLabel)
+	sd.PreGrantsSqlFile, _ = flags.GetString(globals.PreGrantsSqlFileLabel)
+	sd.PreGrantsSql, _ = flags.GetStringSlice(globals.PreGrantsSqlLabel)
+	sd.PostGrantsSql, _ = flags.GetStringSlice(globals.PostGrantsSqlLabel)
+	sd.PostGrantsSqlFile, _ = flags.GetString(globals.PostGrantsSqlFileLabel)
+	sd.MyCnfFile, _ = flags.GetString(globals.MyCnfFileLabel)
+	sd.NativeAuthPlugin, _ = flags.GetBool(globals.NativeAuthPluginLabel)
+	sd.KeepUuid, _ = flags.GetBool(globals.KeepServerUuidLabel)
+	sd.Force, _ = flags.GetBool(globals.ForceLabel)
+	sd.ExposeDdTables, _ = flags.GetBool(globals.ExposeDdTablesLabel)
+	sd.InitGeneralLog, _ = flags.GetBool(globals.InitGeneralLogLabel)
+	sd.EnableGeneralLog, _ = flags.GetBool(globals.EnableGeneralLogLabel)
 
 	if sd.DisableMysqlX && sd.EnableMysqlX {
 		common.Exit(1, "flags --enable-mysqlx and --disable-mysqlx cannot be used together")
 	}
-	sd.RunConcurrently, _ = flags.GetBool(defaults.ConcurrentLabel)
+	sd.RunConcurrently, _ = flags.GetBool(globals.ConcurrentLabel)
 	if common.IsEnvSet("RUN_CONCURRENTLY") {
 		sd.RunConcurrently = true
 	}
 
-	newDefaults, _ := flags.GetStringSlice(defaults.DefaultsLabel)
+	newDefaults, _ := flags.GetStringSlice(globals.DefaultsLabel)
 	processDefaults(newDefaults)
 
 	var gtid bool
 	var master bool
 	var replCrashSafe bool
-	master, _ = flags.GetBool(defaults.MasterLabel)
-	gtid, _ = flags.GetBool(defaults.GtidLabel)
-	replCrashSafe, _ = flags.GetBool(defaults.ReplCrashSafeLabel)
+	master, _ = flags.GetBool(globals.MasterLabel)
+	gtid, _ = flags.GetBool(globals.GtidLabel)
+	replCrashSafe, _ = flags.GetBool(globals.ReplCrashSafeLabel)
 	if master {
 		sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 		sd.ServerId = sd.Port
@@ -254,39 +285,50 @@ func FillSdef(cmd *cobra.Command, args []string) sandbox.SandboxDef {
 	if gtid {
 		templateName := "gtid_options_56"
 		// 5.7.0
-		if common.GreaterOrEqualVersion(sd.Version, defaults.MinimumEnhancedGtidVersion) {
+		isEnhancedGtid, err := common.GreaterOrEqualVersion(sd.Version, globals.MinimumEnhancedGtidVersion)
+		common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
+		if isEnhancedGtid {
 			templateName = "gtid_options_57"
 		}
 		// 5.6.9
-		if common.GreaterOrEqualVersion(sd.Version, defaults.MinimumGtidVersion) {
+		isMinimumGtid, err := common.GreaterOrEqualVersion(sd.Version, globals.MinimumGtidVersion)
+		common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
+		if isMinimumGtid {
 			sd.GtidOptions = sandbox.SingleTemplates[templateName].Contents
 			sd.ReplCrashSafeOptions = sandbox.SingleTemplates["repl_crash_safe_options"].Contents
 			sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 			sd.ServerId = sd.Port
 		} else {
-			common.Exitf(1, defaults.ErrOptionRequiresVersion, defaults.GtidLabel, common.IntSliceToDottedString(defaults.MinimumGtidVersion))
+			common.Exitf(1, globals.ErrOptionRequiresVersion, globals.GtidLabel, common.IntSliceToDottedString(globals.MinimumGtidVersion))
 		}
 	}
 	if replCrashSafe && sd.ReplCrashSafeOptions == "" {
 		// 5.6.2
-		if common.GreaterOrEqualVersion(sd.Version, defaults.MinimumCrashSafeVersion) {
+
+		isMinimumCrashSafe, err := common.GreaterOrEqualVersion(sd.Version, globals.MinimumCrashSafeVersion)
+		common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
+		if isMinimumCrashSafe {
 			sd.ReplCrashSafeOptions = sandbox.SingleTemplates["repl_crash_safe_options"].Contents
 		} else {
-			common.Exitf(1, defaults.ErrOptionRequiresVersion, defaults.ReplCrashSafeLabel, common.IntSliceToDottedString(defaults.MinimumCrashSafeVersion))
+			common.Exitf(1, globals.ErrOptionRequiresVersion, globals.ReplCrashSafeLabel, common.IntSliceToDottedString(globals.MinimumCrashSafeVersion))
 		}
 	}
-	return sd
+	return sd, nil
 }
 
 func SingleSandbox(cmd *cobra.Command, args []string) {
 	var sd sandbox.SandboxDef
+	var err error
 	common.CheckOrigin(args)
-	sd = FillSdef(cmd, args)
+	sd, err = FillSdef(cmd, args)
+	if err != nil {
+		common.Exitf(1, "error while filling the sandbox definition: %+v", err)
+	}
 	// When deploying a single sandbox, we disable concurrency
 	sd.RunConcurrently = false
-	err := sandbox.CreateStandaloneSandbox(sd)
+	err = sandbox.CreateStandaloneSandbox(sd)
 	if err != nil {
-		common.Exitf(1, defaults.ErrCreatingSandbox, err)
+		common.Exitf(1, globals.ErrCreatingSandbox, err)
 	}
 }
 
@@ -312,6 +354,6 @@ Use the "unpack" command to get the tarball into the right directory.
 
 func init() {
 	deployCmd.AddCommand(singleCmd)
-	singleCmd.PersistentFlags().Bool(defaults.MasterLabel, false, "Make the server replication ready")
+	singleCmd.PersistentFlags().Bool(globals.MasterLabel, false, "Make the server replication ready")
 
 }

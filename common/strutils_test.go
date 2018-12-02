@@ -29,6 +29,8 @@ type pathInfo struct {
 }
 
 func TestReplaceLiteralHome(t *testing.T) {
+	saveHome := os.Getenv("HOME")
+	savePWD := os.Getenv("PWD")
 	os.Setenv("HOME", "/home/Groucho")
 	os.Setenv("PWD", "/var/lib/MarxBrothers")
 	var paths = []pathInfo{
@@ -62,6 +64,8 @@ func TestReplaceLiteralHome(t *testing.T) {
 			t.Fail()
 		}
 	}
+	os.Setenv("HOME", saveHome)
+	os.Setenv("PWD", savePWD)
 }
 
 func TestTextToBool(t *testing.T) {

@@ -12,8 +12,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+package globals
 
-package defaults
+import "strings"
+
+// This variable is changed to true when the "cmd" package is activated,
+// meaning that we're using the command line interface of dbdeployer.
+// It is used to make decisions whether to write messages to the screen
+// when calling sandbox creation functions from other apps.
+var UsingDbDeployer bool = false
 
 const (
 	// Instantiated in cmd/root.go
@@ -184,8 +191,13 @@ const (
 	ErrArgumentRequired            = "argument required: %s"
 	ErrEncodingDefaults            = "error encoding defaults: '%s'"
 	ErrCreatingSandbox             = "error creating sandbox: '%s'"
+	ErrCreatingDirectory           = "error creating directory '%s': %s"
 	ErrRemovingFromCatalog         = "error removing sandbox '%s' from catalog"
+	ErrRetrievingSandboxList       = "error retrieving sandbox list: %s"
+	ErrWhileComparingVersions      = "error while comparing versions"
 )
+
+const MaxAllowedPort int = 64000
 
 // Go doesn't allow constants to be compound types. Thus we use variables here.
 // Although they can be potentially changed (not that anyone would dare,) they
@@ -222,4 +234,18 @@ var (
 	MinimumDataDictionaryVersion    = []int{8, 0, 0}
 	MinimumNativeAuthPluginVersion  = []int{8, 0, 4}
 	MinimumMysqlxDefaultVersion     = []int{8, 0, 11}
+	EmptyString                     = ""
+	EmptyStrings                    = []string{}
+	EmptyBytes                      = []byte{}
 )
+
+const lineLength = 80
+
+var (
+	DashLine string = strings.Repeat("-", lineLength)
+	StarLine string = strings.Repeat("*", lineLength)
+	HashLine string = strings.Repeat("#", lineLength)
+)
+
+const PublicDirectoryAttr = 0755
+const SandboxDescriptionName = "sbdescription.json"

@@ -78,7 +78,8 @@ func TestFindFreePort(t *testing.T) {
 		{usedPorts: []int{5000, 5001, 5002, 5006, 5007, 5008}, basePort: 5000, howMany: 4, expected: 5009},
 	}
 	for _, d := range data {
-		result := FindFreePort(d.basePort, d.usedPorts, d.howMany)
+		result, err := FindFreePort(d.basePort, d.usedPorts, d.howMany)
+		compare.OkIsNil("FindFreePort result", err, t)
 		compare.OkEqualInt(fmt.Sprintf("Free ports %v : %d:%d", d.usedPorts, d.basePort, d.howMany), d.expected, result, t)
 	}
 }

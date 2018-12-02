@@ -17,6 +17,7 @@ package common
 
 import (
 	"github.com/datacharmer/dbdeployer/compare"
+	"github.com/datacharmer/dbdeployer/globals"
 	"testing"
 )
 
@@ -63,8 +64,13 @@ func TestVersionToPort(t *testing.T) {
 	for _, vp := range versions {
 		version := vp.version
 		expected := vp.port
-		port := VersionToPort(version)
+		port, err := VersionToPort(version)
 		//t.Logf("+%s\n", version)
+		if err != nil {
+			// t.Logf("%s", err)
+			// port = -9999
+			return
+		}
 		if expected == port {
 			t.Logf("ok     %-10s => %5d\n", version, port)
 		} else {
@@ -83,7 +89,10 @@ func TestGreaterOrEqualVersion(t *testing.T) {
 		{"10.0.1", []int{5, 6, 0}, false},
 	}
 	for _, v := range versions {
-		result := GreaterOrEqualVersion(v.version, v.versionList)
+		result, err := GreaterOrEqualVersion(v.version, v.versionList)
+		if err != nil {
+			t.Fatalf(globals.ErrWhileComparingVersions)
+		}
 		if v.expected == result {
 			t.Logf("ok     %-10s => %v %v \n", v.version, v.versionList, result)
 		} else {
@@ -111,7 +120,7 @@ func TestCustomUuid(t *testing.T) {
 		{6000, 235281, "00006000-0023-0000-0000-000000006000"},
 	}
 	for _, sample := range uuidSamples {
-		_, newUuid := MakeCustomizedUuid(sample.port, sample.nodeNum)
+		newUuid, _ := MakeCustomizedUuid(sample.port, sample.nodeNum)
 		if newUuid == sample.expected {
 			t.Logf("ok     %5d %6d => %s \n", sample.port, sample.nodeNum, newUuid)
 		} else {
@@ -119,7 +128,7 @@ func TestCustomUuid(t *testing.T) {
 			t.Fail()
 		}
 	}
-	err, newUuid := MakeCustomizedUuid(5000, 10000001)
+	newUuid, err := MakeCustomizedUuid(5000, 10000001)
 	compare.OkEqualString("over boundaries node", newUuid, "", t)
 	compare.OkIsNotNil("over boundaries node", err, t)
 }
@@ -139,8 +148,8 @@ func checkSortVersion(t *testing.T, sortData sortVersionData) {
 		if exp.value == sorted[exp.index] {
 			t.Logf("ok - element %d = '%s'\n", exp.index, exp.value)
 		} else {
-			t.Logf("not ok - out of position element %d - Expected: '%s' - Found: '%s'\n",
-				exp.index, exp.value, sorted[exp.index])
+			t.Logf("not ok - out of position element %d - Expected: '%s' - Found: '%s' {%+v} (%+v)\n",
+				exp.index, exp.value, sorted[exp.index], sortData.data, sorted)
 			t.Fail()
 		}
 	}

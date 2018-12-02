@@ -17,7 +17,7 @@ package cmd
 
 import (
 	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
 	//"fmt"
@@ -27,36 +27,40 @@ func ReplicationSandbox(cmd *cobra.Command, args []string) {
 	var sd sandbox.SandboxDef
 	var semisync bool
 	common.CheckOrigin(args)
-	sd = FillSdef(cmd, args)
+	sd, err := FillSdef(cmd, args)
+	common.ErrCheckExitf(err, 1, "error filling sandbox definition")
 	sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 	flags := cmd.Flags()
-	semisync, _ = flags.GetBool(defaults.SemiSyncLabel)
-	nodes, _ := flags.GetInt(defaults.NodesLabel)
-	topology, _ := flags.GetString(defaults.TopologyLabel)
-	masterIp, _ := flags.GetString(defaults.MasterIpLabel)
-	masterList, _ := flags.GetString(defaults.MasterListLabel)
-	slaveList, _ := flags.GetString(defaults.SlaveListLabel)
-	sd.SinglePrimary, _ = flags.GetBool(defaults.SinglePrimaryLabel)
-	replHistoryDir, _ := flags.GetBool(defaults.ReplHistoryDirLabel)
+	semisync, _ = flags.GetBool(globals.SemiSyncLabel)
+	nodes, _ := flags.GetInt(globals.NodesLabel)
+	topology, _ := flags.GetString(globals.TopologyLabel)
+	masterIp, _ := flags.GetString(globals.MasterIpLabel)
+	masterList, _ := flags.GetString(globals.MasterListLabel)
+	slaveList, _ := flags.GetString(globals.SlaveListLabel)
+	sd.SinglePrimary, _ = flags.GetBool(globals.SinglePrimaryLabel)
+	replHistoryDir, _ := flags.GetBool(globals.ReplHistoryDirLabel)
 	if replHistoryDir {
 		sd.HistoryDir = "REPL_DIR"
 	}
-	if topology != defaults.FanInLabel && topology != defaults.AllMastersLabel {
+	if topology != globals.FanInLabel && topology != globals.AllMastersLabel {
 		masterList = ""
 		slaveList = ""
 	}
 	if semisync {
-		if topology != defaults.MasterSlaveLabel {
+		if topology != globals.MasterSlaveLabel {
 			common.Exit(1, "--semi-sync is only available with master/slave topology")
 		}
 		// 5.5.1
-		if common.GreaterOrEqualVersion(sd.Version, defaults.MinimumSemiSyncVersion) {
+
+		isMinimumSync, err := common.GreaterOrEqualVersion(sd.Version, globals.MinimumSemiSyncVersion)
+		common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
+		if isMinimumSync {
 			sd.SemiSyncOptions = sandbox.SingleTemplates["semisync_master_options"].Contents
 		} else {
-			common.Exitf(1, "--semi-sync requires version %s+", common.IntSliceToDottedString(defaults.MinimumSemiSyncVersion))
+			common.Exitf(1, "--semi-sync requires version %s+", common.IntSliceToDottedString(globals.MinimumSemiSyncVersion))
 		}
 	}
-	if sd.SinglePrimary && topology != defaults.GroupLabel {
+	if sd.SinglePrimary && topology != globals.GroupLabel {
 		common.Exit(1, "option 'single-primary' can only be used with 'group' topology ")
 	}
 	origin := args[0]
@@ -64,9 +68,9 @@ func ReplicationSandbox(cmd *cobra.Command, args []string) {
 		origin = sd.BasedirName
 	}
 	//fmt.Printf("%#v\n",sd)
-	err := sandbox.CreateReplicationSandbox(sd, origin, topology, nodes, masterIp, masterList, slaveList)
+	err = sandbox.CreateReplicationSandbox(sd, origin, topology, nodes, masterIp, masterList, slaveList)
 	if err != nil {
-		common.Exitf(1, defaults.ErrCreatingSandbox, err)
+		common.Exitf(1, globals.ErrCreatingSandbox, err)
 	}
 }
 
@@ -108,12 +112,12 @@ func init() {
 	//replicationCmd.PersistentFlags().StringSliceP("slave-options", "", "", "Extra options for the slaves")
 	//replicationCmd.PersistentFlags().StringSliceP("node-options", "", "", "Extra options for all nodes")
 	//replicationCmd.PersistentFlags().StringSliceP("one-node-options", "", "", "Extra options for one node (format #:option)")
-	replicationCmd.PersistentFlags().StringP(defaults.MasterListLabel, "", defaults.MasterListValue, "Which nodes are masters in a multi-source deployment")
-	replicationCmd.PersistentFlags().StringP(defaults.SlaveListLabel, "", defaults.SlaveListValue, "Which nodes are slaves in a multi-source deployment")
-	replicationCmd.PersistentFlags().StringP(defaults.MasterIpLabel, "", defaults.MasterIpValue, "Which IP the slaves will connect to")
-	replicationCmd.PersistentFlags().StringP(defaults.TopologyLabel, "t", defaults.TopologyValue, "Which topology will be installed")
-	replicationCmd.PersistentFlags().IntP(defaults.NodesLabel, "n", defaults.NodesValue, "How many nodes will be installed")
-	replicationCmd.PersistentFlags().BoolP(defaults.SinglePrimaryLabel, "", false, "Using single primary for group replication")
-	replicationCmd.PersistentFlags().BoolP(defaults.SemiSyncLabel, "", false, "Use semi-synchronous plugin")
-	replicationCmd.PersistentFlags().Bool(defaults.ReplHistoryDirLabel, false, "uses the replication directory to store mysql client history")
+	replicationCmd.PersistentFlags().StringP(globals.MasterListLabel, "", globals.MasterListValue, "Which nodes are masters in a multi-source deployment")
+	replicationCmd.PersistentFlags().StringP(globals.SlaveListLabel, "", globals.SlaveListValue, "Which nodes are slaves in a multi-source deployment")
+	replicationCmd.PersistentFlags().StringP(globals.MasterIpLabel, "", globals.MasterIpValue, "Which IP the slaves will connect to")
+	replicationCmd.PersistentFlags().StringP(globals.TopologyLabel, "t", globals.TopologyValue, "Which topology will be installed")
+	replicationCmd.PersistentFlags().IntP(globals.NodesLabel, "n", globals.NodesValue, "How many nodes will be installed")
+	replicationCmd.PersistentFlags().BoolP(globals.SinglePrimaryLabel, "", false, "Using single primary for group replication")
+	replicationCmd.PersistentFlags().BoolP(globals.SemiSyncLabel, "", false, "Use semi-synchronous plugin")
+	replicationCmd.PersistentFlags().Bool(globals.ReplHistoryDirLabel, false, "uses the replication directory to store mysql client history")
 }

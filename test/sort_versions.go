@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
 	"os"
-	"sort"
 )
 
 /*
@@ -32,32 +31,17 @@ func main() {
 
 	scanner := bufio.NewScanner(os.Stdin)
 
-	type versionList struct {
-		text string
-		mmr  []int
-	}
-	var vlist []versionList
+	var verList []string
 	for scanner.Scan() {
 		line := scanner.Text()
-		vl := common.VersionToList(line)
-		rec := versionList{
-			text: line,
-			mmr:  vl,
-		}
-		if vl[0] > 0 {
-			vlist = append(vlist, rec)
-		}
+		verList = append(verList, line)
 	}
 
 	if err := scanner.Err(); err != nil {
 		common.Exitf(1, "error: %s", err)
 	}
-	sort.Slice(vlist, func(i, j int) bool {
-		return vlist[i].mmr[0] < vlist[j].mmr[0] ||
-			(vlist[i].mmr[0] == vlist[j].mmr[0] && vlist[i].mmr[1] < vlist[j].mmr[1]) ||
-			(vlist[i].mmr[0] == vlist[j].mmr[0] && vlist[i].mmr[1] == vlist[j].mmr[1] && vlist[i].mmr[2] < vlist[j].mmr[2])
-	})
-	for _, v := range vlist {
-		fmt.Printf("%s\n", v.text)
+	verList = common.SortVersions(verList)
+	for _, v := range verList {
+		fmt.Println(v)
 	}
 }

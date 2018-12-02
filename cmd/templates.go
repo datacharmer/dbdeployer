@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
 	"os"
@@ -44,13 +45,13 @@ func FindTemplate(requested string) (group, templateName, contents string) {
 			}
 		}
 	}
-	common.Exitf(1, defaults.ErrTemplateNotFound, requested)
+	common.Exitf(1, globals.ErrTemplateNotFound, requested)
 	return
 }
 
 func ShowTemplate(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
-		common.Exitf(1, defaults.ErrArgumentRequired, "template name")
+		common.Exitf(1, globals.ErrArgumentRequired, "template name")
 	}
 	requested := args[0]
 	_, _, contents := FindTemplate(requested)
@@ -80,7 +81,7 @@ func GetTemplatesList(wanted string) (tlist []TemplateInfo) {
 		}
 	}
 	if !found {
-		common.Exitf(1, defaults.ErrGroupNotFound, wanted)
+		common.Exitf(1, globals.ErrGroupNotFound, wanted)
 	}
 	return
 }
@@ -91,7 +92,7 @@ func ListTemplates(cmd *cobra.Command, args []string) {
 		wanted = args[0]
 	}
 	flags := cmd.Flags()
-	simpleList, _ := flags.GetBool(defaults.SimpleLabel)
+	simpleList, _ := flags.GetBool(globals.SimpleLabel)
 
 	templates := GetTemplatesList(wanted)
 	for _, template := range templates {
@@ -109,11 +110,11 @@ func ListTemplates(cmd *cobra.Command, args []string) {
 
 func RunDescribeTemplate(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
-		common.Exitf(1, defaults.ErrArgumentRequired, "template name")
+		common.Exitf(1, globals.ErrArgumentRequired, "template name")
 	}
 	requested := args[0]
 	flags := cmd.Flags()
-	completeListing, _ := flags.GetBool(defaults.WithContentsLabel)
+	completeListing, _ := flags.GetBool(globals.WithContentsLabel)
 	DescribeTemplate(requested, completeListing)
 }
 
@@ -157,10 +158,13 @@ func ExportTemplates(cmd *cobra.Command, args []string) {
 		wanted = ""
 	}
 	if common.DirExists(dirName) {
-		common.Exitf(1, defaults.ErrDirectoryAlreadyExists, dirName)
+		common.Exitf(1, globals.ErrDirectoryAlreadyExists, dirName)
 	}
 	common.Mkdir(dirName)
-	common.WriteString(common.VersionDef, path.Join(dirName, "version.txt"))
+	err := common.WriteString(common.VersionDef, path.Join(dirName, "version.txt"))
+	if err != nil {
+		common.Exitf(1, "error writing template version file")
+	}
 
 	foundGroup := false
 	foundTemplate := false
@@ -174,7 +178,10 @@ func ExportTemplates(cmd *cobra.Command, args []string) {
 			for name, template := range group {
 				if templateName == "" || common.Includes(name, templateName) {
 					fileName := path.Join(groupDir, name)
-					common.WriteString(common.TrimmedLines(template.Contents), fileName)
+					err = common.WriteString(common.TrimmedLines(template.Contents), fileName)
+					if err != nil {
+						common.Exitf(1, "error writing template %s", fileName)
+					}
 					fmt.Printf("%s/%s exported\n", groupName, name)
 					foundTemplate = true
 				}
@@ -182,10 +189,10 @@ func ExportTemplates(cmd *cobra.Command, args []string) {
 		}
 	}
 	if !foundGroup {
-		common.Exitf(1, defaults.ErrGroupNotFound, wanted)
+		common.Exitf(1, globals.ErrGroupNotFound, wanted)
 	}
 	if !foundTemplate {
-		common.Exitf(1, defaults.ErrTemplateNotFound, templateName)
+		common.Exitf(1, globals.ErrTemplateNotFound, templateName)
 	}
 	fmt.Printf("Exported to %s\n", dirName)
 }
@@ -206,7 +213,10 @@ func LoadTemplates() {
 			if !common.FileExists(fileName) {
 				continue
 			}
-			newContents := common.SlurpAsString(fileName)
+			newContents, err := common.SlurpAsString(fileName)
+			if err != nil {
+				common.Exitf(1, "error reading %s\n", fileName)
+			}
 			newTemplate := template
 			newTemplate.TemplateInFile = true
 			newTemplate.Contents = newContents
@@ -228,7 +238,7 @@ func ImportTemplates(cmd *cobra.Command, args []string) {
 	}
 	dirName := args[1]
 	if !common.DirExists(dirName) {
-		common.Exitf(1, defaults.ErrDirectoryNotFound, dirName)
+		common.Exitf(1, globals.ErrDirectoryNotFound, dirName)
 	}
 	templateName := ""
 	if len(args) > 2 {
@@ -238,14 +248,23 @@ func ImportTemplates(cmd *cobra.Command, args []string) {
 	if !common.FileExists(versionFile) {
 		common.Exitf(1, "file %s not found. Unable to validate templates.", versionFile)
 	}
-	templateVersion := strings.TrimSpace(common.SlurpAsString(versionFile))
-	versionList := common.VersionToList(templateVersion)
-	// fmt.Printf("%v\n",version_list)
-	compatibleVersionList := common.VersionToList(common.CompatibleVersion)
-	if versionList[0] < 0 {
-		common.Exitf(1, "invalid version (%s) found in %s", templateVersion, versionFile)
+	versionFileContents, err := common.SlurpAsString(versionFile)
+	if err != nil {
+		common.Exitf(1, "error reading version file")
 	}
-	if !common.GreaterOrEqualVersion(templateVersion, compatibleVersionList) {
+	templateVersion := strings.TrimSpace(versionFileContents)
+	_, err = common.VersionToList(templateVersion)
+	if err != nil {
+		common.Exitf(1, "error converting version %s\n", templateVersion)
+	}
+	// fmt.Printf("%v\n",version_list)
+	compatibleVersionList, err := common.VersionToList(common.CompatibleVersion)
+	if err != nil {
+		common.Exitf(1, "error converting compatible version %s from file %s\n", common.CompatibleVersion, versionFile)
+	}
+	compatibleTemplate, err := common.GreaterOrEqualVersion(templateVersion, compatibleVersionList)
+	common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
+	if !compatibleTemplate {
 		common.Exitf(1, "templates are for version %s. The minimum compatible version is %s", templateVersion, common.CompatibleVersion)
 	}
 	foundGroup := false
@@ -270,7 +289,10 @@ func ImportTemplates(cmd *cobra.Command, args []string) {
 			} else {
 				continue
 			}
-			newContents := common.SlurpAsString(fileName)
+			newContents, err := common.SlurpAsString(fileName)
+			if err != nil {
+				common.Exitf(1, "error reading template %s\n", fileName)
+			}
 			// fmt.Printf("Group: %s - File: %s\n", group_name, name)
 			// fmt.Printf("sizes: %d %d\n",len(template.Contents), len(new_contents))
 			if !common.DirExists(defaults.ConfigurationDir) {
@@ -285,15 +307,18 @@ func ImportTemplates(cmd *cobra.Command, args []string) {
 				common.Mkdir(destGroupDir)
 			}
 			destFile := path.Join(destGroupDir, name)
-			common.WriteString(newContents, destFile)
+			err = common.WriteString(newContents, destFile)
+			if err != nil {
+				common.Exitf(1, "error writing %s\n", destFile)
+			}
 			fmt.Printf("# Template %s written to %s\n", name, destFile)
 		}
 	}
 	if !foundGroup {
-		common.Exitf(1, defaults.ErrGroupNotFound, wanted)
+		common.Exitf(1, globals.ErrGroupNotFound, wanted)
 	}
 	if !foundTemplate {
-		common.Exitf(1, defaults.ErrTemplateNotFound, templateName)
+		common.Exitf(1, globals.ErrTemplateNotFound, templateName)
 	}
 }
 
@@ -371,6 +396,6 @@ func init() {
 	templatesCmd.AddCommand(templatesImportCmd)
 	templatesCmd.AddCommand(templatesResetCmd)
 
-	templatesListCmd.Flags().BoolP(defaults.SimpleLabel, "s", false, "Shows only the template names, without description")
-	templatesDescribeCmd.Flags().BoolP(defaults.WithContentsLabel, "", false, "Shows complete structure and contents")
+	templatesListCmd.Flags().BoolP(globals.SimpleLabel, "s", false, "Shows only the template names, without description")
+	templatesDescribeCmd.Flags().BoolP(globals.WithContentsLabel, "", false, "Shows complete structure and contents")
 }

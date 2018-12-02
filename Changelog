@@ -1,3 +1,15 @@
+1.15.0	02-Dec-2018
+	Code impovements:
+	- Changed all code that can Exit instead of returning an error in 
+	  packages common, sandbox, default, unpack.
+	- Packages common and defaults keep the functions that can exit
+	  if they are only used with the CLI.
+	- Changed all functions returning errors to have the error as the last
+	  returning item.
+	- Moved constants and many global variables from 'defaults' to new
+	  'globals' package. This reduce the risk of circular import between
+	  dbdeployer packages.
+
 1.14.0	11-Nov-2018
 	Code readability improvements:
 	- Added function IsEnvSet

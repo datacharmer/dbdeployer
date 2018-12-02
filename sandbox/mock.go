@@ -17,6 +17,8 @@ package sandbox
 
 import (
 	"fmt"
+	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/pkg/errors"
 	"os"
 	"path"
 
@@ -51,11 +53,12 @@ func setMockEnvironment(mockUpperDir string) error {
 	sandboxBinaryUpper := fmt.Sprintf("%s/opt", home)
 	mockSandboxBinary = fmt.Sprintf("%s/opt/mysql", home)
 	mockSandboxHome = fmt.Sprintf("%s/sandboxes", home)
-	common.Mkdir(mockUpperDir)
-	common.Mkdir(home)
-	common.Mkdir(sandboxBinaryUpper)
-	common.Mkdir(mockSandboxBinary)
-	common.Mkdir(mockSandboxHome)
+	for _, dir := range []string{mockUpperDir, home, sandboxBinaryUpper, mockSandboxBinary, mockSandboxHome} {
+		err := os.Mkdir(dir, globals.PublicDirectoryAttr)
+		if err != nil {
+			return errors.Wrapf(err, "error creating directory %s", dir)
+		}
+	}
 	saveHome = os.Getenv("HOME")
 	saveSandboxBinary = os.Getenv("SANDBOX_BINARY")
 	saveSandboxHome = os.Getenv("SANDBOX_HOME")
@@ -64,10 +67,10 @@ func setMockEnvironment(mockUpperDir string) error {
 	os.Setenv("SANDBOX_BINARY", mockSandboxBinary)
 	os.Setenv("HOME", home)
 	os.Setenv("SLEEP_TIME", "0")
-	defaults.ConfigurationDir = home + ".dbdeployer"
-	defaults.ConfigurationFile = home + ".dbdeployer/config.json"
-	defaults.SandboxRegistry = home + ".dbdeployer/sandboxes.json"
-	defaults.SandboxRegistryLock = home + ".dbdeployer/sandboxes.lock"
+	defaults.ConfigurationDir = path.Join(home, defaults.ConfigurationDirName)
+	defaults.ConfigurationFile = path.Join(home, defaults.ConfigurationDirName, defaults.ConfigurationFileName)
+	defaults.SandboxRegistry = path.Join(home, defaults.ConfigurationDirName, defaults.SandboxRegistryName)
+	defaults.SandboxRegistryLock = path.Join(home, defaults.ConfigurationDirName, defaults.SandboxRegistryLockName)
 	return nil
 }
 
@@ -90,7 +93,7 @@ func createMockVersion(version string) error {
 	if mockSandboxBinary == "" {
 		return fmt.Errorf("mock directory not set yet. - Call setMockEnvironment() first")
 	}
-	err, _, logger := defaults.NewLogger(common.LogDirName(), "mock")
+	logger, _, err := defaults.NewLogger(common.LogDirName(), "mock")
 	if err != nil {
 		return err
 	}
@@ -98,10 +101,12 @@ func createMockVersion(version string) error {
 	binDir := path.Join(versionDir, "bin")
 	libDir := path.Join(versionDir, "lib")
 	scriptsDir := path.Join(versionDir, "scripts")
-	common.Mkdir(versionDir)
-	common.Mkdir(binDir)
-	common.Mkdir(scriptsDir)
-	common.Mkdir(libDir)
+	for _, dir := range []string{versionDir, binDir, scriptsDir, libDir} {
+		err := os.Mkdir(dir, globals.PublicDirectoryAttr)
+		if err != nil {
+			return errors.Wrapf(err, globals.ErrCreatingDirectory, dir, err)
+		}
+	}
 	var emptyData = common.StringMap{}
 	currentOs := runtime.GOOS
 	extension := ""

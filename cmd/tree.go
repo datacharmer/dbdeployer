@@ -20,7 +20,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 	"strings"
@@ -47,7 +47,7 @@ func WriteBashCompletion() {
 func WriteManPages() {
 	manDir := "man_pages"
 	if common.DirExists(manDir) {
-		common.Exitf(1, defaults.ErrNamedDirectoryAlreadyExists, "manual pages", manDir)
+		common.Exitf(1, globals.ErrNamedDirectoryAlreadyExists, "manual pages", manDir)
 	}
 	common.Mkdir(manDir)
 	header := &doc.GenManHeader{
@@ -62,7 +62,7 @@ func WriteManPages() {
 func WriteMarkdownPages() {
 	md_dir := "markdown_pages"
 	if common.DirExists(md_dir) {
-		common.Exitf(1, defaults.ErrNamedDirectoryAlreadyExists, "Markdown pages", md_dir)
+		common.Exitf(1, globals.ErrNamedDirectoryAlreadyExists, "Markdown pages", md_dir)
 	}
 	common.Mkdir(md_dir)
 	err := doc.GenMarkdownTree(rootCmd, md_dir)
@@ -74,7 +74,7 @@ func WriteMarkdownPages() {
 func WriteRstPages() {
 	rstDir := "rst_pages"
 	if common.DirExists(rstDir) {
-		common.Exitf(1, defaults.ErrNamedDirectoryAlreadyExists, "restructured Text pages", rstDir)
+		common.Exitf(1, globals.ErrNamedDirectoryAlreadyExists, "restructured Text pages", rstDir)
 	}
 	common.Mkdir(rstDir)
 	err := doc.GenReSTTree(rootCmd, rstDir)

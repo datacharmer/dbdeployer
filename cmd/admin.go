@@ -18,8 +18,9 @@ package cmd
 import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/sandbox"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"os"
 	"path"
@@ -28,68 +29,68 @@ import (
 func UnpreserveSandbox(sandboxDir, sandboxName string) {
 	fullPath := path.Join(sandboxDir, sandboxName)
 	if !common.DirExists(fullPath) {
-		common.Exitf(1, defaults.ErrDirectoryNotFound, fullPath)
+		common.Exitf(1, globals.ErrDirectoryNotFound, fullPath)
 	}
-	preserve := path.Join(fullPath, defaults.ScriptNoClearAll)
+	preserve := path.Join(fullPath, globals.ScriptNoClearAll)
 	if !common.ExecExists(preserve) {
-		preserve = path.Join(fullPath, defaults.ScriptNoClear)
+		preserve = path.Join(fullPath, globals.ScriptNoClear)
 	}
 	if !common.ExecExists(preserve) {
 		fmt.Printf("Sandbox %s is not locked\n", sandboxName)
 		return
 	}
 	isMultiple := true
-	clear := path.Join(fullPath, defaults.ScriptClearAll)
+	clear := path.Join(fullPath, globals.ScriptClearAll)
 	if !common.ExecExists(clear) {
-		clear = path.Join(fullPath, defaults.ScriptClear)
+		clear = path.Join(fullPath, globals.ScriptClear)
 		isMultiple = false
 	}
 	if !common.ExecExists(clear) {
-		common.Exitf(1, defaults.ErrExecutableNotFound, clear)
+		common.Exitf(1, globals.ErrExecutableNotFound, clear)
 	}
-	noClear := path.Join(fullPath, defaults.ScriptNoClear)
+	noClear := path.Join(fullPath, globals.ScriptNoClear)
 	if isMultiple {
-		noClear = path.Join(fullPath, defaults.ScriptNoClearAll)
+		noClear = path.Join(fullPath, globals.ScriptNoClearAll)
 	}
 	err := os.Remove(clear)
-	common.ErrCheckExitf(err, 1, defaults.ErrWhileRemoving, clear, err)
+	common.ErrCheckExitf(err, 1, globals.ErrWhileRemoving, clear, err)
 	err = os.Rename(noClear, clear)
-	common.ErrCheckExitf(err, 1, defaults.ErrWhileRenamingScript, err)
+	common.ErrCheckExitf(err, 1, globals.ErrWhileRenamingScript, err)
 	fmt.Printf("Sandbox %s unlocked\n", sandboxName)
 }
 
 func PreserveSandbox(sandboxDir, sandboxName string) {
 	fullPath := path.Join(sandboxDir, sandboxName)
 	if !common.DirExists(fullPath) {
-		common.Exitf(1, defaults.ErrDirectoryNotFound, fullPath)
+		common.Exitf(1, globals.ErrDirectoryNotFound, fullPath)
 	}
-	preserve := path.Join(fullPath, defaults.ScriptNoClearAll)
+	preserve := path.Join(fullPath, globals.ScriptNoClearAll)
 	if !common.ExecExists(preserve) {
-		preserve = path.Join(fullPath, defaults.ScriptNoClear)
+		preserve = path.Join(fullPath, globals.ScriptNoClear)
 	}
 	if common.ExecExists(preserve) {
 		fmt.Printf("Sandbox %s is already locked\n", sandboxName)
 		return
 	}
 	isMultiple := true
-	clear := path.Join(fullPath, defaults.ScriptClearAll)
+	clear := path.Join(fullPath, globals.ScriptClearAll)
 	if !common.ExecExists(clear) {
-		clear = path.Join(fullPath, defaults.ScriptClear)
+		clear = path.Join(fullPath, globals.ScriptClear)
 		isMultiple = false
 	}
 	if !common.ExecExists(clear) {
-		common.Exitf(1, defaults.ErrExecutableNotFound, clear)
+		common.Exitf(1, globals.ErrExecutableNotFound, clear)
 	}
-	noClear := path.Join(fullPath, defaults.ScriptNoClear)
-	clearCmd := defaults.ScriptClear
-	noClearCmd := defaults.ScriptNoClear
+	noClear := path.Join(fullPath, globals.ScriptNoClear)
+	clearCmd := globals.ScriptClear
+	noClearCmd := globals.ScriptNoClear
 	if isMultiple {
-		noClear = path.Join(fullPath, defaults.ScriptNoClearAll)
-		clearCmd = defaults.ScriptClearAll
-		noClearCmd = defaults.ScriptNoClearAll
+		noClear = path.Join(fullPath, globals.ScriptNoClearAll)
+		clearCmd = globals.ScriptClearAll
+		noClearCmd = globals.ScriptNoClearAll
 	}
 	err := os.Rename(clear, noClear)
-	common.ErrCheckExitf(err, 1, defaults.ErrWhileRenamingScript, err)
+	common.ErrCheckExitf(err, 1, globals.ErrWhileRenamingScript, err)
 	template := sandbox.SingleTemplates["sb_locked_template"].Contents
 	var data = common.StringMap{
 		"TemplateName": "sb_locked_template",
@@ -101,8 +102,14 @@ func PreserveSandbox(sandboxDir, sandboxName string) {
 	}
 	template = common.TrimmedLines(template)
 	newClearMessage := common.TemplateFill(template, data)
-	common.WriteString(newClearMessage, clear)
-	os.Chmod(clear, 0744)
+	err = common.WriteString(newClearMessage, clear)
+	if err != nil {
+		common.Exitf(1, "%+v", err)
+	}
+	err = os.Chmod(clear, 0744)
+	if err != nil {
+		common.Exitf(1, "%+v", err)
+	}
 	fmt.Printf("Sandbox %s locked\n", sandboxName)
 }
 
@@ -113,10 +120,15 @@ func LockSandbox(cmd *cobra.Command, args []string) {
 			"Example: dbdeployer admin lock msb_5_7_21")
 	}
 	candidateSandbox := args[0]
-	sandboxDir := GetAbsolutePathFromFlag(cmd, "sandbox-home")
+	sandboxDir, err := GetAbsolutePathFromFlag(cmd, "sandbox-home")
+	if err != nil {
+		common.Exitf(1, "%+v", err)
+	}
 	lockList := []string{candidateSandbox}
 	if candidateSandbox == "ALL" || candidateSandbox == "all" {
-		lockList = common.SandboxInfoToFileNames(common.GetInstalledSandboxes(sandboxDir))
+		installedSandboxes, err := common.GetInstalledSandboxes(sandboxDir)
+		common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList)
+		lockList = common.SandboxInfoToFileNames(installedSandboxes)
 	}
 	if len(lockList) == 0 {
 		fmt.Printf("Nothing to lock in %s\n", sandboxDir)
@@ -134,10 +146,15 @@ func UnlockSandbox(cmd *cobra.Command, args []string) {
 			"Example: dbdeployer admin unlock msb_5_7_21")
 	}
 	candidateSandbox := args[0]
-	sandboxDir := GetAbsolutePathFromFlag(cmd, "sandbox-home")
+	sandboxDir, err := GetAbsolutePathFromFlag(cmd, "sandbox-home")
+	if err != nil {
+		common.Exitf(1, "%+v", err)
+	}
 	lockList := []string{candidateSandbox}
 	if candidateSandbox == "ALL" || candidateSandbox == "all" {
-		lockList = common.SandboxInfoToFileNames(common.GetInstalledSandboxes(sandboxDir))
+		installedSandboxes, err := common.GetInstalledSandboxes(sandboxDir)
+		common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList)
+		lockList = common.SandboxInfoToFileNames(installedSandboxes)
 	}
 	if len(lockList) == 0 {
 		fmt.Printf("Nothing to lock in %s\n", sandboxDir)
@@ -148,7 +165,7 @@ func UnlockSandbox(cmd *cobra.Command, args []string) {
 	}
 }
 
-func UpgradeSandbox(sandboxDir, oldSandbox, newSandbox string) {
+func UpgradeSandbox(sandboxDir, oldSandbox, newSandbox string) error {
 	var possibleUpgrades = map[string]string{
 		"5.0": "5.1",
 		"5.1": "5.5",
@@ -159,30 +176,42 @@ func UpgradeSandbox(sandboxDir, oldSandbox, newSandbox string) {
 	}
 	err := os.Chdir(sandboxDir)
 	common.ErrCheckExitf(err, 1, "can't change directory to %s", sandboxDir)
-	scripts := []string{defaults.ScriptStart, defaults.ScriptStop, defaults.ScriptMy}
+	scripts := []string{globals.ScriptStart, globals.ScriptStop, globals.ScriptMy}
 	for _, dir := range []string{oldSandbox, newSandbox} {
 		if !common.DirExists(dir) {
-			common.Exitf(1, defaults.ErrDirectoryNotFoundInUpper, dir, sandboxDir)
+			common.Exitf(1, globals.ErrDirectoryNotFoundInUpper, dir, sandboxDir)
 		}
 		for _, script := range scripts {
 			if !common.ExecExists(path.Join(dir, script)) {
-				common.Exit(1, fmt.Sprintf(defaults.ErrScriptNotFoundInUpper, script, dir),
+				common.Exit(1, fmt.Sprintf(globals.ErrScriptNotFoundInUpper, script, dir),
 					"The upgrade only works between SINGLE deployments")
 			}
 		}
 	}
-	newSbdesc := common.ReadSandboxDescription(newSandbox)
-	oldSbdesc := common.ReadSandboxDescription(oldSandbox)
+	newSbdesc, err := common.ReadSandboxDescription(newSandbox)
+	if err != nil {
+		return errors.Wrapf(err, "error reading new sandbox description")
+	}
+	oldSbdesc, err := common.ReadSandboxDescription(oldSandbox)
+	if err != nil {
+		return errors.Wrapf(err, "error reading old sandbox description")
+	}
 	mysqlUpgrade := path.Join(newSbdesc.Basedir, "bin", "mysql_upgrade")
 	if !common.ExecExists(mysqlUpgrade) {
-		common.WriteString("", path.Join(newSandbox, "no_upgrade"))
-		common.Exitf(0, "mysql_upgrade not found in %s. Upgrade is not possible", newSbdesc.Basedir)
+		_ = common.WriteString("", path.Join(newSandbox, "no_upgrade"))
+		return errors.Errorf("mysql_upgrade not found in %s. Upgrade is not possible", newSbdesc.Basedir)
 	}
-	newVersionList := common.VersionToList(newSbdesc.Version)
+	newVersionList, err := common.VersionToList(newSbdesc.Version)
+	if err != nil {
+		return errors.Wrapf(err, "error converting new sandbox version to major/minor/rev")
+	}
 	newMajor := newVersionList[0]
 	newMinor := newVersionList[1]
 	newRev := newVersionList[2]
-	oldVersionList := common.VersionToList(oldSbdesc.Version)
+	oldVersionList, err := common.VersionToList(oldSbdesc.Version)
+	if err != nil {
+		return errors.Wrapf(err, "error converting old sandbox version to major/minor/rev")
+	}
 	oldMajor := oldVersionList[0]
 	oldMinor := oldVersionList[1]
 	oldRev := oldVersionList[2]
@@ -191,7 +220,9 @@ func UpgradeSandbox(sandboxDir, oldSandbox, newSandbox string) {
 	if oldMajor == 10 || newMajor == 10 {
 		common.Exit(1, "upgrade from and to MariaDB is not supported")
 	}
-	if common.GreaterOrEqualVersion(oldSbdesc.Version, newVersionList) {
+	greaterThanNewVersion, err := common.GreaterOrEqualVersion(oldSbdesc.Version, newVersionList)
+	common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
+	if greaterThanNewVersion {
 		common.Exitf(1, "version %s must be greater than %s", newUpgradeVersion, oldUpgradeVersion)
 	}
 	canBeUpgraded := false
@@ -207,34 +238,48 @@ func UpgradeSandbox(sandboxDir, oldSandbox, newSandbox string) {
 		}
 	}
 	if !canBeUpgraded {
-		common.Exitf(1, "version '%s' can only be upgraded to '%s' or to the same version with a higher revision", oldUpgradeVersion, possibleUpgrades[oldUpgradeVersion])
+		return errors.Errorf("version '%s' can only be upgraded to '%s' or to the same version with a higher revision", oldUpgradeVersion, possibleUpgrades[oldUpgradeVersion])
 	}
-	newSandboxOldData := path.Join(newSandbox, defaults.DataDirName+"-"+newSandbox)
+	newSandboxOldData := path.Join(newSandbox, globals.DataDirName+"-"+newSandbox)
 	if common.DirExists(newSandboxOldData) {
-		common.Exitf(1, "sandbox '%s' is already the upgrade from an older version", newSandbox)
+		return errors.Errorf("sandbox '%s' is already the upgrade from an older version", newSandbox)
 	}
-	err, _ = common.RunCmd(path.Join(oldSandbox, defaults.ScriptStop))
-	common.ErrCheckExitf(err, 1, defaults.ErrWhileStoppingSandbox, oldSandbox)
-	err, _ = common.RunCmd(path.Join(newSandbox, defaults.ScriptStop))
-	common.ErrCheckExitf(err, 1, defaults.ErrWhileStoppingSandbox, newSandbox)
-	mvArgs := []string{path.Join(newSandbox, defaults.DataDirName), newSandboxOldData}
-	err, _ = common.RunCmdWithArgs("mv", mvArgs)
-	common.ErrCheckExitf(err, 1, "error while moving data directory in sandbox %s", newSandbox)
+	_, err = common.RunCmd(path.Join(oldSandbox, globals.ScriptStop))
+	if err != nil {
+		return errors.Wrapf(err, globals.ErrWhileStoppingSandbox, oldSandbox)
+	}
+	_, err = common.RunCmd(path.Join(newSandbox, globals.ScriptStop))
+	if err != nil {
+		return errors.Wrapf(err, globals.ErrWhileStoppingSandbox, newSandbox)
+	}
+	mvArgs := []string{path.Join(newSandbox, globals.DataDirName), newSandboxOldData}
+	_, err = common.RunCmdWithArgs("mv", mvArgs)
+	if err != nil {
+		return errors.Wrapf(err, "error while moving data directory in sandbox %s", newSandbox)
+	}
 
-	mvArgs = []string{path.Join(oldSandbox, defaults.DataDirName), path.Join(newSandbox, defaults.DataDirName)}
-	err, _ = common.RunCmdWithArgs("mv", mvArgs)
-	common.ErrCheckExitf(err, 1, "error while moving data directory from sandbox %s to %s", oldSandbox, newSandbox)
+	mvArgs = []string{path.Join(oldSandbox, globals.DataDirName), path.Join(newSandbox, globals.DataDirName)}
+	_, err = common.RunCmdWithArgs("mv", mvArgs)
+	if err != nil {
+		return errors.Wrapf(err, "error while moving data directory from sandbox %s to %s", oldSandbox, newSandbox)
+	}
 	fmt.Printf("Data directory %s/data moved to %s/data \n", oldSandbox, newSandbox)
 
-	err, _ = common.RunCmd(path.Join(newSandbox, defaults.ScriptStart))
-	common.ErrCheckExitf(err, 1, defaults.ErrWhileStartingSandbox, newSandbox)
+	_, err = common.RunCmd(path.Join(newSandbox, globals.ScriptStart))
+	if err != nil {
+		return errors.Wrapf(err, globals.ErrWhileStartingSandbox, newSandbox)
+	}
 	upgradeArgs := []string{"sql_upgrade"}
-	err, _ = common.RunCmdWithArgs(path.Join(newSandbox, defaults.ScriptMy), upgradeArgs)
-	common.ErrCheckExitf(err, 1, "error while running mysql_upgrade in %s", newSandbox)
+	_, err = common.RunCmdWithArgs(path.Join(newSandbox, globals.ScriptMy), upgradeArgs)
+	if err != nil {
+
+		return errors.Wrapf(err, "error while running mysql_upgrade in %s", newSandbox)
+	}
 	fmt.Println("")
 	fmt.Printf("The data directory from %s/data is preserved in %s\n", newSandbox, newSandboxOldData)
 	fmt.Printf("The data directory from %s/data is now used in %s/data\n", oldSandbox, newSandbox)
 	fmt.Printf("%s is not operational and can be deleted\n", oldSandbox)
+	return nil
 }
 
 func RunUpgradeSandbox(cmd *cobra.Command, args []string) {
@@ -245,8 +290,14 @@ func RunUpgradeSandbox(cmd *cobra.Command, args []string) {
 	}
 	oldSandbox := args[0]
 	newSandbox := args[1]
-	sandboxDir := GetAbsolutePathFromFlag(cmd, "sandbox-home")
-	UpgradeSandbox(sandboxDir, oldSandbox, newSandbox)
+	sandboxDir, err := GetAbsolutePathFromFlag(cmd, "sandbox-home")
+	if err != nil {
+		common.Exitf(1, "%+v", err)
+	}
+	err = UpgradeSandbox(sandboxDir, oldSandbox, newSandbox)
+	if err != nil {
+		common.Exitf(1, "%+v", err)
+	}
 }
 
 var (

@@ -17,10 +17,11 @@ package defaults
 
 import (
 	"fmt"
+	"github.com/datacharmer/dbdeployer/globals"
 	"os"
 	"strings"
+	"sync"
 
-	//"strings"
 	"encoding/json"
 	"github.com/datacharmer/dbdeployer/common"
 	"time"
@@ -46,35 +47,56 @@ const (
 )
 
 var enableCatalogManagement bool = true
+var catalogMutex sync.Mutex
 
-func setLock(label string) bool {
+func isLocked() bool {
+	return common.FileExists(SandboxRegistryLock)
+}
+
+func setLock(label string) error {
 	if !enableCatalogManagement {
-		return true
+		return nil
 	}
-	lockFile := SandboxRegistryLock
 	if !common.DirExists(ConfigurationDir) {
-		common.Mkdir(ConfigurationDir)
+		err := os.Mkdir(ConfigurationDir, globals.PublicDirectoryAttr)
+		if err != nil {
+			return fmt.Errorf("error making lock directory")
+		}
+	}
+	if !common.FileExists(SandboxRegistry) {
+		err := common.WriteString("{}", SandboxRegistry)
+		if err != nil {
+			return err
+		}
 	}
 	elapsed := 0
-	for common.FileExists(lockFile) {
+	for isLocked() {
 		elapsed += 1
 		time.Sleep(1000 * time.Millisecond)
 		if elapsed > timeout {
-			return false
+			return fmt.Errorf("timeout error for setLock")
 		}
 	}
-	err := common.WriteString(label, lockFile)
-	return err == nil
+	err := common.WriteString(label, SandboxRegistryLock)
+	if err != nil {
+		return err
+	}
+	catalogMutex.Lock()
+	return nil
 }
 
-func releaseLock() {
+func releaseLock() error {
 	if !enableCatalogManagement {
-		return
+		return nil
 	}
-	lockFile := SandboxRegistryLock
-	if common.FileExists(lockFile) {
-		_ = os.Remove(lockFile)
+	if isLocked() {
+		err := os.Remove(SandboxRegistryLock)
+		if err != nil {
+			return err
+		}
 	}
+	catalogMutex.Unlock()
+	return nil
 }
 
 func WriteCatalog(sc SandboxCatalog) error {
@@ -88,18 +110,24 @@ func WriteCatalog(sc SandboxCatalog) error {
 	return common.WriteString(jsonString, filename)
 }
 
-func ReadCatalog() (sc SandboxCatalog) {
+func ReadCatalog() (sc SandboxCatalog, err error) {
 	if !enableCatalogManagement {
 		return
 	}
 	filename := SandboxRegistry
+	// if there is no catalog file (yet) we return an empty list
 	if !common.FileExists(filename) {
-		return
+		return sc, nil
 	}
-	scBlob := common.SlurpAsBytes(filename)
+	scBlob, err := common.SlurpAsBytes(filename)
+	if err != nil {
+		return sc, err
+	}
 
-	err := json.Unmarshal(scBlob, &sc)
-	common.ErrCheckExitf(err, 1, "error decoding sandbox catalog: %s", err)
+	err = json.Unmarshal(scBlob, &sc)
+	if err != nil {
+		return sc, fmt.Errorf("error decoding catalog: %s", err)
+	}
 	return
 }
 
@@ -110,23 +138,31 @@ func UpdateCatalog(sbName string, details SandboxItem) error {
 	if !enableCatalogManagement {
 		return nil
 	}
-	// fmt.Printf("+%s\n",sb_name)
-	if setLock(sbName) {
-		// fmt.Printf("+locked\n")
-		current := ReadCatalog()
+	err := setLock(sbName)
+	if err == nil {
+		current, err := ReadCatalog()
+		if err != nil {
+			err1 := releaseLock()
+			if err1 != nil {
+				panic(fmt.Sprintf("%s", err))
+			}
+			return err
+		}
 		if current == nil {
 			current = make(SandboxCatalog)
 		}
 		current[sbName] = details
-		err := WriteCatalog(current)
-		releaseLock()
+		err = WriteCatalog(current)
+		err1 := releaseLock()
+		if err1 != nil {
+			panic(fmt.Sprintf("%s", err))
+		}
 		return err
-		// fmt.Printf("+unlocked\n")
 	} else {
-		fmt.Printf("%s\n", common.HashLine)
-		fmt.Printf("# Could not get lock on %s\n", SandboxRegistryLock)
-		fmt.Printf("%s\n", common.HashLine)
-		return fmt.Errorf("could not get lock on %s", SandboxRegistryLock)
+		fmt.Printf("%s\n", globals.HashLine)
+		fmt.Printf("# UpdateCatalog Could not get lock on %s\n", SandboxRegistryLock)
+		fmt.Printf("%s\n", globals.HashLine)
+		return fmt.Errorf("could not get lock on %s : %s", SandboxRegistryLock, err)
 	}
 }
 
@@ -134,26 +170,35 @@ func DeleteFromCatalog(sbName string) error {
 	if !enableCatalogManagement {
 		return nil
 	}
-	if setLock(sbName) {
-		current := ReadCatalog()
-		defer releaseLock()
+	err := setLock(sbName)
+	if err == nil {
+		current, err := ReadCatalog()
+		if err != nil {
+			err1 := releaseLock()
+			if err1 != nil {
+				panic(fmt.Sprintf("%s", err))
+			}
+			return err
+		}
 		if current == nil {
+			err1 := releaseLock()
+			if err1 != nil {
+				panic(fmt.Sprintf("%s", err))
+			}
 			return nil
 		}
-		//for name, _ := range current {
-		//	if strings.HasPrefix(name, sb_name) {
-		//		delete(current, name)
-		//	}
-		//}
 		delete(current, sbName)
-		err := WriteCatalog(current)
-		releaseLock()
+		err = WriteCatalog(current)
+		err1 := releaseLock()
+		if err1 != nil {
+			panic(fmt.Sprintf("%s", err))
+		}
 		return err
 	} else {
-		fmt.Printf("%s\n", common.HashLine)
-		fmt.Printf("# Could not get lock on %s\n", SandboxRegistryLock)
-		fmt.Printf("%s\n", common.HashLine)
-		return fmt.Errorf("could not get lock on %s", SandboxRegistryLock)
+		fmt.Printf("%s\n", globals.HashLine)
+		fmt.Printf("# DeleteFromCatalog Could not get lock on %s\n", SandboxRegistryLock)
+		fmt.Printf("%s\n", globals.HashLine)
+		return fmt.Errorf("could not get lock on %s: %s", SandboxRegistryLock, err)
 	}
 }
 
