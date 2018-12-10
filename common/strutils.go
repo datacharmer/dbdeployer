@@ -17,6 +17,7 @@ package common
 
 import (
 	"fmt"
+	"github.com/datacharmer/dbdeployer/globals"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -33,6 +34,18 @@ type CleanupRec struct {
 }
 
 var cleanupActions = NewStack()
+
+func CondPrintf(format string, args ...interface{}) {
+	if globals.UsingDbDeployer {
+		fmt.Printf(format, args...)
+	}
+}
+
+func CondPrintln(args ...interface{}) {
+	if globals.UsingDbDeployer {
+		fmt.Println(args...)
+	}
+}
 
 // Checks whether a given environment variable is set
 func IsEnvSet(envVar string) bool {
@@ -131,7 +144,7 @@ func SortVersionsSubset(versions []string, wanted string) (sorted []string) {
 	for _, line := range versions {
 		vl, err := VersionToList(line)
 		if err != nil {
-			fmt.Printf("%s\n", err)
+			CondPrintf("%s\n", err)
 			return versions
 		}
 		rec := versionList{
@@ -246,13 +259,13 @@ func AddToCleanupStack(cf CleanupFunc, funcName, arg string) {
 // Runs the cleanup actions (usually before Exit)
 func RunCleanupActions() {
 	if cleanupActions.Len() > 0 {
-		fmt.Printf("# Pre-exit cleanup. \n")
+		CondPrintf("# Pre-exit cleanup. \n")
 	}
 	count := 0
 	for cleanupActions.Len() > 0 {
 		count++
 		cr := cleanupActions.Pop().(CleanupRec)
-		fmt.Printf("#%d - Executing %s( %s)\n", count, cr.label, cr.target)
+		CondPrintf("#%d - Executing %s( %s)\n", count, cr.label, cr.target)
 		cr.f(cr.target)
 	}
 }
@@ -268,9 +281,9 @@ func ErrCheckExitf(err error, exitCode int, format string, args ...interface{}) 
 // Runs cleanup actions before aborting the program
 func Exitf(exitCode int, format string, args ...interface{}) {
 	RunCleanupActions()
-	fmt.Printf(format, args...)
+	CondPrintf(format, args...)
 	if !Includes(format, `\n`) {
-		fmt.Println()
+		CondPrintln()
 	}
 	os.Exit(exitCode)
 }
@@ -280,7 +293,7 @@ func Exitf(exitCode int, format string, args ...interface{}) {
 func Exit(exitCode int, messages ...string) {
 	RunCleanupActions()
 	for _, msg := range messages {
-		fmt.Printf("%s\n", msg)
+		CondPrintf("%s\n", msg)
 	}
 	os.Exit(exitCode)
 }

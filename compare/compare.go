@@ -73,7 +73,7 @@ func OkEqualBool(label string, a, b bool, t *testing.T) {
 func OkMatchesString(label, val, regex string, t *testing.T) {
 	re := regexp.MustCompile(regex)
 	if re.MatchString(val) {
-		t.Logf("ok - %s: %s matches '%s'\n", label, val, regex)
+		t.Logf("ok - %s: '%s' matches '%s'\n", label, val, regex)
 	} else {
 		t.Logf("not ok - %s: String '%s'  doesn't match '%s'", label, val, regex)
 		t.Fail()
@@ -115,6 +115,26 @@ func OkEqualIntSlices(t *testing.T, found, expected []int) {
 		} else {
 			t.Logf("not ok - element %d of Found differs from the corresponding one in Expected. "+
 				"Expected '%d' - found: '%d'\n", N, expected[N], found[N])
+			t.Fail()
+		}
+	}
+}
+
+// Compares two byte slices
+func OkEqualByteSlices(t *testing.T, found, expected []byte) {
+	if len(expected) != len(found) {
+		t.Logf("not ok - slice Found has %d elements, while slice Expected has %d\n", len(found), len(expected))
+		t.Logf("Found: %v", found)
+		t.Logf("Expected: %v", expected)
+		t.Fail()
+		return
+	}
+	for N := 0; N < len(found); N++ {
+		if found[N] == expected[N] {
+			t.Logf("ok - byte %d of Found and the same in Expected are equal [%x]\n", N, found[N])
+		} else {
+			t.Logf("not ok - byte %d of Found differs from the corresponding one in Expected. "+
+				"Expected '%x' - found: '%x'\n", N, expected[N], found[N])
 			t.Fail()
 		}
 	}

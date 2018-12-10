@@ -26,7 +26,7 @@ import (
 	"strings"
 )
 
-func WriteApi(showHidden bool) {
+func writeApi(showHidden bool) {
 	fmt.Println("This is the list of commands and modifiers available for")
 	fmt.Println("dbdeployer {{.Version}} as of {{.Date}}")
 	fmt.Println("")
@@ -37,14 +37,14 @@ func WriteApi(showHidden bool) {
 	traverse(rootCmd, "", 0, true, showHidden)
 }
 
-func WriteBashCompletion() {
+func writeBashCompletion() {
 	completionFile := "dbdeployer_completion.sh"
 	rootCmd.GenBashCompletionFile(completionFile)
-	fmt.Printf("Copy %s to the completion directory (/etc/bash_completion.d or /usr/local/etc/bash_completion.d)\n", completionFile)
+	common.CondPrintf("Copy %s to the completion directory (/etc/bash_completion.d or /usr/local/etc/bash_completion.d)\n", completionFile)
 
 }
 
-func WriteManPages() {
+func writeManPages() {
 	manDir := "man_pages"
 	if common.DirExists(manDir) {
 		common.Exitf(1, globals.ErrNamedDirectoryAlreadyExists, "manual pages", manDir)
@@ -56,10 +56,10 @@ func WriteManPages() {
 	}
 	err := doc.GenManTree(rootCmd, header, manDir)
 	common.ErrCheckExitf(err, 1, "%s", err)
-	fmt.Printf("Man pages generated in '%s'\n", manDir)
+	common.CondPrintf("Man pages generated in '%s'\n", manDir)
 }
 
-func WriteMarkdownPages() {
+func writeMarkdownPages() {
 	md_dir := "markdown_pages"
 	if common.DirExists(md_dir) {
 		common.Exitf(1, globals.ErrNamedDirectoryAlreadyExists, "Markdown pages", md_dir)
@@ -68,10 +68,10 @@ func WriteMarkdownPages() {
 	err := doc.GenMarkdownTree(rootCmd, md_dir)
 	common.ErrCheckExitf(err, 1, "%s", err)
 	err = doc.GenReSTTree(rootCmd, md_dir)
-	fmt.Printf("Markdown pages generated in '%s'\n", md_dir)
+	common.CondPrintf("Markdown pages generated in '%s'\n", md_dir)
 }
 
-func WriteRstPages() {
+func writeRstPages() {
 	rstDir := "rst_pages"
 	if common.DirExists(rstDir) {
 		common.Exitf(1, globals.ErrNamedDirectoryAlreadyExists, "restructured Text pages", rstDir)
@@ -79,10 +79,10 @@ func WriteRstPages() {
 	common.Mkdir(rstDir)
 	err := doc.GenReSTTree(rootCmd, rstDir)
 	common.ErrCheckExitf(err, 1, "%s", err)
-	fmt.Printf("Restructured Text pages generated in '%s'\n", rstDir)
+	common.CondPrintf("Restructured Text pages generated in '%s'\n", rstDir)
 }
 
-func MakeDocumentation(cmd *cobra.Command, args []string) {
+func makeDocumentation(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	api, _ := flags.GetBool("api")
 	showHidden, _ := flags.GetBool("show-hidden")
@@ -94,23 +94,23 @@ func MakeDocumentation(cmd *cobra.Command, args []string) {
 		common.Exit(1, "choose one option only")
 	}
 	if rstPages {
-		WriteRstPages()
+		writeRstPages()
 		return
 	}
 	if manPages {
-		WriteManPages()
+		writeManPages()
 		return
 	}
 	if mdPages {
-		WriteMarkdownPages()
+		writeMarkdownPages()
 		return
 	}
 	if bashCompletion {
-		WriteBashCompletion()
+		writeBashCompletion()
 		return
 	}
 	if api {
-		WriteApi(showHidden)
+		writeApi(showHidden)
 		return
 	}
 	traverse(rootCmd, "", 0, api, showHidden)
@@ -150,7 +150,7 @@ var treeCmd = &cobra.Command{
 	Long: `This command is only used to create API documentation. 
 You can, however, use it to show the command structure at a glance.`,
 	Hidden: true,
-	Run:    MakeDocumentation,
+	Run:    makeDocumentation,
 }
 
 func init() {

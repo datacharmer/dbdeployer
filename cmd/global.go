@@ -23,11 +23,11 @@ import (
 	"path"
 )
 
-func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, requireArgs bool, skipMissing bool) {
-	sandboxDir, err := GetAbsolutePathFromFlag(cmd, "sandbox-home")
+func globalRunCommand(cmd *cobra.Command, executable string, args []string, requireArgs bool, skipMissing bool) {
+	sandboxDir, err := getAbsolutePathFromFlag(cmd, "sandbox-home")
 	common.ErrCheckExitf(err, 1, "error defining absolute path for 'sandbox-home'")
 	sandboxList, err := common.GetInstalledSandboxes(sandboxDir)
-	common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList)
+	common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList, err)
 	runList := common.SandboxInfoToFileNames(sandboxList)
 	if len(runList) == 0 {
 		common.Exitf(1, "no sandboxes found in %s", sandboxDir)
@@ -47,7 +47,7 @@ func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 		}
 		if !common.ExecExists(cmdFile) {
 			if skipMissing {
-				fmt.Printf("# Sandbox %s: executable %s not found\n", fullDirPath, executable)
+				common.CondPrintf("# Sandbox %s: executable %s not found\n", fullDirPath, executable)
 				continue
 			}
 			common.Exitf(1, "no %s or %s found in %s", executable, executable+"_all", fullDirPath)
@@ -61,7 +61,7 @@ func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 			cmdArgs = append(cmdArgs, arg)
 		}
 		var err error
-		fmt.Printf("# Running \"%s\" on %s\n", realExecutable, sb)
+		common.CondPrintf("# Running \"%s\" on %s\n", realExecutable, sb)
 		if len(cmdArgs) > 0 {
 			_, err = common.RunCmdWithArgs(cmdFile, cmdArgs)
 		} else {
@@ -72,32 +72,32 @@ func GlobalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 	}
 }
 
-func StartAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, globals.ScriptStart, args, false, false)
+func startAllSandboxes(cmd *cobra.Command, args []string) {
+	globalRunCommand(cmd, globals.ScriptStart, args, false, false)
 }
 
-func RestartAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, globals.ScriptRestart, args, false, false)
+func restartAllSandboxes(cmd *cobra.Command, args []string) {
+	globalRunCommand(cmd, globals.ScriptRestart, args, false, false)
 }
 
-func StopAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, globals.ScriptStop, args, false, false)
+func stopAllSandboxes(cmd *cobra.Command, args []string) {
+	globalRunCommand(cmd, globals.ScriptStop, args, false, false)
 }
 
-func StatusAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, globals.ScriptStatus, args, false, false)
+func statusAllSandboxes(cmd *cobra.Command, args []string) {
+	globalRunCommand(cmd, globals.ScriptStatus, args, false, false)
 }
 
-func TestAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, globals.ScriptTestSb, args, false, false)
+func testAllSandboxes(cmd *cobra.Command, args []string) {
+	globalRunCommand(cmd, globals.ScriptTestSb, args, false, false)
 }
 
-func TestReplicationAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, globals.ScriptTestReplication, args, false, true)
+func testReplicationAllSandboxes(cmd *cobra.Command, args []string) {
+	globalRunCommand(cmd, globals.ScriptTestReplication, args, false, true)
 }
 
-func UseAllSandboxes(cmd *cobra.Command, args []string) {
-	GlobalRunCommand(cmd, globals.ScriptUse, args, true, false)
+func useAllSandboxes(cmd *cobra.Command, args []string) {
+	globalRunCommand(cmd, globals.ScriptUse, args, true, false)
 }
 
 var (
@@ -116,27 +116,27 @@ var (
 		Use:   "start [options]",
 		Short: "Starts all sandboxes",
 		Long:  ``,
-		Run:   StartAllSandboxes,
+		Run:   startAllSandboxes,
 	}
 
 	globalRestartCmd = &cobra.Command{
 		Use:   "restart [options]",
 		Short: "Restarts all sandboxes",
 		Long:  ``,
-		Run:   RestartAllSandboxes,
+		Run:   restartAllSandboxes,
 	}
 
 	globalStopCmd = &cobra.Command{
 		Use:   "stop",
 		Short: "Stops all sandboxes",
 		Long:  ``,
-		Run:   StopAllSandboxes,
+		Run:   stopAllSandboxes,
 	}
 	globalStatusCmd = &cobra.Command{
 		Use:   "status",
 		Short: "Shows the status in all sandboxes",
 		Long:  ``,
-		Run:   StatusAllSandboxes,
+		Run:   statusAllSandboxes,
 	}
 
 	globalTestCmd = &cobra.Command{
@@ -144,7 +144,7 @@ var (
 		Aliases: []string{"test_sb", "test-sb"},
 		Short:   "Tests all sandboxes",
 		Long:    ``,
-		Run:     TestAllSandboxes,
+		Run:     testAllSandboxes,
 	}
 
 	globalTestReplicationCmd = &cobra.Command{
@@ -152,7 +152,7 @@ var (
 		Aliases: []string{"test_replication"},
 		Short:   "Tests replication in all sandboxes",
 		Long:    ``,
-		Run:     TestReplicationAllSandboxes,
+		Run:     testReplicationAllSandboxes,
 	}
 
 	globalUseCmd = &cobra.Command{
@@ -163,7 +163,7 @@ It does not check if the query is compatible with every version deployed.
 For example, a query using @@port won't run in MySQL 5.0.x`,
 		Example: `
 	$ dbdeployer global use "select @@server_id, @@port"`,
-		Run: UseAllSandboxes,
+		Run: useAllSandboxes,
 	}
 )
 

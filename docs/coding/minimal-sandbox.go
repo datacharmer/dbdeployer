@@ -28,8 +28,9 @@ import (
 )
 
 func main() {
+
 	// Searches for expanded sandboxes in $HOME/opt/mysql
-	sandbox_binary := path.Join(os.Getenv("HOME"), "opt", "mysql")
+	sandboxBinary := path.Join(os.Getenv("HOME"), "opt", "mysql")
 
 	// For this to work, we need to have
 	// a MySQL tarball expanded in $HOME/opt/mysql/5.7.22
@@ -39,7 +40,7 @@ func main() {
 	sandboxHome := path.Join(os.Getenv("HOME"), "sandboxes")
 
 	// MySQL will look for binaries in $HOME/opt/mysql/5.7.22
-	basedir := path.Join(sandbox_binary, version)
+	basedir := path.Join(sandboxBinary, version)
 
 	// The unique port for this sandbox
 	port := 5722
@@ -79,7 +80,7 @@ func main() {
 	}
 
 	// Invokes the sandbox self-testing script
-	_, err = common.RunCmd(path.Join(sandboxHome, "msb_5_7_22", "test_sb"))
+	_, err = common.RunCmdCtrl(path.Join(sandboxHome, "msb_5_7_22", "test_sb"), false)
 	if err != nil {
 		common.Exitf(1, "error executing sandbox test: %s", err)
 	}

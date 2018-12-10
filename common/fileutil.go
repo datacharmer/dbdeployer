@@ -240,7 +240,8 @@ func WriteStrings(lines []string, filename string, termination string) error {
 
 // append a string slice into an existing file
 func AppendStrings(lines []string, filename string, termination string) error {
-	file, err := os.Open(filename)
+	// file, err := os.Open(filename)
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
 		return err
 	}
@@ -248,7 +249,7 @@ func AppendStrings(lines []string, filename string, termination string) error {
 
 	w := bufio.NewWriter(file)
 	for _, line := range lines {
-		N, err := fmt.Fprintln(w, line+termination)
+		N, err := fmt.Fprint(w, line+termination)
 		if err != nil {
 			return errors.Wrapf(err, "error writing to file %s ", filename)
 		}
@@ -315,11 +316,11 @@ func RunCmdWithArgs(c string, args []string) (string, error) {
 	var err error
 	out, err = cmd.Output()
 	if err != nil {
-		fmt.Printf("err: %s\n", err)
-		fmt.Printf("cmd: %s %s\n", c, args)
-		fmt.Printf("stdout: %s\n", out)
+		CondPrintf("err: %s\n", err)
+		CondPrintf("cmd: %s %s\n", c, args)
+		CondPrintf("stdout: %s\n", out)
 	} else {
-		fmt.Printf("%s", out)
+		CondPrintf("%s", out)
 	}
 	return string(out), err
 }
@@ -331,9 +332,9 @@ func RunCmdCtrl(c string, silent bool) (string, error) {
 	var err error
 	out, err = cmd.Output()
 	if err != nil {
-		fmt.Printf("err: %s\n", err)
-		fmt.Printf("cmd: %s\n", c)
-		fmt.Printf("stdout: %s\n", out)
+		CondPrintf("err: %s\n", err)
+		CondPrintf("cmd: %s\n", c)
+		CondPrintf("stdout: %s\n", out)
 	} else {
 		if !silent {
 			fmt.Printf("%s", out)

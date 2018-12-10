@@ -77,7 +77,7 @@ func checkDefaultsFile() {
 		}
 	}
 	defaults.LoadConfiguration()
-	LoadTemplates()
+	loadTemplates()
 }
 
 func init() {

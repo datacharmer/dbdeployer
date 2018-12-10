@@ -65,7 +65,7 @@ func nodesListToIntSlice(nodesList string, nodes int) (intList []int, err error)
 		separator = " "
 	}
 	list := strings.Split(nodesList, separator)
-	// fmt.Printf("# separator: <%s> %#v\n",separator, list)
+	// common.CondPrintf("# separator: <%s> %#v\n",separator, list)
 	if len(list) == 0 {
 		return []int{}, fmt.Errorf("empty nodes list given (%s)", nodesList)
 	}
@@ -184,7 +184,7 @@ func CreateAllMastersReplication(sandboxDef SandboxDef, origin string, nodes int
 	}
 	if !sandboxDef.SkipStart {
 		logger.Printf("Initializing all-masters replication \n")
-		fmt.Println(path.Join(common.ReplaceLiteralHome(sandboxDir), globals.ScriptInitializeMsNodes))
+		common.CondPrintln(path.Join(common.ReplaceLiteralHome(sandboxDir), globals.ScriptInitializeMsNodes))
 		_, err = common.RunCmd(path.Join(sandboxDir, globals.ScriptInitializeMsNodes))
 		if err != nil {
 			return err
@@ -296,7 +296,7 @@ func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	}
 	if !sandboxDef.SkipStart {
 		logger.Printf("Initializing fan-in replication\n")
-		fmt.Println(path.Join(common.ReplaceLiteralHome(sandboxDir), globals.ScriptInitializeMsNodes))
+		common.CondPrintln(path.Join(common.ReplaceLiteralHome(sandboxDir), globals.ScriptInitializeMsNodes))
 		_, err = common.RunCmd(path.Join(sandboxDir, globals.ScriptInitializeMsNodes))
 		if err != nil {
 			return fmt.Errorf("error initializing fan-in sandbox: %s", err)

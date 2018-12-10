@@ -99,7 +99,7 @@ type ScriptBatch struct {
 
 var emptyExecutionList = []concurrent.ExecutionList{}
 
-func GetOptionsFromFile(filename string) (options []string, err error) {
+func getOptionsFromFile(filename string) (options []string, err error) {
 	skipOptions := map[string]bool{
 		"user":         true,
 		"port":         true,
@@ -122,12 +122,12 @@ func GetOptionsFromFile(filename string) (options []string, err error) {
 			continue
 		}
 		options = append(options, fmt.Sprintf("%s = %s", kv.Key, kv.Value))
-		//fmt.Printf("%d %s : %s \n", N, kv.key, kv.value)
+		//common.CondPrintf("%d %s : %s \n", N, kv.key, kv.value)
 	}
 	return options, nil
 }
 
-func SandboxDefToJson(sd SandboxDef) string {
+func sandboxDefToJson(sd SandboxDef) string {
 	b, err := json.MarshalIndent(sd, " ", "\t")
 	if err != nil {
 		return "Sandbox definition could not be encoded\n"
@@ -135,7 +135,7 @@ func SandboxDefToJson(sd SandboxDef) string {
 	return fmt.Sprintf("%s", b)
 }
 
-func StringMapToJson(data common.StringMap) string {
+func stringMapToJson(data common.StringMap) string {
 	copyright := data["Copyright"]
 	data["Copyright"] = "[skipped] (See 'Copyright' template for full text)"
 	b, err := json.MarshalIndent(data, " ", "\t")
@@ -150,20 +150,20 @@ func isLocked(sbDir string) bool {
 	return common.FileExists(path.Join(sbDir, globals.ScriptNoClear)) || common.FileExists(path.Join(sbDir, globals.ScriptNoClearAll))
 }
 
-func CheckDirectory(sandboxDef SandboxDef) (SandboxDef, error) {
+func checkDirectory(sandboxDef SandboxDef) (SandboxDef, error) {
 	sandboxDir := sandboxDef.SandboxDir
 	if common.DirExists(sandboxDir) {
 		if sandboxDef.Force {
 			if isLocked(sandboxDir) {
 				return sandboxDef, fmt.Errorf("sandbox in %s is locked. Cannot be overwritten\nYou can unlock it with 'dbdeployer admin unlock %s'\n", sandboxDir, common.DirName(sandboxDir))
 			}
-			fmt.Printf("Overwriting directory %s\n", sandboxDir)
+			common.CondPrintf("Overwriting directory %s\n", sandboxDir)
 			stopCommand := path.Join(sandboxDir, globals.ScriptStop)
 			if !common.ExecExists(stopCommand) {
 				stopCommand = path.Join(sandboxDir, globals.ScriptStopAll)
 			}
 			if !common.ExecExists(stopCommand) {
-				fmt.Printf("Neither 'stop' or 'stop_all' found in %s\n", sandboxDir)
+				common.CondPrintf("Neither 'stop' or 'stop_all' found in %s\n", sandboxDir)
 			}
 
 			usedPortsList, err := common.GetInstalledPorts(sandboxDir)
@@ -211,7 +211,7 @@ func CheckDirectory(sandboxDef SandboxDef) (SandboxDef, error) {
 	return sandboxDef, nil
 }
 
-func CheckPort(caller string, sandboxType string, installedPorts []int, port int) error {
+func checkPortAvailability(caller string, sandboxType string, installedPorts []int, port int) error {
 	conflict := 0
 	for _, p := range installedPorts {
 		if p == port {
@@ -224,7 +224,7 @@ func CheckPort(caller string, sandboxType string, installedPorts []int, port int
 	return nil
 }
 
-func FixServerUuid(sandboxDef SandboxDef) (uuidDef string, uuidFile string, err error) {
+func fixServerUuid(sandboxDef SandboxDef) (uuidDef string, uuidFile string, err error) {
 	// 5.6.9
 	isMinimumGtid, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumGtidVersion)
 	if err != nil {
@@ -305,7 +305,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		}
 		sandboxDef.LogFileName = common.ReplaceLiteralHome(fileName)
 	}
-	logger.Printf("Single Sandbox Definition: %s\n", SandboxDefToJson(sandboxDef))
+	logger.Printf("Single Sandbox Definition: %s\n", sandboxDefToJson(sandboxDef))
 	if !common.DirExists(sandboxDef.Basedir) {
 		return emptyExecutionList, fmt.Errorf(globals.ErrBaseDirectoryNotFound, sandboxDef.Basedir)
 	}
@@ -458,7 +458,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		if !common.FileExists(sandboxDef.MyCnfFile) {
 			return emptyExecutionList, fmt.Errorf(globals.ErrFileNotFound, sandboxDef.MyCnfFile)
 		}
-		options, err := GetOptionsFromFile(sandboxDef.MyCnfFile)
+		options, err := getOptionsFromFile(sandboxDef.MyCnfFile)
 		if err != nil {
 			return emptyExecutionList, errors.Wrapf(err, "error reading provided configuration file")
 		}
@@ -466,7 +466,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, fmt.Sprintf("# options retrieved from %s", sandboxDef.MyCnfFile))
 		}
 		for _, option := range options {
-			// fmt.Printf("[%s]\n", option)
+			// common.CondPrintf("[%s]\n", option)
 			sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, option)
 		}
 	}
@@ -537,13 +537,13 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		data["ServerId"] = ""
 	}
 	if common.DirExists(sandboxDir) {
-		sandboxDef, err = CheckDirectory(sandboxDef)
+		sandboxDef, err = checkDirectory(sandboxDef)
 		if err != nil {
 			return emptyExecutionList, sbError("check directory", "%s", err)
 		}
 	}
-	logger.Printf("Checking port %d using CheckPort\n", sandboxDef.Port)
-	err = CheckPort("createSingleSandbox", sandboxDef.SBType, sandboxDef.InstalledPorts, sandboxDef.Port)
+	logger.Printf("Checking port %d using checkPortAvailability\n", sandboxDef.Port)
+	err = checkPortAvailability("createSingleSandbox", sandboxDef.SBType, sandboxDef.InstalledPorts, sandboxDef.Port)
 	if err != nil {
 		return emptyExecutionList, sbError("check port", "%s", err)
 	}
@@ -554,7 +554,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	}
 
 	logger.Printf("Created directory %s\n", sandboxDef.SandboxDir)
-	logger.Printf("Single Sandbox template data: %s\n", StringMapToJson(data))
+	logger.Printf("Single Sandbox template data: %s\n", stringMapToJson(data))
 
 	err = os.Mkdir(dataDir, 0755)
 	if err != nil {
@@ -580,7 +580,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		initScriptFlags = "--initialize-insecure"
 	}
 	if !common.ExecExists(script) {
-		fmt.Printf("SCRIPT\n")
+		common.CondPrintf("SCRIPT\n")
 		return emptyExecutionList, fmt.Errorf(globals.ErrScriptNotFound, script)
 	}
 	if len(sandboxDef.InitOptions) > 0 {
@@ -598,7 +598,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	data["FixUuidFile2"] = ""
 
 	if !sandboxDef.KeepUuid {
-		newUuid, uuidFname, err := FixServerUuid(sandboxDef)
+		newUuid, uuidFname, err := fixServerUuid(sandboxDef)
 		if err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "# UUID non-blocking failure: %s\n", err)
 		}
@@ -626,15 +626,16 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		if !common.FileExists(initDbScript) {
 			return emptyExecutionList, fmt.Errorf(globals.ErrFileNotFound, initDbScript)
 		}
-		_, err := common.RunCmdCtrl(initDbScript, true)
+		initOutput, err := common.RunCmdCtrl(initDbScript, true)
 		if err == nil {
 			if !sandboxDef.Multi {
 				if globals.UsingDbDeployer {
-					fmt.Printf("Database installed in %s\n", common.ReplaceLiteralHome(sandboxDir))
-					fmt.Printf("run 'dbdeployer usage single' for basic instructions'\n")
+					common.CondPrintf("Database installed in %s\n", common.ReplaceLiteralHome(sandboxDir))
+					common.CondPrintf("run 'dbdeployer usage single' for basic instructions'\n")
 				}
 			}
 		} else {
+			common.CondPrintf("InitDb output: %s\n", initOutput)
 			return emptyExecutionList, fmt.Errorf("InitDb failure: %s\n", err)
 		}
 	}
@@ -747,9 +748,9 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 
 	if len(sandboxDef.PreGrantsSql) > 0 {
 		if common.FileExists(preGrantSqlFile) {
-			err = common.AppendStrings(sandboxDef.PreGrantsSql, preGrantSqlFile, ";")
+			err = common.AppendStrings(sandboxDef.PreGrantsSql, preGrantSqlFile, ";\n")
 		} else {
-			err = common.WriteStrings(sandboxDef.PreGrantsSql, preGrantSqlFile, ";")
+			err = common.WriteStrings(sandboxDef.PreGrantsSql, preGrantSqlFile, ";\n")
 		}
 		if err != nil {
 			return emptyExecutionList, err
@@ -832,13 +833,13 @@ func writeScripts(scriptBatch ScriptBatch) error {
 	return nil
 }
 
-func writeScript(logger *defaults.Logger, tempVar TemplateCollection, name, templateName, directory string, data common.StringMap, makeExecutable bool) error {
+func writeScript(logger *defaults.Logger, tempVar TemplateCollection, scriptName, templateName, directory string, data common.StringMap, makeExecutable bool) error {
 	if directory == "" {
-		return fmt.Errorf("writeScript (%s): missing directory", name)
+		return fmt.Errorf("writeScript (%s): missing directory", scriptName)
 	}
 	_, ok := tempVar[templateName]
 	if !ok {
-		return fmt.Errorf("writeScript (%s): template %s not found", name, templateName)
+		return fmt.Errorf("writeScript (%s): template %s not found", scriptName, templateName)
 	}
 	template := tempVar[templateName].Contents
 	template = common.TrimmedLines(template)
@@ -847,16 +848,16 @@ func writeScript(logger *defaults.Logger, tempVar TemplateCollection, name, temp
 	executableStatus := ""
 	var err error
 	if makeExecutable {
-		err = writeExec(name, text, directory)
+		err = writeExec(scriptName, text, directory)
 		executableStatus = " executable"
 	} else {
-		_, err = writeRegularFile(name, text, directory)
+		_, err = writeRegularFile(scriptName, text, directory)
 	}
 	if err != nil {
 		return err
 	}
 	if logger != nil {
-		logger.Printf("Creating %s script '%s/%s' using template '%s'\n", executableStatus, common.ReplaceLiteralHome(directory), name, templateName)
+		logger.Printf("Creating %s script '%s/%s' using template '%s'\n", executableStatus, common.ReplaceLiteralHome(directory), scriptName, templateName)
 	}
 	return nil
 }
@@ -866,7 +867,7 @@ func writeExec(filename, text, directory string) error {
 	if err != nil {
 		return err
 	}
-	return os.Chmod(fname, 0744)
+	return os.Chmod(fname, globals.ExecutableFileAttr)
 }
 
 func writeRegularFile(fileName, text, directory string) (string, error) {
@@ -909,8 +910,8 @@ func RemoveSandbox(sandboxDir, sandbox string, runConcurrently bool) (execList [
 		preserve = path.Join(fullPath, globals.ScriptNoClear)
 	}
 	if common.ExecExists(preserve) {
-		fmt.Printf("The sandbox %s is locked\n", sandbox)
-		fmt.Printf("You need to unlock it with \"dbdeployer admin unlock\"\n")
+		common.CondPrintf("The sandbox %s is locked\n", sandbox)
+		common.CondPrintf("You need to unlock it with \"dbdeployer admin unlock\"\n")
 		return emptyExecutionList, err
 	}
 	logDirectory, err := getLogDirFromSbDescription(fullPath)
@@ -932,9 +933,7 @@ func RemoveSandbox(sandboxDir, sandbox string, runConcurrently bool) (execList [
 		}
 		execList = append(execList, concurrent.ExecutionList{Logger: nil, Priority: 0, Command: eCommand1})
 	} else {
-		if globals.UsingDbDeployer {
-			fmt.Printf("Running %s\n", stop)
-		}
+		common.CondPrintf("Running %s\n", stop)
 		_, err := common.RunCmd(stop)
 		if err != nil {
 			return emptyExecutionList, fmt.Errorf(globals.ErrWhileStoppingSandbox, fullPath)
@@ -960,17 +959,17 @@ func RemoveSandbox(sandboxDir, sandbox string, runConcurrently bool) (execList [
 				cmdStr += " " + item
 			}
 			if globals.UsingDbDeployer && target != logDirectory {
-				fmt.Printf("Running %s\n", cmdStr)
+				common.CondPrintf("Running %s\n", cmdStr)
 			}
 			_, err := common.RunCmdWithArgs("rm", rmArgs)
 			if err != nil {
 				return emptyExecutionList, fmt.Errorf(globals.ErrWhileDeletingSandbox, target)
 			}
 			if globals.UsingDbDeployer && target != logDirectory {
-				fmt.Printf("Directory %s deleted\n", target)
+				common.CondPrintf("Directory %s deleted\n", target)
 			}
 		}
 	}
-	// fmt.Printf("%#v\n",execList)
+	// common.CondPrintf("%#v\n",execList)
 	return execList, nil
 }

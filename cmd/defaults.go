@@ -22,20 +22,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func ShowDefaults(cmd *cobra.Command, args []string) {
+func showDefaults(cmd *cobra.Command, args []string) {
 	defaults.ShowDefaults(defaults.Defaults())
 }
 
-func WriteDefaults(cmd *cobra.Command, args []string) {
+func writeDefaults(cmd *cobra.Command, args []string) {
 	defaults.WriteDefaultsFile(defaults.ConfigurationFile, defaults.Defaults())
-	fmt.Printf("# Default values exported to %s\n", defaults.ConfigurationFile)
+	common.CondPrintf("# Default values exported to %s\n", defaults.ConfigurationFile)
 }
 
-func RemoveDefaults(cmd *cobra.Command, args []string) {
+func removeDefaults(cmd *cobra.Command, args []string) {
 	defaults.RemoveDefaultsFile()
 }
 
-func LoadDefaults(cmd *cobra.Command, args []string) {
+func loadDefaults(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
 		common.Exit(1, "'load' requires a file name")
 	}
@@ -46,10 +46,10 @@ func LoadDefaults(cmd *cobra.Command, args []string) {
 	} else {
 		return
 	}
-	fmt.Printf("Defaults imported from %s into %s\n", filename, defaults.ConfigurationFile)
+	common.CondPrintf("Defaults imported from %s into %s\n", filename, defaults.ConfigurationFile)
 }
 
-func ExportDefaults(cmd *cobra.Command, args []string) {
+func exportDefaults(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
 		common.Exit(1, "'export' requires a file name")
 	}
@@ -58,10 +58,10 @@ func ExportDefaults(cmd *cobra.Command, args []string) {
 		common.Exitf(1, "file '%s' already exists. Will not overwrite", filename)
 	}
 	defaults.WriteDefaultsFile(filename, defaults.Defaults())
-	fmt.Printf("# Defaults exported to file %s\n", filename)
+	common.CondPrintf("# Defaults exported to file %s\n", filename)
 }
 
-func UpdateDefaults(cmd *cobra.Command, args []string) {
+func updateDefaults(cmd *cobra.Command, args []string) {
 	if len(args) < 2 {
 		common.Exit(1,
 			"'update' requires a label and a value",
@@ -87,7 +87,7 @@ such as showing the defaults and saving new ones.`,
 		Short:   "shows defaults",
 		Aliases: []string{"list"},
 		Long:    `Shows currently defined defaults`,
-		Run:     ShowDefaults,
+		Run:     showDefaults,
 	}
 
 	defaultsLoadCmd = &cobra.Command{
@@ -95,7 +95,7 @@ such as showing the defaults and saving new ones.`,
 		Short:   "Load defaults from file",
 		Aliases: []string{"import"},
 		Long:    fmt.Sprintf(`Reads defaults from file and saves them to dbdeployer configuration file (%s)`, defaults.ConfigurationFile),
-		Run:     LoadDefaults,
+		Run:     loadDefaults,
 	}
 
 	defaultsUpdateCmd = &cobra.Command{
@@ -106,21 +106,21 @@ such as showing the defaults and saving new ones.`,
 `,
 		Long: `Updates one field of the defaults. Stores the result in the dbdeployer configuration file.
 Use "dbdeployer defaults show" to see which values are available`,
-		Run: UpdateDefaults,
+		Run: updateDefaults,
 	}
 
 	defaultsExportCmd = &cobra.Command{
 		Use:   "export filename",
 		Short: "Export current defaults to a given file",
 		Long:  `Saves current defaults to a user-defined file`,
-		Run:   ExportDefaults,
+		Run:   exportDefaults,
 	}
 
 	defaultsStoreCmd = &cobra.Command{
 		Use:   "store",
 		Short: "Store current defaults",
 		Long:  fmt.Sprintf(`Saves current defaults to dbdeployer configuration file (%s)`, defaults.ConfigurationFile),
-		Run:   WriteDefaults,
+		Run:   writeDefaults,
 	}
 
 	defaultsRemoveCmd = &cobra.Command{
@@ -130,7 +130,7 @@ Use "dbdeployer defaults show" to see which values are available`,
 		Long: fmt.Sprintf(`Removes current dbdeployer configuration file (%s)`, defaults.ConfigurationFile) + `
 Afterwards, dbdeployer will use the internally stored defaults.
 `,
-		Run: RemoveDefaults,
+		Run: removeDefaults,
 	}
 )
 

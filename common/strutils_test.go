@@ -18,7 +18,9 @@ package common
 import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/compare"
+	"github.com/datacharmer/dbdeployer/globals"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -142,5 +144,85 @@ func TestStringToIntSlice(t *testing.T) {
 				compare.OkEqualInt(fmt.Sprintf("slice element %d", N), sd.expected[N], result[N], t)
 			}
 		}
+	}
+}
+
+func TestIntSliceToDottedString(t *testing.T) {
+	type IntSliceToDottedStringData struct {
+		input    []int
+		expected string
+	}
+	var data = []IntSliceToDottedStringData{
+		{[]int{5, 1, 67, 78}, "5.1.67.78"},
+		{[]int{5, 1, 67}, "5.1.67"},
+		{[]int{5, 67}, "5.67"},
+		{[]int{-5, 67}, "-5.67"},
+		{[]int{}, ""},
+	}
+	for _, d := range data {
+		result := IntSliceToDottedString(d.input)
+		if result == d.expected {
+			t.Logf("ok - %+v => '%s' as expected", d.input, result)
+		} else {
+			t.Logf("not ok - %+v conversion - expected '%s' - found '%s'", d.input, d.expected, result)
+			t.Fail()
+		}
+	}
+}
+
+func TestIsEnvSet(t *testing.T) {
+	type envSet struct {
+		input    string
+		expected bool
+	}
+	var notExistingVar string = "MaryPoppinsLumpOfSugar"
+	var justSetVar string = "dbdeployer"
+
+	err := os.Setenv(justSetVar, "excellent")
+	if err != nil {
+		panic("Can't set an environment variable")
+	}
+	var data = []envSet{
+		{notExistingVar, false},
+		{globals.EmptyString, false},
+		{justSetVar, true},
+	}
+	count := 0
+	for _, e := range os.Environ() {
+		vals := strings.Split(e, "=")
+		if len(vals) > 1 && vals[1] != "" {
+			data = append(data, envSet{vals[0], true})
+		}
+		count++
+		if count > 5 {
+			break
+		}
+	}
+	for _, d := range data {
+		result := IsEnvSet(d.input)
+		if result == d.expected {
+			t.Logf("ok - %s => '%v' as expected", d.input, result)
+		} else {
+			t.Logf("not ok - '%s' - expected '%v' - found '%v'", d.input, d.expected, result)
+			t.Fail()
+		}
+	}
+}
+
+func TestIncludes(t *testing.T) {
+	type includeData struct {
+		mainStr   string
+		searchStr string
+		expected  bool
+	}
+	var data = []includeData{
+		{"hello", "he", true},
+		{"hello", "llo", true},
+		{"hello", "hi", false},
+		{"hello", `^llo`, false},
+	}
+	for _, d := range data {
+		result := Includes(d.mainStr, d.searchStr)
+		compare.OkEqualBool(fmt.Sprintf("'%s' includes '%s'", d.mainStr, d.searchStr), result, d.expected, t)
 	}
 }

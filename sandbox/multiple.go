@@ -65,7 +65,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		sandboxDef.SandboxDir = path.Join(sandboxDef.SandboxDir, sandboxDef.DirName)
 	}
 	if common.DirExists(sandboxDef.SandboxDir) {
-		sandboxDef, err = CheckDirectory(sandboxDef)
+		sandboxDef, err = checkDirectory(sandboxDef)
 		if err != nil {
 			return emptyStringMap, err
 		}
@@ -86,7 +86,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 	}
 	basePort = firstPort - 1
 	for checkPort := basePort + 1; checkPort < basePort+nodes; checkPort++ {
-		err := CheckPort("CreateMultipleSandbox", sandboxDef.SandboxDir, sandboxDef.InstalledPorts, checkPort)
+		err := checkPortAvailability("CreateMultipleSandbox", sandboxDef.SandboxDir, sandboxDef.InstalledPorts, checkPort)
 		if err != nil {
 			return emptyStringMap, err
 		}
@@ -100,7 +100,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		return emptyStringMap, err
 	}
 	logger.Printf("Created directory %s\n", sandboxDef.SandboxDir)
-	logger.Printf("Multiple Sandbox Definition: %s\n", SandboxDefToJson(sandboxDef))
+	logger.Printf("Multiple Sandbox Definition: %s\n", sandboxDefToJson(sandboxDef))
 
 	common.AddToCleanupStack(common.Rmdir, "Rmdir", sandboxDef.SandboxDir)
 
@@ -141,7 +141,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		sbItem.LogDirectory = common.DirName(sandboxDef.LogFileName)
 	}
 
-	logger.Printf("Defining multiple sandbox data: %v\n", StringMapToJson(data))
+	logger.Printf("Defining multiple sandbox data: %v\n", stringMapToJson(data))
 	nodeLabel := defaults.Defaults().NodePrefix
 	for i := 1; i <= nodes; i++ {
 		sandboxDef.Port = basePort + i
@@ -177,7 +177,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		sandboxDef.Prompt = fmt.Sprintf("%s%d", nodeLabel, i)
 		sandboxDef.SBType = sbType + "-node"
 		if !sandboxDef.RunConcurrently {
-			fmt.Printf("Installing and starting %s %d\n", nodeLabel, i)
+			common.CondPrintf("Installing and starting %s %d\n", nodeLabel, i)
 			logger.Printf("installing and starting %s %d", nodeLabel, i)
 		}
 		logger.Printf("Creating single sandbox for node %d\n", i)
@@ -197,7 +197,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 			"Copyright":  Copyright,
 		}
 		logger.Printf("Creating node script for node %d\n", i)
-		logger.Printf("Defining multiple sandbox node inner data: %v\n", StringMapToJson(dataNode))
+		logger.Printf("Defining multiple sandbox node inner data: %v\n", stringMapToJson(dataNode))
 		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sandboxDef.SandboxDir, dataNode, true)
 		if err != nil {
 			return data, err
@@ -238,7 +238,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 	logger.Printf("Run concurrent tasks\n")
 	concurrent.RunParallelTasksByPriority(execLists)
 
-	fmt.Printf("%s directory installed in %s\n", sbType, common.ReplaceLiteralHome(sandboxDef.SandboxDir))
-	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
+	common.CondPrintf("%s directory installed in %s\n", sbType, common.ReplaceLiteralHome(sandboxDef.SandboxDir))
+	common.CondPrintf("run 'dbdeployer usage multiple' for basic instructions'\n")
 	return data, nil
 }

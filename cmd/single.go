@@ -31,11 +31,11 @@ import (
 )
 
 func replaceTemplate(templateName string, fileName string) {
-	group, _, contents := FindTemplate(templateName)
+	group, _, contents := findTemplate(templateName)
 	if !common.FileExists(fileName) {
 		common.Exitf(1, globals.ErrFileNotFound, fileName)
 	}
-	fmt.Printf("Replacing template %s.%s [%d chars] with contents of file %s\n", group, templateName, len(contents), fileName)
+	common.CondPrintf("Replacing template %s.%s [%d chars] with contents of file %s\n", group, templateName, len(contents), fileName)
 	newContents, err := common.SlurpAsString(fileName)
 	if err != nil {
 		common.Exitf(1, "%+v", err)
@@ -73,7 +73,7 @@ func processDefaults(newDefaults []string) {
 	}
 }
 
-func GetAbsolutePathFromFlag(cmd *cobra.Command, name string) (string, error) {
+func getAbsolutePathFromFlag(cmd *cobra.Command, name string) (string, error) {
 	flags := cmd.Flags()
 	value, err := flags.GetString(name)
 	common.ErrCheckExitf(err, 1, "error getting flag value for --%s", name)
@@ -98,7 +98,7 @@ func checkIfAbridgedVersion(version, basedir string) string {
 	if fullVersion == "" {
 		common.Exitf(1, "FATAL: no full version found for %s in %s\n", version, basedir)
 	} else {
-		fmt.Printf("# %s => %s\n", version, fullVersion)
+		common.CondPrintf("# %s => %s\n", version, fullVersion)
 		version = fullVersion
 	}
 	return version
@@ -113,7 +113,7 @@ func checkForRootValue(value, label, defaultVal string) {
 	}
 }
 
-func FillSdef(cmd *cobra.Command, args []string) (sandbox.SandboxDef, error) {
+func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxDef, error) {
 	var sd sandbox.SandboxDef
 
 	flags := cmd.Flags()
@@ -121,7 +121,7 @@ func FillSdef(cmd *cobra.Command, args []string) (sandbox.SandboxDef, error) {
 	logSbOperations, _ := flags.GetBool(globals.LogSBOperationsLabel)
 	defaults.LogSBOperations = logSbOperations
 
-	logDir, err := GetAbsolutePathFromFlag(cmd, globals.LogLogDirectoryLabel)
+	logDir, err := getAbsolutePathFromFlag(cmd, globals.LogLogDirectoryLabel)
 	if err != nil {
 		return sd, err
 	}
@@ -135,7 +135,7 @@ func FillSdef(cmd *cobra.Command, args []string) (sandbox.SandboxDef, error) {
 		replaceTemplate(tname, fname)
 	}
 
-	basedir, err := GetAbsolutePathFromFlag(cmd, globals.SandboxBinaryLabel)
+	basedir, err := getAbsolutePathFromFlag(cmd, globals.SandboxBinaryLabel)
 	if err != nil {
 		return sd, err
 	}
@@ -163,7 +163,7 @@ func FillSdef(cmd *cobra.Command, args []string) (sandbox.SandboxDef, error) {
 		if err != nil {
 			return sd, errors.Wrapf(err, "couldn't get an absolute path for %s", sd.BasedirName)
 		}
-		// fmt.Printf("OLD bd <%s> - v: <%s>\n",basedir, sd.Version )
+		// common.CondPrintf("OLD bd <%s> - v: <%s>\n",basedir, sd.Version )
 		target := sd.BasedirName
 		oldBasedir := basedir
 		basedir = common.DirName(sd.BasedirName)
@@ -183,7 +183,7 @@ func FillSdef(cmd *cobra.Command, args []string) (sandbox.SandboxDef, error) {
 		if !common.IsVersion(sd.Version) {
 			common.Exitf(1, "no version detected for directory %s", target)
 		}
-		// fmt.Printf("NEW bd <%s> - v: <%s>\n",basedir, sd.Version )
+		// common.CondPrintf("NEW bd <%s> - v: <%s>\n",basedir, sd.Version )
 	}
 
 	sd.Port, err = common.VersionToPort(sd.Version)
@@ -208,7 +208,7 @@ func FillSdef(cmd *cobra.Command, args []string) (sandbox.SandboxDef, error) {
 	err = common.CheckTarballOperatingSystem(sd.Basedir)
 	common.ErrCheckExitf(err, 1, "incorrect tarball detected")
 
-	sd.SandboxDir, err = GetAbsolutePathFromFlag(cmd, globals.SandboxHomeLabel)
+	sd.SandboxDir, err = getAbsolutePathFromFlag(cmd, globals.SandboxHomeLabel)
 	if err != nil {
 		return sd, err
 	}
@@ -316,11 +316,11 @@ func FillSdef(cmd *cobra.Command, args []string) (sandbox.SandboxDef, error) {
 	return sd, nil
 }
 
-func SingleSandbox(cmd *cobra.Command, args []string) {
+func singleSandbox(cmd *cobra.Command, args []string) {
 	var sd sandbox.SandboxDef
 	var err error
 	common.CheckOrigin(args)
-	sd, err = FillSdef(cmd, args)
+	sd, err = fillSandboxDdefinition(cmd, args)
 	if err != nil {
 		common.Exitf(1, "error while filling the sandbox definition: %+v", err)
 	}
@@ -349,7 +349,7 @@ For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, cont
 the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
 Use the "unpack" command to get the tarball into the right directory.
 `,
-	Run: SingleSandbox,
+	Run: singleSandbox,
 }
 
 func init() {

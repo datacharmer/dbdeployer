@@ -38,7 +38,7 @@ type Logger struct {
 func (l *Logger) Printf(format string, args ...interface{}) {
 	var newArgs []interface{}
 	caller := CallFuncName()
-	opNum := GetOperationNumber(caller)
+	opNum := getOperationNumber(caller)
 
 	// injects operation number and caller into the function arguments
 	newArgs = append(newArgs, opNum)
@@ -51,7 +51,7 @@ func (l *Logger) Printf(format string, args ...interface{}) {
 
 var operationNum int
 
-func GetOperationNumber(caller string) string {
+func getOperationNumber(caller string) string {
 	caller = common.BaseName(caller)
 	var m sync.Mutex
 	m.Lock()

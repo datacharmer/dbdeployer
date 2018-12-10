@@ -23,11 +23,11 @@ import (
 	//"fmt"
 )
 
-func ReplicationSandbox(cmd *cobra.Command, args []string) {
+func replicationSandbox(cmd *cobra.Command, args []string) {
 	var sd sandbox.SandboxDef
 	var semisync bool
 	common.CheckOrigin(args)
-	sd, err := FillSdef(cmd, args)
+	sd, err := fillSandboxDdefinition(cmd, args)
 	common.ErrCheckExitf(err, 1, "error filling sandbox definition")
 	sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 	flags := cmd.Flags()
@@ -67,7 +67,7 @@ func ReplicationSandbox(cmd *cobra.Command, args []string) {
 	if args[0] != sd.BasedirName {
 		origin = sd.BasedirName
 	}
-	//fmt.Printf("%#v\n",sd)
+	//common.CondPrintf("%#v\n",sd)
 	err = sandbox.CreateReplicationSandbox(sd, origin, topology, nodes, masterIp, masterList, slaveList)
 	if err != nil {
 		common.Exitf(1, globals.ErrCreatingSandbox, err)
@@ -88,7 +88,7 @@ Use the "unpack" command to get the tarball into the right directory.
 `,
 	//Allowed topologies are "master-slave", "group" (requires 5.7.17+),
 	//"fan-in" and "all-masters" (require 5.7.9+)
-	Run: ReplicationSandbox,
+	Run: replicationSandbox,
 	Example: `
 		$ dbdeployer deploy replication 5.7    # deploys highest revision for 5.7
 		$ dbdeployer deploy replication 5.7.21 # deploys a specific revision

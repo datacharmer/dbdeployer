@@ -28,9 +28,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func UnpackTarball(cmd *cobra.Command, args []string) {
+func unpackTarball(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
-	Basedir, err := GetAbsolutePathFromFlag(cmd, "sandbox-binary")
+	Basedir, err := getAbsolutePathFromFlag(cmd, "sandbox-binary")
 	common.ErrCheckExitf(err, 1, "error getting absolute path for 'sandbox-binary'")
 	verbosity, _ := flags.GetInt(globals.VerbosityLabel)
 	if !common.DirExists(Basedir) {
@@ -42,7 +42,7 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	reVersion := regexp.MustCompile(`(\d+\.\d+\.\d+)`)
 	verList := reVersion.FindAllStringSubmatch(tarball, -1)
 	detectedVersion := verList[0][0]
-	// fmt.Printf(">> %#v %s\n",verList, detected_version)
+	// common.CondPrintf(">> %#v %s\n",verList, detected_version)
 
 	isShell, _ := flags.GetBool(globals.ShellLabel)
 	target, _ := flags.GetString(globals.TargetServerLabel)
@@ -92,20 +92,20 @@ func UnpackTarball(cmd *cobra.Command, args []string) {
 	}
 	bareName = extracted[0 : len(extracted)-len(globals.TarGzExt)]
 	if isShell {
-		fmt.Printf("Merging shell tarball %s to %s\n", common.ReplaceLiteralHome(tarball), common.ReplaceLiteralHome(destination))
+		common.CondPrintf("Merging shell tarball %s to %s\n", common.ReplaceLiteralHome(tarball), common.ReplaceLiteralHome(destination))
 		err := unpack.MergeShell(tarball, foundExtension, Basedir, destination, bareName, verbosity)
 		common.ErrCheckExitf(err, 1, "error while unpacking mysql shell tarball : %s", err)
 		return
 	}
 
-	fmt.Printf("Unpacking tarball %s to %s\n", tarball, common.ReplaceLiteralHome(destination))
+	common.CondPrintf("Unpacking tarball %s to %s\n", tarball, common.ReplaceLiteralHome(destination))
 	//verbosity_level := unpack.VERBOSE
 	// err := unpack.UnpackTar(tarball, Basedir, verbosity)
 	err = extractFunc(tarball, Basedir, verbosity)
 	common.ErrCheckExitf(err, 1, "%s", err)
 	finalName := path.Join(Basedir, bareName)
 	if finalName != destination {
-		fmt.Printf("Renaming directory %s to %s\n", finalName, destination)
+		common.CondPrintf("Renaming directory %s to %s\n", finalName, destination)
 		err = os.Rename(finalName, destination)
 		common.ErrCheckExitf(err, 1, "%s", err)
 	}
@@ -124,7 +124,7 @@ the MySQL version for that tarball.
 If the version is not contained in the tarball name, it should be supplied using --unpack-version.
 If there is already an expanded tarball with the same version, a new one can be differentiated with --prefix.
 `,
-	Run: UnpackTarball,
+	Run: unpackTarball,
 	Example: `
     $ dbdeployer unpack mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz
     Unpacking tarball mysql-8.0.4-rc-linux-glibc2.12-x86_64.tar.gz to $HOME/opt/mysql/8.0.4

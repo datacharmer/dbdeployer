@@ -78,7 +78,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		return err
 	}
 	for checkPort := basePort + 1; checkPort < basePort+nodes+1; checkPort++ {
-		err := CheckPort("CreateMasterSlaveReplication", sandboxDef.SandboxDir, sandboxDef.InstalledPorts, checkPort)
+		err := checkPortAvailability("CreateMasterSlaveReplication", sandboxDef.SandboxDir, sandboxDef.InstalledPorts, checkPort)
 		if err != nil {
 			return err
 		}
@@ -92,7 +92,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		return err
 	}
 	logger.Printf("Created directory %s\n", sandboxDef.SandboxDir)
-	logger.Printf("Replication Sandbox Definition: %s\n", SandboxDefToJson(sandboxDef))
+	logger.Printf("Replication Sandbox Definition: %s\n", sandboxDefToJson(sandboxDef))
 	common.AddToCleanupStack(common.Rmdir, "Rmdir", sandboxDef.SandboxDir)
 	sandboxDef.Port = basePort + 1
 	sandboxDef.ServerId = (baseServerId + 1) * 100
@@ -140,13 +140,13 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		"Slaves":             []common.StringMap{},
 	}
 
-	logger.Printf("Defining replication data: %v\n", StringMapToJson(data))
+	logger.Printf("Defining replication data: %v\n", stringMapToJson(data))
 	installationMessage := "Installing and starting %s\n"
 	if sandboxDef.SkipStart {
 		installationMessage = "Installing %s\n"
 	}
 	if !sandboxDef.RunConcurrently {
-		fmt.Printf(installationMessage, masterLabel)
+		common.CondPrintf(installationMessage, masterLabel)
 		logger.Printf(installationMessage, masterLabel)
 	}
 	sandboxDef.LoadGrants = true
@@ -247,7 +247,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 			installationMessage = "Installing %s%d\n"
 		}
 		if !sandboxDef.RunConcurrently {
-			fmt.Printf(installationMessage, slaveLabel, i)
+			common.CondPrintf(installationMessage, slaveLabel, i)
 			logger.Printf(installationMessage, slaveLabel, i)
 		}
 		if sandboxDef.SemiSyncOptions != "" {
@@ -275,7 +275,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 			"SlaveAbbr":          slaveAbbr,
 			"SandboxDir":         sandboxDef.SandboxDir,
 		}
-		logger.Printf("Defining replication node data: %v\n", StringMapToJson(dataSlave))
+		logger.Printf("Defining replication node data: %v\n", stringMapToJson(dataSlave))
 		logger.Printf("Create slave script %d\n", i)
 		err = writeScripts(ScriptBatch{ReplicationTemplates, logger, sandboxDef.SandboxDir, dataSlave,
 			[]ScriptDef{
@@ -336,15 +336,15 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	logger.Printf("Run concurrent sandbox scripts \n")
 	concurrent.RunParallelTasksByPriority(execLists)
 	if !sandboxDef.SkipStart {
-		fmt.Println(path.Join(common.ReplaceLiteralHome(sandboxDef.SandboxDir), initializeSlaves))
+		common.CondPrintln(path.Join(common.ReplaceLiteralHome(sandboxDef.SandboxDir), initializeSlaves))
 		logger.Printf("Run replication initialization script \n")
 		_, err = common.RunCmd(path.Join(sandboxDef.SandboxDir, initializeSlaves))
 		if err != nil {
 			return err
 		}
 	}
-	fmt.Printf("Replication directory installed in %s\n", common.ReplaceLiteralHome(sandboxDef.SandboxDir))
-	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
+	common.CondPrintf("Replication directory installed in %s\n", common.ReplaceLiteralHome(sandboxDef.SandboxDir))
+	common.CondPrintf("run 'dbdeployer usage multiple' for basic instructions'\n")
 	return nil
 }
 
@@ -407,7 +407,7 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 
 	if common.DirExists(sdef.SandboxDir) {
 		var err error
-		sdef, err = CheckDirectory(sdef)
+		sdef, err = checkDirectory(sdef)
 		if err != nil {
 			return err
 		}

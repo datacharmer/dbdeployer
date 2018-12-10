@@ -159,9 +159,9 @@ func UpdateCatalog(sbName string, details SandboxItem) error {
 		}
 		return err
 	} else {
-		fmt.Printf("%s\n", globals.HashLine)
-		fmt.Printf("# UpdateCatalog Could not get lock on %s\n", SandboxRegistryLock)
-		fmt.Printf("%s\n", globals.HashLine)
+		common.CondPrintf("%s\n", globals.HashLine)
+		common.CondPrintf("# UpdateCatalog Could not get lock on %s\n", SandboxRegistryLock)
+		common.CondPrintf("%s\n", globals.HashLine)
 		return fmt.Errorf("could not get lock on %s : %s", SandboxRegistryLock, err)
 	}
 }
@@ -195,9 +195,9 @@ func DeleteFromCatalog(sbName string) error {
 		}
 		return err
 	} else {
-		fmt.Printf("%s\n", globals.HashLine)
-		fmt.Printf("# DeleteFromCatalog Could not get lock on %s\n", SandboxRegistryLock)
-		fmt.Printf("%s\n", globals.HashLine)
+		common.CondPrintf("%s\n", globals.HashLine)
+		common.CondPrintf("# DeleteFromCatalog Could not get lock on %s\n", SandboxRegistryLock)
+		common.CondPrintf("%s\n", globals.HashLine)
 		return fmt.Errorf("could not get lock on %s: %s", SandboxRegistryLock, err)
 	}
 }

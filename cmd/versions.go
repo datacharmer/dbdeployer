@@ -23,8 +23,8 @@ import (
 
 // Shows the MySQL versions available in $SANDBOX_BINARY
 // (default $HOME/opt/mysql)
-func ShowVersions(cmd *cobra.Command, args []string) {
-	Basedir, err := GetAbsolutePathFromFlag(cmd, "sandbox-binary")
+func showVersions(cmd *cobra.Command, args []string) {
+	Basedir, err := getAbsolutePathFromFlag(cmd, "sandbox-binary")
 	common.ErrCheckExitf(err, 1, "error getting absolute path for 'sandbox-binary'")
 	dirs, err := common.GetVersionsFromDir(Basedir)
 	common.ErrCheckExitf(err, 1, "error reading directory %s: %s", Basedir, err)
@@ -56,7 +56,7 @@ var versionsCmd = &cobra.Command{
 	Aliases: []string{"available"},
 	Short:   "List available versions",
 	Long:    ``,
-	Run:     ShowVersions,
+	Run:     showVersions,
 }
 
 func init() {

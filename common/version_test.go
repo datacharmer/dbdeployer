@@ -26,6 +26,11 @@ type versionPort struct {
 	port    int
 }
 
+type versionList struct {
+	version string
+	list    []int
+}
+
 type versionPair struct {
 	version     string
 	versionList []int
@@ -66,10 +71,9 @@ func TestVersionToPort(t *testing.T) {
 		expected := vp.port
 		port, err := VersionToPort(version)
 		//t.Logf("+%s\n", version)
-		if err != nil {
-			// t.Logf("%s", err)
-			// port = -9999
-			return
+		if err != nil && expected != -1 {
+			t.Logf("%d %s", expected, err)
+			t.Fail()
 		}
 		if expected == port {
 			t.Logf("ok     %-10s => %5d\n", version, port)
@@ -77,6 +81,41 @@ func TestVersionToPort(t *testing.T) {
 			t.Logf("NOT OK %-10s => %5d\n", version, port)
 			t.Fail()
 		}
+	}
+}
+
+func TestVersionToList(t *testing.T) {
+	var versions = []versionList{
+		{"", []int{-1}},               // FAIL: Empty string
+		{"5.0.A", []int{-1}},          // FAIL: Hexadecimal number
+		{"5.0.-9", []int{-1}},         // FAIL: Negative revision
+		{"-5.0.9", []int{-1}},         // FAIL: Negative major version
+		{"5.-1.9", []int{-1}},         // FAIL: Negative minor version
+		{"5096", []int{-1}},           // FAIL: No separators
+		{"50.96", []int{-1}},          // FAIL: Not enough separators
+		{"dummy", []int{-1}},          // FAIL: Not numbers
+		{"5.0.96.2", []int{-1}},       // FAIL: Too many components
+		{"5.0.96", []int{5, 0, 96}},   // OK: 5.0
+		{"5.1.72", []int{5, 1, 72}},   // OK: 5.1
+		{"5.5.55", []int{5, 5, 55}},   // OK: 5.5
+		{"ps5.7.20", []int{5, 7, 20}}, // OK: 5.7 with prefix
+		{"5.7.21", []int{5, 7, 21}},   // OK: 5.7
+		{"8.0.0", []int{8, 0, 0}},     // OK: 8.0
+		{"8.0.4", []int{8, 0, 4}},     // OK: 8.0
+		{"8.0.04", []int{8, 0, 4}},    // OK: 8.0
+		{"ma10.2.1", []int{10, 2, 1}}, // OK: 10.2 with prefix
+	}
+	//t.Logf("Name: %s\n", t.Name())
+	for _, vl := range versions {
+		version := vl.version
+		expected := vl.list
+		list, err := VersionToList(version)
+		// t.Logf("+%s\n", version)
+		if err != nil && expected[0] != -1 {
+			t.Logf("%+v %s", expected, err)
+			t.Fail()
+		}
+		compare.OkEqualIntSlices(t, list, expected)
 	}
 }
 

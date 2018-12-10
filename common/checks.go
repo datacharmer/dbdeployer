@@ -55,7 +55,7 @@ func GetVersionsFromDir(basedir string) ([]string, error) {
 	for _, f := range files {
 		fname := f.Name()
 		fmode := f.Mode()
-		//fmt.Printf("%#v\n", fmode)
+		//CondPrintf("%#v\n", fmode)
 		if fmode.IsDir() {
 			//fmt.Println(fname)
 			mysqld := path.Join(basedir, fname, "bin", "mysqld")
@@ -160,7 +160,7 @@ func GetInstalledPorts(sandboxHome string) ([]int, error) {
 			}
 		}
 	}
-	// fmt.Printf("%v\n",port_collection)
+	// CondPrintf("%v\n",port_collection)
 	return portCollection, nil
 }
 
@@ -173,7 +173,7 @@ func GetInstalledPorts(sandboxHome string) ([]int, error) {
 */
 func CheckTarballOperatingSystem(basedir string) error {
 	currentOs := runtime.GOOS
-	// fmt.Printf("<%s>\n",currentOs)
+	// CondPrintf("<%s>\n",currentOs)
 	type OSFinding struct {
 		Dir      string
 		OS       string
@@ -206,16 +206,16 @@ func CheckTarballOperatingSystem(basedir string) error {
 	}
 	if !wantedOsFound {
 		fmt.Println(globals.DashLine)
-		fmt.Printf("Looking for *%s* binaries\n", currentOs)
+		CondPrintf("Looking for *%s* binaries\n", currentOs)
 		fmt.Println(globals.DashLine)
 		if len(foundList) > 0 {
-			fmt.Printf("# Found the following:\n")
+			CondPrintf("# Found the following:\n")
 		}
 		for fname, rec := range foundList {
 			fullName := path.Join(basedir, rec.Dir, fname)
-			fmt.Printf("%-20s - tarball type: '%s' (flavor: %s)\n", fullName, rec.OS, rec.flavor)
+			CondPrintf("%-20s - tarball type: '%s' (flavor: %s)\n", fullName, rec.OS, rec.flavor)
 			if rec.OS == "source" {
-				fmt.Printf("THIS IS A SOURCE TARBALL. YOU NEED TO USE A *BINARY* TARBALL\n")
+				CondPrintf("THIS IS A SOURCE TARBALL. YOU NEED TO USE A *BINARY* TARBALL\n")
 			}
 			fmt.Println(globals.DashLine)
 		}
@@ -253,7 +253,7 @@ func CheckOrigin(args []string) {
 // Creates a sandbox directory if it does not exist
 func CheckSandboxDir(sandboxHome string) error {
 	if !DirExists(sandboxHome) {
-		fmt.Printf("Creating directory %s\n", sandboxHome)
+		CondPrintf("Creating directory %s\n", sandboxHome)
 		return os.Mkdir(sandboxHome, globals.PublicDirectoryAttr)
 	}
 	return nil
@@ -279,7 +279,7 @@ func VersionToList(version string) ([]int, error) {
 	verList1 := re1.FindAllStringSubmatch(version, -1)
 	verList2 := re2.FindAllStringSubmatch(version, -1)
 	verList := verList1
-	//fmt.Printf("%#v\n", verList)
+	//CondPrintf("%#v\n", verList)
 	if verList == nil {
 		verList = verList2
 	}
@@ -337,7 +337,7 @@ func VersionToPort(version string) (int, error) {
 // "5.6.33" >= []{5.7.0}  = false
 // "5.7.21" >= []{5.7.0}  = true
 // "10.1.21" >= []{5.7.0}  = false (!)
-// Note: MariaDB versions are skipped. The function returns false for MariaDB 10+
+// Note: MariaDB versions are skipped. The function returns false for MariaDB 10+.
 // So far (2018-02-19) this comparison holds, because MariaDB behaves like 5.5+ for
 // the purposes of sandbox deployment
 func GreaterOrEqualVersion(version string, comparedTo []int) (bool, error) {
@@ -368,16 +368,16 @@ func GreaterOrEqualVersion(version string, comparedTo []int) (bool, error) {
 // Finds the first free port available, starting at
 // requestedPort.
 // usedPorts is a map of ports already used by other sandboxes.
-// This function should not be used alone, but through FindFreePort
+// This function should not be used alone, but through FindFreePort.
 // Returns the first free port
-func FindFreePortSingle(requestedPort int, usedPorts PortMap) (int, error) {
+func findFreePortSingle(requestedPort int, usedPorts PortMap) (int, error) {
 	foundPort := 0
 	candidatePort := requestedPort
 	for foundPort == 0 {
 		_, exists := usedPorts[candidatePort]
 		if exists {
 			if portDebug {
-				fmt.Printf("- port %d not free\n", candidatePort)
+				CondPrintf("- port %d not free\n", candidatePort)
 			}
 		} else {
 			foundPort = candidatePort
@@ -385,7 +385,7 @@ func FindFreePortSingle(requestedPort int, usedPorts PortMap) (int, error) {
 		candidatePort += 1
 		if candidatePort > globals.MaxAllowedPort {
 			return -1,
-				fmt.Errorf("FATAL (FindFreePortSingle): Could not find a free port starting at %d.\n"+
+				fmt.Errorf("FATAL (findFreePortSingle): Could not find a free port starting at %d.\n"+
 					"Maximum limit for port value (%d) reached", requestedPort, globals.MaxAllowedPort)
 		}
 	}
@@ -395,9 +395,9 @@ func FindFreePortSingle(requestedPort int, usedPorts PortMap) (int, error) {
 // Finds the a range of howMany free ports available, starting at
 // basePort.
 // usedPorts is a map of ports already used by other sandboxes.
-// This function should not be used alone, but through FindFreePort
+// This function should not be used alone, but through FindFreePort.
 // Returns the first port of the requested range
-func FindFreePortRange(basePort int, usedPorts PortMap, howMany int) (int, error) {
+func findFreePortRange(basePort int, usedPorts PortMap, howMany int) (int, error) {
 	var foundPort int = 0
 	requestedPort := basePort
 	candidatePort := requestedPort
@@ -408,7 +408,7 @@ func FindFreePortRange(basePort int, usedPorts PortMap, howMany int) (int, error
 			_, exists := usedPorts[candidatePort+counter]
 			if exists {
 				if portDebug {
-					fmt.Printf("- port %d is not free\n", candidatePort+counter)
+					CondPrintf("- port %d is not free\n", candidatePort+counter)
 				}
 				candidatePort += 1
 				counter = 0
@@ -416,13 +416,13 @@ func FindFreePortRange(basePort int, usedPorts PortMap, howMany int) (int, error
 				continue
 			} else {
 				if portDebug {
-					fmt.Printf("+ port %d is free\n", candidatePort+counter)
+					CondPrintf("+ port %d is free\n", candidatePort+counter)
 				}
 				numPorts += 1
 			}
 			counter++
 			if candidatePort > globals.MaxAllowedPort {
-				return -1, fmt.Errorf("FATAL (FindFreePortRange): \n"+
+				return -1, fmt.Errorf("FATAL (findFreePortRange): \n"+
 					"Could not find a free range of %d ports starting at %d.\n"+
 					"Maximum limit for port value (%d) reached", howMany, requestedPort, globals.MaxAllowedPort)
 			}
@@ -430,7 +430,7 @@ func FindFreePortRange(basePort int, usedPorts PortMap, howMany int) (int, error
 		if numPorts == howMany {
 			foundPort = candidatePort
 		} else {
-			return -1, fmt.Errorf("FATAL: FindFreePortRange should never reach this point\n"+
+			return -1, fmt.Errorf("FATAL: findFreePortRange should never reach this point\n"+
 				"requested: %d - used: %v - candidate: %d", requestedPort, usedPorts, candidatePort)
 		}
 	}
@@ -440,12 +440,12 @@ func FindFreePortRange(basePort int, usedPorts PortMap, howMany int) (int, error
 // Finds the a range of howMany free ports available, starting at
 // basePort.
 // installedPorts is a slice of ports already used by other sandboxes.
-// Calls either FindFreePortRange or FindFreePortSingle, depending on the
-// amount of ports requested
+// Calls either findFreePortRange or findFreePortSingle, depending on the
+// amount of ports requested.
 // Returns the first port of the requested range
 func FindFreePort(basePort int, installedPorts []int, howMany int) (int, error) {
 	if portDebug {
-		fmt.Printf("FindFreePort: requested: %d - used: %v - howMany: %d\n", basePort, installedPorts, howMany)
+		CondPrintf("FindFreePort: requested: %d - used: %v - howMany: %d\n", basePort, installedPorts, howMany)
 	}
 	usedPorts := make(PortMap)
 
@@ -453,7 +453,7 @@ func FindFreePort(basePort int, installedPorts []int, howMany int) (int, error) 
 		usedPorts[p] = true
 	}
 	if howMany == 1 {
-		return FindFreePortSingle(basePort, usedPorts)
+		return findFreePortSingle(basePort, usedPorts)
 	}
-	return FindFreePortRange(basePort, usedPorts, howMany)
+	return findFreePortRange(basePort, usedPorts, howMany)
 }

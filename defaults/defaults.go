@@ -140,13 +140,13 @@ func Defaults() DbdeployerDefaults {
 func ShowDefaults(defaults DbdeployerDefaults) {
 	defaults = replaceLiteralEnvValues(defaults)
 	if common.FileExists(ConfigurationFile) {
-		fmt.Printf("# Configuration file: %s\n", ConfigurationFile)
+		common.CondPrintf("# Configuration file: %s\n", ConfigurationFile)
 	} else {
-		fmt.Println("# Internal values:")
+		common.CondPrintln("# Internal values:")
 	}
 	b, err := json.MarshalIndent(defaults, " ", "\t")
 	common.ErrCheckExitf(err, 1, globals.ErrEncodingDefaults, err)
-	fmt.Printf("%s\n", b)
+	common.CondPrintf("%s\n", b)
 }
 
 func WriteDefaultsFile(filename string, defaults DbdeployerDefaults) {
@@ -192,7 +192,7 @@ func checkInt(name string, val, min, max int) bool {
 	if val >= min && val <= max {
 		return true
 	}
-	fmt.Printf("Value %s (%d) must be between %d and %d\n", name, val, min, max)
+	common.CondPrintf("Value %s (%d) must be between %d and %d\n", name, val, min, max)
 	return false
 }
 
@@ -233,7 +233,7 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		// nd.MultiplePrefix != nd.PxcPrefix &&
 		nd.SandboxHome != nd.SandboxBinary
 	if !noConflicts {
-		fmt.Printf("Conflicts found in defaults values:\n")
+		common.CondPrintf("Conflicts found in defaults values:\n")
 		ShowDefaults(nd)
 		return false
 	}
@@ -250,7 +250,7 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		nd.SandboxHome != "" &&
 		nd.SandboxBinary != ""
 	if !allStrings {
-		fmt.Printf("One or more empty values found in defaults\n")
+		common.CondPrintf("One or more empty values found in defaults\n")
 		ShowDefaults(nd)
 		return false
 	}
@@ -261,7 +261,7 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 	compatibleVersion, err := common.GreaterOrEqualVersion(nd.Version, versionList)
 	common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
 	if !compatibleVersion {
-		fmt.Printf("Provided defaults are for version %s. Current version is %s\n", nd.Version, common.CompatibleVersion)
+		common.CondPrintf("Provided defaults are for version %s. Current version is %s\n", nd.Version, common.CompatibleVersion)
 		return false
 	}
 	return true
@@ -271,7 +271,7 @@ func RemoveDefaultsFile() {
 	if common.FileExists(ConfigurationFile) {
 		err := os.Remove(ConfigurationFile)
 		common.ErrCheckExitf(err, 1, "%s", err)
-		fmt.Printf("#File %s removed\n", ConfigurationFile)
+		common.CondPrintf("#File %s removed\n", ConfigurationFile)
 	} else {
 		common.Exitf(1, "configuration file %s not found", ConfigurationFile)
 	}
@@ -363,7 +363,7 @@ func UpdateDefaults(label, value string, storeDefaults bool) {
 		currentDefaults = newDefaults
 		if storeDefaults {
 			WriteDefaultsFile(ConfigurationFile, Defaults())
-			fmt.Printf("# Updated %s -> \"%s\"\n", label, value)
+			common.CondPrintf("# Updated %s -> \"%s\"\n", label, value)
 		}
 	} else {
 		common.Exitf(1, "invalid defaults data %s : %s", label, value)
@@ -379,11 +379,11 @@ func LoadConfiguration() {
 	if ValidateDefaults(newDefaults) {
 		currentDefaults = newDefaults
 	} else {
-		fmt.Println(globals.StarLine)
-		fmt.Printf("Defaults file %s not validated.\n", ConfigurationFile)
-		fmt.Println("Loading internal defaults")
-		fmt.Println(globals.StarLine)
-		fmt.Println("")
+		common.CondPrintln(globals.StarLine)
+		common.CondPrintf("Defaults file %s not validated.\n", ConfigurationFile)
+		common.CondPrintln("Loading internal defaults")
+		common.CondPrintln(globals.StarLine)
+		common.CondPrintln("")
 		time.Sleep(1000 * time.Millisecond)
 	}
 }

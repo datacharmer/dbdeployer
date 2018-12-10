@@ -28,7 +28,7 @@ import (
 	"path"
 )
 
-func DeleteSandbox(cmd *cobra.Command, args []string) {
+func deleteSandbox(cmd *cobra.Command, args []string) {
 	var execLists []concurrent.ExecutionList
 	if len(args) < 1 {
 		common.Exit(1,
@@ -43,7 +43,7 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 		runConcurrently = true
 	}
 	skipConfirm, _ := flags.GetBool(globals.SkipConfirmLabel)
-	sandboxDir, err := GetAbsolutePathFromFlag(cmd, "sandbox-home")
+	sandboxDir, err := getAbsolutePathFromFlag(cmd, "sandbox-home")
 	common.ErrCheckExitf(err, 1, "error finding absolute path for 'sandbox-home'")
 
 	deletionList := []common.SandboxInfo{{SandboxName: sandboxName, Locked: false}}
@@ -53,17 +53,17 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 			confirm = false
 		}
 		deletionList, err = common.GetInstalledSandboxes(sandboxDir)
-		common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList)
+		common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList, err)
 	}
 	if len(deletionList) == 0 {
-		fmt.Printf("Nothing to delete in %s\n", sandboxDir)
+		common.CondPrintf("Nothing to delete in %s\n", sandboxDir)
 		return
 	}
 	if len(deletionList) > 60 && runConcurrently {
 		fmt.Println("# Concurrency disabled. Can't run more than 60 concurrent operations")
 		runConcurrently = false
 	}
-	fmt.Printf("List of deployed sandboxes:\n")
+	common.CondPrintf("List of deployed sandboxes:\n")
 	unlockedFound := false
 	for _, sb := range deletionList {
 		locked := ""
@@ -72,14 +72,14 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 		} else {
 			unlockedFound = true
 		}
-		fmt.Printf("%s/%s %s\n", sandboxDir, sb.SandboxName, locked)
+		common.CondPrintf("%s/%s %s\n", sandboxDir, sb.SandboxName, locked)
 	}
 	if !unlockedFound {
-		fmt.Printf("No unlocked sandboxes found.\n")
+		common.CondPrintf("No unlocked sandboxes found.\n")
 		return
 	}
 	if confirm {
-		fmt.Printf("Do you confirm? y/[N] ")
+		common.CondPrintf("Do you confirm? y/[N] ")
 
 		bio := bufio.NewReader(os.Stdin)
 		line, _, err := bio.ReadLine()
@@ -96,7 +96,7 @@ func DeleteSandbox(cmd *cobra.Command, args []string) {
 	}
 	for _, sb := range deletionList {
 		if sb.Locked {
-			fmt.Printf("Sandbox %s is locked\n", sb.SandboxName)
+			common.CondPrintf("Sandbox %s is locked\n", sb.SandboxName)
 		} else {
 			execList, err := sandbox.RemoveSandbox(sandboxDir, sb.SandboxName, runConcurrently)
 			if err != nil {
@@ -129,7 +129,7 @@ var deleteCmd = &cobra.Command{
 	$ dbdeployer delete rsandbox_5_7_21`,
 	Long: `Stops the sandbox (and its depending sandboxes, if any), and removes it.
 Warning: this command is irreversible!`,
-	Run: DeleteSandbox,
+	Run: deleteSandbox,
 }
 
 func init() {

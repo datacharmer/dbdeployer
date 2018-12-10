@@ -24,11 +24,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func MultipleSandbox(cmd *cobra.Command, args []string) {
+func multipleSandbox(cmd *cobra.Command, args []string) {
 	var sd sandbox.SandboxDef
 	common.CheckOrigin(args)
 	flags := cmd.Flags()
-	sd, err := FillSdef(cmd, args)
+	sd, err := fillSandboxDdefinition(cmd, args)
 	common.ErrCheckExitf(err, 1, "error filling sandbox definition")
 	nodes, _ := flags.GetInt(globals.NodesLabel)
 	sd.SBType = "multiple"
@@ -52,7 +52,7 @@ For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, cont
 the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
 Use the "unpack" command to get the tarball into the right directory.
 `,
-	Run: MultipleSandbox,
+	Run: multipleSandbox,
 	Example: `
 	$ dbdeployer deploy multiple 5.7.21
 	`,

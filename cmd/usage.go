@@ -21,7 +21,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func ShowUsage(cmd *cobra.Command, args []string) {
+func showUsage(cmd *cobra.Command, args []string) {
 	const basicUsage string = `
 	USING A SANDBOX
 
@@ -117,7 +117,7 @@ var usageCmd = &cobra.Command{
 	Use:   "usage [single|multiple]",
 	Short: "Shows usage of installed sandboxes",
 	Long:  `Shows syntax and examples of tools installed in database sandboxes.`,
-	Run:   ShowUsage,
+	Run:   showUsage,
 }
 
 func init() {

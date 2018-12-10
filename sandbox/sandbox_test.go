@@ -79,7 +79,15 @@ type versionRec struct {
 	port    int
 }
 
-var singleScriptNames = []string{"start", "stop", "status", "restart", "clear", "send_kill", "use"}
+var singleScriptNames = []string{
+	globals.ScriptStart,
+	globals.ScriptStop,
+	globals.ScriptStatus,
+	globals.ScriptRestart,
+	globals.ScriptClear,
+	globals.ScriptSendKill,
+	globals.ScriptUse,
+}
 
 func testCreateMockSandbox(t *testing.T) {
 	err := setMockEnvironment("mock_dir")
@@ -125,7 +133,7 @@ func testCreateMockSandbox(t *testing.T) {
 			t.Fail()
 		}
 		okDirExists(t, sandboxDef.Basedir)
-		sandboxDir := path.Join(sandboxDef.SandboxDir, "msb_"+pathVersion)
+		sandboxDir := path.Join(sandboxDef.SandboxDir, defaults.Defaults().SandboxPrefix+pathVersion)
 		okDirExists(t, sandboxDir)
 		t.Logf("%#v", sandboxDir)
 		okDirExists(t, path.Join(sandboxDir, "data"))
@@ -165,7 +173,7 @@ func testCreateStandaloneSandbox(t *testing.T) {
 	}
 
 	if common.IsEnvSet("SHOW_SANDBOX_DEF") {
-		t.Logf("%s", SandboxDefToJson(sandboxDef))
+		t.Logf("%s", sandboxDefToJson(sandboxDef))
 	}
 
 	err = CreateStandaloneSandbox(sandboxDef)
@@ -173,7 +181,7 @@ func testCreateStandaloneSandbox(t *testing.T) {
 		t.Fatal(fmt.Sprintf(globals.ErrCreatingSandbox, err))
 	}
 
-	sandboxDir := path.Join(sandboxDef.SandboxDir, "msb_"+pathVersion)
+	sandboxDir := path.Join(sandboxDef.SandboxDir, defaults.Defaults().SandboxPrefix+pathVersion)
 	okDirExists(t, sandboxDir)
 	okDirExists(t, path.Join(sandboxDir, "data"))
 	okDirExists(t, path.Join(sandboxDir, "tmp"))
@@ -240,7 +248,7 @@ func testCreateReplicationSandbox(t *testing.T) {
 	}
 
 	if common.IsEnvSet("SHOW_SANDBOX_DEF") {
-		t.Logf("%s", SandboxDefToJson(sandboxDef))
+		t.Logf("%s", sandboxDefToJson(sandboxDef))
 	}
 
 	err := CreateReplicationSandbox(sandboxDef, latestVersion, globals.MasterSlaveLabel, 3, "127.0.0.1", "1", "2,3")

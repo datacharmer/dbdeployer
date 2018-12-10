@@ -248,4 +248,5 @@ var (
 )
 
 const PublicDirectoryAttr = 0755
+const ExecutableFileAttr = 0744
 const SandboxDescriptionName = "sbdescription.json"

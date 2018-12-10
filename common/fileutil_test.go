@@ -18,8 +18,13 @@ package common
 import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/compare"
+	"github.com/datacharmer/dbdeployer/globals"
 	"os"
+	"path"
+	"path/filepath"
 	"regexp"
+	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -91,9 +96,9 @@ def = world
 	var sampleConfigFile = "/tmp/sample_config.ini"
 	for _, sampleConfigText := range []string{sampleConfigText1, sampleConfigText2} {
 		err := WriteString(sampleConfigText, sampleConfigFile)
-		compare.OkIsNil("written to sample file", err, t)
+		compare.OkIsNil("err for written sample file", err, t)
 		readConfig, err := ParseConfigFile(sampleConfigFile)
-		compare.OkIsNil("read from sample file", err, t)
+		compare.OkIsNil("err for read sample file", err, t)
 		for k, _ := range sampleConfig {
 			val, ok := readConfig[k]
 			compare.OkEqualBool("key", ok, true, t)
@@ -105,4 +110,211 @@ def = world
 			}
 		}
 	}
+}
+
+func TestExists(t *testing.T) {
+	_, currentFile, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Skip("Could not get current file name")
+	}
+	exists := FileExists(currentFile)
+	compare.OkEqualBool(fmt.Sprintf("file %s exists", currentFile), exists, true, t)
+	dir := filepath.Dir(currentFile)
+	if dir == "" {
+		t.Skip("Could not get directory for current test file")
+	}
+	dir2 := DirName(currentFile)
+	compare.OkEqualString("dirName", dir2, dir, t)
+	bareName := filepath.Base(currentFile)
+	bareName2 := BaseName(currentFile)
+	compare.OkEqualString("baseName", bareName2, bareName, t)
+	exists = DirExists(dir)
+	compare.OkEqualBool(fmt.Sprintf("dir %s exists", dir), exists, true, t)
+	upperDir := path.Join(".", "..")
+	upperDirAbs, err := AbsolutePath(upperDir)
+	if err != nil {
+		t.Skip(fmt.Sprintf("Could not get absolute directory for %s", upperDir))
+	}
+
+	calculatedUpperDirAbs := filepath.Dir(dir)
+	compare.OkEqualString("upper directory ./..", upperDirAbs, calculatedUpperDirAbs, t)
+}
+
+func TestWhich(t *testing.T) {
+	goExec := Which("go")
+	compare.OkMatchesString("[Which] Go executable is not an empty string", goExec, `.+`, t)
+	exists := ExecExists(goExec)
+	compare.OkEqualBool(fmt.Sprintf("Go executable '%s' exists", goExec), exists, true, t)
+	goExec = FindInPath("go")
+	compare.OkMatchesString("[FindInPath] Go executable is not an empty string", goExec, `.+`, t)
+	exists = ExecExists(goExec)
+	compare.OkEqualBool(fmt.Sprintf("Go executable '%s' exists", goExec), exists, true, t)
+}
+
+func TestSandboxDescription(t *testing.T) {
+	pid := os.Getpid()
+	var sd = SandboxDescription{
+		Basedir:           fmt.Sprintf("basedir%d", pid),
+		SBType:            "single",
+		Version:           fmt.Sprintf("5.7.%d", pid),
+		Nodes:             0,
+		NodeNum:           0,
+		DbDeployerVersion: VersionDef,
+		CommandLine:       "",
+		LogFile:           "",
+	}
+	descriptionDir := path.Join("/tmp", "test_sd")
+	if !DirExists(descriptionDir) {
+		err := os.Mkdir(descriptionDir, globals.PublicDirectoryAttr)
+		if err != nil {
+			t.Skip(fmt.Sprintf("could not create directory %s", descriptionDir))
+		}
+	}
+	err := WriteSandboxDescription(descriptionDir, sd)
+	compare.OkIsNil("err for write sandbox description", err, t)
+	if err != nil {
+		t.Skip(fmt.Sprintf("Can't write sandbox description into %s", descriptionDir))
+	}
+	newSd, err := ReadSandboxDescription(descriptionDir)
+	compare.OkIsNil("err for read sandbox description", err, t)
+	if err != nil {
+		t.Skip(fmt.Sprintf("Can't read sandbox description from %s", descriptionDir))
+	}
+	compare.OkEqualString("basedir", newSd.Basedir, sd.Basedir, t)
+	compare.OkEqualString("sb type", newSd.SBType, sd.SBType, t)
+	compare.OkEqualString("version", newSd.Version, sd.Version, t)
+	compare.OkMatchesString("timestamp is not empty", newSd.Timestamp, `.+`, t)
+}
+
+func TestWriteStrings(t *testing.T) {
+	pid := os.Getpid()
+	textFile := path.Join("/tmp", fmt.Sprintf("test%d", pid))
+
+	copiedFile := textFile + "_copy"
+
+	type DataWrite struct {
+		termination string
+		elements    int
+		elements2   int
+		expected    []string
+		expected2   []string
+	}
+
+	lines := []string{"one", "two", "three"}
+	appendLine := "four"
+
+	data := []DataWrite{
+		{"", 1, 1, []string{"onetwothree"}, []string{"onetwothreefour"}},
+		{":", 1, 1, []string{"one:two:three:"}, []string{"one:two:three:four:"}},
+		{"\n", 3, 4, []string{"one", "two", "three"}, []string{"one", "two", "three", "four"}},
+	}
+
+	for I, d := range data {
+		err := WriteStrings(lines, textFile, d.termination)
+		compare.OkIsNil(fmt.Sprintf("[%d] err writing lines text file", I), err, t)
+		if err != nil {
+			t.Skip(fmt.Sprintf("[%d] error writing lines to file %s", I, textFile))
+		}
+		err = CopyFile(textFile, copiedFile)
+		compare.OkIsNil(fmt.Sprintf("[%d] err copying text file", I), err, t)
+		if err != nil {
+			t.Skip(fmt.Sprintf("[%d] error copying text file %s", I, textFile))
+		}
+		newLines, err := SlurpAsLines(copiedFile)
+		compare.OkIsNil(fmt.Sprintf("[%d] err reading lines from text file", I), err, t)
+		if err != nil {
+			t.Skip(fmt.Sprintf("[ %d] error reading lines from file %s", I, copiedFile))
+		}
+		compare.OkEqualInt(fmt.Sprintf("[%d] read elements same as written elements", I), d.elements, len(newLines), t)
+		compare.OkEqualStringSlices(t, newLines, d.expected)
+
+		err = AppendStrings([]string{appendLine}, textFile, d.termination)
+		compare.OkIsNil(fmt.Sprintf("[%d] err appending lines to text file", I), err, t)
+		if err != nil {
+			t.Skip(fmt.Sprintf("[ %d] error appending lines to text file %s: %+v", I, textFile, err))
+		}
+		newLines, err = SlurpAsLines(textFile)
+		compare.OkIsNil(fmt.Sprintf("[%d] err reading lines from appended text file", I), err, t)
+		if err != nil {
+			t.Skip(fmt.Sprintf("[ %d] error reading lines from appended file %s", I, textFile))
+		}
+		compare.OkEqualInt(fmt.Sprintf("[%d] read appended elements same as written elements", I), d.elements2, len(newLines), t)
+		compare.OkEqualStringSlices(t, newLines, d.expected2)
+
+		allInOne := strings.Join(lines, d.termination)
+		err = WriteString(allInOne, textFile)
+		compare.OkIsNil(fmt.Sprintf("[%d] err writing string to text file", I), err, t)
+		if err != nil {
+			t.Skip(fmt.Sprintf("[%d] error writing string to file %s", I, textFile))
+		}
+		newText, err := SlurpAsString(textFile)
+		compare.OkIsNil(fmt.Sprintf("[%d] err reading string from text file", I), err, t)
+		if err != nil {
+			t.Skip(fmt.Sprintf("[ %d] error reading string from file %s", I, textFile))
+		}
+
+		compare.OkEqualString(fmt.Sprintf("[%d] write/read string", I), allInOne, newText, t)
+		buf, err := SlurpAsBytes(textFile)
+
+		compare.OkIsNil(fmt.Sprintf("[%d] err reading bytes from text file", I), err, t)
+		// t.Logf("%#v\n", buf)
+		compare.OkEqualByteSlices(t, buf, []byte(newText))
+	}
+}
+
+func createCommand(fileName string, command string) error {
+	err := WriteString(command, fileName)
+	if err != nil {
+		return err
+	}
+	return os.Chmod(fileName, globals.ExecutableFileAttr)
+}
+
+func TestRunCmd(t *testing.T) {
+
+	scriptText := `#!/bin/bash
+value=$1
+[ -z "$value" ] && value=noargs
+echo -n "You asked for $value, didn't you?"
+`
+	scriptName := path.Join("/tmp", "testcmd")
+
+	// First, a failing test
+	err := createCommand(scriptName, fmt.Sprintf("#!/bin/bash\nexit 1"))
+	compare.OkIsNil("command creation err", err, t)
+	if err != nil {
+		t.Skip("error creating command", err)
+	}
+	out, err := RunCmd(scriptName)
+	compare.OkIsNotNil("[RunCmd] command execution expected err", err, t)
+	if err == nil {
+		t.Skip("[RunCmd] unexpected success of failing command", err)
+	}
+
+	err = createCommand(scriptName, scriptText)
+	compare.OkIsNil("command creation err", err, t)
+	if err != nil {
+		t.Skip("error creating command", err)
+	}
+
+	out, err = RunCmd(scriptName)
+	compare.OkIsNil("[RunCmd] command execution err", err, t)
+	if err != nil {
+		t.Skip("[RunCmd] error executing command", err)
+	}
+	compare.OkMatchesString("[RunCmd] command result", out, `noargs`, t)
+
+	out, err = RunCmdCtrl(scriptName, true)
+	compare.OkIsNil("[RunCmdCtrl] command execution err", err, t)
+	if err != nil {
+		t.Skip("[RunCmdCtrl] error executing command", err)
+	}
+	compare.OkMatchesString("[RunCmdCtrl] command result", out, `noargs`, t)
+
+	out, err = RunCmdWithArgs(scriptName, []string{"withArgs"})
+	compare.OkIsNil("[RunCmdWithArgs] command execution err", err, t)
+	if err != nil {
+		t.Skip("[RunCmdWithArgs] error executing command", err)
+	}
+	compare.OkMatchesString("[RunCmdWithArgs] command result", out, `withArgs`, t)
 }

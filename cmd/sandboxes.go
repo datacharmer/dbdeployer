@@ -26,7 +26,7 @@ import (
 	"strings"
 )
 
-func ShowSandboxesFromCatalog(currentSandboxHome string, header bool) {
+func showSandboxesFromCatalog(currentSandboxHome string, header bool) {
 	sandboxList, err := defaults.ReadCatalog()
 	common.ErrCheckExitf(err, 1, "error getting sandboxes from catalog: %s", err)
 	if len(sandboxList) == 0 {
@@ -52,13 +52,13 @@ func ShowSandboxesFromCatalog(currentSandboxHome string, header bool) {
 }
 
 // Shows installed sandboxes
-func ShowSandboxes(cmd *cobra.Command, args []string) {
+func showSandboxes(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	SandboxHome, _ := flags.GetString(globals.SandboxHomeLabel)
 	readCatalog, _ := flags.GetBool(globals.CatalogLabel)
 	useHeader, _ := flags.GetBool(globals.HeaderLabel)
 	if readCatalog {
-		ShowSandboxesFromCatalog(SandboxHome, useHeader)
+		showSandboxesFromCatalog(SandboxHome, useHeader)
 		return
 	}
 	var sandboxList []common.SandboxInfo
@@ -163,7 +163,7 @@ Alternatively, using --catalog will list all sandboxes, regardless of where
 they were deployed.
 `,
 	Aliases: []string{"installed", "deployed"},
-	Run:     ShowSandboxes,
+	Run:     showSandboxes,
 }
 
 func init() {

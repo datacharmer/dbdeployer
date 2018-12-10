@@ -67,7 +67,7 @@ func getBaseMysqlxPort(basePort int, sdef SandboxDef, nodes int) (int, error) {
 		baseMysqlxPort = firstGroupPort - 1
 		for N := 1; N <= nodes; N++ {
 			checkPort := baseMysqlxPort + N
-			err := CheckPort("get_base_mysqlx_port", sdef.SandboxDir, sdef.InstalledPorts, checkPort)
+			err := checkPortAvailability("get_base_mysqlx_port", sdef.SandboxDir, sdef.InstalledPorts, checkPort)
 			if err != nil {
 				return 0, err
 			}
@@ -111,7 +111,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		return fmt.Errorf("Can't run group replication with less than 3 nodes")
 	}
 	if common.DirExists(sandboxDef.SandboxDir) {
-		sandboxDef, err = CheckDirectory(sandboxDef)
+		sandboxDef, err = checkDirectory(sandboxDef)
 		if err != nil {
 			return err
 		}
@@ -131,13 +131,13 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	}
 	baseGroupPort = firstGroupPort - 1
 	for checkPort := basePort + 1; checkPort < basePort+nodes+1; checkPort++ {
-		err = CheckPort("CreateGroupReplication", sandboxDef.SandboxDir, sandboxDef.InstalledPorts, checkPort)
+		err = checkPortAvailability("CreateGroupReplication", sandboxDef.SandboxDir, sandboxDef.InstalledPorts, checkPort)
 		if err != nil {
 			return err
 		}
 	}
 	for checkPort := baseGroupPort + 1; checkPort < baseGroupPort+nodes+1; checkPort++ {
-		err = CheckPort("CreateGroupReplication-group", sandboxDef.SandboxDir, sandboxDef.InstalledPorts, checkPort)
+		err = checkPortAvailability("CreateGroupReplication-group", sandboxDef.SandboxDir, sandboxDef.InstalledPorts, checkPort)
 		if err != nil {
 			return err
 		}
@@ -280,7 +280,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 			if sandboxDef.SkipStart {
 				installationMessage = "Installing %s %d\n"
 			}
-			fmt.Printf(installationMessage, nodeLabel, i)
+			common.CondPrintf(installationMessage, nodeLabel, i)
 			logger.Printf(installationMessage, nodeLabel, i)
 		}
 		sandboxDef.ReplOptions = SingleTemplates["replication_options"].Contents + fmt.Sprintf("\n%s\n%s\n", GroupReplOptions, singleMultiPrimary)
@@ -308,7 +308,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		sandboxDef.Prompt = fmt.Sprintf("%s%d", nodeLabel, i)
 		sandboxDef.SBType = "group-node"
 		sandboxDef.NodeNum = i
-		// fmt.Printf("%#v\n",sdef)
+		// common.CondPrintf("%#v\n",sdef)
 		logger.Printf("Create single sandbox for node %d\n", i)
 		execList, err := CreateChildSandbox(sandboxDef)
 		if err != nil {
@@ -395,14 +395,14 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	logger.Printf("Running parallel tasks\n")
 	concurrent.RunParallelTasksByPriority(execLists)
 	if !sandboxDef.SkipStart {
-		fmt.Println(path.Join(common.ReplaceLiteralHome(sandboxDef.SandboxDir), globals.ScriptInitializeNodes))
+		common.CondPrintln(path.Join(common.ReplaceLiteralHome(sandboxDef.SandboxDir), globals.ScriptInitializeNodes))
 		logger.Printf("Running group replication initialization script\n")
 		_, err := common.RunCmd(path.Join(sandboxDef.SandboxDir, globals.ScriptInitializeNodes))
 		if err != nil {
 			return fmt.Errorf("error initializing group replication: %s", err)
 		}
 	}
-	fmt.Printf("Replication directory installed in %s\n", common.ReplaceLiteralHome(sandboxDef.SandboxDir))
-	fmt.Printf("run 'dbdeployer usage multiple' for basic instructions'\n")
+	common.CondPrintf("Replication directory installed in %s\n", common.ReplaceLiteralHome(sandboxDef.SandboxDir))
+	common.CondPrintf("run 'dbdeployer usage multiple' for basic instructions'\n")
 	return nil
 }

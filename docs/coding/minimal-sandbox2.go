@@ -29,10 +29,10 @@ import (
 
 func main() {
 	// Searches for expanded sandboxes in $HOME/opt/mysql
-	sandbox_binary := path.Join(os.Getenv("HOME"), "opt", "mysql")
+	sandboxBinary := path.Join(os.Getenv("HOME"), "opt", "mysql")
 
 	// Creates sandboxes in $HOME/sandboxes
-	sandbox_home := path.Join(os.Getenv("HOME"), "sandboxes")
+	sandboxHome := path.Join(os.Getenv("HOME"), "sandboxes")
 
 	// For this to work, we need to have
 	// a MySQL tarball expanded in $HOME/opt/mysql/5.7.22
@@ -47,12 +47,12 @@ func main() {
 	port2 := 5633
 
 	// MySQL will look for binaries in $HOME/opt/mysql/5.7.22
-	basedir1 := path.Join(sandbox_binary, version1) // This is what dbdeployer expects
+	basedir1 := path.Join(sandboxBinary, version1) // This is what dbdeployer expects
 	// i.e. a name containing the full version
 
 	// MySQL will look for binaries in $HOME/opt/mysql/my-5.6
-	basedir2 := path.Join(sandbox_binary, "my-5.6")
-	basedir2a := path.Join(sandbox_binary, "5.6.33")
+	basedir2 := path.Join(sandboxBinary, "my-5.6")
+	basedir2a := path.Join(sandboxBinary, "5.6.33")
 	if !common.DirExists(basedir2) {
 		if common.DirExists(basedir2a) {
 			err := os.Symlink(basedir2a, basedir2)
@@ -68,8 +68,8 @@ func main() {
 	// for the base directory
 
 	// Creates the base target directory if it doesn't exist
-	if !common.DirExists(sandbox_home) {
-		common.Mkdir(sandbox_home)
+	if !common.DirExists(sandboxHome) {
+		common.Mkdir(sandboxHome)
 	}
 
 	// Minimum data to be filled for a simple sandbox.
@@ -78,7 +78,7 @@ func main() {
 	var sdef = sandbox.SandboxDef{
 		Version:    version1,
 		Basedir:    basedir1,
-		SandboxDir: sandbox_home,
+		SandboxDir: sandboxHome,
 		DirName:    sandboxName1,
 		LoadGrants: true,
 		// This is the list of ports to ignore
@@ -114,31 +114,31 @@ func main() {
 	}
 
 	// Invokes the sandbox self-testing script
-	_, err = common.RunCmd(path.Join(sandbox_home, sandboxName1, "test_sb"))
+	_, err = common.RunCmdCtrl(path.Join(sandboxHome, sandboxName1, "test_sb"), false)
 	if err != nil {
 		common.Exitf(1, "error running test for sandbox 2: %s", err)
 	}
-	_, err = common.RunCmd(path.Join(sandbox_home, sandboxName2, "test_sb"))
+	_, err = common.RunCmdCtrl(path.Join(sandboxHome, sandboxName2, "test_sb"), false)
 	if err != nil {
 		common.Exitf(1, "error running test for sandbox 2: %s", err)
 	}
 
 	// Removes the sandbox from disk
-	_, err = sandbox.RemoveSandbox(sandbox_home, sandboxName1, false)
+	_, err = sandbox.RemoveSandbox(sandboxHome, sandboxName1, false)
 	if err != nil {
 		common.Exitf(1, globals.ErrWhileDeletingSandbox, err)
 	}
-	_, err = sandbox.RemoveSandbox(sandbox_home, sandboxName2, false)
+	_, err = sandbox.RemoveSandbox(sandboxHome, sandboxName2, false)
 	if err != nil {
 		common.Exitf(1, globals.ErrWhileDeletingSandbox, err)
 	}
 
 	// Removes the sandbox from dbdeployer catalog
-	err = defaults.DeleteFromCatalog(path.Join(sandbox_home, sandboxName1))
+	err = defaults.DeleteFromCatalog(path.Join(sandboxHome, sandboxName1))
 	if err != nil {
 		common.Exitf(1, globals.ErrRemovingFromCatalog, sandboxName1)
 	}
-	err = defaults.DeleteFromCatalog(path.Join(sandbox_home, sandboxName2))
+	err = defaults.DeleteFromCatalog(path.Join(sandboxHome, sandboxName2))
 	if err != nil {
 		common.Exitf(1, globals.ErrRemovingFromCatalog, sandboxName2)
 	}

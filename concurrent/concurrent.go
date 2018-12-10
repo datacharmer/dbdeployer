@@ -80,7 +80,7 @@ func startTask(num int, w *sync.WaitGroup, tasks CommonChan) {
 
 // Run several tasks in parallel
 
-func RunParallelTasks(priorityLevel int, operations ExecCommands) {
+func runParallelTasks(priorityLevel int, operations ExecCommands) {
 	tasks := make(CommonChan, 64)
 
 	var wg sync.WaitGroup
@@ -162,7 +162,7 @@ func RunParallelTasksByPriority(execLists []ExecutionList) {
 		if DebugConcurrency {
 			fmt.Printf("%d %v\n", N, operations)
 		}
-		RunParallelTasks(N, operations)
+		runParallelTasks(N, operations)
 	}
 }
 

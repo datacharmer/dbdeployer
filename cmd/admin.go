@@ -26,7 +26,7 @@ import (
 	"path"
 )
 
-func UnpreserveSandbox(sandboxDir, sandboxName string) {
+func unPreserveSandbox(sandboxDir, sandboxName string) {
 	fullPath := path.Join(sandboxDir, sandboxName)
 	if !common.DirExists(fullPath) {
 		common.Exitf(1, globals.ErrDirectoryNotFound, fullPath)
@@ -36,7 +36,7 @@ func UnpreserveSandbox(sandboxDir, sandboxName string) {
 		preserve = path.Join(fullPath, globals.ScriptNoClear)
 	}
 	if !common.ExecExists(preserve) {
-		fmt.Printf("Sandbox %s is not locked\n", sandboxName)
+		common.CondPrintf("Sandbox %s is not locked\n", sandboxName)
 		return
 	}
 	isMultiple := true
@@ -56,10 +56,10 @@ func UnpreserveSandbox(sandboxDir, sandboxName string) {
 	common.ErrCheckExitf(err, 1, globals.ErrWhileRemoving, clear, err)
 	err = os.Rename(noClear, clear)
 	common.ErrCheckExitf(err, 1, globals.ErrWhileRenamingScript, err)
-	fmt.Printf("Sandbox %s unlocked\n", sandboxName)
+	common.CondPrintf("Sandbox %s unlocked\n", sandboxName)
 }
 
-func PreserveSandbox(sandboxDir, sandboxName string) {
+func preserveSandbox(sandboxDir, sandboxName string) {
 	fullPath := path.Join(sandboxDir, sandboxName)
 	if !common.DirExists(fullPath) {
 		common.Exitf(1, globals.ErrDirectoryNotFound, fullPath)
@@ -69,7 +69,7 @@ func PreserveSandbox(sandboxDir, sandboxName string) {
 		preserve = path.Join(fullPath, globals.ScriptNoClear)
 	}
 	if common.ExecExists(preserve) {
-		fmt.Printf("Sandbox %s is already locked\n", sandboxName)
+		common.CondPrintf("Sandbox %s is already locked\n", sandboxName)
 		return
 	}
 	isMultiple := true
@@ -110,62 +110,62 @@ func PreserveSandbox(sandboxDir, sandboxName string) {
 	if err != nil {
 		common.Exitf(1, "%+v", err)
 	}
-	fmt.Printf("Sandbox %s locked\n", sandboxName)
+	common.CondPrintf("Sandbox %s locked\n", sandboxName)
 }
 
-func LockSandbox(cmd *cobra.Command, args []string) {
+func lockSandbox(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
 		common.Exit(1,
 			"'lock' requires the name of a sandbox (or ALL)",
 			"Example: dbdeployer admin lock msb_5_7_21")
 	}
 	candidateSandbox := args[0]
-	sandboxDir, err := GetAbsolutePathFromFlag(cmd, "sandbox-home")
+	sandboxDir, err := getAbsolutePathFromFlag(cmd, "sandbox-home")
 	if err != nil {
 		common.Exitf(1, "%+v", err)
 	}
 	lockList := []string{candidateSandbox}
 	if candidateSandbox == "ALL" || candidateSandbox == "all" {
 		installedSandboxes, err := common.GetInstalledSandboxes(sandboxDir)
-		common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList)
+		common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList, err)
 		lockList = common.SandboxInfoToFileNames(installedSandboxes)
 	}
 	if len(lockList) == 0 {
-		fmt.Printf("Nothing to lock in %s\n", sandboxDir)
+		common.CondPrintf("Nothing to lock in %s\n", sandboxDir)
 		return
 	}
 	for _, sb := range lockList {
-		PreserveSandbox(sandboxDir, sb)
+		preserveSandbox(sandboxDir, sb)
 	}
 }
 
-func UnlockSandbox(cmd *cobra.Command, args []string) {
+func unlockSandbox(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
 		common.Exit(1,
 			"'unlock' requires the name of a sandbox (or ALL)",
 			"Example: dbdeployer admin unlock msb_5_7_21")
 	}
 	candidateSandbox := args[0]
-	sandboxDir, err := GetAbsolutePathFromFlag(cmd, "sandbox-home")
+	sandboxDir, err := getAbsolutePathFromFlag(cmd, "sandbox-home")
 	if err != nil {
 		common.Exitf(1, "%+v", err)
 	}
 	lockList := []string{candidateSandbox}
 	if candidateSandbox == "ALL" || candidateSandbox == "all" {
 		installedSandboxes, err := common.GetInstalledSandboxes(sandboxDir)
-		common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList)
+		common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList, err)
 		lockList = common.SandboxInfoToFileNames(installedSandboxes)
 	}
 	if len(lockList) == 0 {
-		fmt.Printf("Nothing to lock in %s\n", sandboxDir)
+		common.CondPrintf("Nothing to lock in %s\n", sandboxDir)
 		return
 	}
 	for _, sb := range lockList {
-		UnpreserveSandbox(sandboxDir, sb)
+		unPreserveSandbox(sandboxDir, sb)
 	}
 }
 
-func UpgradeSandbox(sandboxDir, oldSandbox, newSandbox string) error {
+func upgradeSandbox(sandboxDir, oldSandbox, newSandbox string) error {
 	var possibleUpgrades = map[string]string{
 		"5.0": "5.1",
 		"5.1": "5.5",
@@ -263,7 +263,7 @@ func UpgradeSandbox(sandboxDir, oldSandbox, newSandbox string) error {
 	if err != nil {
 		return errors.Wrapf(err, "error while moving data directory from sandbox %s to %s", oldSandbox, newSandbox)
 	}
-	fmt.Printf("Data directory %s/data moved to %s/data \n", oldSandbox, newSandbox)
+	common.CondPrintf("Data directory %s/data moved to %s/data \n", oldSandbox, newSandbox)
 
 	_, err = common.RunCmd(path.Join(newSandbox, globals.ScriptStart))
 	if err != nil {
@@ -276,13 +276,13 @@ func UpgradeSandbox(sandboxDir, oldSandbox, newSandbox string) error {
 		return errors.Wrapf(err, "error while running mysql_upgrade in %s", newSandbox)
 	}
 	fmt.Println("")
-	fmt.Printf("The data directory from %s/data is preserved in %s\n", newSandbox, newSandboxOldData)
-	fmt.Printf("The data directory from %s/data is now used in %s/data\n", oldSandbox, newSandbox)
-	fmt.Printf("%s is not operational and can be deleted\n", oldSandbox)
+	common.CondPrintf("The data directory from %s/data is preserved in %s\n", newSandbox, newSandboxOldData)
+	common.CondPrintf("The data directory from %s/data is now used in %s/data\n", oldSandbox, newSandbox)
+	common.CondPrintf("%s is not operational and can be deleted\n", oldSandbox)
 	return nil
 }
 
-func RunUpgradeSandbox(cmd *cobra.Command, args []string) {
+func runUpgradeSandbox(cmd *cobra.Command, args []string) {
 	if len(args) < 2 {
 		common.Exit(1,
 			"'upgrade' requires the name of two sandboxes ",
@@ -290,11 +290,11 @@ func RunUpgradeSandbox(cmd *cobra.Command, args []string) {
 	}
 	oldSandbox := args[0]
 	newSandbox := args[1]
-	sandboxDir, err := GetAbsolutePathFromFlag(cmd, "sandbox-home")
+	sandboxDir, err := getAbsolutePathFromFlag(cmd, "sandbox-home")
 	if err != nil {
 		common.Exitf(1, "%+v", err)
 	}
-	err = UpgradeSandbox(sandboxDir, oldSandbox, newSandbox)
+	err = upgradeSandbox(sandboxDir, oldSandbox, newSandbox)
 	if err != nil {
 		common.Exitf(1, "%+v", err)
 	}
@@ -315,7 +315,7 @@ var (
 		Long: `Prevents deletion for a given sandbox.
 Note that the deletion being prevented is only the one occurring through dbdeployer. 
 Users can still delete locked sandboxes manually.`,
-		Run: LockSandbox,
+		Run: lockSandbox,
 	}
 
 	adminUnlockCmd = &cobra.Command{
@@ -323,7 +323,7 @@ Users can still delete locked sandboxes manually.`,
 		Aliases: []string{"unpreserve"},
 		Short:   "Unlocks a sandbox",
 		Long:    `Removes lock, allowing deletion of a given sandbox`,
-		Run:     UnlockSandbox,
+		Run:     unlockSandbox,
 	}
 	adminUpgradeCmd = &cobra.Command{
 		Use:   "upgrade sandbox_name newer_sandbox",
@@ -332,7 +332,7 @@ Users can still delete locked sandboxes manually.`,
 The sandbox with the new version must exist already.
 The data directory of the old sandbox will be moved to the new one.`,
 		Example: "dbdeployer admin upgrade msb_8_0_11 msb_8_0_12",
-		Run:     RunUpgradeSandbox,
+		Run:     runUpgradeSandbox,
 	}
 )
 

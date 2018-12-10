@@ -60,17 +60,16 @@ function find_in_path {
     done
 }
 
-dashline="--------------------------------------------------------------------------------"
+dash_line="--------------------------------------------------------------------------------"
 all_ok=yes
 for dep in ${dependencies[*]}
 do
-    #if [ ! -d $GOPATH/src/$dep ]
     if [ ! -d ./vendor/$dep ]
     then
-        echo $dashline
+        echo $dash_line
         echo "Needed package $dep not installed"
         echo "run 'go get $dep'"
-        echo $dashline
+        echo $dash_line
         all_ok=no
     fi
 done
@@ -88,8 +87,6 @@ if [ "$all_ok" == "no" ]
 then
     echo "Missing dependencies or essential code"
     echo "Use the above 'go get' commands to gather the needed dependencies"
-    #echo "Then run:"
-    #echo "   go get -u github.com/datacharmer/dbdeployer"
     exit 1
 fi
 
@@ -131,7 +128,17 @@ then
     exit 1
 fi
 
-go run $version_builder
+# Checks whether the regular version and the compatible versions are already in the Go source file
+current_version=$(cat .build/VERSION)
+current_compatible_version=$(cat .build/COMPATIBLE_VERSION)
+is_version=$(grep "VersionDef.*$current_version" common/version.go)
+is_comp_version=$(grep "CompatibleVersion.*$current_compatible_version" common/version.go)
+# if either version is missing from the build file, the source file is created again
+if [ -z "$is_version" -o -z "$is_comp_version" ]
+then
+    go run $version_builder
+fi
+
 
 function shrink {
     executable=$1

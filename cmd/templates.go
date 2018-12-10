@@ -34,7 +34,7 @@ type TemplateInfo struct {
 	Description    string
 }
 
-func FindTemplate(requested string) (group, templateName, contents string) {
+func findTemplate(requested string) (group, templateName, contents string) {
 	for name, tvar := range sandbox.AllTemplates {
 		for k, v := range tvar {
 			if k == requested || k == requested+"_template" {
@@ -49,20 +49,20 @@ func FindTemplate(requested string) (group, templateName, contents string) {
 	return
 }
 
-func ShowTemplate(cmd *cobra.Command, args []string) {
+func showTemplate(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
 		common.Exitf(1, globals.ErrArgumentRequired, "template name")
 	}
 	requested := args[0]
-	_, _, contents := FindTemplate(requested)
+	_, _, contents := findTemplate(requested)
 	fmt.Println(contents)
 }
 
-func GetTemplatesList(wanted string) (tlist []TemplateInfo) {
+func getTemplatesList(wanted string) (tlist []TemplateInfo) {
 	found := false
 	for groupName, tvar := range sandbox.AllTemplates {
 		willInclude := true
-		//fmt.Printf("[%s]\n", group_name)
+		//common.CondPrintf("[%s]\n", group_name)
 		if wanted != "" {
 			if wanted != groupName {
 				willInclude = false
@@ -86,7 +86,7 @@ func GetTemplatesList(wanted string) (tlist []TemplateInfo) {
 	return
 }
 
-func ListTemplates(cmd *cobra.Command, args []string) {
+func listTemplates(cmd *cobra.Command, args []string) {
 	wanted := ""
 	if len(args) > 0 {
 		wanted = args[0]
@@ -94,7 +94,7 @@ func ListTemplates(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	simpleList, _ := flags.GetBool(globals.SimpleLabel)
 
-	templates := GetTemplatesList(wanted)
+	templates := getTemplatesList(wanted)
 	for _, template := range templates {
 		origin := "   "
 		if template.TemplateInFile {
@@ -108,18 +108,18 @@ func ListTemplates(cmd *cobra.Command, args []string) {
 	}
 }
 
-func RunDescribeTemplate(cmd *cobra.Command, args []string) {
+func runDescribeTemplate(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
 		common.Exitf(1, globals.ErrArgumentRequired, "template name")
 	}
 	requested := args[0]
 	flags := cmd.Flags()
 	completeListing, _ := flags.GetBool(globals.WithContentsLabel)
-	DescribeTemplate(requested, completeListing)
+	describeTemplate(requested, completeListing)
 }
 
-func GetTemplatesDescription(requested string, completeListing bool) string {
-	group, templateName, contents := FindTemplate(requested)
+func getTemplatesDescription(requested string, completeListing bool) string {
+	group, templateName, contents := findTemplate(requested)
 	out := ""
 	origin := "   "
 	if sandbox.AllTemplates[group][requested].TemplateInFile {
@@ -138,11 +138,11 @@ func GetTemplatesDescription(requested string, completeListing bool) string {
 	return out
 }
 
-func DescribeTemplate(requested string, completeListing bool) {
-	fmt.Printf("%s", GetTemplatesDescription(requested, completeListing))
+func describeTemplate(requested string, completeListing bool) {
+	fmt.Printf("%s", getTemplatesDescription(requested, completeListing))
 }
 
-func ExportTemplates(cmd *cobra.Command, args []string) {
+func exportTemplates(cmd *cobra.Command, args []string) {
 	if len(args) < 2 {
 		common.Exit(1,
 			"the export command requires two arguments: group_name and directory_name",
@@ -198,7 +198,7 @@ func ExportTemplates(cmd *cobra.Command, args []string) {
 }
 
 // Called by rootCmd when dbdeployer starts
-func LoadTemplates() {
+func loadTemplates() {
 	loadDir := path.Join(defaults.ConfigurationDir, "templates"+common.CompatibleVersion)
 	if !common.DirExists(loadDir) {
 		return
@@ -226,7 +226,7 @@ func LoadTemplates() {
 	}
 }
 
-func ImportTemplates(cmd *cobra.Command, args []string) {
+func importTemplates(cmd *cobra.Command, args []string) {
 	if len(args) < 2 {
 		common.Exit(1,
 			"the import command requires two arguments: group_name and dir_name",
@@ -322,7 +322,7 @@ func ImportTemplates(cmd *cobra.Command, args []string) {
 	}
 }
 
-func ResetTemplates(cmd *cobra.Command, args []string) {
+func resetTemplates(cmd *cobra.Command, args []string) {
 	// TODO: loop through the templates directories and remove all the ones that have compatible versions.
 	templatesDir := path.Join(defaults.ConfigurationDir, "templates"+common.CompatibleVersion)
 	if !common.DirExists(templatesDir) {
@@ -350,40 +350,40 @@ to create and manipulate sandboxes.
 		Use:   "list [group]",
 		Short: "list available templates",
 		Long:  ``,
-		Run:   ListTemplates,
+		Run:   listTemplates,
 	}
 
 	templatesShowCmd = &cobra.Command{
 		Use:   "show template_name",
 		Short: "Show a given template",
 		Long:  ``,
-		Run:   ShowTemplate,
+		Run:   showTemplate,
 	}
 	templatesDescribeCmd = &cobra.Command{
 		Use:     "describe template_name",
 		Aliases: []string{"descr", "structure", "struct"},
 		Short:   "Describe a given template",
 		Long:    ``,
-		Run:     RunDescribeTemplate,
+		Run:     runDescribeTemplate,
 	}
 	templatesExportCmd = &cobra.Command{
 		Use:   "export group_name directory_name [template_name]",
 		Short: "Exports templates to a directory",
 		Long:  `Exports a group of templates (or "ALL") to a given directory`,
-		Run:   ExportTemplates,
+		Run:   exportTemplates,
 	}
 	templatesImportCmd = &cobra.Command{
 		Use:   "import group_name directory_name [template_name]",
 		Short: "imports templates from a directory",
 		Long:  `Imports a group of templates (or "ALL") from a given directory`,
-		Run:   ImportTemplates,
+		Run:   importTemplates,
 	}
 	templatesResetCmd = &cobra.Command{
 		Use:     "reset",
 		Aliases: []string{"remove"},
 		Short:   "Removes all template files",
 		Long:    `Removes all template files that were imported and starts using internal values.`,
-		Run:     ResetTemplates,
+		Run:     resetTemplates,
 	}
 )
 

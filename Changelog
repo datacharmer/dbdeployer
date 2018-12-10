@@ -1,3 +1,9 @@
+1.15.1	09-Dec-2018
+	Code improvements:
+	- Removed all unconditional output in reusable code (common, sandbox)
+	- Changed many public functions to private when unused outside package. 
+	- Added tests for most of functions in common  
+	Minor bug fixes
 1.15.0	02-Dec-2018
 	Code impovements:
 	- Changed all code that can Exit instead of returning an error in 
