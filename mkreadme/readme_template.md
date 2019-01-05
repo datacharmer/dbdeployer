@@ -74,6 +74,33 @@ The ``deploy replication`` command will install a master and two or more slaves,
 
 	{{dbdeployer deploy replication -h}}
 
+## Getting remote tarballs
+
+As of version 1.16.0, dbdeployer can download remote MySQL tarballs from a Github repository. The tarball are reduced ones, created inside [Mysql-Docker-Minimal](https://github.com/datacharmer/mysql-docker-minimal).
+
+The tarballs are only available for Linux. However, since the URL for the files is customizable, you can use your own repository to download files for other operating systems.
+
+Example:
+
+```
+$ dbdeployer remote list
+Files available in https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata/available.json
+4.1 -> [4.1.22]
+5.0 -> [5.0.15 5.0.96]
+5.1 -> [5.1.72]
+5.5 -> [5.5.60 5.5.61]
+5.6 -> [5.6.40 5.6.41]
+5.7 -> [5.7.23 5.7.34]
+8.0 -> [8.0.12 8.0.13]
+
+msandbox@testdb:~$ dbdeployer remote download 8.0.13
+File /home/msandbox/8.0.13.tar.xz downloaded
+
+msandbox@testdb:~$ dbdeployer unpack 8.0.13.tar.xz
+Unpacking tarball 8.0.13.tar.xz to $HOME/opt/mysql/8.0.13
+.......79
+```
+
 ## Practical examples
 
 Several examples of dbdeployer usages are listed in [./cookbook](https://github.com/datacharmer/dbdeployer/tree/master/cookbook).

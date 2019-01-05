@@ -1,6 +1,6 @@
 #!/bin/bash
 # DBDeployer - The MySQL Sandbox
-# Copyright © 2006-2018 Giuseppe Maxia
+# Copyright © 2006-2019 Giuseppe Maxia
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -115,7 +115,7 @@ function build_sort {
     target_os=$(echo $OS | tr 'A-Z' 'a-z')
     cd test
     (set -x
-    env GOOS=$target_os GOARCH=386 go build -o sort_versions.$OS sort_versions.go
+    env GOOS=$target_os GOARCH=amd64 go build -o sort_versions.$OS sort_versions.go
     )
     cd -
 }
@@ -162,7 +162,7 @@ case $target in
     OSX)
         executable=dbdeployer-${version}${docs_tag}.osx
 	    (set -x
-        env GOOS=darwin GOARCH=386 go build $docs_flags -o $executable .
+        env GOOS=darwin GOARCH=amd64 go build $docs_flags -o $executable .
         )
         if [ "$?" != "0" ]
         then

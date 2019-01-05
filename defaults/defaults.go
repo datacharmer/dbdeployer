@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -58,6 +58,8 @@ type DbdeployerDefaults struct {
 	FanInPrefix       string `json:"fan-in-prefix"`
 	AllMastersPrefix  string `json:"all-masters-prefix"`
 	ReservedPorts     []int  `json:"reserved-ports"`
+	RemoteRepository  string `json:"remote-repository"`
+	RemoteIndexFile   string `json:"remote-index-file"`
 	// GaleraPrefix                   string `json:"galera-prefix"`
 	// PxcPrefix                      string `json:"pxc-prefix"`
 	// NdbPrefix                      string `json:"ndb-prefix"`
@@ -115,6 +117,8 @@ var (
 		FanInPrefix:       "fan_in_msb_",
 		AllMastersPrefix:  "all_masters_msb_",
 		ReservedPorts:     []int{1186, 3306, 33060},
+		RemoteRepository:  "https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata",
+		RemoteIndexFile:   "available.json",
 		// GaleraPrefix:                  "galera_msb_",
 		// NdbPrefix:                     "ndb_msb_",
 		// PxcPrefix:                     "pxc_msb_",
@@ -248,7 +252,9 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		nd.GroupSpPrefix != "" &&
 		nd.MultiplePrefix != "" &&
 		nd.SandboxHome != "" &&
-		nd.SandboxBinary != ""
+		nd.SandboxBinary != "" &&
+		nd.RemoteIndexFile != "" &&
+		nd.RemoteRepository != ""
 	if !allStrings {
 		common.CondPrintf("One or more empty values found in defaults\n")
 		ShowDefaults(nd)
@@ -348,6 +354,10 @@ func UpdateDefaults(label, value string, storeDefaults bool) {
 		newDefaults.FanInPrefix = value
 	case "all-masters-prefix":
 		newDefaults.AllMastersPrefix = value
+	case "remote-repository":
+		newDefaults.RemoteRepository = value
+	case "remote-index-file":
+		newDefaults.RemoteIndexFile = value
 	case "reserved-ports":
 		newDefaults.ReservedPorts = strToSlice("reserved-ports", value)
 	// case "galera-prefix":

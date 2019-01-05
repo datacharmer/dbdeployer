@@ -12,15 +12,33 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+package rest
 
-package common
+import (
+	"os"
+	"testing"
+)
 
-// This file was generated during build. Do not edit.
-// Build time: 2019-01-05 18:30
+func TestDownloadFile(t *testing.T) {
+	fileName := "4.1.22.tar.xz"
+	url := FileUrl(fileName)
+	err := DownloadFile(fileName, url)
+	if err == nil {
+		t.Logf("OK\n")
+		_ = os.Remove(fileName)
+	} else {
+		t.Logf("### ERR %s\n", err)
+		t.Fail()
+	}
 
-var VersionDef string = "1.16.0" // 2019-01-05
+}
 
-// Compatible version is the version used to mark compatible archives (templates, configuration).
-// It is usually major.minor.0, except when we are at version 0.x, when
-// every revision may bring incompatibility
-var CompatibleVersion string = "1.16.0" // 2019-01-05
+func TestGetRemoteIndex(t *testing.T) {
+	index, err := GetRemoteIndex()
+	if err == nil {
+		t.Logf(" OK - %+v", index)
+	} else {
+		t.Logf("### ERR %s\n", err)
+		t.Fail()
+	}
+}

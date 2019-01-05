@@ -1,6 +1,6 @@
 #!/bin/bash
 # DBDeployer - The MySQL Sandbox
-# Copyright © 2006-2018 Giuseppe Maxia
+# Copyright © 2006-2019 Giuseppe Maxia
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ exec_dir=$(dirname $0)
 cd $exec_dir
 cd ..
 
-local_items=(.build cmd defaults common globals unpack abbreviations concurrent sandbox compare)
+local_items=(.build cmd defaults common globals unpack abbreviations concurrent sandbox compare rest)
 exit_code=0
 spaces="        "
 function run {

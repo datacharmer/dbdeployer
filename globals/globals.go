@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -179,6 +179,7 @@ const (
 	ErrDirectoryNotFoundInUpper    = "directory '%s' not found in '%s'"
 	ErrExecutableNotFound          = "executable '%s' not found"
 	ErrDirectoryAlreadyExists      = "directory '%s' already exists"
+	ErrFileAlreadyExists           = "file '%s' already exists"
 	ErrNamedDirectoryAlreadyExists = "%s directory '%s' already exists"
 	ErrWhileRemoving               = "error while removing %s\n%s"
 	ErrWhileDeletingDir            = "error while deleting directory %s\n%s"
