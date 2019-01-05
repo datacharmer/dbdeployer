@@ -101,6 +101,9 @@ Unpacking tarball 8.0.13.tar.xz to $HOME/opt/mysql/8.0.13
 .......79
 ```
 
+    {{dbdeployer remote}}
+
+
 ## Practical examples
 
 Several examples of dbdeployer usages are listed in [./cookbook](https://github.com/datacharmer/dbdeployer/tree/master/cookbook).

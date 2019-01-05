@@ -3,7 +3,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.16.0 (05-Jan-2019 20:03 UTC)
+Documentation updated for version 1.16.0 (05-Jan-2019 20:15 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -294,6 +294,22 @@ msandbox@testdb:~$ dbdeployer unpack 8.0.13.tar.xz
 Unpacking tarball 8.0.13.tar.xz to $HOME/opt/mysql/8.0.13
 .......79
 ```
+
+    $ dbdeployer remote
+    Manages remote tarballs
+    
+    Usage:
+      dbdeployer remote [command]
+    
+    Available Commands:
+      download    download a remote tarball into a local file
+      list        list remote tarballs
+    
+    Flags:
+      -h, --help   help for remote
+    
+    
+
 
 ## Practical examples
 
