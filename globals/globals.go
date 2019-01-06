@@ -20,7 +20,7 @@ import "strings"
 // meaning that we're using the command line interface of dbdeployer.
 // It is used to make decisions whether to write messages to the screen
 // when calling sandbox creation functions from other apps.
-var UsingDbDeployer bool = false
+var UsingDbDeployer = false
 
 const (
 	// Instantiated in cmd/root.go
@@ -235,19 +235,21 @@ var (
 	MinimumDataDictionaryVersion    = []int{8, 0, 0}
 	MinimumNativeAuthPluginVersion  = []int{8, 0, 4}
 	MinimumMysqlxDefaultVersion     = []int{8, 0, 11}
-	EmptyString                     = ""
-	EmptyStrings                    = []string{}
-	EmptyBytes                      = []byte{}
 )
 
-const lineLength = 80
+const (
+	lineLength             = 80
+	PublicDirectoryAttr    = 0755
+	ExecutableFileAttr     = 0744
+	SandboxDescriptionName = "sbdescription.json"
+	ForbiddenDirName       = "lost+found"
+)
 
 var (
-	DashLine string = strings.Repeat("-", lineLength)
-	StarLine string = strings.Repeat("*", lineLength)
-	HashLine string = strings.Repeat("#", lineLength)
+	DashLine     = strings.Repeat("-", lineLength)
+	StarLine     = strings.Repeat("*", lineLength)
+	HashLine     = strings.Repeat("#", lineLength)
+	EmptyString  = ""
+	EmptyStrings []string
+	EmptyBytes   []byte
 )
-
-const PublicDirectoryAttr = 0755
-const ExecutableFileAttr = 0744
-const SandboxDescriptionName = "sbdescription.json"

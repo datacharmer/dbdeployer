@@ -164,6 +164,10 @@ func ReadSandboxDescription(sandboxDirectory string) (SandboxDescription, error)
 	if !FileExists(filename) {
 		return SandboxDescription{}, errors.Wrapf(fmt.Errorf("file not found %s", filename), "Sandbox description file not found")
 	}
+	stat, err := os.Stat(filename)
+	if stat.Size() == 0 {
+		return SandboxDescription{}, errors.Wrapf(fmt.Errorf("empty description"), "empty sandbox description %s", filename)
+	}
 	sbBlob, err := SlurpAsBytes(filename)
 	if err != nil {
 		return SandboxDescription{}, errors.Wrapf(err, "error reading from file %s", filename)

@@ -88,6 +88,9 @@ func GetInstalledSandboxes(sandboxHome string) (installedSandboxes []SandboxInfo
 		fname := f.Name()
 		fmode := f.Mode()
 		if fmode.IsDir() {
+			if fname == globals.ForbiddenDirName {
+				continue
+			}
 			sbdesc := path.Join(sandboxHome, fname, globals.SandboxDescriptionName)
 			start := path.Join(sandboxHome, fname, "start")
 			startAll := path.Join(sandboxHome, fname, "start_all")

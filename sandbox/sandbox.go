@@ -325,6 +325,9 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			sandboxDef.DirName = defaults.Defaults().SandboxPrefix + versionFname
 		}
 	}
+	if sandboxDef.DirName == globals.ForbiddenDirName {
+		return emptyExecutionList, fmt.Errorf("the name %s cannot be used for a sandbox", sandboxDef.DirName)
+	}
 	sandboxDir = path.Join(sandboxDef.SandboxDir, sandboxDef.DirName)
 	sandboxDef.SandboxDir = sandboxDir
 	logger.Printf("Single Sandbox directory defined as %s\n", sandboxDef.SandboxDir)
