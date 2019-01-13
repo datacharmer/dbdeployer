@@ -457,16 +457,23 @@ func testCreateReplicationSandbox(t *testing.T) {
 }
 
 func TestCreateSandbox(t *testing.T) {
-	catalog, err := defaults.ReadCatalog()
-	if len(catalog) > 0 {
-		t.Fatalf("catalog (%s) not empty", defaults.SandboxRegistry)
+	if common.FileExists(defaults.SandboxRegistry) {
+		catalog, err := defaults.ReadCatalog()
+		if err != nil {
+			t.Fatalf("error getting catalog list: %s", err)
+		}
+		if len(catalog) > 0 {
+			t.Fatalf("catalog (%s) not empty", defaults.SandboxRegistry)
+		}
 	}
-	installed, err := common.GetInstalledSandboxes(defaults.Defaults().SandboxHome)
-	if err != nil {
-		t.Fatalf("error getting sandboxes list: %s", err)
-	}
-	if len(installed) > 0 {
-		t.Fatalf("sandbox home (%s) not empty", defaults.Defaults().SandboxHome)
+	if common.DirExists(defaults.Defaults().SandboxHome) {
+		installed, err := common.GetInstalledSandboxes(defaults.Defaults().SandboxHome)
+		if err != nil {
+			t.Fatalf("error getting sandboxes list: %s", err)
+		}
+		if len(installed) > 0 {
+			t.Fatalf("sandbox home (%s) not empty", defaults.Defaults().SandboxHome)
+		}
 	}
 	t.Run("single", testCreateStandaloneSandbox)
 	t.Run("replication", testCreateReplicationSandbox)
