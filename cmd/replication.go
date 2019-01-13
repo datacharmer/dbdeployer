@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -119,5 +119,7 @@ func init() {
 	replicationCmd.PersistentFlags().IntP(globals.NodesLabel, "n", globals.NodesValue, "How many nodes will be installed")
 	replicationCmd.PersistentFlags().BoolP(globals.SinglePrimaryLabel, "", false, "Using single primary for group replication")
 	replicationCmd.PersistentFlags().BoolP(globals.SemiSyncLabel, "", false, "Use semi-synchronous plugin")
+	replicationCmd.PersistentFlags().BoolP(globals.ReadOnlyLabel, "", false, "Set read-only for slaves")
+	replicationCmd.PersistentFlags().BoolP(globals.SuperReadOnlyLabel, "", false, "Set super-read-only for slaves")
 	replicationCmd.PersistentFlags().Bool(globals.ReplHistoryDirLabel, false, "uses the replication directory to store mysql client history")
 }

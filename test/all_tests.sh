@@ -1,6 +1,6 @@
 #!/bin/bash
 # DBDeployer - The MySQL Sandbox
-# Copyright © 2006-2018 Giuseppe Maxia
+# Copyright © 2006-2019 Giuseppe Maxia
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -115,6 +115,7 @@ function all_tests {
     run_test ./test/mock/short-versions.sh
     run_test ./test/mock/direct-paths.sh
     run_test ./test/mock/expected_ports.sh
+    run_test ./test/mock/read-only-replication.sh
     if [ -n "$COMPLETE_PORT_TEST" ]
     then
         run_test ./test/mock/port-clash.sh
@@ -133,10 +134,14 @@ do
     if [ "$fname" != "all_tests-summary" ]
     then
         lf_pass=$(grep -c '^ok' $logfile)
+        lfg_pass=$(grep -c ': ok' $logfile)
+        lfg_fail=$(grep -c ': not ok' $logfile)
         lf_fail=$(grep -i -c '^not ok' $logfile)
+        lf_fail=$((lf_fail+lfg_fail))
+        lf_pass=$((lf_pass+lfg_pass))
         lf_tests=$((lf_pass+lf_fail))
-        printf "# %-20s - tests: %4d - pass: %4d - fail: %4d\n" $fname $lf_tests $lf_pass $lf_fail
-        printf "# %-20s - tests: %4d - pass: %4d - fail: %4d\n" $fname $lf_tests $lf_pass $lf_fail >> $log_summary
+        printf "# %-25s - tests: %4d - pass: %4d - fail: %4d\n" $fname $lf_tests $lf_pass $lf_fail
+        printf "# %-25s - tests: %4d - pass: %4d - fail: %4d\n" $fname $lf_tests $lf_pass $lf_fail >> $log_summary
     fi
 done
 echo $dash_line

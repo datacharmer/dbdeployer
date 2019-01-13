@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -376,6 +376,8 @@ $SBDIR/use_all 'reset master'
 MASTERS="{{.MasterList}}"
 SLAVES="{{.SlaveList}}"
 
+export SLAVES_READ_ONLY_OPTION="{{.SlavesReadOnly}}"
+
 for N in $SLAVES
 do
     user_cmd=''
@@ -394,9 +396,15 @@ do
 	VERBOSE_SQL=""
 	if [ -n "$VERBOSE_SQL" ]
 	then
-		VERBOSE_SQL="-v"
+        VERBOSE_SQL="-v"
 	fi
     $SBDIR/{{.NodeLabel}}$N/use $VERBOSE_SQL -u root -e "$user_cmd"
+
+    if [ "$SLAVES_READ_ONLY_OPTION" != "" ]
+    then
+        $SBDIR/{{.NodeLabel}}$N/use $VERBOSE_SQL -u root -e "SET {{.SetGlobal}} $SLAVES_READ_ONLY_OPTION"
+		$SBDIR/{{.NodeLabel}}$N/add_option NO_RESTART "{{.SlavesReadOnly}}"
+    fi
 done
 `
 	multiSourceUseSlavesTemplate string = `#!/bin/bash

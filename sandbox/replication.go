@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,6 +34,38 @@ type Slave struct {
 	ServerId   int
 	Name       string
 	MasterPort int
+}
+
+func checkReadOnlyFlags(sandboxDef SandboxDef) (string, error) {
+	readOnlyOption := ""
+	if sandboxDef.SlavesSuperReadOnly && sandboxDef.SlavesReadOnly {
+		return "", fmt.Errorf("only one of --%s or %s should be used", globals.ReadOnlyLabel, globals.SuperReadOnlyLabel)
+	}
+	if sandboxDef.SlavesSuperReadOnly {
+		readOnlyAllowed, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumSuperReadOnly)
+		if err != nil {
+			return "", err
+		}
+		if !readOnlyAllowed {
+			return "", fmt.Errorf(globals.ErrOptionRequiresVersion,
+				globals.SuperReadOnlyLabel, common.IntSliceToDottedString(globals.MinimumSuperReadOnly))
+		}
+		readOnlyOption = "super_read_only=on"
+	} else {
+		if sandboxDef.SlavesReadOnly {
+			readOnlyAllowed, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumDynVariablesVersion)
+			if err != nil {
+				return "", err
+			}
+			if !readOnlyAllowed {
+				return "", fmt.Errorf(globals.ErrOptionRequiresVersion,
+					globals.ReadOnlyLabel, common.IntSliceToDottedString(globals.MinimumDynVariablesVersion))
+			}
+			readOnlyOption = "read_only=on"
+		}
+	}
+
+	return readOnlyOption, nil
 }
 
 func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
@@ -87,6 +119,12 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	if nodes < 2 {
 		return fmt.Errorf("can't run replication with less than 2 nodes")
 	}
+
+	readOnlyOptions, err := checkReadOnlyFlags(sandboxDef)
+	if err != nil {
+		return err
+	}
+
 	err = os.Mkdir(sandboxDef.SandboxDir, globals.PublicDirectoryAttr)
 	if err != nil {
 		return err
@@ -154,6 +192,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	sandboxDef.Prompt = masterLabel
 	sandboxDef.NodeNum = 1
 	sandboxDef.SBType = "replication-node"
+	sandboxDef.ReadOnlyOptions = ""
 	logger.Printf("Creating single sandbox for master\n")
 	execList, err := CreateChildSandbox(sandboxDef)
 	if err != nil {
@@ -200,6 +239,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		}
 	}
 
+	sandboxDef.ReadOnlyOptions = readOnlyOptions
 	nodeLabel := defaults.Defaults().NodePrefix
 	for i := 1; i <= slaves; i++ {
 		sandboxDef.Port = basePort + i + 1
@@ -349,6 +389,9 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 }
 
 func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, nodes int, masterIp, masterList, slaveList string) error {
+	if !common.IsIPV4(masterIp) {
+		return fmt.Errorf("IP %s is not a valid IPV4", masterIp)
+	}
 
 	Basedir := sdef.Basedir
 	if !common.DirExists(Basedir) {

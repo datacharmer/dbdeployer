@@ -1,4 +1,18 @@
+1.17.0	11-Jan-2019
+	NEW FEATURES:
+	- Added options --read-only-slaves and --super-read-only-slaves
+	  to "deploy replication" command. It only works for slaves of
+	  "master-slave" and "fan-in" topologies.
+	BUG FIXES:
+	- Fixed bug in multi-master topologies, where replication
+	  ports were not calculated correctly
+	Code improvements:
+	- Added check for IP address in replication creation
+	TESTING:
+	- Added test for read-only replication options
+	- Added common failure tests for sandbox creation
 1.16.0	05-Jan-2019
+	NEW FEATURES:
 	- Add support for remote tarballs.
 	- New commands: "remote list" and "remote download"
 1.15.1	09-Dec-2018
@@ -8,9 +22,9 @@
 	- Added tests for most of functions in common  
 	Minor bug fixes
 1.15.0	02-Dec-2018
-	Code impovements:
+	Code improvements:
 	- Changed all code that can Exit instead of returning an error in 
-	  packages common, sandbox, default, unpack.
+	  packages common, sandbox, defaults, unpack.
 	- Packages common and defaults keep the functions that can exit
 	  if they are only used with the CLI.
 	- Changed all functions returning errors to have the error as the last

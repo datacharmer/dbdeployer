@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -91,6 +91,15 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 			return err
 		}
 		sandboxDef.LogFileName = common.ReplaceLiteralHome(fileName)
+	}
+
+	readOnlyOptions, err := checkReadOnlyFlags(sandboxDef)
+	if err != nil {
+		return err
+	}
+	if readOnlyOptions != "" {
+		return fmt.Errorf("options --read-only and --super-read-only can't be used for group topology\n" +
+			"as the group replication software sets it when needed")
 	}
 
 	vList, err := common.VersionToList(sandboxDef.Version)

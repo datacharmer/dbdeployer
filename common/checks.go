@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -270,6 +270,24 @@ func IsVersion(version string) bool {
 		return true
 	}
 	return false
+}
+
+// Returns true if a given string looks like an IPV4
+func IsIPV4(ip string) bool {
+	l := strings.Split(ip, ".")
+	if len(l) != 4 {
+		return false
+	}
+	for _, ns := range l {
+		N, err := strconv.Atoi(ns)
+		if err != nil {
+			return false
+		}
+		if N < 0 || N > 255 {
+			return false
+		}
+	}
+	return true
 }
 
 // Gets three integers for a version string

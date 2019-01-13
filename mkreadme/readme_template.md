@@ -83,6 +83,10 @@ The tarballs are only available for Linux. However, since the URL for the files 
 Example:
 
 ```
+$ dbdeployer defaults show | grep remote
+ 	"remote-repository": "https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata",
+ 	"remote-index-file": "available.json",
+
 $ dbdeployer remote list
 Files available in https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata/available.json
 4.1 -> [4.1.22]
@@ -102,6 +106,8 @@ Unpacking tarball 8.0.13.tar.xz to $HOME/opt/mysql/8.0.13
 ```
 
     {{dbdeployer remote}}
+
+See [Issue#18 on GitHub](https://github.com/datacharmer/dbdeployer/issues/18#issuecomment-452003162) for more insight on how this feature is implemented.
 
 
 ## Practical examples

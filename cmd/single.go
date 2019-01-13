@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -231,6 +231,8 @@ func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxD
 	if skipLoadGrants || sd.SkipStart {
 		sd.LoadGrants = false
 	}
+	sd.SlavesReadOnly, _ = flags.GetBool(globals.ReadOnlyLabel)
+	sd.SlavesSuperReadOnly, _ = flags.GetBool(globals.SuperReadOnlyLabel)
 	sd.SkipReportHost, _ = flags.GetBool(globals.SkipReportHostLabel)
 	sd.SkipReportPort, _ = flags.GetBool(globals.SkipReportPortLabel)
 	sd.DisableMysqlX, _ = flags.GetBool(globals.DisableMysqlXLabel)

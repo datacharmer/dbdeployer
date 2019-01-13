@@ -135,7 +135,6 @@ func testCreateMockSandbox(t *testing.T) {
 		okDirExists(t, sandboxDef.Basedir)
 		sandboxDir := path.Join(sandboxDef.SandboxDir, defaults.Defaults().SandboxPrefix+pathVersion)
 		okDirExists(t, sandboxDir)
-		t.Logf("%#v", sandboxDir)
 		okDirExists(t, path.Join(sandboxDir, "data"))
 		okDirExists(t, path.Join(sandboxDir, "tmp"))
 		for _, script := range singleScriptNames {
@@ -143,6 +142,178 @@ func testCreateMockSandbox(t *testing.T) {
 		}
 		okPortExists(t, sandboxDir, sandboxDef.Port)
 	}
+	err = removeMockEnvironment("mock_dir")
+	compare.OkIsNil("removal", err, t)
+}
+
+func expectFailure(sandboxDef SandboxDef, label, deployment, regex string, args map[string]string, t *testing.T) {
+	var topology string
+	var masterIp string
+	var nodesStr string
+	var origin string
+	var ok bool
+	switch deployment {
+	case "single":
+		err := CreateStandaloneSandbox(sandboxDef)
+		compare.OkIsNotNil(label, err, t)
+		if err != nil {
+			compare.OkMatchesString(label, err.Error(), regex, t)
+		}
+	case "replication":
+		topology, ok = args["topology"]
+		if !ok {
+			topology = globals.MasterSlaveLabel
+		}
+		t.Logf("<%s>\n", topology)
+		masterIp, ok = args["masterIp"]
+		if !ok {
+			masterIp = "127.0.0.1"
+		}
+		nodesStr, ok = args["nodes"]
+		nodes := 3
+		if ok {
+			nodes = common.Atoi(nodesStr)
+		}
+		origin, ok = args["origin"]
+		if !ok {
+			origin = sandboxDef.Version
+		}
+		err := CreateReplicationSandbox(sandboxDef, origin, topology, nodes, masterIp, "", "")
+		compare.OkIsNotNil(label, err, t)
+		if err != nil {
+			compare.OkMatchesString(label, err.Error(), regex, t)
+		}
+	}
+
+}
+
+func testFailSandboxConditions(t *testing.T) {
+	err := setMockEnvironment("mock_dir")
+	if err != nil {
+		t.Fatal("mock dir creation failed")
+	}
+	compare.OkIsNil("mock creation", err, t)
+	mysqlVersion := "5.6.99"
+	pathVersion := "5_6_99"
+	err = createMockVersion(mysqlVersion)
+	compare.OkIsNil("version creation", err, t)
+	var sandboxDef = SandboxDef{
+		Version:        mysqlVersion,
+		Basedir:        path.Join(mockSandboxBinary, mysqlVersion),
+		SandboxDir:     mockSandboxHome,
+		DirName:        defaults.Defaults().SandboxPrefix + pathVersion,
+		LoadGrants:     true,
+		InstalledPorts: defaults.Defaults().ReservedPorts,
+		DbUser:         globals.DbUserValue,
+		RplUser:        globals.RplUserValue,
+		DbPassword:     globals.DbPasswordValue,
+		RplPassword:    globals.RplPasswordValue,
+		RemoteAccess:   globals.RemoteAccessValue,
+		BindAddress:    globals.BindAddressValue,
+	}
+
+	var emptyMap map[string]string
+
+	sandboxDef.Port = 1000
+	expectFailure(sandboxDef, "lower port error", "single", "must be > 1024", emptyMap, t)
+
+	sandboxDef.Port = 5699
+	sandboxDef.EnableMysqlX = true
+
+	expectFailure(sandboxDef, "invalid MySQLX", "single", "requires MySQL version '5.7.12'", emptyMap, t)
+
+	sandboxDef.EnableMysqlX = false
+	sandboxDef.SlavesSuperReadOnly = true
+
+	var replMap = make(map[string]string)
+	replMap["origin"] = mysqlVersion
+	expectFailure(sandboxDef, "invalid super read only",
+		"replication",
+		"requires MySQL version '5.7.8'",
+		replMap,
+		t)
+
+	sandboxDef.SlavesSuperReadOnly = false
+	sandboxDef.ExposeDdTables = true
+
+	expectFailure(sandboxDef, "invalid expose DD tables", "single", "requires MySQL version '8.0.0'", emptyMap, t)
+
+	sandboxDef.ExposeDdTables = false
+
+	replMap["nodes"] = "1"
+	expectFailure(sandboxDef, "invalid nodes",
+		"replication",
+		"less than 2 nodes",
+		replMap,
+		t)
+
+	replMap["nodes"] = "2"
+	replMap["masterIp"] = "127.x.9.1"
+	expectFailure(sandboxDef, "invalid master ip",
+		"replication",
+		"valid IPV4",
+		replMap,
+		t)
+
+	sandboxDef.CustomMysqld = "DummyFile"
+	expectFailure(sandboxDef, "invalid mysqld file", "single", "same directory", emptyMap, t)
+
+	sandboxDef.CustomMysqld = ""
+	sandboxDef.MyCnfFile = "dummyFile"
+
+	expectFailure(sandboxDef, "invalid cnf file", "single", `file.*not found`, emptyMap, t)
+
+	sandboxDef.MyCnfFile = ""
+	mysqlVersion = "5.0.99"
+	pathVersion = "5_0_99"
+	err = createMockVersion(mysqlVersion)
+	compare.OkIsNil("version creation", err, t)
+	sandboxDef.SlavesReadOnly = true
+	sandboxDef.Port = 5099
+	sandboxDef.Version = mysqlVersion
+
+	replMap["nodes"] = "2"
+	replMap["origin"] = mysqlVersion
+	replMap["masterIp"] = "127.0.0.1"
+	expectFailure(sandboxDef, "invalid read only",
+		"replication",
+		"requires MySQL version '5.1.0'",
+		replMap,
+		t)
+
+	sandboxDef.MyCnfFile = ""
+	mysqlVersion = "5.7.0"
+	pathVersion = "5_7_0"
+	err = createMockVersion(mysqlVersion)
+	compare.OkIsNil("version creation", err, t)
+	sandboxDef.SlavesReadOnly = true
+	sandboxDef.Port = 5700
+	sandboxDef.Version = mysqlVersion
+	sandboxDef.SlavesReadOnly = false
+
+	replMap["origin"] = mysqlVersion
+	replMap["topology"] = globals.GroupLabel
+	expectFailure(sandboxDef, "invalid group",
+		"replication",
+		"requires MySQL version '5.7.17'",
+		replMap,
+		t)
+
+	replMap["topology"] = globals.FanInLabel
+	expectFailure(sandboxDef, "invalid fan-in",
+		"replication",
+		`multi-source.*requires MySQL version '5.7.9'`,
+		replMap,
+		t)
+
+	replMap["topology"] = globals.AllMastersLabel
+	expectFailure(sandboxDef, "invalid all-masters",
+		"replication",
+		`multi-source.*requires MySQL version '5.7.9'`,
+		replMap,
+		t)
+
+	// t.Logf("%+v", err)
 	err = removeMockEnvironment("mock_dir")
 	compare.OkIsNil("removal", err, t)
 }
@@ -286,7 +457,19 @@ func testCreateReplicationSandbox(t *testing.T) {
 }
 
 func TestCreateSandbox(t *testing.T) {
+	catalog, err := defaults.ReadCatalog()
+	if len(catalog) > 0 {
+		t.Fatalf("catalog (%s) not empty", defaults.SandboxRegistry)
+	}
+	installed, err := common.GetInstalledSandboxes(defaults.Defaults().SandboxHome)
+	if err != nil {
+		t.Fatalf("error getting sandboxes list: %s", err)
+	}
+	if len(installed) > 0 {
+		t.Fatalf("sandbox home (%s) not empty", defaults.Defaults().SandboxHome)
+	}
 	t.Run("single", testCreateStandaloneSandbox)
 	t.Run("replication", testCreateReplicationSandbox)
 	t.Run("mock", testCreateMockSandbox)
+	t.Run("expectedFailures", testFailSandboxConditions)
 }

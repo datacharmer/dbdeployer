@@ -90,6 +90,8 @@ const (
 	NodesValue          = 3
 	ReplHistoryDirLabel = "repl-history-dir"
 	SemiSyncLabel       = "semi-sync"
+	ReadOnlyLabel       = "read-only-slaves"
+	SuperReadOnlyLabel  = "super-read-only-slaves"
 	SinglePrimaryLabel  = "single-primary"
 	SlaveListLabel      = "slave-list"
 	SlaveListValue      = "3"
@@ -214,10 +216,11 @@ const MaxAllowedPort int = 64000
 // Better GTID (with fewer mandatory options) came in 5.7
 // mysqld --initialize became the default method in 5.7
 // CREATE USER became mandatory in 5.7.6 (before we could use GRANT directly)
+// The super_read_only flag was introduced in 5.7.8
 // Multi source replication was introduced in 5.7.9
 // MySQLX (a.k.a. document store) started in 5.7.12
 // Group replication was embedded in the server as of 5.7.17
-// Roles and data dictionary were introduced in 8.0
+// Roles, persistent variables, and data dictionary were introduced in 8.0
 // Authentication plugin changed in 8.0.4
 // MySQLX was enabled by default starting with 8.0.11
 var (
@@ -228,9 +231,11 @@ var (
 	MinimumEnhancedGtidVersion      = []int{5, 7, 0}
 	MinimumDefaultInitializeVersion = []int{5, 7, 0}
 	MinimumCreateUserVersion        = []int{5, 7, 6}
+	MinimumSuperReadOnly            = []int{5, 7, 8}
 	MinimumMultiSourceReplVersion   = []int{5, 7, 9}
 	MinimumMysqlxVersion            = []int{5, 7, 12}
 	MinimumGroupReplVersion         = []int{5, 7, 17}
+	MinimumPersistVersion           = []int{8, 0, 0}
 	MinimumRolesVersion             = []int{8, 0, 0}
 	MinimumDataDictionaryVersion    = []int{8, 0, 0}
 	MinimumNativeAuthPluginVersion  = []int{8, 0, 4}

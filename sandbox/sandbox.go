@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -61,6 +61,7 @@ type SandboxDef struct {
 	GtidOptions          string           // Options needed for GTID
 	ReplCrashSafeOptions string           // Options needed for Replication crash safe
 	SemiSyncOptions      string           // Options for semi-synchronous replication
+	ReadOnlyOptions      string           // Options for read-only passed to child sandboxes
 	InitOptions          []string         // Options to be added to the initialization command
 	MyCnfOptions         []string         // Options to be added to my.sandbox.cnf
 	PreGrantsSql         []string         // SQL statements to execute before grants assignment
@@ -70,6 +71,8 @@ type SandboxDef struct {
 	MyCnfFile            string           // options file to merge with the SB my.sandbox.cnf
 	HistoryDir           string           // Where to store the MySQL client history
 	LogFileName          string           // Where to log operations for this sandbox
+	SlavesReadOnly       bool             // Whether slaves will set the read_only flag
+	SlavesSuperReadOnly  bool             // Whether slaves will set the super_read_only flag
 	Logger               *defaults.Logger // Carries a logger across sandboxes
 	InitGeneralLog       bool             // Enable general log during server initialization
 	EnableGeneralLog     bool             // Enable general log for regular usage
@@ -520,6 +523,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		"GtidOptions":          sandboxDef.GtidOptions,
 		"ReplCrashSafeOptions": sandboxDef.ReplCrashSafeOptions,
 		"SemiSyncOptions":      sandboxDef.SemiSyncOptions,
+		"ReadOnlyOptions":      sandboxDef.ReadOnlyOptions,
 		"ExtraOptions":         sliceToText(sandboxDef.MyCnfOptions),
 		"ReportHost":           fmt.Sprintf("report-host=single-%d", sandboxDef.Port),
 		"ReportPort":           fmt.Sprintf("report-port=%d", sandboxDef.Port),
@@ -551,7 +555,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		return emptyExecutionList, sbError("check port", "%s", err)
 	}
 
-	err = os.Mkdir(sandboxDir, 0755)
+	err = os.Mkdir(sandboxDir, globals.PublicDirectoryAttr)
 	if err != nil {
 		return emptyExecutionList, sbError("sandbox dir creation", "%s", err)
 	}
@@ -559,12 +563,12 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	logger.Printf("Created directory %s\n", sandboxDef.SandboxDir)
 	logger.Printf("Single Sandbox template data: %s\n", stringMapToJson(data))
 
-	err = os.Mkdir(dataDir, 0755)
+	err = os.Mkdir(dataDir, globals.PublicDirectoryAttr)
 	if err != nil {
 		return emptyExecutionList, sbError("data dir creation", "%s", err)
 	}
 	logger.Printf("Created directory %s\n", dataDir)
-	err = os.Mkdir(tmpDir, 0755)
+	err = os.Mkdir(tmpDir, globals.PublicDirectoryAttr)
 	if err != nil {
 		return emptyExecutionList, sbError("tmp dir creation", "%s", err)
 	}

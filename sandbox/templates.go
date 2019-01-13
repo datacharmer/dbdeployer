@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -317,6 +317,7 @@ log-error={{.Datadir}}/msandbox.err
 {{.GtidOptions}}
 {{.ReplCrashSafeOptions}}
 {{.SemiSyncOptions}}
+{{.ReadOnlyOptions}}
 
 {{.ExtraOptions}}
 `
@@ -534,8 +535,17 @@ then
 fi
 
 CHANGED=''
+NO_RESTART=''
+
 for OPTION in $@
 do
+    # Users can choose to skip restart if they use one of the
+    # following keywords on the command line
+    if [ "$OPTION" == "NORESTART" -o "$OPTION" == "NO_RESTART" -o "$OPTION" == "SKIP_RESTART" ]
+    then
+        NO_RESTART=1
+        continue
+    fi
     option_exists=$(grep $OPTION ./my.sandbox.cnf)
     if [ -z "$option_exists" ]
     then
@@ -543,11 +553,11 @@ do
         echo "# option '$OPTION' added to configuration file"
         CHANGED=1
     else
-        echo "# option '$OPTION' already exists configuration file"
+        echo "# option '$OPTION' already exists in configuration file"
     fi
 done
 
-if [ -n "$CHANGED" ]
+if [ -n "$CHANGED" -a -z "$NO_RESTART" ]
 then
     ./restart
 fi

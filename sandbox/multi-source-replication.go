@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -117,14 +117,28 @@ func CreateAllMastersReplication(sandboxDef SandboxDef, origin string, nodes int
 	}
 	sandboxDir := sandboxDef.SandboxDir
 	sandboxDef.SandboxDir = common.DirName(sandboxDef.SandboxDir)
+
+	vList, err := common.VersionToList(sandboxDef.Version)
+	if err != nil {
+		return err
+	}
+	rev := vList[0]
 	if sandboxDef.BasePort == 0 {
-		sandboxDef.BasePort = defaults.Defaults().AllMastersReplicationBasePort
+		sandboxDef.BasePort = sandboxDef.Port + defaults.Defaults().AllMastersReplicationBasePort + (rev * 100)
 	}
 	masterAbbr := defaults.Defaults().MasterAbbr
 	slaveAbbr := defaults.Defaults().SlaveAbbr
 	masterLabel := defaults.Defaults().MasterName
 	slaveLabel := defaults.Defaults().SlavePrefix
 
+	readOnlyOptions, err := checkReadOnlyFlags(sandboxDef)
+	if err != nil {
+		return err
+	}
+	if readOnlyOptions != "" {
+		return fmt.Errorf("options --read-only and --super-read-only can't be used for all-masters topology\n" +
+			"as every slave node is also a master")
+	}
 	data, err := CreateMultipleSandbox(sandboxDef, origin, nodes)
 	if err != nil {
 		return err
@@ -142,6 +156,15 @@ func CreateAllMastersReplication(sandboxDef SandboxDef, origin string, nodes int
 	if err != nil {
 		return err
 	}
+
+	setGlobal := "GLOBAL"
+	persistent, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumRolesVersion)
+	if persistent {
+		setGlobal = "PERSIST"
+	}
+
+	data["SlavesReadOnly"] = readOnlyOptions
+	data["SetGlobal"] = setGlobal
 	data["MasterIp"] = masterIp
 	data["MasterAbbr"] = masterAbbr
 	data["MasterLabel"] = masterLabel
@@ -219,8 +242,13 @@ func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	if sandboxDef.DirName == "" {
 		sandboxDef.DirName = defaults.Defaults().FanInPrefix + common.VersionToName(origin)
 	}
+	vList, err := common.VersionToList(sandboxDef.Version)
+	if err != nil {
+		return err
+	}
+	rev := vList[0]
 	if sandboxDef.BasePort == 0 {
-		sandboxDef.BasePort = defaults.Defaults().FanInReplicationBasePort
+		sandboxDef.BasePort = sandboxDef.Port + defaults.Defaults().FanInReplicationBasePort + (rev * 100)
 	}
 	sandboxDir := sandboxDef.SandboxDir
 	sandboxDef.SandboxDir = common.DirName(sandboxDef.SandboxDir)
@@ -251,6 +279,19 @@ func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	slaveAbbr := defaults.Defaults().SlaveAbbr
 	masterLabel := defaults.Defaults().MasterName
 	slaveLabel := defaults.Defaults().SlavePrefix
+
+	setGlobal := "GLOBAL"
+	persistent, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumRolesVersion)
+	if persistent {
+		setGlobal = "PERSIST"
+	}
+
+	readOnlyOptions, err := checkReadOnlyFlags(sandboxDef)
+	if err != nil {
+		return err
+	}
+	data["SetGlobal"] = setGlobal
+	data["SlavesReadOnly"] = readOnlyOptions
 	data["MasterList"] = normalizeNodeList(masterList)
 	data["SlaveList"] = normalizeNodeList(slaveList)
 	data["MasterAbbr"] = masterAbbr
