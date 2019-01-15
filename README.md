@@ -3,7 +3,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.17.0 (12-Jan-2019 21:15 UTC)
+Documentation updated for version 1.17.0 (15-Jan-2019 18:37 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -939,7 +939,7 @@ To perform an upgrade, the following conditions myst be met:
 * Both sandboxes must be **single** deployments.
 * The older version must be one major version behind (5.6.x to 5.7.x, or 5.7.x to 8.0.x, but not 5.6.x to 8.0.x) or same major version but different revision (e.g. 5.7.22 to 5.7.23)
 * The newer version must have been already deployed.
-* The newer version must have mysql_upgrade in its base directory (e.g $SANDBOX_BINARY/5.7.23/bin)
+* The newer version must have `mysql_upgrade` in its base directory (e.g `$SANDBOX_BINARY/5.7.23/bin`)
 
 dbdeployer checks all the conditions, then
 
@@ -955,7 +955,7 @@ The older version is, at this point, not operational anymore, and can be deleted
 
 Should you need to compile your own binaries for dbdeployer, follow these steps:
 
-1. Make sure you have go installed in your system, and that the ``$GOPATH`` variable is set.
+1. Make sure you have go 1.10+ installed in your system, and that the ``$GOPATH`` variable is set.
 2. Run ``go get -u github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
 4. Run ``./scripts/build.sh {linux|OSX} 1.17.0``
