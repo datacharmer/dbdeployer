@@ -46,6 +46,22 @@ then
     dependencies=(github.com/spf13/cobra github.com/spf13/pflag github.com/spf13/cobra/doc)
 fi
 
+goversion=$(go version)
+go_major=$(echo $goversion | awk '{print $3}' | sed -e 's/^go//' | tr '.' ' ' | awk '{print $1}')
+go_minor=$(echo $goversion | awk '{print $3}' | sed -e 's/^go//' | tr '.' ' ' | awk '{print $2}')
+
+if [[ $go_major -gt 1 ]]
+then
+    echo "This application has only been tested with go 1.10+ - Detected ${go_major}.${go_minor}"
+    exit 1
+fi
+
+if [[ $go_major -eq 1 && $go_minor -lt 10 ]]
+then
+    echo "Minimum Go version should be 1.10 - Detected ${go_major}.${go_minor}"
+    exit 1
+fi
+
 local_items=(cmd defaults main.go common globals unpack abbreviations concurrent sandbox)
 
 function find_in_path {
