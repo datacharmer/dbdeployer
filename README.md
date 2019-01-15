@@ -3,7 +3,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.17.0 (15-Jan-2019 18:37 UTC)
+Documentation updated for version 1.17.0 (15-Jan-2019 20:16 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -15,9 +15,9 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.17.0
+    $ VERSION=v1.17.0
     $ OS=linux
-    $ origin=https://github.com/datacharmer/dbdeployer/releases/download/$VERSION
+    $ origin=https://github.com/datacharmer/dbdeployer/releases/tag/$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
     $ tar -xzf dbdeployer-$VERSION.$OS.tar.gz
     $ chmod +x dbdeployer-$VERSION.$OS
