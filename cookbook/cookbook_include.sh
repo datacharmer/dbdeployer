@@ -25,11 +25,21 @@ fi
 
 function check_version {
     wanted_version=$1
+    check_upgrade=$2
     if [ ! -d $SANDBOX_BINARY/$wanted_version ]
     then
         echo "Directory $SANDBOX_BINARY/$wanted_version not found"
         echo "To install the binaries, use: "
         echo "    dbdeployer unpack mysql-$version-YOUR-OPERATING-SYSTEM.tar.gz"
+        exit 1
+    fi
+    if [ -z "$check_upgrade" ]
+    then
+        return
+    fi
+    if [ ! -x $SANDBOX_BINARY/$wanted_version/bin/mysql_upgrade ]
+    then
+        echo "mysql_upgrade not found in $wanted_version"
         exit 1
     fi
 }

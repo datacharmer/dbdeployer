@@ -57,7 +57,7 @@ ver_80=8.0.13
 
 for ver in $ver_55 $ver_56 $ver_57 $ver_80
 do
-    check_version $ver
+    check_version $ver check_upgrade
 done
 
 header "Upgrading from $ver_55 to $ver_56"
