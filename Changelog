@@ -1,3 +1,6 @@
+1.17.1	26-Jan-2019
+	- Fix Issue#46 - error creating catalog
+	- Some test improvements
 1.17.0	11-Jan-2019
 	NEW FEATURES:
 	- Added options --read-only-slaves and --super-read-only-slaves

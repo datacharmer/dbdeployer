@@ -37,6 +37,11 @@ source set-mock.sh
 export SHOW_CHANGED_PORTS=1
 start_timer
 
+# Creates a zero-length catalog file.
+# Sandbox creation should not fail
+mkdir -p $mock_dir/home/.dbdeployer
+touch $mock_dir/home/.dbdeployer/sandboxes.json
+
 versions=(5.0 5.1 5.5 5.6 5.7 8.0)
 #rev_list="0 21 43 65 87 98"
 rev_list="0 21 99"

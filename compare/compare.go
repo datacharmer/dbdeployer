@@ -17,9 +17,17 @@
 package compare
 
 import (
+	"fmt"
+	"os"
 	"regexp"
 	"testing"
 )
+
+func SkipOnDemand(envVar string, t *testing.T) {
+	if os.Getenv(envVar) != "" {
+		t.Skip(fmt.Sprintf("Skipped on user request: environment variable '%s' was set ", envVar))
+	}
+}
 
 func OkIsNil(label string, val interface{}, t *testing.T) {
 	if val == nil {

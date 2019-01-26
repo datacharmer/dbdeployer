@@ -52,8 +52,8 @@ function upgrade_db {
 
 ver_55=5.5.53
 ver_56=5.6.41
-ver_57=5.7.24
-ver_80=8.0.13
+ver_57=5.7.25
+ver_80=8.0.14
 
 for ver in $ver_55 $ver_56 $ver_57 $ver_80
 do

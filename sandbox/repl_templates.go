@@ -252,7 +252,7 @@ else
     echo "# No {{.MasterLabel}} found"
     exit 1
 fi
-$MASTER -e 'create schema if not exists test'
+$MASTER -e 'create database if not exists test'
 $MASTER test -e 'drop table if exists t1'
 $MASTER test -e 'create table t1 (i int not null primary key, msg varchar(50), d date, t time, dt datetime, ts timestamp)'
 #$MASTER test -e "insert into t1 values (1, 'test sandbox 1', '2015-07-16', '11:23:40','2015-07-17 12:34:50', null)"

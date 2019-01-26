@@ -371,9 +371,8 @@ func testCreateStandaloneSandbox(t *testing.T) {
 }
 
 func preCreationChecks(t *testing.T) string {
-	if common.IsEnvSet("SKIP_REAL_SANDBOX_TEST") || common.IsEnvSet("TRAVIS") {
-		t.Skip("User choice")
-	}
+	compare.SkipOnDemand("SKIP_REAL_SANDBOX_TEST", t)
+	compare.SkipOnDemand("TRAVIS", t)
 	sandboxBinary := os.Getenv("SANDBOX_BINARY")
 	if sandboxBinary == "" {
 		sandboxBinary = defaults.Defaults().SandboxBinary

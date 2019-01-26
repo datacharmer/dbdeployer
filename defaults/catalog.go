@@ -119,6 +119,13 @@ func ReadCatalog() (sc SandboxCatalog, err error) {
 	if !common.FileExists(filename) {
 		return sc, nil
 	}
+	fileStat, err := os.Stat(filename)
+	if err != nil {
+		return sc, err
+	}
+	if fileStat.Size() < 2 {
+		return sc, err
+	}
 	scBlob, err := common.SlurpAsBytes(filename)
 	if err != nil {
 		return sc, err
@@ -126,7 +133,10 @@ func ReadCatalog() (sc SandboxCatalog, err error) {
 
 	err = json.Unmarshal(scBlob, &sc)
 	if err != nil {
-		return sc, fmt.Errorf("error decoding catalog: %s", err)
+		if globals.UsingDbDeployer {
+			fmt.Printf("error decoding catalog - Returning empty catalog: %s", err)
+		}
+		return SandboxCatalog{}, nil
 	}
 	return
 }

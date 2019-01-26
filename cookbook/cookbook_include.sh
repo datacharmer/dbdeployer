@@ -42,6 +42,12 @@ function check_version {
         echo "mysql_upgrade not found in $wanted_version"
         exit 1
     fi
+    version_path=$(echo msb_$wanted_version | tr '.' '_')
+    if [ -d $SANDBOX_HOME/$version_path ]
+    then
+        echo "Version $wanted_version is already installed in $SANDBOX_HOME/$version_path"
+        exit 1
+    fi
 }
 
 dash_line="# ----------------------------------------------------------------------------"

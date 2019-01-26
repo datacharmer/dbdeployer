@@ -15,11 +15,14 @@
 package rest
 
 import (
+	"github.com/datacharmer/dbdeployer/compare"
 	"os"
 	"testing"
 )
 
 func TestDownloadFile(t *testing.T) {
+	compare.SkipOnDemand("SKIP_REST_TEST", t)
+
 	fileName := "4.1.22.tar.xz"
 	url := FileUrl(fileName)
 	err := DownloadFile(fileName, url)
@@ -34,6 +37,7 @@ func TestDownloadFile(t *testing.T) {
 }
 
 func TestGetRemoteIndex(t *testing.T) {
+	compare.SkipOnDemand("SKIP_REST_TEST", t)
 	index, err := GetRemoteIndex()
 	if err == nil {
 		t.Logf(" OK - %+v", index)
