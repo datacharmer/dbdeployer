@@ -73,6 +73,7 @@ const (
 	SkipReportPortLabel    = "skip-report-port"
 	SkipStartLabel         = "skip-start"
 	UseTemplateLabel       = "use-template"
+	ClientFromLabel        = "client-from"
 
 	// Instantiated in cmd/single.go
 	MasterLabel = "master"
@@ -109,6 +110,8 @@ const (
 	TgzExt             = ".tgz"
 	UnpackVersionLabel = "unpack-version"
 	VerbosityLabel     = "verbosity"
+	FlavorLabel        = "flavor"
+	FlavorFileName     = "FLAVOR"
 
 	// Instantiated in cmd/delete.go
 	SkipConfirmLabel = "skip-confirm"
@@ -200,6 +203,8 @@ const (
 	ErrWhileComparingVersions      = "error while comparing versions"
 )
 
+
+
 const MaxAllowedPort int = 64000
 
 // Go doesn't allow constants to be compound types. Thus we use variables here.
@@ -224,22 +229,26 @@ const MaxAllowedPort int = 64000
 // Authentication plugin changed in 8.0.4
 // MySQLX was enabled by default starting with 8.0.11
 var (
-	MinimumDynVariablesVersion      = []int{5, 1, 0}
-	MinimumSemiSyncVersion          = []int{5, 5, 1}
-	MinimumCrashSafeVersion         = []int{5, 6, 2}
-	MinimumGtidVersion              = []int{5, 6, 9}
-	MinimumEnhancedGtidVersion      = []int{5, 7, 0}
-	MinimumDefaultInitializeVersion = []int{5, 7, 0}
-	MinimumCreateUserVersion        = []int{5, 7, 6}
-	MinimumSuperReadOnly            = []int{5, 7, 8}
-	MinimumMultiSourceReplVersion   = []int{5, 7, 9}
-	MinimumMysqlxVersion            = []int{5, 7, 12}
-	MinimumGroupReplVersion         = []int{5, 7, 17}
-	MinimumPersistVersion           = []int{8, 0, 0}
-	MinimumRolesVersion             = []int{8, 0, 0}
-	MinimumDataDictionaryVersion    = []int{8, 0, 0}
-	MinimumNativeAuthPluginVersion  = []int{8, 0, 4}
-	MinimumMysqlxDefaultVersion     = []int{8, 0, 11}
+	MinimumMySQLInstallDb            = []int{4, 0, 0}
+	MaximumMySQLInstallDb            = []int{5, 6, 999}
+	MinimumDynVariablesVersion       = []int{5, 1, 0}
+	MinimumSemiSyncVersion           = []int{5, 5, 1}
+	MinimumCrashSafeVersion          = []int{5, 6, 2}
+	MinimumGtidVersion               = []int{5, 6, 9}
+	MinimumEnhancedGtidVersion       = []int{5, 7, 0}
+	MinimumDefaultInitializeVersion  = []int{5, 7, 0}
+	MinimumCreateUserVersion         = []int{5, 7, 6}
+	MinimumSuperReadOnly             = []int{5, 7, 8}
+	MinimumMultiSourceReplVersion    = []int{5, 7, 9}
+	MinimumMysqlxVersion             = []int{5, 7, 12}
+	MinimumGroupReplVersion          = []int{5, 7, 17}
+	MinimumPersistVersion            = []int{8, 0, 0}
+	MinimumRolesVersion              = []int{8, 0, 0}
+	MinimumDataDictionaryVersion     = []int{8, 0, 0}
+	MinimumNativeAuthPluginVersion   = []int{8, 0, 4}
+	MinimumMysqlxDefaultVersion      = []int{8, 0, 11}
+	MariaDbMinimumGtidVersion        = []int{10, 0, 0}
+	MariaDbMinimumMultiSourceVersion = []int{10, 0, 0}
 )
 
 const (

@@ -158,7 +158,8 @@ func CreateAllMastersReplication(sandboxDef SandboxDef, origin string, nodes int
 	}
 
 	setGlobal := "GLOBAL"
-	persistent, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumRolesVersion)
+	// persistent, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumRolesVersion)
+	persistent, err := common.HasCapability(sandboxDef.Flavor, common.SetPersist, sandboxDef.Version)
 	if persistent {
 		setGlobal = "PERSIST"
 	}
@@ -281,7 +282,8 @@ func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	slaveLabel := defaults.Defaults().SlavePrefix
 
 	setGlobal := "GLOBAL"
-	persistent, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumRolesVersion)
+	// persistent, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumRolesVersion)
+	persistent, err := common.HasCapability(sandboxDef.Flavor, common.SetPersist, sandboxDef.Version)
 	if persistent {
 		setGlobal = "PERSIST"
 	}

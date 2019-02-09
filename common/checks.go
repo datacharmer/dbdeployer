@@ -355,12 +355,15 @@ func VersionToPort(version string) (int, error) {
 }
 
 // Checks if a version string is greater or equal a given numeric version
-// "5.6.33" >= []{5.7.0}  = false
-// "5.7.21" >= []{5.7.0}  = true
-// "10.1.21" >= []{5.7.0}  = false (!)
+// "5.6.33" >= []int{5,7,0}  = false
+// "5.7.21" >= []int{5,7,0}  = true
+// "10.1.21" >= []int{5,7,0}  = false (!)
 // Note: MariaDB versions are skipped. The function returns false for MariaDB 10+.
 // So far (2018-02-19) this comparison holds, because MariaDB behaves like 5.5+ for
 // the purposes of sandbox deployment
+//
+// DEPRECATED as of 1.18.0
+// Use GreaterOrEqualVersionList and flavors instead
 func GreaterOrEqualVersion(version string, comparedTo []int) (bool, error) {
 	if len(comparedTo) != 3 {
 		return false, errors.Wrapf(fmt.Errorf("invalid slice size: %v", comparedTo), "GreaterOrEqualVersion:")
@@ -385,6 +388,38 @@ func GreaterOrEqualVersion(version string, comparedTo []int) (bool, error) {
 	compareText := fmt.Sprintf("%02d%02d%02d", compMajor, compMinor, compRev)
 	return versionText >= compareText, nil
 }
+
+// Checks if a version list is greater or equal a given numeric version
+// []int{5,6,33} >= []int{5,7,0}  = false
+// []int{5,7,21} >= []int{5,7,0}  = true
+// []int{10,1,21} >= []int{5.7.0}  = true
+// Note: Use this function in combination with flavors.
+// Better yet, use common.HasCapability(flavors, feature, version)
+
+func GreaterOrEqualVersionList(verList, comparedTo []int) (bool, error) {
+	lenVerList := len(verList)
+	lenCompareTo := len(comparedTo)
+
+	if lenCompareTo < 1 {
+		return false, fmt.Errorf("comparison version empty")
+	}
+	if lenVerList < 1 {
+		return false, fmt.Errorf("requested version empty")
+	}
+	maxElements := lenVerList
+	if lenCompareTo < maxElements {
+		maxElements = lenCompareTo
+	}
+	versionText := ""
+	compareText := ""
+
+	for N := 0; N< maxElements; N++ {
+		versionText += fmt.Sprintf("%05d", verList[N])
+		compareText += fmt.Sprintf("%05d", comparedTo[N])
+	}
+	return versionText >= compareText, nil
+}
+
 
 // Finds the first free port available, starting at
 // requestedPort.

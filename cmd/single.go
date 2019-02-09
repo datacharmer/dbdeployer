@@ -113,6 +113,30 @@ func checkForRootValue(value, label, defaultVal string) {
 	}
 }
 
+
+// Gets the Database flavor
+// If none is found, defaults to MySQL
+func getFlavor(userDefinedFlavor, basedir string) string {
+	flavor := userDefinedFlavor
+	flavorFile := path.Join(basedir, globals.FlavorFileName)
+	if common.FileExists(flavorFile) {
+		flavorText, err := common.SlurpAsString(flavorFile)
+		if err != nil {
+			common.Exitf(1, "error reading flavor file %s: %s", flavorFile, err)
+		}
+		flavorText = strings.TrimSpace(flavorText)
+		if userDefinedFlavor != "" && userDefinedFlavor != flavorText {
+			common.Exitf(1, "user defined flavor %s doesn't match found flavor %s", userDefinedFlavor, flavorText)
+		}
+		flavor = flavorText
+	}
+	// TODO Flavor detection based on tarball contents
+	if flavor == "" {
+		flavor = common.MySQLFlavor
+	}
+	return flavor
+}
+
 func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxDef, error) {
 	var sd sandbox.SandboxDef
 
@@ -205,6 +229,16 @@ func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxD
 		common.Exitf(1, "basedir '%s' not found", sd.Basedir)
 	}
 
+	sd.ClientBasedir, _ = flags.GetString(globals.ClientFromLabel)
+	if sd.ClientBasedir == "" {
+		sd.ClientBasedir = sd.Basedir
+	} else {
+		clientBasedir := path.Join(basedir, sd.ClientBasedir)
+		if !common.DirExists(clientBasedir) {
+			common.Exitf(1, globals.ErrDirectoryNotFound, clientBasedir)
+		}
+		sd.ClientBasedir = clientBasedir
+	}
 	err = common.CheckTarballOperatingSystem(sd.Basedir)
 	common.ErrCheckExitf(err, 1, "incorrect tarball detected")
 
@@ -241,7 +275,9 @@ func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxD
 	sd.DbUser, _ = flags.GetString(globals.DbUserLabel)
 	sd.DbPassword, _ = flags.GetString(globals.DbPasswordLabel)
 	sd.RplUser, _ = flags.GetString(globals.RplUserLabel)
+	sd.Flavor, _ = flags.GetString(globals.FlavorLabel)
 
+	sd.Flavor = getFlavor(sd.Flavor, sd.Basedir)
 	checkForRootValue(sd.DbUser, globals.DbUserLabel, globals.DbUserValue)
 	checkForRootValue(sd.RplUser, globals.RplUserLabel, globals.RplUserValue)
 
@@ -287,13 +323,15 @@ func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxD
 	if gtid {
 		templateName := "gtid_options_56"
 		// 5.7.0
-		isEnhancedGtid, err := common.GreaterOrEqualVersion(sd.Version, globals.MinimumEnhancedGtidVersion)
+		// isEnhancedGtid, err := common.GreaterOrEqualVersion(sd.Version, globals.MinimumEnhancedGtidVersion)
+		isEnhancedGtid, err := common.HasCapability(sd.Flavor, common.EnhancedGTID, sd.Version)
 		common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
 		if isEnhancedGtid {
 			templateName = "gtid_options_57"
 		}
 		// 5.6.9
-		isMinimumGtid, err := common.GreaterOrEqualVersion(sd.Version, globals.MinimumGtidVersion)
+		//isMinimumGtid, err := common.GreaterOrEqualVersion(sd.Version, globals.MinimumGtidVersion)
+		isMinimumGtid, err := common.HasCapability(sd.Flavor, common.GTID, sd.Version)
 		common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
 		if isMinimumGtid {
 			sd.GtidOptions = sandbox.SingleTemplates[templateName].Contents
@@ -307,7 +345,8 @@ func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxD
 	if replCrashSafe && sd.ReplCrashSafeOptions == "" {
 		// 5.6.2
 
-		isMinimumCrashSafe, err := common.GreaterOrEqualVersion(sd.Version, globals.MinimumCrashSafeVersion)
+		// isMinimumCrashSafe, err := common.GreaterOrEqualVersion(sd.Version, globals.MinimumCrashSafeVersion)
+		isMinimumCrashSafe, err := common.HasCapability(sd.Flavor, common.CrashSafe, sd.Version)
 		common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
 		if isMinimumCrashSafe {
 			sd.ReplCrashSafeOptions = sandbox.SingleTemplates["repl_crash_safe_options"].Contents

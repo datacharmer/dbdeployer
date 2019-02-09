@@ -31,6 +31,7 @@ type SandboxItem struct {
 	Origin            string   `json:"origin"`
 	SBType            string   `json:"type"` // single multi master-slave group all-masters fan-in
 	Version           string   `json:"version"`
+	Flavor            string   `json:"flavor,omitempty"`
 	Port              []int    `json:"port"`
 	Nodes             []string `json:"nodes"`
 	Destination       string   `json:"destination"`

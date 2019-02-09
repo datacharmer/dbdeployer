@@ -42,7 +42,8 @@ func checkReadOnlyFlags(sandboxDef SandboxDef) (string, error) {
 		return "", fmt.Errorf("only one of --%s or %s should be used", globals.ReadOnlyLabel, globals.SuperReadOnlyLabel)
 	}
 	if sandboxDef.SlavesSuperReadOnly {
-		readOnlyAllowed, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumSuperReadOnly)
+		// readOnlyAllowed, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumSuperReadOnly)
+		readOnlyAllowed, err := common.HasCapability(sandboxDef.Flavor, common.SuperReadOnly, sandboxDef.Version)
 		if err != nil {
 			return "", err
 		}
@@ -53,7 +54,8 @@ func checkReadOnlyFlags(sandboxDef SandboxDef) (string, error) {
 		readOnlyOption = "super_read_only=on"
 	} else {
 		if sandboxDef.SlavesReadOnly {
-			readOnlyAllowed, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumDynVariablesVersion)
+			// readOnlyAllowed, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumDynVariablesVersion)
+			readOnlyAllowed, err := common.HasCapability(sandboxDef.Flavor, common.DynVariables, sandboxDef.Version)
 			if err != nil {
 				return "", err
 			}
@@ -143,7 +145,8 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		logger.Printf("Adding MASTER_AUTO_POSITION to slaves setup\n")
 	}
 	// 8.0.11
-	isMinimumNativeAuthPlugin, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumNativeAuthPluginVersion)
+	// isMinimumNativeAuthPlugin, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumNativeAuthPluginVersion)
+	isMinimumNativeAuthPlugin, err := common.HasCapability(sandboxDef.Flavor, common.NativeAuth, sandboxDef.Version)
 	if err != nil {
 		return err
 	}
@@ -206,6 +209,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		Basedir: sandboxDef.Basedir,
 		SBType:  globals.MasterSlaveLabel,
 		Version: sandboxDef.Version,
+		Flavor:      sandboxDef.Flavor,
 		Port:    []int{sandboxDef.Port},
 		Nodes:   slaves,
 		NodeNum: 0,
@@ -216,6 +220,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		Origin:      sbDesc.Basedir,
 		SBType:      sbDesc.SBType,
 		Version:     sandboxDef.Version,
+		Flavor:      sandboxDef.Flavor,
 		Port:        []int{sandboxDef.Port},
 		Nodes:       []string{defaults.Defaults().MasterName},
 		Destination: sandboxDef.SandboxDir,
@@ -226,7 +231,8 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	}
 
 	// 8.0.11
-	isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
+	// isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
+	isMinimumMySQLXDefault, err := common.HasCapability(sandboxDef.Flavor, common.MySQLXDefault, sandboxDef.Version)
 	if err != nil {
 		return err
 	}
@@ -269,7 +275,8 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		sbItem.Port = append(sbItem.Port, sandboxDef.Port)
 		sbDesc.Port = append(sbDesc.Port, sandboxDef.Port)
 		// 8.0.11
-		isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
+		// isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
+		isMinimumMySQLXDefault, err := common.HasCapability(sandboxDef.Flavor, common.MySQLXDefault, sandboxDef.Version)
 		if err != nil {
 			return err
 		}
@@ -409,7 +416,8 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 			sdef.SandboxDir = path.Join(sdef.SandboxDir, defaults.Defaults().GroupPrefix+common.VersionToName(origin))
 		}
 		// 5.7.17
-		isMinimumGroupRepl, err := common.GreaterOrEqualVersion(sdef.Version, globals.MinimumGroupReplVersion)
+		// isMinimumGroupRepl, err := common.GreaterOrEqualVersion(sdef.Version, globals.MinimumGroupReplVersion)
+		isMinimumGroupRepl, err := common.HasCapability(sdef.Flavor, common.GroupReplication, sdef.Version)
 		if err != nil {
 			return err
 		}
@@ -418,7 +426,8 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 		}
 	case globals.FanInLabel:
 		// 5.7.9
-		isMinimumMultiSource, err := common.GreaterOrEqualVersion(sdef.Version, globals.MinimumMultiSourceReplVersion)
+		// isMinimumMultiSource, err := common.GreaterOrEqualVersion(sdef.Version, globals.MinimumMultiSourceReplVersion)
+		isMinimumMultiSource, err := common.HasCapability(sdef.Flavor, common.MultiSource, sdef.Version)
 		if err != nil {
 			return err
 		}
@@ -429,7 +438,8 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 	case globals.AllMastersLabel:
 		// 5.7.9
 
-		isMinimumMultiSource, err := common.GreaterOrEqualVersion(sdef.Version, globals.MinimumMultiSourceReplVersion)
+		// isMinimumMultiSource, err := common.GreaterOrEqualVersion(sdef.Version, globals.MinimumMultiSourceReplVersion)
+		isMinimumMultiSource, err := common.HasCapability(sdef.Flavor, common.MultiSource, sdef.Version)
 		if err != nil {
 			return err
 		}

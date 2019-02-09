@@ -260,11 +260,15 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		ShowDefaults(nd)
 		return false
 	}
-	versionList, err := common.VersionToList(common.CompatibleVersion)
+	compatibleVersionList, err := common.VersionToList(common.CompatibleVersion)
 	if err != nil {
 		return false
 	}
-	compatibleVersion, err := common.GreaterOrEqualVersion(nd.Version, versionList)
+	versionList, err := common.VersionToList(nd.Version)
+	if err != nil {
+		return false
+	}
+	compatibleVersion, err := common.GreaterOrEqualVersionList(versionList, compatibleVersionList)
 	common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
 	if !compatibleVersion {
 		common.CondPrintf("Provided defaults are for version %s. Current version is %s\n", nd.Version, common.CompatibleVersion)
