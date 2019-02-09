@@ -238,7 +238,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		Basedir: sandboxDef.Basedir,
 		SBType:  sbType,
 		Version: sandboxDef.Version,
-		Flavor:      sandboxDef.Flavor,
+		Flavor:  sandboxDef.Flavor,
 		Port:    []int{},
 		Nodes:   nodes,
 		NodeNum: 0,

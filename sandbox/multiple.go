@@ -122,7 +122,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		Basedir: Basedir,
 		SBType:  sandboxDef.SBType,
 		Version: sandboxDef.Version,
-		Flavor:      sandboxDef.Flavor,
+		Flavor:  sandboxDef.Flavor,
 		Port:    []int{},
 		Nodes:   nodes,
 		NodeNum: 0,

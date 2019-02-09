@@ -209,7 +209,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		Basedir: sandboxDef.Basedir,
 		SBType:  globals.MasterSlaveLabel,
 		Version: sandboxDef.Version,
-		Flavor:      sandboxDef.Flavor,
+		Flavor:  sandboxDef.Flavor,
 		Port:    []int{sandboxDef.Port},
 		Nodes:   slaves,
 		NodeNum: 0,

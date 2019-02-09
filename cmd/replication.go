@@ -52,9 +52,8 @@ func replicationSandbox(cmd *cobra.Command, args []string) {
 		}
 		// 5.5.1
 
-
 		// isMinimumSync, err := common.GreaterOrEqualVersion(sd.Version, globals.MinimumSemiSyncVersion)
-		isMinimumSync, err := common.HasCapability(sd.Flavor, common.SemiSynch,sd.Version)
+		isMinimumSync, err := common.HasCapability(sd.Flavor, common.SemiSynch, sd.Version)
 		common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
 		if isMinimumSync {
 			sd.SemiSyncOptions = sandbox.SingleTemplates["semisync_master_options"].Contents

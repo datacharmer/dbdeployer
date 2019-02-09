@@ -138,12 +138,11 @@ var PerconaCapabilities = Capabilities{
 }
 
 var TiDBCapabilities = Capabilities{
-// No capabilities so far
+	// No capabilities so far
 }
 var NDBCapabilities = Capabilities{
-// No capabilities so far
+	// No capabilities so far
 }
-
 
 // NOTE: We only list the capabilities
 // for which dbdeployer needs to take action

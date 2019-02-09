@@ -504,6 +504,9 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	if err != nil {
 		return emptyExecutionList, errors.Wrapf(err, "")
 	}
+	if sandboxDef.ClientBasedir == "" {
+		sandboxDef.ClientBasedir = sandboxDef.Basedir
+	}
 	var data = common.StringMap{
 		"Basedir":              sandboxDef.Basedir,
 		"ClientBasedir":        sandboxDef.ClientBasedir,
@@ -585,7 +588,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		return emptyExecutionList, sbError("tmp dir creation", "%s", err)
 	}
 	logger.Printf("Created directory %s\n", tmpDir)
-	script := path.Join(sandboxDef.Basedir, "scripts", "mysql_install_db")
+	script := ""
 	initScriptFlags := ""
 	// isMinimumDefaultInitialize, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumDefaultInitializeVersion)
 	isMinimumDefaultInitialize, err := common.HasCapability(sandboxDef.Flavor, common.Initialize, sandboxDef.Version)
@@ -599,7 +602,14 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		}
 		initScriptFlags = "--initialize-insecure"
 	}
-	if !common.ExecExists(script) {
+	usesMysqlInstallDb, err := common.HasCapability(sandboxDef.Flavor, common.InstallDb, sandboxDef.Version)
+	if err != nil {
+		return emptyExecutionList, err
+	}
+	if usesMysqlInstallDb {
+		script = path.Join(sandboxDef.Basedir, "scripts", "mysql_install_db")
+	}
+	if script != "" && !common.ExecExists(script) {
 		common.CondPrintf("SCRIPT\n")
 		return emptyExecutionList, fmt.Errorf(globals.ErrScriptNotFound, script)
 	}
@@ -609,7 +619,10 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		}
 	}
 	data["InitScript"] = script
-	data["InitDefaults"] = "--no-defaults"
+	data["InitDefaults"] = ""
+	if script != "" {
+		data["InitDefaults"] = "--no-defaults"
+	}
 	if initScriptFlags != "" {
 		initScriptFlags = fmt.Sprintf("\\\n    %s", initScriptFlags)
 	}
@@ -677,7 +690,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		Basedir: sandboxDef.Basedir,
 		SBType:  sandboxDef.SBType,
 		Version: sandboxDef.Version,
-		Flavor:      sandboxDef.Flavor,
+		Flavor:  sandboxDef.Flavor,
 		Port:    []int{sandboxDef.Port},
 		Nodes:   0,
 		NodeNum: sandboxDef.NodeNum,

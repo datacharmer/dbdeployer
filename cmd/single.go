@@ -113,7 +113,6 @@ func checkForRootValue(value, label, defaultVal string) {
 	}
 }
 
-
 // Gets the Database flavor
 // If none is found, defaults to MySQL
 func getFlavor(userDefinedFlavor, basedir string) string {

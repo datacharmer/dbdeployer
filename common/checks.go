@@ -59,7 +59,9 @@ func GetVersionsFromDir(basedir string) ([]string, error) {
 		if fmode.IsDir() {
 			//fmt.Println(fname)
 			mysqld := path.Join(basedir, fname, "bin", "mysqld")
-			if FileExists(mysqld) {
+			mysqldDebug := path.Join(basedir, fname, "bin", "mysqld-debug")
+			tidb := path.Join(basedir, fname, "bin", "tidb-server")
+			if FileExists(mysqld) || FileExists(mysqldDebug) || FileExists(tidb) {
 				dirs = append(dirs, fname)
 			}
 		}
@@ -184,11 +186,12 @@ func CheckTarballOperatingSystem(basedir string) error {
 		isBinary bool
 	}
 	var findingList = map[string]OSFinding{
-		"libmysqlclient.a":             {"lib", "linux", "mysql", true}, // 4.1 and old 5.0 releases
-		"libmysqlclient.so":            {"lib", "linux", "mysql", true},
-		"libperconaserverclient.so":    {"lib", "linux", "percona", true},
-		"libperconaserverclient.dylib": {"lib", "darwin", "percona", true},
-		"libmysqlclient.dylib":         {"lib", "darwin", "mysql", true},
+		"libmysqlclient.a":             {"lib", "linux", MySQLFlavor, true}, // 4.1 and old 5.0 releases
+		"libmysqlclient.so":            {"lib", "linux", MySQLFlavor, true},
+		"libperconaserverclient.so":    {"lib", "linux", PerconaServerFlavor, true},
+		"libperconaserverclient.dylib": {"lib", "darwin", PerconaServerFlavor, true},
+		"libmysqlclient.dylib":         {"lib", "darwin", MySQLFlavor, true},
+		"tidb-server":                  {"bin", "any", TiDbFlavor, true},
 		"table.h":                      {"sql", "source", "any", false},
 		"mysqlprovision.zip":           {"share/mysqlsh", "shell", "any", false},
 	}
@@ -201,7 +204,7 @@ func CheckTarballOperatingSystem(basedir string) error {
 			wantedFiles = append(wantedFiles, path.Join(rec.Dir, fname))
 		}
 		if FileExists(fullName) {
-			if rec.OS == currentOs && rec.isBinary {
+			if (rec.OS == currentOs || rec.OS == "any") && rec.isBinary {
 				wantedOsFound = true
 			}
 			foundList[fname] = rec
@@ -413,13 +416,12 @@ func GreaterOrEqualVersionList(verList, comparedTo []int) (bool, error) {
 	versionText := ""
 	compareText := ""
 
-	for N := 0; N< maxElements; N++ {
+	for N := 0; N < maxElements; N++ {
 		versionText += fmt.Sprintf("%05d", verList[N])
 		compareText += fmt.Sprintf("%05d", comparedTo[N])
 	}
 	return versionText >= compareText, nil
 }
-
 
 // Finds the first free port available, starting at
 // requestedPort.

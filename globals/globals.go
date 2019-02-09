@@ -203,8 +203,6 @@ const (
 	ErrWhileComparingVersions      = "error while comparing versions"
 )
 
-
-
 const MaxAllowedPort int = 64000
 
 // Go doesn't allow constants to be compound types. Thus we use variables here.

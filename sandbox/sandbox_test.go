@@ -111,6 +111,7 @@ func testCreateMockSandbox(t *testing.T) {
 		compare.OkIsNil("version creation", err, t)
 		var sandboxDef = SandboxDef{
 			Version:    mysqlVersion,
+			Flavor:     common.MySQLFlavor,
 			Basedir:    path.Join(mockSandboxBinary, mysqlVersion),
 			SandboxDir: mockSandboxHome,
 			DirName:    defaults.Defaults().SandboxPrefix + pathVersion,
@@ -199,6 +200,7 @@ func testFailSandboxConditions(t *testing.T) {
 	compare.OkIsNil("version creation", err, t)
 	var sandboxDef = SandboxDef{
 		Version:        mysqlVersion,
+		Flavor:         common.MySQLFlavor,
 		Basedir:        path.Join(mockSandboxBinary, mysqlVersion),
 		SandboxDir:     mockSandboxHome,
 		DirName:        defaults.Defaults().SandboxPrefix + pathVersion,
@@ -329,6 +331,7 @@ func testCreateStandaloneSandbox(t *testing.T) {
 	}
 	var sandboxDef = SandboxDef{
 		Version:        latestVersion,
+		Flavor:         common.MySQLFlavor,
 		Basedir:        path.Join(defaults.Defaults().SandboxBinary, latestVersion),
 		SandboxDir:     defaults.Defaults().SandboxHome,
 		DirName:        defaults.Defaults().SandboxPrefix + pathVersion,
@@ -404,6 +407,7 @@ func testCreateReplicationSandbox(t *testing.T) {
 	t.Logf("path: %s\n", pathVersion)
 	var sandboxDef = SandboxDef{
 		Version:        latestVersion,
+		Flavor:         common.MySQLFlavor,
 		Basedir:        path.Join(defaults.Defaults().SandboxBinary, latestVersion),
 		SandboxDir:     defaults.Defaults().SandboxHome,
 		DirName:        defaults.Defaults().MasterSlavePrefix + pathVersion,

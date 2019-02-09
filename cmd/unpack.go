@@ -31,11 +31,11 @@ import (
 func detectFlavor(tarballName string) string {
 	flavor := ""
 	flavorsRegexps := map[string]string{
-		common.MySQLFlavor : `mysql`,
-		common.PerconaServerFlavor : `Percona-Server`,
-		common.MariaDbFlavor : `mariadb`,
-		common.NDBFlavor : `mysql-cluster`,
-		common.TiDbFlavor : `tidb`,
+		common.MySQLFlavor:         `mysql`,
+		common.PerconaServerFlavor: `Percona-Server`,
+		common.MariaDbFlavor:       `mariadb`,
+		common.NDBFlavor:           `mysql-cluster`,
+		common.TiDbFlavor:          `tidb`,
 	}
 
 	for key, value := range flavorsRegexps {
