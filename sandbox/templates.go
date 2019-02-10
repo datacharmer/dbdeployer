@@ -1262,7 +1262,7 @@ function check_output
 	AllTemplates = AllTemplateCollection{
 		"mock":        MockTemplates,
 		"single":      SingleTemplates,
-		"tidb":  TidbTemplates,
+		"tidb":        TidbTemplates,
 		"multiple":    MultipleTemplates,
 		"replication": ReplicationTemplates,
 		"group":       GroupTemplates,
