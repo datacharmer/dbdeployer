@@ -292,9 +292,18 @@ func sbError(reason, format string, args ...interface{}) error {
 func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.ExecutionList, err error) {
 
 	var sandboxDir string
-
 	if sandboxDef.SBType == "" {
 		sandboxDef.SBType = "single"
+	}
+	// Assuming a default flavor for backward compatibility
+	if sandboxDef.Flavor == "" {
+		sandboxDef.Flavor = common.MySQLFlavor
+	}
+
+	if sandboxDef.Flavor == common.TiDbFlavor {
+		for name, templateDesc := range TidbTemplates {
+			SingleTemplates[name] = templateDesc
+		}
 	}
 	logName := sandboxDef.SBType
 	if sandboxDef.NodeNum > 0 {
@@ -310,6 +319,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			return emptyExecutionList, sbError("logger", "%s", err)
 		}
 		sandboxDef.LogFileName = common.ReplaceLiteralHome(fileName)
+		sandboxDef.Logger = logger
 	}
 	logger.Printf("Single Sandbox Definition: %s\n", sandboxDefToJson(sandboxDef))
 	if !common.DirExists(sandboxDef.Basedir) {
@@ -507,6 +517,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	if sandboxDef.ClientBasedir == "" {
 		sandboxDef.ClientBasedir = sandboxDef.Basedir
 	}
+
 	var data = common.StringMap{
 		"Basedir":              sandboxDef.Basedir,
 		"ClientBasedir":        sandboxDef.ClientBasedir,
@@ -687,14 +698,15 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		sbItem.LogDirectory = common.DirName(sandboxDef.LogFileName)
 	}
 	sbDesc := common.SandboxDescription{
-		Basedir: sandboxDef.Basedir,
-		SBType:  sandboxDef.SBType,
-		Version: sandboxDef.Version,
-		Flavor:  sandboxDef.Flavor,
-		Port:    []int{sandboxDef.Port},
-		Nodes:   0,
-		NodeNum: sandboxDef.NodeNum,
-		LogFile: sandboxDef.LogFileName,
+		Basedir:       sandboxDef.Basedir,
+		ClientBasedir: sandboxDef.ClientBasedir,
+		SBType:        sandboxDef.SBType,
+		Version:       sandboxDef.Version,
+		Flavor:        sandboxDef.Flavor,
+		Port:          []int{sandboxDef.Port},
+		Nodes:         0,
+		NodeNum:       sandboxDef.NodeNum,
+		LogFile:       sandboxDef.LogFileName,
 	}
 	if len(sandboxDef.MorePorts) > 0 {
 		for _, port := range sandboxDef.MorePorts {
@@ -870,7 +882,8 @@ func writeScripts(scriptBatch ScriptBatch) error {
 	return nil
 }
 
-func writeScript(logger *defaults.Logger, tempVar TemplateCollection, scriptName, templateName, directory string, data common.StringMap, makeExecutable bool) error {
+func writeScript(logger *defaults.Logger, tempVar TemplateCollection, scriptName, templateName, directory string,
+	data common.StringMap, makeExecutable bool) error {
 	if directory == "" {
 		return fmt.Errorf("writeScript (%s): missing directory", scriptName)
 	}

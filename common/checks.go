@@ -204,6 +204,7 @@ func CheckTarballOperatingSystem(basedir string) error {
 			wantedFiles = append(wantedFiles, path.Join(rec.Dir, fname))
 		}
 		if FileExists(fullName) {
+			// TODO: This is a workaround to make TiDB work. Later refinements may come.
 			if (rec.OS == currentOs || rec.OS == "any") && rec.isBinary {
 				wantedOsFound = true
 			}
