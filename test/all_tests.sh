@@ -108,9 +108,13 @@ function run_test {
 }
 
 function all_tests {
-    run_test ./test/go-unit-tests.sh
-    run_test ./test/functional-test.sh
-    run_test ./test/docker-test.sh $version
+    if [ -z "$ONLY_MOCK" ]
+    then
+        run_test ./scripts/sanity_check.sh
+        run_test ./test/go-unit-tests.sh
+        run_test ./test/functional-test.sh
+        run_test ./test/docker-test.sh $version
+    fi
     run_test ./test/mock/defaults-change.sh
     run_test ./test/mock/short-versions.sh
     run_test ./test/mock/direct-paths.sh

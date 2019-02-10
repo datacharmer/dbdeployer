@@ -1,3 +1,11 @@
 *~
 .idea/
-
+test/logs/
+results*.txt
+test/results*.txt
+test/mock/results*.txt
+test/sort_versions
+test/sort_versions.Darwin
+test/sort_versions.linux
+dbdeployer-*.osx*
+dbdeployer-*.linux*
