@@ -22,6 +22,7 @@ import (
 	"github.com/pkg/errors"
 	"os"
 	"path"
+	"regexp"
 	"time"
 
 	"github.com/datacharmer/dbdeployer/common"
@@ -301,8 +302,22 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	}
 
 	if sandboxDef.Flavor == common.TiDbFlavor {
+		// Ensures that we can run a client.
+		// Since TiDB tarballs don't include a client, we need to use one from MySQL
+		// In theory, it could be possible to circumvent this necessity by using
+		// the environment variable $MYSQL_EDITOR, but this would potentially
+		// interfere with other sandboxes isolation. So I better leave this feature
+		// undocumented and only to be used in emergencies.
+		if sandboxDef.ClientBasedir == "" {
+			return emptyExecutionList,
+				fmt.Errorf("flavor '%s' requires option --'%s'", common.TiDbFlavor, globals.ClientFromLabel)
+		}
+
+		// Replaces main templates with the ones needed for TiDB
 		for name, templateDesc := range TidbTemplates {
-			SingleTemplates[name] = templateDesc
+			re := regexp.MustCompile(`^` + tidbPrefix)
+			singleName := re.ReplaceAllString(name, "")
+			SingleTemplates[singleName] = templateDesc
 		}
 	}
 	logName := sandboxDef.SBType

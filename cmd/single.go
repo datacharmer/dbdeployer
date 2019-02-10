@@ -229,9 +229,7 @@ func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxD
 	}
 
 	sd.ClientBasedir, _ = flags.GetString(globals.ClientFromLabel)
-	if sd.ClientBasedir == "" {
-		sd.ClientBasedir = sd.Basedir
-	} else {
+	if sd.ClientBasedir != "" {
 		clientBasedir := path.Join(basedir, sd.ClientBasedir)
 		if !common.DirExists(clientBasedir) {
 			common.Exitf(1, globals.ErrDirectoryNotFound, clientBasedir)

@@ -15,6 +15,12 @@
 
 package sandbox
 
+import (
+	"fmt"
+	"os"
+	"regexp"
+)
+
 var (
 	tidbInitTemplate string = `#!/bin/bash
 {{.Copyright}}
@@ -400,52 +406,67 @@ $MYSQL_EDITOR --defaults-file=$MY_CNF $MYCLIENT_OPTIONS "$@"
 `
 )
 
+const tidbPrefix = "tidb_"
+
 // Every template in this collection will replace the corresponding one in SingleTemplates
 // when the flavor is "tidb"
 var TidbTemplates = TemplateCollection{
-	"init_db_template": TemplateDesc{
+	"tidb_init_db_template": TemplateDesc{
 		Description: "Initialization template for the TiDB server",
 		Notes:       "This should normally run only once",
 		Contents:    tidbInitTemplate,
 	},
-	"my_cnf_template": TemplateDesc{
+	"tidb_my_cnf_template": TemplateDesc{
 		Description: "Default options file for a TiDB sandbox",
 		Notes:       "",
 		Contents:    tidbMyCnfTemplate,
 	},
-	"use_template": TemplateDesc{
+	"tidb_use_template": TemplateDesc{
 		Description: "Invokes the mysql client with the right connection options",
 		Notes:       "",
 		Contents:    tidbUseTemplate,
 	},
-	"start_template": TemplateDesc{
+	"tidb_start_template": TemplateDesc{
 		Description: "Stops a database in a single TiDB sandbox",
 		Notes:       "",
 		Contents:    tidbStartTemplate,
 	},
-	"stop_template": TemplateDesc{
+	"tidb_stop_template": TemplateDesc{
 		Description: "Stops a database in a single TiDB sandbox",
 		Notes:       "",
 		Contents:    tidbStopTemplate,
 	},
-	"status_template": TemplateDesc{
+	"tidb_status_template": TemplateDesc{
 		Description: "Shows the status of a single TiDB sandbox",
 		Notes:       "",
 		Contents:    tidbStatusTemplate,
 	},
-	"send_kill_template": TemplateDesc{
+	"tidb_send_kill_template": TemplateDesc{
 		Description: "Sends a kill signal to the TiDB database",
 		Notes:       "",
 		Contents:    tidbSendKillTemplate,
 	},
-	"grants_template5x": TemplateDesc{
+	"tidb_grants_template5x": TemplateDesc{
 		Description: "Grants for TiDB sandboxes",
 		Notes:       "",
 		Contents:    tidbGrantsTemplate,
 	},
-	"load_grants_template": TemplateDesc{
+	"tidb_load_grants_template": TemplateDesc{
 		Description: "Loads the grants defined for the TiDB sandbox",
 		Notes:       "",
 		Contents:    tidbLoadGrantsTemplate,
 	},
+}
+
+func init() {
+	// Makes sure that all template names in TidbTemplates start with 'tidb_'
+	// This is an important assumption that will be used in sandbox.go
+	// to replace templates for "tidb" flavor
+	re := regexp.MustCompile(`^` + tidbPrefix)
+	for name, _ := range TidbTemplates {
+		if !re.MatchString(name) {
+			fmt.Printf("found template name '%s' that does not start with '%s'\n", name, tidbPrefix)
+			os.Exit(1)
+		}
+	}
 }

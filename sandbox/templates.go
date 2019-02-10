@@ -15,6 +15,11 @@
 
 package sandbox
 
+import (
+	"fmt"
+	"os"
+)
+
 type TemplateDesc struct {
 	TemplateInFile bool
 	Description    string
@@ -1268,3 +1273,21 @@ function check_output
 		"group":       GroupTemplates,
 	}
 )
+
+func init() {
+	// The command dbdeployer defaults template show templateName
+	// depends on the template names being unique across all collections.
+	// This initialisation routine will ensure that there are no duplicates.
+	var seen = make(map[string]bool)
+	for collName, coll := range AllTemplates {
+		for name, _ := range coll {
+			_, ok := seen[name]
+			if ok {
+				// name already exists:
+				fmt.Printf("Duplicate template %s found in %s\n", name, collName)
+				os.Exit(1)
+			}
+			seen[name] = true
+		}
+	}
+}
