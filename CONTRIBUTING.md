@@ -58,7 +58,7 @@ Basedir: $HOME/opt/mysql
 
 To run the test suite, you need to create the dbdeployer executables.
 
-`.build/set_version NEW_VERSION`
+`.build/set_version.sh NEW_VERSION`
 
 (Please read the Semantic Versioning section in the README)
 
