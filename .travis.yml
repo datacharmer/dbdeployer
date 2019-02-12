@@ -1,13 +1,20 @@
 language: go
 
 go:
-  - "1.10.x"
+  - 1.x
 
 os: linux
-
 sudo: false
+
+env:
+  global:
+    - GO111MODULE=on
+cache:
+  directories:
+    - $GOPATH/pkg/mod/cache
+
 install:
-    - go get -t
+    - go get
 
 script: 
     - go build .
