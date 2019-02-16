@@ -116,7 +116,11 @@ func checkForRootValue(value, label, defaultVal string) {
 // Gets the Database flavor
 // If none is found, defaults to MySQL
 func getFlavor(userDefinedFlavor, basedir string) string {
+	flavorOrigin := ""
 	flavor := userDefinedFlavor
+	if userDefinedFlavor != "" {
+		flavorOrigin = "flag"
+	}
 	flavorFile := path.Join(basedir, globals.FlavorFileName)
 	if common.FileExists(flavorFile) {
 		flavorText, err := common.SlurpAsString(flavorFile)
@@ -128,10 +132,16 @@ func getFlavor(userDefinedFlavor, basedir string) string {
 			common.Exitf(1, "user defined flavor %s doesn't match found flavor %s", userDefinedFlavor, flavorText)
 		}
 		flavor = flavorText
+		flavorOrigin = "FLAVOR file"
 	}
-	// TODO Flavor detection based on tarball contents
+	// Flavor detection based on tarball contents
 	if flavor == "" {
-		flavor = common.MySQLFlavor
+		flavor = common.DetectBinaryFlavor(basedir)
+		flavorOrigin = "Binary examination"
+	}
+	err := common.CheckFlavorSupport(flavor)
+	if err != nil {
+		common.Exitf(1, "flavor detected from %s unsupported: %s", flavorOrigin, err)
 	}
 	return flavor
 }

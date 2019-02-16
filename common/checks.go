@@ -169,6 +169,48 @@ func GetInstalledPorts(sandboxHome string) ([]int, error) {
 	return portCollection, nil
 }
 
+func CheckFlavorSupport(flavor string) error {
+	supportedFlavors := []string{
+		MySQLFlavor,
+		MariaDbFlavor,
+		PerconaServerFlavor,
+		TiDbFlavor,
+	}
+	for _, sf := range supportedFlavors {
+		if sf == flavor {
+			return nil
+		}
+	}
+	return fmt.Errorf("flavor '%s' is not supported", flavor)
+}
+
+// Tries to detect the database flavor from files in the tarball directory
+func DetectBinaryFlavor(basedir string) string {
+	type FlavorIndicator struct {
+		dir      string
+		fileName string
+		flavor   string
+	}
+	var findingList = []FlavorIndicator{
+		{"bin", "aria_chk", MariaDbFlavor},
+		{"bin", "tidb-server", TiDbFlavor},
+		{"lib", "libmariadbclient.a", MariaDbFlavor},
+		{"lib", "libmariadb.a", MariaDbFlavor},
+		{"lib", "libmariadb.dylib", MariaDbFlavor},
+		{"lib", "libmariadb.dylib", MariaDbFlavor},
+		{"lib", "libperconaserverclient.a", PerconaServerFlavor},
+		{"lib", "libperconaserverclient.so", PerconaServerFlavor},
+		{"lib", "libperconaserverclient.dylib", PerconaServerFlavor},
+	}
+	for _, fi := range findingList {
+		target := path.Join(basedir, fi.dir, fi.fileName)
+		if FileExists(target) {
+			return fi.flavor
+		}
+	}
+	return MySQLFlavor
+}
+
 /* Checks that the extracted tarball directory
    contains one or more files expected for the current
    operating system.
