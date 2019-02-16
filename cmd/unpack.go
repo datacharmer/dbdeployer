@@ -28,7 +28,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func detectFlavor(tarballName string) string {
+// Tries to detect the database flavor from tarball name
+func detectTarballFlavor(tarballName string) string {
 	flavor := ""
 	flavorsRegexps := map[string]string{
 		common.MySQLFlavor:         `mysql`,
@@ -76,7 +77,7 @@ func unpackTarball(cmd *cobra.Command, args []string) {
 
 	flavor, _ := flags.GetString(globals.FlavorLabel)
 	if flavor == "" {
-		flavor = detectFlavor(tarball)
+		flavor = detectTarballFlavor(tarball)
 		if flavor == "" {
 			common.Exitf(1, "No flavor detected in %s. Please use --%s", tarball, globals.FlavorLabel)
 		}
@@ -134,6 +135,11 @@ func unpackTarball(cmd *cobra.Command, args []string) {
 	err = extractFunc(tarball, Basedir, verbosity)
 	common.ErrCheckExitf(err, 1, "%s", err)
 	finalName := path.Join(Basedir, bareName)
+	// If the directory was not created, it probably means that the tarball was not well organised
+	// and either lacked the top directory or the top directory had a different name
+	if !common.DirExists(finalName) {
+		common.Exitf(1, "problem with tarball %s: directory %s was not created", tarball, finalName)
+	}
 	if finalName != destination {
 		common.CondPrintf("Renaming directory %s to %s\n", finalName, destination)
 		err = os.Rename(finalName, destination)
