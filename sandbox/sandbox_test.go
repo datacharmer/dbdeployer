@@ -147,6 +147,141 @@ func testCreateMockSandbox(t *testing.T) {
 	compare.OkIsNil("removal", err, t)
 }
 
+func testDetectFlavor(t *testing.T) {
+
+	err := setMockEnvironment("mock_dir")
+	if err != nil {
+		t.Fatal("mock dir creation failed")
+	}
+
+	type FlavorDetection struct {
+		version  string
+		setup    []MockFileSet
+		expected string
+	}
+
+	var flavorDetectionSet = []FlavorDetection{
+		FlavorDetection{"5.0.0",
+			MySQLMockSet(false),
+			common.MySQLFlavor,
+		},
+		FlavorDetection{"5.5.0",
+			MySQLMockSet(true),
+			common.MySQLFlavor,
+		},
+		FlavorDetection{"3.0.0", []MockFileSet{
+			MockFileSet{"bin",
+				[]ScriptDef{
+					{"tidb-server", noOpMockTemplateName, true},
+				}},
+		},
+			common.TiDbFlavor,
+		},
+		FlavorDetection{"10.0.0", []MockFileSet{
+			MockFileSet{"bin",
+				[]ScriptDef{
+					{"aria_chk", noOpMockTemplateName, true},
+				}},
+		},
+			common.MariaDbFlavor,
+		},
+		FlavorDetection{"10.3.0", []MockFileSet{
+			MockFileSet{"lib",
+				[]ScriptDef{
+					{"libmariadbclient.a", noOpMockTemplateName, true},
+				}},
+		},
+			common.MariaDbFlavor,
+		},
+		FlavorDetection{"8.0.14", []MockFileSet{
+			MockFileSet{"lib",
+				[]ScriptDef{
+					{"libperconaserverclient.a", noOpMockTemplateName, true},
+				}},
+		},
+			common.PerconaServerFlavor,
+		},
+	}
+
+	for _, fd := range flavorDetectionSet {
+		err = createCustomMockVersion(fd.version, fd.setup)
+		compare.OkIsNil("mock creation", err, t)
+		basedir := path.Join(mockSandboxBinary, fd.version)
+		detectedFlavor := common.DetectBinaryFlavor(basedir)
+		compare.OkEqualString(fmt.Sprintf("%s/%s: flavor detected %s",
+			fd.setup[0].dir, fd.setup[0].fileSet[0].scriptName, detectedFlavor),
+			detectedFlavor, fd.expected, t)
+	}
+
+	err = removeMockEnvironment("mock_dir")
+	compare.OkIsNil("removal", err, t)
+
+}
+
+func testCreateTidbMockSandbox(t *testing.T) {
+	err := setMockEnvironment("mock_dir")
+	if err != nil {
+		t.Fatal("mock dir creation failed")
+	}
+	compare.OkIsNil("mock creation", err, t)
+	var versions = []versionRec{
+		{"3.0.30", "3_0_30", 3030},
+		{"5.0.50", "5_0_50", 5050},
+		{"8.0.80", "8_0_80", 8080},
+	}
+	err = createMockVersion("5.7.25")
+	compare.OkIsNil("MySQL support version creation", err, t)
+	for _, v := range versions {
+		tidbVersion := v.version
+		pathVersion := v.path
+		port := v.port
+		fileSet := MockFileSet{
+			"bin",
+			[]ScriptDef{
+				{"tidb-server", noOpMockTemplateName, true},
+			},
+		}
+		fileSets := []MockFileSet{fileSet}
+		err = createCustomMockVersion(tidbVersion, fileSets)
+		compare.OkIsNil("TiDB version creation", err, t)
+		var sandboxDef = SandboxDef{
+			Version:        tidbVersion,
+			Flavor:         common.TiDbFlavor,
+			Basedir:        path.Join(mockSandboxBinary, tidbVersion),
+			SandboxDir:     mockSandboxHome,
+			DirName:        defaults.Defaults().SandboxPrefix + pathVersion,
+			LoadGrants:     true,
+			InstalledPorts: defaults.Defaults().ReservedPorts,
+			Port:           port,
+			DbUser:         globals.DbUserValue,
+			RplUser:        globals.RplUserValue,
+			DbPassword:     globals.DbPasswordValue,
+			RplPassword:    globals.RplPasswordValue,
+			RemoteAccess:   globals.RemoteAccessValue,
+			BindAddress:    globals.BindAddressValue,
+			ClientBasedir:  path.Join(mockSandboxBinary, "5.7.25"),
+		}
+
+		err := CreateStandaloneSandbox(sandboxDef)
+		if err != nil {
+			t.Logf("Sandbox %s %s\n", tidbVersion, pathVersion)
+			t.Logf(globals.ErrCreatingSandbox, err)
+			t.Fail()
+		}
+		okDirExists(t, sandboxDef.Basedir)
+		sandboxDir := path.Join(sandboxDef.SandboxDir, defaults.Defaults().SandboxPrefix+pathVersion)
+		okDirExists(t, sandboxDir)
+		okDirExists(t, path.Join(sandboxDir, "data"))
+		okDirExists(t, path.Join(sandboxDir, "tmp"))
+		for _, script := range singleScriptNames {
+			okExecutableExists(t, sandboxDir, script)
+		}
+		okPortExists(t, sandboxDir, sandboxDef.Port)
+	}
+	err = removeMockEnvironment("mock_dir")
+	compare.OkIsNil("removal", err, t)
+}
+
 func expectFailure(sandboxDef SandboxDef, label, deployment, regex string, args map[string]string, t *testing.T) {
 	var topology string
 	var masterIp string
@@ -481,5 +616,7 @@ func TestCreateSandbox(t *testing.T) {
 	t.Run("single", testCreateStandaloneSandbox)
 	t.Run("replication", testCreateReplicationSandbox)
 	t.Run("mock", testCreateMockSandbox)
+	t.Run("mocktidb", testCreateTidbMockSandbox)
 	t.Run("expectedFailures", testFailSandboxConditions)
+	t.Run("flavors", testDetectFlavor)
 }

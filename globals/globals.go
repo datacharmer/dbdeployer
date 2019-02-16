@@ -227,7 +227,7 @@ const MaxAllowedPort int = 64000
 // Authentication plugin changed in 8.0.4
 // MySQLX was enabled by default starting with 8.0.11
 var (
-	MinimumMySQLInstallDb            = []int{4, 0, 0}
+	MinimumMySQLInstallDb            = []int{3, 3, 23}
 	MaximumMySQLInstallDb            = []int{5, 6, 999}
 	MinimumDynVariablesVersion       = []int{5, 1, 0}
 	MinimumSemiSyncVersion           = []int{5, 5, 1}

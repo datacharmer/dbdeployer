@@ -152,6 +152,10 @@ echo $dash_line
 echo $dash_line >> $log_summary
 pass=$(grep '^ok' ./test/logs/$timestamp/*.log| wc -l | tr -d ' ' )
 fail=$(grep -i '^not ok' ./test/logs/$timestamp/*.log| wc -l | tr -d ' ' )
+gpass=$(grep ': ok' ./test/logs/$timestamp/*.log| wc -l | tr -d ' ' )
+gfail=$(grep -i ': not ok' ./test/logs/$timestamp/*.log| wc -l | tr -d ' ' )
+pass=$((pass+gpass))
+fail=$((fail+gfail))
 tests=$((pass+fail))
 exit_code=0
 if [ "$fail"  != "0" ]

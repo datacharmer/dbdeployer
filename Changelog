@@ -1,3 +1,20 @@
+1.18.0	09-Feb-2019
+	NEW FEATURES:
+	- Added support for TiDB
+	- Added option --client-from=X (Issue #49)
+	- Added option --flavor
+	- Added flavor recording during unpack (Issue #52)
+	- Added command "dbdeployer admin capabilities [flavor [version]]"
+	- Added flavor detection based on files in expanded tarball
+
+	Code improvements:
+	- Version evaluation replaced by *capabilities*, i.e. flavor + version (Issue #50)
+	BUG FIXES:
+	- Fix Issue #51 unpack command fails when tarball name doesn't include a version
+	- Fix unpack panic when tarball does not include top directory
+	- Fix count of total tests in ./test/all_tests.sh
+	TESTING:
+	- Added tests for TiDB, flavor detection, capabilities evaluation
 1.17.1	26-Jan-2019
 	- Fix Issue#46 - error creating catalog
 	- Some test improvements
