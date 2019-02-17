@@ -398,7 +398,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			return emptyExecutionList, err
 		}
 		if !isMinimumMySQLXDefault {
-			sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, "plugin_load=mysqlx=mysqlx.so")
+			sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, "plugin_load_add=mysqlx=mysqlx.so")
 			sandboxDef, err = setMysqlxProperties(sandboxDef, globalTmpDir)
 			if err != nil {
 				return emptyExecutionList, err

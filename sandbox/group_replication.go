@@ -33,7 +33,7 @@ const (
 	GroupReplOptions string = `
 binlog_checksum=NONE
 log_slave_updates=ON
-plugin-load=group_replication.so
+plugin-load-add=group_replication.so
 group_replication=FORCE_PLUS_PERMANENT
 group_replication_start_on_boot=OFF
 group_replication_bootstrap_group=OFF
