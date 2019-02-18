@@ -132,6 +132,7 @@ const (
 	ScriptClear         = "clear"
 	ScriptGrantsMysql   = "grants.mysql"
 	ScriptInitDb        = "init_db"
+	ScriptAfterStart    = "after_start"
 	ScriptLoadGrants    = "load_grants"
 	ScriptMy            = "my"
 	ScriptMySandboxCnf  = "my.sandbox.cnf"

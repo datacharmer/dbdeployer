@@ -51,11 +51,11 @@ func downloadFile(cmd *cobra.Command, args []string) {
 	if err != nil {
 		common.Exitf(1, "%s", err)
 	}
-	match, err := regexp.MatchString(`^\d+\.\d+$`, version)
+	match, err := regexp.MatchString(`^(?:mysql-)?\d+\.\d+$`, version)
 	if match {
 		common.Exitf(1, " short version detected (%s). The version should have 3 numbers (#.#.#)", version)
 	}
-	match, err = regexp.MatchString(`^\d+\.\d+\.\d+$`, version)
+	match, err = regexp.MatchString(`^(?:mysql-)?\d+\.\d+\.\d+$`, version)
 	if match {
 		version += globals.TarXzExt
 	}
@@ -77,7 +77,7 @@ var remoteDownloadCmd = &cobra.Command{
 	Use:     "download version [file-name]",
 	Aliases: []string{"get"},
 	Short:   "download a remote tarball into a local file",
-	Long:    `If no file name is given, the file name will be <version>.tar.xz`,
+	Long:    `If no file name is given, the file name will be mysql-<version>.tar.xz`,
 	Run:     downloadFile,
 }
 

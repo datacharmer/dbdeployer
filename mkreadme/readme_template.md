@@ -89,19 +89,19 @@ $ dbdeployer defaults show | grep remote
 
 $ dbdeployer remote list
 Files available in https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata/available.json
-4.1 -> [4.1.22]
-5.0 -> [5.0.15 5.0.96]
-5.1 -> [5.1.72]
-5.5 -> [5.5.60 5.5.61]
-5.6 -> [5.6.40 5.6.41]
-5.7 -> [5.7.23 5.7.24]
-8.0 -> [8.0.12 8.0.13]
+4.1 -> [mysql-4.1.22]
+5.0 -> [mysql-5.0.15 mysql-5.0.96]
+5.1 -> [mysql-5.1.72]
+5.5 -> [mysql-5.5.60 mysql-5.5.61]
+5.6 -> [mysql-5.6.40 mysql-5.6.41]
+5.7 -> [mysql-5.7.23 mysql-5.7.24]
+8.0 -> [mysql-8.0.12 mysql-8.0.13]
 
-msandbox@testdb:~$ dbdeployer remote download 8.0.13
-File /home/msandbox/8.0.13.tar.xz downloaded
+msandbox@testdb:~$ dbdeployer remote download mysql-8.0.13
+File /home/msandbox/mysql-8.0.13.tar.xz downloaded
 
-msandbox@testdb:~$ dbdeployer unpack 8.0.13.tar.xz
-Unpacking tarball 8.0.13.tar.xz to $HOME/opt/mysql/8.0.13
+msandbox@testdb:~$ dbdeployer unpack mysql-8.0.13.tar.xz
+Unpacking tarball mysql-8.0.13.tar.xz to $HOME/opt/mysql/8.0.13
 .......79
 ```
 

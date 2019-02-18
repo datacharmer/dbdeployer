@@ -23,7 +23,7 @@ import (
 func TestDownloadFile(t *testing.T) {
 	compare.SkipOnDemand("SKIP_REST_TEST", t)
 
-	fileName := "4.1.22.tar.xz"
+	fileName := "mysql-4.1.22.tar.xz"
 	url := FileUrl(fileName)
 	err := DownloadFile(fileName, url)
 	if err == nil {

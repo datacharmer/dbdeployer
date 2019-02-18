@@ -761,7 +761,8 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			{globals.ScriptAddOption, "add_option_template", true},
 			{globals.ScriptMy, "my_template", true},
 			{globals.ScriptTestSb, "test_sb_template", true},
-			{globals.ScriptMySandboxCnf, "my_cnf_template", true},
+			{globals.ScriptMySandboxCnf, "my_cnf_template", false},
+			{globals.ScriptAfterStart, "after_start_template", true},
 		},
 	}
 	if sandboxDef.MysqlXPort != 0 {
@@ -838,29 +839,42 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		logger.Printf("Adding start command to execution list\n")
 		execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 2, Command: eCommand2})
 		if sandboxDef.LoadGrants {
-			var eCommand3 = concurrent.ExecCommand{
-				Cmd:  path.Join(sandboxDir, globals.ScriptLoadGrants),
-				Args: []string{globals.ScriptPreGrantsSql},
-			}
-			var eCommand4 = concurrent.ExecCommand{
-				Cmd:  path.Join(sandboxDir, globals.ScriptLoadGrants),
-				Args: []string{},
-			}
-			var eCommand5 = concurrent.ExecCommand{
-				Cmd:  path.Join(sandboxDir, globals.ScriptLoadGrants),
-				Args: []string{globals.ScriptPostGrantsSql},
-			}
+			var (
+				eCmdAfterStart = concurrent.ExecCommand{
+					Cmd:  path.Join(sandboxDir, globals.ScriptAfterStart),
+					Args: []string{},
+				}
+				eCmdPreGrants = concurrent.ExecCommand{
+					Cmd:  path.Join(sandboxDir, globals.ScriptLoadGrants),
+					Args: []string{globals.ScriptPreGrantsSql},
+				}
+				eCmdLoadGrants = concurrent.ExecCommand{
+					Cmd:  path.Join(sandboxDir, globals.ScriptLoadGrants),
+					Args: []string{},
+				}
+				eCmdPostGrants = concurrent.ExecCommand{
+					Cmd:  path.Join(sandboxDir, globals.ScriptLoadGrants),
+					Args: []string{globals.ScriptPostGrantsSql},
+				}
+			)
+			logger.Printf("Adding after start command to execution list\n")
 			logger.Printf("Adding pre grants command to execution list\n")
 			logger.Printf("Adding load grants command to execution list\n")
 			logger.Printf("Adding post grants command to execution list\n")
-			execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 3, Command: eCommand3})
-			execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 4, Command: eCommand4})
-			execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 5, Command: eCommand5})
+			execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 3, Command: eCmdAfterStart})
+			execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 4, Command: eCmdPreGrants})
+			execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 5, Command: eCmdLoadGrants})
+			execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 6, Command: eCmdPostGrants})
 		}
 	} else {
 		if !sandboxDef.SkipStart {
 			logger.Printf("Running start script\n")
 			_, err = common.RunCmd(path.Join(sandboxDir, globals.ScriptStart))
+			if err != nil {
+				return emptyExecutionList, err
+			}
+			logger.Printf("Running after start script\n")
+			_, err = common.RunCmd(path.Join(sandboxDir, globals.ScriptAfterStart))
 			if err != nil {
 				return emptyExecutionList, err
 			}

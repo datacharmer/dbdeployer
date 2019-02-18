@@ -1,3 +1,12 @@
+1.19.0	17-Feb-2019
+	ADJUSTMENTS:
+	- Changed "remote get" docs to reflect changed names
+	BUGS FIXED:
+	- Fixed Issue #48 error with multiple plugins
+	- Fixed Issue #62 TiDB fails on MacOS
+	NEW FEATURES:
+	- Added script "after_start" to sandboxes (does nothing by default,
+	  but it is used by TiDB to clean-up unwanted scripts)
 1.18.0	09-Feb-2019
 	NEW FEATURES:
 	- Added support for TiDB
