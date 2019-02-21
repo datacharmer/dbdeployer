@@ -276,8 +276,6 @@ then
   fi
 fi
 
-echo "Starting server"
-
 $BASEDIR/bin/tidb-server -config $SBDIR/tidb.toml > $SBDIR/data/tidb.log 2>&1 &
 echo $! > $PIDFILE
 
