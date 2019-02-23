@@ -281,7 +281,7 @@ echo $! > $PIDFILE
 
 TIMEOUT=180
 ATTEMPTS=1
-while [ ! -S {{.GlobalTmpDir}}/mysql_sandbox{{.Port}}.sock ]
+while [ ! -e {{.GlobalTmpDir}}/mysql_sandbox{{.Port}}.sock ]
 do
   ATTEMPTS=$(( $ATTEMPTS + 1 ))
   echo -n "."
