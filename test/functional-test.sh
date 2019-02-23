@@ -55,6 +55,7 @@ then
     # If there is any option on the command line,
     # disable all tests
     export skip_main_deployment_methods=1
+    export skip_tidb_deployment_methods=1
     export skip_skip_start_deployment=1
     export skip_pre_post_operations=1
     export skip_semisync_operations=1
@@ -87,6 +88,7 @@ do
             ;;
         all)
             unset skip_main_deployment_methods
+            unset skip_tidb_deployment_methods
             unset skip_skip_start_deployment
             unset skip_pre_post_operations
             unset skip_semisync_operations
@@ -96,6 +98,11 @@ do
             unset skip_multi_source_operations
             unset no_tests
             echo "# Enabling all tests"
+            ;;
+        tidb)
+            unset skip_tidb_deployment_methods
+            unset no_tests
+            echo "# Enabling tidb tests"
             ;;
         main)
             unset skip_main_deployment_methods
@@ -145,6 +152,7 @@ do
         *)
             echo "Allowed tests (you can choose more than one):"
             echo "  main     : main deployment methods"
+            echo "  tidb     : tidb deployment methods"
             echo "  skip     : skip-start deployments"
             echo "  pre/post : pre/post grants operations"
             echo "  semi     : semisync operations"
@@ -484,6 +492,11 @@ function test_deletion {
     del_version=$1
     expected_items=$2
     processes_before=$3
+    process_name=$4
+    if [ -z "$process_name" ]
+    then
+        process_name=mysqld
+    fi
     test_header test_deletion $del_version
 
     # test lock: sandboxes become locked against deletion
@@ -520,8 +533,8 @@ function test_deletion {
     fi
     how_many=$(count_catalog)
     ok_equal "sandboxes_in_catalog" $how_many 0
-    processes_after=$(pgrep mysqld | wc -l | tr -d ' \t')
-    ok_equal 'no more mysqld processes after deletion' $processes_after $processes_before
+    processes_after=$(pgrep $process_name | wc -l | tr -d ' \t')
+    ok_equal 'no more '$process_name' processes after deletion' $processes_after $processes_before
     if [ "$fail" != "0" ]
     then
         echo "# detected failures: $fail"
@@ -601,6 +614,7 @@ fi
 [ -z "$semisync_short_versions" ] && semisync_short_versions=(5.5 5.6 5.7 8.0)
 count=0
 all_versions=()
+tidb_versions=(tidb3.0.0)
 group_versions=()
 semisync_versions=()
 dd_versions=()
@@ -780,6 +794,83 @@ function main_deployment_methods {
         test_deletion $V 3 $processes_before
     done
 }
+
+function tidb_deployment_methods {
+    current_test=tidb_deployment_methods
+    test_header tidb_deployment_methods "" double
+    version_count=0
+    for V in ${tidb_versions[*]}
+    do
+        if [ -d $SANDBOX_BINARY/$V ]
+        then
+            version_count=$((version_count+1))
+        else
+            echo "version $SANDBOX_BINARY/$V not found"
+        fi
+    done
+    if [ $version_count == 0 ]
+    then
+        echo "no versions found for tidb"
+        return
+    fi
+    latest_5_7=$(ls "$BINARY_DIR" | grep "^5.7" | ./sort_versions | tail -n 1)
+    if [ -z "$latest_5_7" ]
+    then
+        echo "TiDb tests invoked, but no 5.7 client binaries found - aborting"
+        exit 1
+    fi
+    save_custom_options=$CUSTOM_OPTIONS
+    CUSTOM_OPTIONS="$CUSTOM_OPTIONS --client-from=$latest_5_7 "
+    processes_before=$(pgrep tidb-server | wc -l | tr -d ' \t')
+    for V in ${tidb_versions[*]}
+    do
+        # We test the main deployment methods
+        # and also the ability of dbdeployer to handle
+        # operations while similar calls occur
+        # in the background
+        echo $dotted_line
+        for stype in single multiple
+        do
+            echo "# Parallel deployment: $stype $V"
+            install_out="/tmp/${stype}-${V}-$$"
+            run dbdeployer deploy $stype $CUSTOM_OPTIONS $V > $install_out 2>&1 &
+        done
+        echo $dotted_line
+        # wait for the installation processes to finish
+        wait
+        # Display the result of each installation
+        for stype in single multiple
+        do
+            install_out="/tmp/${stype}-${V}-$$"
+            cat $install_out
+            echo $dotted_line
+            rm $install_out
+        done
+        # Runs the post installation check.
+        for stype in single multiple
+        do
+            # For each type, we display basic info
+            results "$stype"
+        done
+        how_many=$(count_catalog)
+        ok_equal "sandboxes_in_catalog" $how_many 2
+        sleep 2
+        # Runs basic tests
+        run dbdeployer global status
+        test_force_single $V
+        test_custom_credentials $V single msb_
+        test_completeness $V msb_ single
+        test_completeness $V multi_msb_ multiple
+        test_ports $V msb_ 1 1
+        test_ports $V multi_msb_ 3 2
+        capture_test run dbdeployer global test
+        echo "# processes $processes_before"
+        test_deletion $V 2 $processes_before tidb-server
+    done
+    CUSTOM_OPTIONS=$save_custom_options
+}
+
+
 
 function global_status_count_on {
     dbdeployer global status | grep -c 'on  -\|on$'
@@ -1073,6 +1164,10 @@ function multi_source_operations {
 if [ -z "$skip_main_deployment_methods" ]
 then
     main_deployment_methods
+fi
+if [ -z "$skip_tidb_deployment_methods" ]
+then
+    tidb_deployment_methods
 fi
 if [ -z "$skip_skip_start_deployment" ]
 then
