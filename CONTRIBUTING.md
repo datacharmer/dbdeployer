@@ -58,7 +58,7 @@ Basedir: $HOME/opt/mysql
 
 To run the test suite, you need to create the dbdeployer executables.
 
-`.build/set_version NEW_VERSION`
+`.build/set_version.sh NEW_VERSION`
 
 (Please read the Semantic Versioning section in the README)
 
@@ -134,3 +134,53 @@ If your environment has all the requirements to run everything listed above, a s
 
 This one will take approximately 90 minutes to complete.
 
+Here is a sample of the results at the end:
+
+```
+# ----------------------------------------------------------------
+# defaults-change           - tests:   81 - pass:   81 - fail:    0
+# direct-paths              - tests: 1674 - pass: 1674 - fail:    0
+# docker-test               - tests: 4073 - pass: 4073 - fail:    0
+# expected_ports            - tests:    6 - pass:    6 - fail:    0
+# functional-test           - tests: 4101 - pass: 4101 - fail:    0
+# go-unit-tests             - tests:  679 - pass:  679 - fail:    0
+# port-clash                - tests:  180 - pass:  180 - fail:    0
+# read-only-replication     - tests: 1800 - pass: 1800 - fail:    0
+# sanity_check              - tests:    0 - pass:    0 - fail:    0
+# short-versions            - tests:   42 - pass:   42 - fail:    0
+# ----------------------------------------------------------------
+sanity_check                   []        - time:    6s (        6s) - exit code: 0
+go-unit-tests                  []        - time:   74s (    1m:14s) - exit code: 0
+functional-test                []        - time: 1909s (   31m:49s) - exit code: 0
+docker-test                    [1.18.0]  - time: 1891s (   31m:31s) - exit code: 0
+defaults-change                []        - time:    5s (        5s) - exit code: 0
+short-versions                 []        - time:    6s (        6s) - exit code: 0
+direct-paths                   []        - time:   11s (       11s) - exit code: 0
+expected_ports                 []        - time:    2s (        2s) - exit code: 0
+read-only-replication          []        - time:   13s (       13s) - exit code: 0
+port-clash                     [sparse]  - time:  263s (    4m:23s) - exit code: 0
+# Deployed: 111 sandboxes (1143 total ports) - Changed: 0
+# ----------------------------------------------------------------
+# defaults-change           - tests:   81 - pass:   81 - fail:    0
+# direct-paths              - tests: 1674 - pass: 1674 - fail:    0
+# docker-test               - tests: 4073 - pass: 4073 - fail:    0
+# expected_ports            - tests:    6 - pass:    6 - fail:    0
+# functional-test           - tests: 4101 - pass: 4101 - fail:    0
+# go-unit-tests             - tests:  679 - pass:  679 - fail:    0
+# port-clash                - tests:  180 - pass:  180 - fail:    0
+# read-only-replication     - tests: 1800 - pass: 1800 - fail:    0
+# sanity_check              - tests:    0 - pass:    0 - fail:    0
+# short-versions            - tests:   42 - pass:   42 - fail:    0
+# ----------------------------------------------------------------
+# ----------------------------------------------------------------
+# Total tests: 12636
+#       pass : 12636
+#       fail : 0
+# ----------------------------------------------------------------
+OS:  Darwin
+Started: Sat Feb 16 16:10:39 CET 2019
+Ended  : Sat Feb 16 17:20:19 CET 2019
+Elapsed: 4180 seconds (1h:9m:40s)
+# Exit code: 0
+Runs concurrently: yes
+```

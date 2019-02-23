@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,6 +28,26 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Tries to detect the database flavor from tarball name
+func detectTarballFlavor(tarballName string) string {
+	flavor := ""
+	flavorsRegexps := map[string]string{
+		common.MySQLFlavor:         `mysql`,
+		common.PerconaServerFlavor: `Percona-Server`,
+		common.MariaDbFlavor:       `mariadb`,
+		common.NDBFlavor:           `mysql-cluster`,
+		common.TiDbFlavor:          `tidb`,
+	}
+
+	for key, value := range flavorsRegexps {
+		re := regexp.MustCompile(value)
+		if re.MatchString(tarballName) {
+			return key
+		}
+	}
+	return flavor
+}
+
 func unpackTarball(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	Basedir, err := getAbsolutePathFromFlag(cmd, "sandbox-binary")
@@ -41,7 +61,11 @@ func unpackTarball(cmd *cobra.Command, args []string) {
 	tarball := args[0]
 	reVersion := regexp.MustCompile(`(\d+\.\d+\.\d+)`)
 	verList := reVersion.FindAllStringSubmatch(tarball, -1)
-	detectedVersion := verList[0][0]
+
+	detectedVersion := ""
+	if verList != nil {
+		detectedVersion = verList[0][0]
+	}
 	// common.CondPrintf(">> %#v %s\n",verList, detected_version)
 
 	isShell, _ := flags.GetBool(globals.ShellLabel)
@@ -51,6 +75,13 @@ func unpackTarball(cmd *cobra.Command, args []string) {
 			"unpack: Option --target-server can only be used with --shell")
 	}
 
+	flavor, _ := flags.GetString(globals.FlavorLabel)
+	if flavor == "" {
+		flavor = detectTarballFlavor(tarball)
+		if flavor == "" {
+			common.Exitf(1, "No flavor detected in %s. Please use --%s", tarball, globals.FlavorLabel)
+		}
+	}
 	Version, _ := flags.GetString(globals.UnpackVersionLabel)
 	if Version == "" {
 		Version = detectedVersion
@@ -104,11 +135,18 @@ func unpackTarball(cmd *cobra.Command, args []string) {
 	err = extractFunc(tarball, Basedir, verbosity)
 	common.ErrCheckExitf(err, 1, "%s", err)
 	finalName := path.Join(Basedir, bareName)
+	// If the directory was not created, it probably means that the tarball was not well organised
+	// and either lacked the top directory or the top directory had a different name
+	if !common.DirExists(finalName) {
+		common.Exitf(1, "problem with tarball %s: directory %s was not created", tarball, finalName)
+	}
 	if finalName != destination {
 		common.CondPrintf("Renaming directory %s to %s\n", finalName, destination)
 		err = os.Rename(finalName, destination)
 		common.ErrCheckExitf(err, 1, "%s", err)
 	}
+	err = common.WriteString(flavor, path.Join(destination, globals.FlavorFileName))
+	common.ErrCheckExitf(err, 1, "error writing %s in %s", globals.FlavorFileName, destination)
 }
 
 // unpackCmd represents the unpack command
@@ -145,4 +183,5 @@ func init() {
 	unpackCmd.PersistentFlags().String(globals.PrefixLabel, "", "Prefix for the final expanded directory")
 	unpackCmd.PersistentFlags().Bool(globals.ShellLabel, false, "Unpack a shell tarball into the corresponding server directory")
 	unpackCmd.PersistentFlags().String(globals.TargetServerLabel, "", "Uses a different server to unpack a shell tarball")
+	unpackCmd.PersistentFlags().String(globals.FlavorLabel, "", "Defines the tarball flavor (MySQL, NDB, Percona Server, etc)")
 }

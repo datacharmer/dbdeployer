@@ -262,7 +262,11 @@ func importTemplates(cmd *cobra.Command, args []string) {
 	if err != nil {
 		common.Exitf(1, "error converting compatible version %s from file %s\n", common.CompatibleVersion, versionFile)
 	}
-	compatibleTemplate, err := common.GreaterOrEqualVersion(templateVersion, compatibleVersionList)
+	templateVersionList, err := common.VersionToList(templateVersion)
+	if err != nil {
+		common.Exitf(1, "error converting version %s from file %s\n", templateVersion, versionFile)
+	}
+	compatibleTemplate, err := common.GreaterOrEqualVersionList(templateVersionList, compatibleVersionList)
 	common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
 	if !compatibleTemplate {
 		common.Exitf(1, "templates are for version %s. The minimum compatible version is %s", templateVersion, common.CompatibleVersion)

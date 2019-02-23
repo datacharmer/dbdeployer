@@ -22,6 +22,7 @@ import (
 	"github.com/pkg/errors"
 	"os"
 	"path"
+	"regexp"
 	"time"
 
 	"github.com/datacharmer/dbdeployer/common"
@@ -36,6 +37,7 @@ type SandboxDef struct {
 	NodeNum              int              // In multiple sandboxes, which node is this
 	Version              string           // MySQL version
 	Basedir              string           // Where to get binaries from (e.g. $HOME/opt/mysql/8.0.11)
+	ClientBasedir        string           // Where to get client binaries from (e.g. $HOME/opt/mysql/8.0.15)
 	BasedirName          string           // The bare name of the directory containing the binaries (e.g. 8.0.11)
 	SandboxDir           string           // Target directory for sandboxes
 	LoadGrants           bool             // Should we load grants?
@@ -71,6 +73,7 @@ type SandboxDef struct {
 	MyCnfFile            string           // options file to merge with the SB my.sandbox.cnf
 	HistoryDir           string           // Where to store the MySQL client history
 	LogFileName          string           // Where to log operations for this sandbox
+	Flavor               string           // The flavor of the binaries (MySQL, Percona, NDB, etc)
 	SlavesReadOnly       bool             // Whether slaves will set the read_only flag
 	SlavesSuperReadOnly  bool             // Whether slaves will set the super_read_only flag
 	Logger               *defaults.Logger // Carries a logger across sandboxes
@@ -229,7 +232,8 @@ func checkPortAvailability(caller string, sandboxType string, installedPorts []i
 
 func fixServerUuid(sandboxDef SandboxDef) (uuidDef string, uuidFile string, err error) {
 	// 5.6.9
-	isMinimumGtid, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumGtidVersion)
+	// isMinimumGtid, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumGtidVersion)
+	isMinimumGtid, err := common.HasCapability(sandboxDef.Flavor, common.GTID, sandboxDef.Version)
 	if err != nil {
 		return globals.EmptyString, globals.EmptyString, err
 	}
@@ -289,9 +293,32 @@ func sbError(reason, format string, args ...interface{}) error {
 func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.ExecutionList, err error) {
 
 	var sandboxDir string
-
 	if sandboxDef.SBType == "" {
 		sandboxDef.SBType = "single"
+	}
+	// Assuming a default flavor for backward compatibility
+	if sandboxDef.Flavor == "" {
+		sandboxDef.Flavor = common.MySQLFlavor
+	}
+
+	if sandboxDef.Flavor == common.TiDbFlavor {
+		// Ensures that we can run a client.
+		// Since TiDB tarballs don't include a client, we need to use one from MySQL
+		// In theory, it could be possible to circumvent this necessity by using
+		// the environment variable $MYSQL_EDITOR, but this would potentially
+		// interfere with other sandboxes isolation. So I better leave this feature
+		// undocumented and only to be used in emergencies.
+		if sandboxDef.ClientBasedir == "" {
+			return emptyExecutionList,
+				fmt.Errorf("flavor '%s' requires option --'%s'", common.TiDbFlavor, globals.ClientFromLabel)
+		}
+
+		// Replaces main templates with the ones needed for TiDB
+		for name, templateDesc := range TidbTemplates {
+			re := regexp.MustCompile(`^` + tidbPrefix)
+			singleName := re.ReplaceAllString(name, "")
+			SingleTemplates[singleName] = templateDesc
+		}
 	}
 	logName := sandboxDef.SBType
 	if sandboxDef.NodeNum > 0 {
@@ -307,6 +334,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			return emptyExecutionList, sbError("logger", "%s", err)
 		}
 		sandboxDef.LogFileName = common.ReplaceLiteralHome(fileName)
+		sandboxDef.Logger = logger
 	}
 	logger.Printf("Single Sandbox Definition: %s\n", sandboxDefToJson(sandboxDef))
 	if !common.DirExists(sandboxDef.Basedir) {
@@ -354,7 +382,8 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	rightPluginDir := true // Assuming we can use the right plugin directory
 	if sandboxDef.EnableMysqlX {
 		// 5.7.12
-		isMinimumMySQLX, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxVersion)
+		// isMinimumMySQLX, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxVersion)
+		isMinimumMySQLX, err := common.HasCapability(sandboxDef.Flavor, common.MySQLX, sandboxDef.Version)
 		if err != nil {
 			return emptyExecutionList, err
 		}
@@ -363,12 +392,13 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		}
 		// If the version is 8.0.11 or later, MySQL X is enabled already
 		// 8.0.11
-		isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
+		// isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
+		isMinimumMySQLXDefault, err := common.HasCapability(sandboxDef.Flavor, common.MySQLXDefault, sandboxDef.Version)
 		if err != nil {
 			return emptyExecutionList, err
 		}
 		if !isMinimumMySQLXDefault {
-			sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, "plugin_load=mysqlx=mysqlx.so")
+			sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, "plugin_load_add=mysqlx=mysqlx.so")
 			sandboxDef, err = setMysqlxProperties(sandboxDef, globalTmpDir)
 			if err != nil {
 				return emptyExecutionList, err
@@ -378,13 +408,15 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		usingPlugins = true
 	}
 	// 8.0.11
-	isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
+	// isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
+	isMinimumMySQLXDefault, err := common.HasCapability(sandboxDef.Flavor, common.MySQLXDefault, sandboxDef.Version)
 	if isMinimumMySQLXDefault && !sandboxDef.DisableMysqlX {
 		usingPlugins = true
 	}
 	if sandboxDef.ExposeDdTables {
 		// 8.0.0
-		isMinimumDataDictionary, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumDataDictionaryVersion)
+		// isMinimumDataDictionary, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumDataDictionaryVersion)
+		isMinimumDataDictionary, err := common.HasCapability(sandboxDef.Flavor, common.DataDict, sandboxDef.Version)
 		if err != nil {
 			return emptyExecutionList, err
 		}
@@ -414,7 +446,8 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		}
 	}
 	// 5.1.0
-	isMinimumDynVariables, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumDynVariablesVersion)
+	// isMinimumDynVariables, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumDynVariablesVersion)
+	isMinimumDynVariables, err := common.HasCapability(sandboxDef.Flavor, common.DynVariables, sandboxDef.Version)
 	if err != nil {
 		return emptyExecutionList, err
 	}
@@ -429,7 +462,8 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		}
 	}
 	// 8.0.4
-	isMinimumNativeAuthPlugin, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumNativeAuthPluginVersion)
+	// isMinimumNativeAuthPlugin, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumNativeAuthPluginVersion)
+	isMinimumNativeAuthPlugin, err := common.HasCapability(sandboxDef.Flavor, common.NativeAuth, sandboxDef.Version)
 	if err != nil {
 		return emptyExecutionList, err
 	}
@@ -441,7 +475,8 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		}
 	}
 	// 8.0.11
-	isMinimumMySQLXDefault, err = common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
+	// isMinimumMySQLXDefault, err = common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
+	isMinimumMySQLXDefault, err = common.HasCapability(sandboxDef.Flavor, common.MySQLXDefault, sandboxDef.Version)
 	if err != nil {
 		return emptyExecutionList, err
 	}
@@ -494,7 +529,13 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	if err != nil {
 		return emptyExecutionList, errors.Wrapf(err, "")
 	}
-	var data = common.StringMap{"Basedir": sandboxDef.Basedir,
+	if sandboxDef.ClientBasedir == "" {
+		sandboxDef.ClientBasedir = sandboxDef.Basedir
+	}
+
+	var data = common.StringMap{
+		"Basedir":              sandboxDef.Basedir,
+		"ClientBasedir":        sandboxDef.ClientBasedir,
 		"Copyright":            SingleTemplates["Copyright"].Contents,
 		"AppVersion":           common.VersionDef,
 		"DateTime":             timestamp.Format(time.UnixDate),
@@ -573,9 +614,10 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		return emptyExecutionList, sbError("tmp dir creation", "%s", err)
 	}
 	logger.Printf("Created directory %s\n", tmpDir)
-	script := path.Join(sandboxDef.Basedir, "scripts", "mysql_install_db")
+	script := ""
 	initScriptFlags := ""
-	isMinimumDefaultInitialize, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumDefaultInitializeVersion)
+	// isMinimumDefaultInitialize, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumDefaultInitializeVersion)
+	isMinimumDefaultInitialize, err := common.HasCapability(sandboxDef.Flavor, common.Initialize, sandboxDef.Version)
 	if err != nil {
 		return emptyExecutionList, err
 	}
@@ -586,7 +628,14 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		}
 		initScriptFlags = "--initialize-insecure"
 	}
-	if !common.ExecExists(script) {
+	usesMysqlInstallDb, err := common.HasCapability(sandboxDef.Flavor, common.InstallDb, sandboxDef.Version)
+	if err != nil {
+		return emptyExecutionList, err
+	}
+	if usesMysqlInstallDb {
+		script = path.Join(sandboxDef.Basedir, "scripts", "mysql_install_db")
+	}
+	if script != "" && !common.ExecExists(script) {
 		common.CondPrintf("SCRIPT\n")
 		return emptyExecutionList, fmt.Errorf(globals.ErrScriptNotFound, script)
 	}
@@ -596,7 +645,10 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		}
 	}
 	data["InitScript"] = script
-	data["InitDefaults"] = "--no-defaults"
+	data["InitDefaults"] = ""
+	if script != "" {
+		data["InitDefaults"] = "--no-defaults"
+	}
 	if initScriptFlags != "" {
 		initScriptFlags = fmt.Sprintf("\\\n    %s", initScriptFlags)
 	}
@@ -651,6 +703,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		Origin:      sandboxDef.Basedir,
 		SBType:      sandboxDef.SBType,
 		Version:     sandboxDef.Version,
+		Flavor:      sandboxDef.Flavor,
 		Port:        []int{sandboxDef.Port},
 		Nodes:       []string{},
 		Destination: sandboxDir,
@@ -660,13 +713,15 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		sbItem.LogDirectory = common.DirName(sandboxDef.LogFileName)
 	}
 	sbDesc := common.SandboxDescription{
-		Basedir: sandboxDef.Basedir,
-		SBType:  sandboxDef.SBType,
-		Version: sandboxDef.Version,
-		Port:    []int{sandboxDef.Port},
-		Nodes:   0,
-		NodeNum: sandboxDef.NodeNum,
-		LogFile: sandboxDef.LogFileName,
+		Basedir:       sandboxDef.Basedir,
+		ClientBasedir: sandboxDef.ClientBasedir,
+		SBType:        sandboxDef.SBType,
+		Version:       sandboxDef.Version,
+		Flavor:        sandboxDef.Flavor,
+		Port:          []int{sandboxDef.Port},
+		Nodes:         0,
+		NodeNum:       sandboxDef.NodeNum,
+		LogFile:       sandboxDef.LogFileName,
 	}
 	if len(sandboxDef.MorePorts) > 0 {
 		for _, port := range sandboxDef.MorePorts {
@@ -706,18 +761,21 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			{globals.ScriptAddOption, "add_option_template", true},
 			{globals.ScriptMy, "my_template", true},
 			{globals.ScriptTestSb, "test_sb_template", true},
-			{globals.ScriptMySandboxCnf, "my_cnf_template", true},
+			{globals.ScriptMySandboxCnf, "my_cnf_template", false},
+			{globals.ScriptAfterStart, "after_start_template", true},
 		},
 	}
 	if sandboxDef.MysqlXPort != 0 {
 		sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptMysqlsh, "mysqlsh_template", true})
 	}
 	var grantsTemplateName string = ""
-	isMinimumRoles, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumRolesVersion)
+	// isMinimumRoles, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumRolesVersion)
+	isMinimumRoles, err := common.HasCapability(sandboxDef.Flavor, common.Roles, sandboxDef.Version)
 	if err != nil {
 		return emptyExecutionList, err
 	}
-	isMinimumCreateUserVersion, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumCreateUserVersion)
+	// isMinimumCreateUserVersion, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumCreateUserVersion)
+	isMinimumCreateUserVersion, err := common.HasCapability(sandboxDef.Flavor, common.CreateUser, sandboxDef.Version)
 	if err != nil {
 		return emptyExecutionList, err
 	}
@@ -781,29 +839,42 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		logger.Printf("Adding start command to execution list\n")
 		execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 2, Command: eCommand2})
 		if sandboxDef.LoadGrants {
-			var eCommand3 = concurrent.ExecCommand{
-				Cmd:  path.Join(sandboxDir, globals.ScriptLoadGrants),
-				Args: []string{globals.ScriptPreGrantsSql},
-			}
-			var eCommand4 = concurrent.ExecCommand{
-				Cmd:  path.Join(sandboxDir, globals.ScriptLoadGrants),
-				Args: []string{},
-			}
-			var eCommand5 = concurrent.ExecCommand{
-				Cmd:  path.Join(sandboxDir, globals.ScriptLoadGrants),
-				Args: []string{globals.ScriptPostGrantsSql},
-			}
+			var (
+				eCmdAfterStart = concurrent.ExecCommand{
+					Cmd:  path.Join(sandboxDir, globals.ScriptAfterStart),
+					Args: []string{},
+				}
+				eCmdPreGrants = concurrent.ExecCommand{
+					Cmd:  path.Join(sandboxDir, globals.ScriptLoadGrants),
+					Args: []string{globals.ScriptPreGrantsSql},
+				}
+				eCmdLoadGrants = concurrent.ExecCommand{
+					Cmd:  path.Join(sandboxDir, globals.ScriptLoadGrants),
+					Args: []string{},
+				}
+				eCmdPostGrants = concurrent.ExecCommand{
+					Cmd:  path.Join(sandboxDir, globals.ScriptLoadGrants),
+					Args: []string{globals.ScriptPostGrantsSql},
+				}
+			)
+			logger.Printf("Adding after start command to execution list\n")
 			logger.Printf("Adding pre grants command to execution list\n")
 			logger.Printf("Adding load grants command to execution list\n")
 			logger.Printf("Adding post grants command to execution list\n")
-			execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 3, Command: eCommand3})
-			execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 4, Command: eCommand4})
-			execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 5, Command: eCommand5})
+			execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 3, Command: eCmdAfterStart})
+			execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 4, Command: eCmdPreGrants})
+			execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 5, Command: eCmdLoadGrants})
+			execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 6, Command: eCmdPostGrants})
 		}
 	} else {
 		if !sandboxDef.SkipStart {
 			logger.Printf("Running start script\n")
 			_, err = common.RunCmd(path.Join(sandboxDir, globals.ScriptStart))
+			if err != nil {
+				return emptyExecutionList, err
+			}
+			logger.Printf("Running after start script\n")
+			_, err = common.RunCmd(path.Join(sandboxDir, globals.ScriptAfterStart))
 			if err != nil {
 				return emptyExecutionList, err
 			}
@@ -840,7 +911,8 @@ func writeScripts(scriptBatch ScriptBatch) error {
 	return nil
 }
 
-func writeScript(logger *defaults.Logger, tempVar TemplateCollection, scriptName, templateName, directory string, data common.StringMap, makeExecutable bool) error {
+func writeScript(logger *defaults.Logger, tempVar TemplateCollection, scriptName, templateName, directory string,
+	data common.StringMap, makeExecutable bool) error {
 	if directory == "" {
 		return fmt.Errorf("writeScript (%s): missing directory", scriptName)
 	}

@@ -28,6 +28,9 @@ func replicationSandbox(cmd *cobra.Command, args []string) {
 	var semisync bool
 	common.CheckOrigin(args)
 	sd, err := fillSandboxDdefinition(cmd, args)
+	if sd.Flavor == common.TiDbFlavor {
+		common.Exitf(1, "flavor '%s' is not suitable to create replication sandboxes", common.TiDbFlavor)
+	}
 	common.ErrCheckExitf(err, 1, "error filling sandbox definition")
 	sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 	flags := cmd.Flags()
@@ -52,7 +55,8 @@ func replicationSandbox(cmd *cobra.Command, args []string) {
 		}
 		// 5.5.1
 
-		isMinimumSync, err := common.GreaterOrEqualVersion(sd.Version, globals.MinimumSemiSyncVersion)
+		// isMinimumSync, err := common.GreaterOrEqualVersion(sd.Version, globals.MinimumSemiSyncVersion)
+		isMinimumSync, err := common.HasCapability(sd.Flavor, common.SemiSynch, sd.Version)
 		common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
 		if isMinimumSync {
 			sd.SemiSyncOptions = sandbox.SingleTemplates["semisync_master_options"].Contents

@@ -59,7 +59,9 @@ func GetVersionsFromDir(basedir string) ([]string, error) {
 		if fmode.IsDir() {
 			//fmt.Println(fname)
 			mysqld := path.Join(basedir, fname, "bin", "mysqld")
-			if FileExists(mysqld) {
+			mysqldDebug := path.Join(basedir, fname, "bin", "mysqld-debug")
+			tidb := path.Join(basedir, fname, "bin", "tidb-server")
+			if FileExists(mysqld) || FileExists(mysqldDebug) || FileExists(tidb) {
 				dirs = append(dirs, fname)
 			}
 		}
@@ -167,6 +169,48 @@ func GetInstalledPorts(sandboxHome string) ([]int, error) {
 	return portCollection, nil
 }
 
+func CheckFlavorSupport(flavor string) error {
+	supportedFlavors := []string{
+		MySQLFlavor,
+		MariaDbFlavor,
+		PerconaServerFlavor,
+		TiDbFlavor,
+	}
+	for _, sf := range supportedFlavors {
+		if sf == flavor {
+			return nil
+		}
+	}
+	return fmt.Errorf("flavor '%s' is not supported", flavor)
+}
+
+// Tries to detect the database flavor from files in the tarball directory
+func DetectBinaryFlavor(basedir string) string {
+	type FlavorIndicator struct {
+		dir      string
+		fileName string
+		flavor   string
+	}
+	var findingList = []FlavorIndicator{
+		{"bin", "aria_chk", MariaDbFlavor},
+		{"bin", "tidb-server", TiDbFlavor},
+		{"lib", "libmariadbclient.a", MariaDbFlavor},
+		{"lib", "libmariadb.a", MariaDbFlavor},
+		{"lib", "libmariadb.dylib", MariaDbFlavor},
+		{"lib", "libmariadb.dylib", MariaDbFlavor},
+		{"lib", "libperconaserverclient.a", PerconaServerFlavor},
+		{"lib", "libperconaserverclient.so", PerconaServerFlavor},
+		{"lib", "libperconaserverclient.dylib", PerconaServerFlavor},
+	}
+	for _, fi := range findingList {
+		target := path.Join(basedir, fi.dir, fi.fileName)
+		if FileExists(target) {
+			return fi.flavor
+		}
+	}
+	return MySQLFlavor
+}
+
 /* Checks that the extracted tarball directory
    contains one or more files expected for the current
    operating system.
@@ -184,11 +228,12 @@ func CheckTarballOperatingSystem(basedir string) error {
 		isBinary bool
 	}
 	var findingList = map[string]OSFinding{
-		"libmysqlclient.a":             {"lib", "linux", "mysql", true}, // 4.1 and old 5.0 releases
-		"libmysqlclient.so":            {"lib", "linux", "mysql", true},
-		"libperconaserverclient.so":    {"lib", "linux", "percona", true},
-		"libperconaserverclient.dylib": {"lib", "darwin", "percona", true},
-		"libmysqlclient.dylib":         {"lib", "darwin", "mysql", true},
+		"libmysqlclient.a":             {"lib", "linux", MySQLFlavor, true}, // 4.1 and old 5.0 releases
+		"libmysqlclient.so":            {"lib", "linux", MySQLFlavor, true},
+		"libperconaserverclient.so":    {"lib", "linux", PerconaServerFlavor, true},
+		"libperconaserverclient.dylib": {"lib", "darwin", PerconaServerFlavor, true},
+		"libmysqlclient.dylib":         {"lib", "darwin", MySQLFlavor, true},
+		"tidb-server":                  {"bin", "any", TiDbFlavor, true},
 		"table.h":                      {"sql", "source", "any", false},
 		"mysqlprovision.zip":           {"share/mysqlsh", "shell", "any", false},
 	}
@@ -201,7 +246,8 @@ func CheckTarballOperatingSystem(basedir string) error {
 			wantedFiles = append(wantedFiles, path.Join(rec.Dir, fname))
 		}
 		if FileExists(fullName) {
-			if rec.OS == currentOs && rec.isBinary {
+			// TODO: This is a workaround to make TiDB work. Later refinements may come.
+			if (rec.OS == currentOs || rec.OS == "any") && rec.isBinary {
 				wantedOsFound = true
 			}
 			foundList[fname] = rec
@@ -355,12 +401,15 @@ func VersionToPort(version string) (int, error) {
 }
 
 // Checks if a version string is greater or equal a given numeric version
-// "5.6.33" >= []{5.7.0}  = false
-// "5.7.21" >= []{5.7.0}  = true
-// "10.1.21" >= []{5.7.0}  = false (!)
+// "5.6.33" >= []int{5,7,0}  = false
+// "5.7.21" >= []int{5,7,0}  = true
+// "10.1.21" >= []int{5,7,0}  = false (!)
 // Note: MariaDB versions are skipped. The function returns false for MariaDB 10+.
 // So far (2018-02-19) this comparison holds, because MariaDB behaves like 5.5+ for
 // the purposes of sandbox deployment
+//
+// DEPRECATED as of 1.18.0
+// Use GreaterOrEqualVersionList and flavors instead
 func GreaterOrEqualVersion(version string, comparedTo []int) (bool, error) {
 	if len(comparedTo) != 3 {
 		return false, errors.Wrapf(fmt.Errorf("invalid slice size: %v", comparedTo), "GreaterOrEqualVersion:")
@@ -383,6 +432,37 @@ func GreaterOrEqualVersion(version string, comparedTo []int) (bool, error) {
 	}
 	versionText := fmt.Sprintf("%02d%02d%02d", major, minor, rev)
 	compareText := fmt.Sprintf("%02d%02d%02d", compMajor, compMinor, compRev)
+	return versionText >= compareText, nil
+}
+
+// Checks if a version list is greater or equal a given numeric version
+// []int{5,6,33} >= []int{5,7,0}  = false
+// []int{5,7,21} >= []int{5,7,0}  = true
+// []int{10,1,21} >= []int{5.7.0}  = true
+// Note: Use this function in combination with flavors.
+// Better yet, use common.HasCapability(flavors, feature, version)
+
+func GreaterOrEqualVersionList(verList, comparedTo []int) (bool, error) {
+	lenVerList := len(verList)
+	lenCompareTo := len(comparedTo)
+
+	if lenCompareTo < 1 {
+		return false, fmt.Errorf("comparison version empty")
+	}
+	if lenVerList < 1 {
+		return false, fmt.Errorf("requested version empty")
+	}
+	maxElements := lenVerList
+	if lenCompareTo < maxElements {
+		maxElements = lenCompareTo
+	}
+	versionText := ""
+	compareText := ""
+
+	for N := 0; N < maxElements; N++ {
+		versionText += fmt.Sprintf("%05d", verList[N])
+		compareText += fmt.Sprintf("%05d", comparedTo[N])
+	}
 	return versionText >= compareText, nil
 }
 

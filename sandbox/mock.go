@@ -30,7 +30,10 @@ import (
 // Code in this module creates a fake directory structure that allows
 // the testing of sandboxes without having MySQL packages.
 
-const defaultMockDir string = "mock_dir"
+const (
+	defaultMockDir       string = "mock_dir"
+	noOpMockTemplateName        = "no_op_mock_template"
+)
 
 var (
 	saveHome          string
@@ -89,7 +92,12 @@ func removeMockEnvironment(mockUpperDir string) error {
 	return nil
 }
 
-func createMockVersion(version string) error {
+type MockFileSet struct {
+	dir     string
+	fileSet []ScriptDef
+}
+
+func createCustomMockVersion(version string, fileSet []MockFileSet) error {
 	if mockSandboxBinary == "" {
 		return fmt.Errorf("mock directory not set yet. - Call setMockEnvironment() first")
 	}
@@ -97,17 +105,35 @@ func createMockVersion(version string) error {
 	if err != nil {
 		return err
 	}
+
+	var emptyData = common.StringMap{}
 	versionDir := path.Join(mockSandboxBinary, version)
-	binDir := path.Join(versionDir, "bin")
-	libDir := path.Join(versionDir, "lib")
-	scriptsDir := path.Join(versionDir, "scripts")
-	for _, dir := range []string{versionDir, binDir, scriptsDir, libDir} {
+	err = os.Mkdir(versionDir, globals.PublicDirectoryAttr)
+	if err != nil {
+		return errors.Wrapf(err, globals.ErrCreatingDirectory, versionDir, err)
+	}
+	for _, fs := range fileSet {
+		dir := path.Join(versionDir, fs.dir)
 		err := os.Mkdir(dir, globals.PublicDirectoryAttr)
 		if err != nil {
 			return errors.Wrapf(err, globals.ErrCreatingDirectory, dir, err)
 		}
+		err = writeScripts(ScriptBatch{
+			tc:         MockTemplates,
+			data:       emptyData,
+			sandboxDir: dir,
+			logger:     logger,
+			scripts:    fs.fileSet,
+		})
+		if err != nil {
+			return err
+		}
 	}
-	var emptyData = common.StringMap{}
+
+	return nil
+}
+
+func MySQLMockSet(debug bool) []MockFileSet {
 	currentOs := runtime.GOOS
 	extension := ""
 	switch currentOs {
@@ -116,40 +142,44 @@ func createMockVersion(version string) error {
 	case "darwin":
 		extension = "dylib"
 	default:
-		return fmt.Errorf("unhandled operating system %s", currentOs)
+		common.Exitf(1, "unhandled operating system %s", currentOs)
 	}
+	var fileSet []MockFileSet
 	libmysqlclientFileName := fmt.Sprintf("libmysqlclient.%s", extension)
-	err = writeScripts(ScriptBatch{
-		tc:         MockTemplates,
-		data:       emptyData,
-		sandboxDir: binDir,
-		logger:     logger,
-		scripts: []ScriptDef{
-			{"mysqld", "no_op_mock_template", true},
-			{"mysql", "no_op_mock_template", true},
+
+	libFileSet := MockFileSet{
+		"lib",
+		[]ScriptDef{
+			{libmysqlclientFileName, noOpMockTemplateName, false},
+		},
+	}
+	mysqld := "mysqld"
+	if debug {
+		mysqld = "mysqld-debug"
+	}
+	binFileSet := MockFileSet{
+		"bin",
+		[]ScriptDef{
+			{mysqld, noOpMockTemplateName, true},
+			{"mysql", noOpMockTemplateName, true},
 			{"mysqld_safe", "mysqld_safe_mock_template", true},
 		},
-	})
-	if err != nil {
-		return err
 	}
-	//writeScript(logger, MockTemplates, "mysqld", "no_op_mock_template",
-	//	binDir, emptyData, true)
-	//writeScript(logger, MockTemplates, "mysql", "no_op_mock_template",
-	//	binDir, emptyData, true)
-	err = writeScript(logger, MockTemplates, "mysql_install_db", "no_op_mock_template",
-		scriptsDir, emptyData, true)
-	if err != nil {
-		return err
+	scriptsFileSet := MockFileSet{
+		"scripts",
+		[]ScriptDef{
+			{"mysql_install_db", noOpMockTemplateName, true},
+		},
 	}
-	err = writeScript(logger, MockTemplates, libmysqlclientFileName, "no_op_mock_template",
-		libDir, emptyData, true)
-	if err != nil {
-		return err
-	}
-	//writeScript(logger, MockTemplates, "mysqld_safe", "mysqld_safe_mock_template",
-	//	binDir, emptyData, true)
-	return nil
+	fileSet = append(fileSet, binFileSet)
+	fileSet = append(fileSet, libFileSet)
+	fileSet = append(fileSet, scriptsFileSet)
+	return fileSet
+}
+
+func createMockVersion(version string) error {
+	var fileSet = MySQLMockSet(false)
+	return createCustomMockVersion(version, fileSet)
 }
 
 func init() {

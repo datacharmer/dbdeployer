@@ -122,6 +122,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		Basedir: Basedir,
 		SBType:  sandboxDef.SBType,
 		Version: sandboxDef.Version,
+		Flavor:  sandboxDef.Flavor,
 		Port:    []int{},
 		Nodes:   nodes,
 		NodeNum: 0,
@@ -132,6 +133,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		Origin:      sbDesc.Basedir,
 		SBType:      sbDesc.SBType,
 		Version:     sandboxDef.Version,
+		Flavor:      sandboxDef.Flavor,
 		Port:        []int{},
 		Nodes:       []string{},
 		Destination: sandboxDef.SandboxDir,
@@ -160,7 +162,8 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		sbItem.Nodes = append(sbItem.Nodes, sandboxDef.DirName)
 		sbItem.Port = append(sbItem.Port, sandboxDef.Port)
 		sbDesc.Port = append(sbDesc.Port, sandboxDef.Port)
-		isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
+		// isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
+		isMinimumMySQLXDefault, err := common.HasCapability(sandboxDef.Flavor, common.MySQLXDefault, sandboxDef.Version)
 		if err != nil {
 			return emptyStringMap, err
 		}

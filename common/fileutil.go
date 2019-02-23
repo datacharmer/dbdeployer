@@ -41,8 +41,10 @@ type SandboxUser struct {
 
 type SandboxDescription struct {
 	Basedir           string `json:"basedir"`
+	ClientBasedir     string `json:"client_basedir,omitempty"`
 	SBType            string `json:"type"` // single multi master-slave group
 	Version           string `json:"version"`
+	Flavor            string `json:"flavor,omitempty"`
 	Port              []int  `json:"port"`
 	Nodes             int    `json:"nodes"`
 	NodeNum           int    `json:"node_num"`

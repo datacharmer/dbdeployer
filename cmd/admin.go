@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"path"
+	"sort"
 )
 
 func unPreserveSandbox(sandboxDir, sandboxName string) {
@@ -220,7 +221,7 @@ func upgradeSandbox(sandboxDir, oldSandbox, newSandbox string) error {
 	if oldMajor == 10 || newMajor == 10 {
 		common.Exit(1, "upgrade from and to MariaDB is not supported")
 	}
-	greaterThanNewVersion, err := common.GreaterOrEqualVersion(oldSbdesc.Version, newVersionList)
+	greaterThanNewVersion, err := common.GreaterOrEqualVersionList(oldVersionList, newVersionList)
 	common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
 	if greaterThanNewVersion {
 		common.Exitf(1, "version %s must be greater than %s", newUpgradeVersion, oldUpgradeVersion)
@@ -300,6 +301,46 @@ func runUpgradeSandbox(cmd *cobra.Command, args []string) {
 	}
 }
 
+func showCapabilities(cmd *cobra.Command, args []string) {
+	flavor := ""
+	version := ""
+	if len(args) > 0 {
+		flavor = args[0]
+	}
+	if len(args) > 1 {
+		version = args[1]
+	}
+	for fl, capability := range common.AllCapabilities {
+		if flavor == "" || (flavor != "" && flavor == fl) {
+			var features = make(common.FeatureList)
+			var featureNames []string
+			for featureName, cap := range capability.Features {
+
+				if version != "" {
+					can, _ := common.HasCapability(flavor, featureName, version)
+					if !can {
+						continue
+					}
+				}
+				featureNames = append(featureNames, featureName)
+				features[featureName] = cap
+			}
+			fmt.Printf("## %s\n", fl)
+			sort.Strings(featureNames)
+			for _, fn := range featureNames {
+				cap := features[fn]
+				minVers := common.IntSliceToDottedString(cap.Since)
+				untilVers := ""
+				if cap.Until != nil {
+					untilVers = "until " + common.IntSliceToDottedString(cap.Until)
+				}
+				fmt.Printf("%-25s: %-45s : since %s  %s\n", fn, cap.Description, minVers, untilVers)
+			}
+			fmt.Println()
+		}
+	}
+}
+
 var (
 	adminCmd = &cobra.Command{
 		Use:     "admin",
@@ -334,6 +375,19 @@ The data directory of the old sandbox will be moved to the new one.`,
 		Example: "dbdeployer admin upgrade msb_8_0_11 msb_8_0_12",
 		Run:     runUpgradeSandbox,
 	}
+	adminCapabilitiesCmd = &cobra.Command{
+		Use:   "capabilities [flavor [version]]",
+		Short: "Shows capabilities of a given flavor [and optionally version]",
+		Long: `Shows the capabilities of all flavors. 
+If a flavor is specified, only the capabilities of that flavor are shown.
+If also a version is specified, we show what that version supports`,
+		Example: `dbdeployer admin capabilities
+dbdeployer admin capabilities mysql
+dbdeployer admin capabilities mysql 5.7.11
+dbdeployer admin capabilities mysql 5.7.13
+`,
+		Run: showCapabilities,
+	}
 )
 
 func init() {
@@ -341,4 +395,5 @@ func init() {
 	adminCmd.AddCommand(adminLockCmd)
 	adminCmd.AddCommand(adminUnlockCmd)
 	adminCmd.AddCommand(adminUpgradeCmd)
+	adminCmd.AddCommand(adminCapabilitiesCmd)
 }

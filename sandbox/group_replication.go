@@ -33,7 +33,7 @@ const (
 	GroupReplOptions string = `
 binlog_checksum=NONE
 log_slave_updates=ON
-plugin-load=group_replication.so
+plugin-load-add=group_replication.so
 group_replication=FORCE_PLUS_PERMANENT
 group_replication_start_on_boot=OFF
 group_replication_bootstrap_group=OFF
@@ -52,7 +52,8 @@ loose-group-replication-single-primary-mode=off
 func getBaseMysqlxPort(basePort int, sdef SandboxDef, nodes int) (int, error) {
 	baseMysqlxPort := basePort + defaults.Defaults().MysqlXPortDelta
 	// 8.0.11
-	isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sdef.Version, globals.MinimumMysqlxDefaultVersion)
+	// isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sdef.Version, globals.MinimumMysqlxDefaultVersion)
+	isMinimumMySQLXDefault, err := common.HasCapability(sdef.Flavor, common.MySQLX, sdef.Version)
 	if err != nil {
 		return 0, err
 	}
@@ -237,6 +238,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		Basedir: sandboxDef.Basedir,
 		SBType:  sbType,
 		Version: sandboxDef.Version,
+		Flavor:  sandboxDef.Flavor,
 		Port:    []int{},
 		Nodes:   nodes,
 		NodeNum: 0,
@@ -247,6 +249,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		Origin:      sbDesc.Basedir,
 		SBType:      sbDesc.SBType,
 		Version:     sandboxDef.Version,
+		Flavor:      sandboxDef.Flavor,
 		Port:        []int{},
 		Nodes:       []string{},
 		Destination: sandboxDef.SandboxDir,
@@ -300,7 +303,8 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		sandboxDef.ReplOptions += fmt.Sprintf("\nloose-group-replication-local-address=%s:%d\n", masterIp, groupPort)
 		sandboxDef.ReplOptions += fmt.Sprintf("\nloose-group-replication-group-seeds=%s\n", connectionString)
 		// 8.0.11
-		isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
+		// isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
+		isMinimumMySQLXDefault, err := common.HasCapability(sandboxDef.Flavor, common.MySQLXDefault, sandboxDef.Version)
 		if err != nil {
 			return err
 		}
