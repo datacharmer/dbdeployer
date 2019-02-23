@@ -292,7 +292,7 @@ do
   sleep $SLEEP_TIME
 done
 
-if [ -S {{.GlobalTmpDir}}/mysql_sandbox{{.Port}}.sock ]
+if [ -e {{.GlobalTmpDir}}/mysql_sandbox{{.Port}}.sock ]
 then
   echo " sandbox server started"
 else

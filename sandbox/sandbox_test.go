@@ -238,7 +238,7 @@ func testCreateTidbMockSandbox(t *testing.T) {
 		fileSet := MockFileSet{
 			"bin",
 			[]ScriptDef{
-				{"tidb-server", noOpMockTemplateName, true},
+				{"tidb-server", "tidb_mock_template", true},
 			},
 		}
 		fileSets := []MockFileSet{fileSet}
@@ -277,6 +277,17 @@ func testCreateTidbMockSandbox(t *testing.T) {
 			okExecutableExists(t, sandboxDir, script)
 		}
 		okPortExists(t, sandboxDir, sandboxDef.Port)
+
+		_, err = RemoveSandbox(mockSandboxHome, sandboxDef.DirName, false)
+		// _, err = RemoveSandbox(defaults.Defaults().SandboxHome, sandboxDef.DirName, false)
+		if err != nil {
+			t.Fatal(fmt.Sprint(globals.ErrWhileRemoving, sandboxDir, err))
+		}
+		err = defaults.DeleteFromCatalog(sandboxDir)
+		if err != nil {
+			t.Fatal(fmt.Sprintf(globals.ErrRemovingFromCatalog, sandboxDir))
+		}
+
 	}
 	err = removeMockEnvironment("mock_dir")
 	compare.OkIsNil("removal", err, t)
