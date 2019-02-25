@@ -75,6 +75,7 @@ func unpackTarball(cmd *cobra.Command, args []string) {
 			"unpack: Option --target-server can only be used with --shell")
 	}
 
+	overwrite, _ := flags.GetBool(globals.OverwriteLabel)
 	flavor, _ := flags.GetString(globals.FlavorLabel)
 	if flavor == "" {
 		flavor = detectTarballFlavor(tarball)
@@ -103,7 +104,15 @@ func unpackTarball(cmd *cobra.Command, args []string) {
 		destination = path.Join(Basedir, target)
 	}
 	if common.DirExists(destination) && !isShell {
-		common.Exitf(1, globals.ErrNamedDirectoryAlreadyExists, "destination directory", destination)
+		if overwrite {
+			isDeleted, err := deleteBinaries(Basedir, Prefix+Version, true )
+			if !isDeleted {
+				common.Exitf(1, "Directory %s could not be removed", Prefix + Version)
+			}
+			if err != nil {}
+		} else {
+			common.Exitf(1, globals.ErrNamedDirectoryAlreadyExists, "destination directory", destination)
+		}
 	}
 	extracted := path.Base(tarball)
 	var bareName string
@@ -182,6 +191,7 @@ func init() {
 	unpackCmd.PersistentFlags().String(globals.UnpackVersionLabel, "", "which version is contained in the tarball")
 	unpackCmd.PersistentFlags().String(globals.PrefixLabel, "", "Prefix for the final expanded directory")
 	unpackCmd.PersistentFlags().Bool(globals.ShellLabel, false, "Unpack a shell tarball into the corresponding server directory")
+	unpackCmd.PersistentFlags().Bool(globals.OverwriteLabel, false, "Overwrite the destination directory if already exists")
 	unpackCmd.PersistentFlags().String(globals.TargetServerLabel, "", "Uses a different server to unpack a shell tarball")
 	unpackCmd.PersistentFlags().String(globals.FlavorLabel, "", "Defines the tarball flavor (MySQL, NDB, Percona Server, etc)")
 }

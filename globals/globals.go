@@ -55,6 +55,7 @@ const (
 	MyCnfFileLabel         = "my-cnf-file"
 	MyCnfOptionsLabel      = "my-cnf-options"
 	NativeAuthPluginLabel  = "native-auth-plugin"
+	OverwriteLabel         = "overwrite"
 	PortLabel              = "port"
 	PostGrantsSqlFileLabel = "post-grants-sql-file"
 	PostGrantsSqlLabel     = "post-grants-sql"
