@@ -188,7 +188,7 @@ func testDetectFlavor(t *testing.T) {
 		FlavorDetection{"10.3.0", []MockFileSet{
 			MockFileSet{"lib",
 				[]ScriptDef{
-					{"libmariadbclient.a", noOpMockTemplateName, true},
+					{"libmariadbclient.a", noOpMockTemplateName, false},
 				}},
 		},
 			common.MariaDbFlavor,
@@ -196,10 +196,36 @@ func testDetectFlavor(t *testing.T) {
 		FlavorDetection{"8.0.14", []MockFileSet{
 			MockFileSet{"lib",
 				[]ScriptDef{
-					{"libperconaserverclient.a", noOpMockTemplateName, true},
+					{"libperconaserverclient.a", noOpMockTemplateName, false},
 				}},
 		},
 			common.PerconaServerFlavor,
+		},
+		FlavorDetection{"8.0.12", []MockFileSet{
+			MockFileSet{"bin",
+				[]ScriptDef{
+					{"garbd", noOpMockTemplateName, true},
+				}},
+			MockFileSet{"lib",
+				[]ScriptDef{
+					{"libperconaserverclient.so", noOpMockTemplateName, false},
+					{"libgalera_smm.so", noOpMockTemplateName, false},
+				}},
+		},
+			common.PxcFlavor,
+		},
+		FlavorDetection{"5.7.77", []MockFileSet{
+			MockFileSet{"bin",
+				[]ScriptDef{
+					{"garbd", noOpMockTemplateName, true},
+				}},
+			MockFileSet{"lib",
+				[]ScriptDef{
+					{"libperconaserverclient.a", noOpMockTemplateName, false},
+					{"libgalera_smm.a", noOpMockTemplateName, false},
+				}},
+		},
+			common.PxcFlavor,
 		},
 	}
 
@@ -244,22 +270,24 @@ func testCreateTidbMockSandbox(t *testing.T) {
 		fileSets := []MockFileSet{fileSet}
 		err = createCustomMockVersion(tidbVersion, fileSets)
 		compare.OkIsNil("TiDB version creation", err, t)
+		mockSandboxDir := defaults.Defaults().SandboxPrefix + pathVersion
 		var sandboxDef = SandboxDef{
-			Version:        tidbVersion,
-			Flavor:         common.TiDbFlavor,
-			Basedir:        path.Join(mockSandboxBinary, tidbVersion),
-			SandboxDir:     mockSandboxHome,
-			DirName:        defaults.Defaults().SandboxPrefix + pathVersion,
-			LoadGrants:     true,
-			InstalledPorts: defaults.Defaults().ReservedPorts,
-			Port:           port,
-			DbUser:         globals.DbUserValue,
-			RplUser:        globals.RplUserValue,
-			DbPassword:     globals.DbPasswordValue,
-			RplPassword:    globals.RplPasswordValue,
-			RemoteAccess:   globals.RemoteAccessValue,
-			BindAddress:    globals.BindAddressValue,
-			ClientBasedir:  path.Join(mockSandboxBinary, "5.7.25"),
+			Version:         tidbVersion,
+			Flavor:          common.TiDbFlavor,
+			Basedir:         path.Join(mockSandboxBinary, tidbVersion),
+			SandboxDir:      mockSandboxHome,
+			DirName:         mockSandboxDir,
+			SocketInDatadir: true,
+			LoadGrants:      true,
+			InstalledPorts:  defaults.Defaults().ReservedPorts,
+			Port:            port,
+			DbUser:          globals.DbUserValue,
+			RplUser:         globals.RplUserValue,
+			DbPassword:      globals.DbPasswordValue,
+			RplPassword:     globals.RplPasswordValue,
+			RemoteAccess:    globals.RemoteAccessValue,
+			BindAddress:     globals.BindAddressValue,
+			ClientBasedir:   path.Join(mockSandboxBinary, "5.7.25"),
 		}
 
 		err := CreateStandaloneSandbox(sandboxDef)

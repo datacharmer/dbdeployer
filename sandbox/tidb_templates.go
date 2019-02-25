@@ -44,7 +44,7 @@ store = "mocktikv"
 # TiDB storage path.
 path = "$DATADIR"
 # The socket file to use for connection.
-socket = "{{.GlobalTmpDir}}/mysql_sandbox{{.Port}}.sock"
+socket = "{{.SocketFile}}"
 # Run ddl worker on this tidb-server.
 run-ddl = true
 # Schema lease duration, very dangerous to change only if you know what you do.
@@ -250,7 +250,7 @@ prompt='{{.Prompt}} [\h:{{.Port}}] {\u} (\d) > '
 user               = {{.DbUser}} 
 password           = {{.DbPassword}} 
 port               = {{.Port}}
-socket             = {{.GlobalTmpDir}}/mysql_sandbox{{.Port}}.sock
+socket             = {{.SocketFile}}
 
 [mysqld]
 # options here will be ignored.  See tidb.toml
@@ -272,7 +272,7 @@ then
   else
     # Server exited unclean
     rm -f $PIDFILE
-    rm -f {{.GlobalTmpDir}}/mysql_sandbox{{.Port}}.sock
+    rm -f {{.SocketFile}}
   fi
 fi
 
@@ -281,7 +281,7 @@ echo $! > $PIDFILE
 
 TIMEOUT=180
 ATTEMPTS=1
-while [ ! -e {{.GlobalTmpDir}}/mysql_sandbox{{.Port}}.sock ]
+while [ ! -e {{.SocketFile}} ]
 do
   ATTEMPTS=$(( $ATTEMPTS + 1 ))
   echo -n "."
@@ -292,7 +292,7 @@ do
   sleep $SLEEP_TIME
 done
 
-if [ -e {{.GlobalTmpDir}}/mysql_sandbox{{.Port}}.sock ]
+if [ -e {{.SocketFile}} ]
 then
   echo " sandbox server started"
 else
@@ -328,7 +328,7 @@ then
   then
     echo "stop $SBDIR"
     kill -9 $PID
-    SOCKET={{.GlobalTmpDir}}/mysql_sandbox{{.Port}}.sock
+    SOCKET={{.SocketFile}}
     if [ -e $SOCKET ]
     then
       rm -f $SOCKET

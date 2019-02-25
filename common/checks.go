@@ -170,14 +170,8 @@ func GetInstalledPorts(sandboxHome string) ([]int, error) {
 }
 
 func CheckFlavorSupport(flavor string) error {
-	supportedFlavors := []string{
-		MySQLFlavor,
-		MariaDbFlavor,
-		PerconaServerFlavor,
-		TiDbFlavor,
-	}
-	for _, sf := range supportedFlavors {
-		if sf == flavor {
+	for _, sf := range FlavorCompositionList {
+		if sf.flavor == flavor {
 			return nil
 		}
 	}
@@ -186,25 +180,25 @@ func CheckFlavorSupport(flavor string) error {
 
 // Tries to detect the database flavor from files in the tarball directory
 func DetectBinaryFlavor(basedir string) string {
-	type FlavorIndicator struct {
-		dir      string
-		fileName string
-		flavor   string
-	}
-	var findingList = []FlavorIndicator{
-		{"bin", "aria_chk", MariaDbFlavor},
-		{"bin", "tidb-server", TiDbFlavor},
-		{"lib", "libmariadbclient.a", MariaDbFlavor},
-		{"lib", "libmariadb.a", MariaDbFlavor},
-		{"lib", "libmariadb.dylib", MariaDbFlavor},
-		{"lib", "libmariadb.dylib", MariaDbFlavor},
-		{"lib", "libperconaserverclient.a", PerconaServerFlavor},
-		{"lib", "libperconaserverclient.so", PerconaServerFlavor},
-		{"lib", "libperconaserverclient.dylib", PerconaServerFlavor},
-	}
-	for _, fi := range findingList {
-		target := path.Join(basedir, fi.dir, fi.fileName)
-		if FileExists(target) {
+	for _, fi := range FlavorCompositionList {
+		var matches bool
+		if fi.AllNeeded {
+			matches = len(fi.elements) > 0
+		}
+
+		for _, element := range fi.elements {
+			target := path.Join(basedir, element.dir, element.fileName)
+			if fi.AllNeeded {
+				if !FileExists(target) {
+					matches = false
+				}
+			} else {
+				if FileExists(target) {
+					matches = true
+				}
+			}
+		}
+		if matches {
 			return fi.flavor
 		}
 	}
@@ -230,6 +224,8 @@ func CheckTarballOperatingSystem(basedir string) error {
 	var findingList = map[string]OSFinding{
 		"libmysqlclient.a":             {"lib", "linux", MySQLFlavor, true}, // 4.1 and old 5.0 releases
 		"libmysqlclient.so":            {"lib", "linux", MySQLFlavor, true},
+		"libmariadbclient.so":          {"lib", "linux", MariaDbFlavor, true},
+		"libmariadbclient.dylib":       {"lib", "linux", MariaDbFlavor, true},
 		"libperconaserverclient.so":    {"lib", "linux", PerconaServerFlavor, true},
 		"libperconaserverclient.dylib": {"lib", "darwin", PerconaServerFlavor, true},
 		"libmysqlclient.dylib":         {"lib", "darwin", MySQLFlavor, true},

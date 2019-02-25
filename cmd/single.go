@@ -278,6 +278,11 @@ func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxD
 	sd.SkipReportPort, _ = flags.GetBool(globals.SkipReportPortLabel)
 	sd.DisableMysqlX, _ = flags.GetBool(globals.DisableMysqlXLabel)
 	sd.EnableMysqlX, _ = flags.GetBool(globals.EnableMysqlXLabel)
+	sd.SocketInDatadir, _ = flags.GetBool(globals.SocketInDatadirLabel)
+	if common.IsEnvSet("SOCKET_IN_DATADIR") {
+		sd.SocketInDatadir = true
+	}
+	sd.FlavorInPrompt, _ = flags.GetBool(globals.FlavorInPromptLabel)
 	sd.HistoryDir, _ = flags.GetString(globals.HistoryDirLabel)
 	sd.DbUser, _ = flags.GetString(globals.DbUserLabel)
 	sd.DbPassword, _ = flags.GetString(globals.DbPasswordLabel)
@@ -403,5 +408,5 @@ Use the "unpack" command to get the tarball into the right directory.
 func init() {
 	deployCmd.AddCommand(singleCmd)
 	singleCmd.PersistentFlags().Bool(globals.MasterLabel, false, "Make the server replication ready")
-
+	setPflag(singleCmd, globals.PromptLabel, "", "", globals.PromptValue, "Default prompt for the single client", false)
 }

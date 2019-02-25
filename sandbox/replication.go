@@ -447,12 +447,22 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 			return fmt.Errorf(globals.ErrFeatureRequiresVersion, "multi-source replication", common.IntSliceToDottedString(globals.MinimumMultiSourceReplVersion))
 		}
 		sdef.SandboxDir = path.Join(sdef.SandboxDir, defaults.Defaults().AllMastersPrefix+common.VersionToName(origin))
+	case globals.PxcLabel:
+		isMinimumPxc, err := common.HasCapability(sdef.Flavor, common.XtradbCluster, sdef.Version)
+		if err != nil {
+			return err
+		}
+		if !isMinimumPxc {
+			return fmt.Errorf(globals.ErrFeatureRequiresCapability, "Xtradb Cluster", common.PxcFlavor, common.IntSliceToDottedString(globals.MinimumXtradbClusterVersion))
+		}
+		sdef.SandboxDir = path.Join(sdef.SandboxDir, defaults.Defaults().PxcPrefix+common.VersionToName(origin))
 	default:
-		return fmt.Errorf("unrecognized topology. Accepted: '%s', '%s', '%s', '%s'",
+		return fmt.Errorf("unrecognized topology. Accepted: '%s', '%s', '%s', '%s', '%s'",
 			globals.MasterSlaveLabel,
 			globals.GroupLabel,
 			globals.FanInLabel,
-			globals.AllMastersLabel)
+			globals.AllMastersLabel,
+			globals.PxcLabel)
 	}
 	if sdef.DirName != "" {
 		sdef.SandboxDir = path.Join(sandboxDir, sdef.DirName)
@@ -479,6 +489,8 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 		err = CreateFanInReplication(sdef, origin, nodes, masterIp, masterList, slaveList)
 	case globals.AllMastersLabel:
 		err = CreateAllMastersReplication(sdef, origin, nodes, masterIp)
+	case globals.PxcLabel:
+		err = CreatePxcReplication(sdef, origin, nodes, masterIp)
 	}
 	return err
 }

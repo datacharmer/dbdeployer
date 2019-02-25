@@ -37,6 +37,7 @@ func detectTarballFlavor(tarballName string) string {
 		common.MariaDbFlavor:       `mariadb`,
 		common.NDBFlavor:           `mysql-cluster`,
 		common.TiDbFlavor:          `tidb`,
+		common.PxcFlavor:           `Percona-XtraDB-Cluster`,
 	}
 
 	for key, value := range flavorsRegexps {

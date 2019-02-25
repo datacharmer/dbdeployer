@@ -60,6 +60,8 @@ func init() {
 	deployCmd.PersistentFlags().Bool(globals.EnableGeneralLogLabel, false, "Enables general log for the sandbox (MySQL 5.1+)")
 	deployCmd.PersistentFlags().Bool(globals.InitGeneralLogLabel, false, "uses general log during initialization (MySQL 5.1+)")
 	deployCmd.PersistentFlags().Bool(globals.LogSBOperationsLabel, defaults.LogSBOperations, "Logs sandbox operations to a file")
+	deployCmd.PersistentFlags().Bool(globals.SocketInDatadirLabel, false, "Create socket in datadir instead of $TMPDIR")
+	deployCmd.PersistentFlags().Bool(globals.FlavorInPromptLabel, false, "Add flavor values to prompt")
 
 	setPflag(deployCmd, globals.LogLogDirectoryLabel, "", "", defaults.Defaults().LogDirectory, "Where to store dbdeployer logs", false)
 	setPflag(deployCmd, globals.RemoteAccessLabel, "", "", globals.RemoteAccessValue, "defines the database access ", false)

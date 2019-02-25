@@ -307,12 +307,12 @@ prompt='{{.Prompt}} [\h:{{.Port}}] {\u} (\d) > '
 user               = {{.DbUser}}
 password           = {{.DbPassword}}
 port               = {{.Port}}
-socket             = {{.GlobalTmpDir}}/mysql_sandbox{{.Port}}.sock
+socket             = {{.SocketFile}}
 
 [mysqld]
 user               = {{.OsUser}}
 port               = {{.Port}}
-socket             = {{.GlobalTmpDir}}/mysql_sandbox{{.Port}}.sock
+socket             = {{.SocketFile}}
 basedir            = {{.Basedir}}
 datadir            = {{.Datadir}}
 tmpdir             = {{.Tmpdir}}
@@ -418,7 +418,7 @@ log-error={{.Datadir}}/msandbox.err
 		fi
 		if [ -n "$NOPASSWORD" ]
 		then
-			MYSQL="$CLIENT_BASEDIR/bin/mysql --no-defaults --socket={{.GlobalTmpDir}}/mysql_sandbox{{.Port}}.sock --port={{.Port}}"
+			MYSQL="$CLIENT_BASEDIR/bin/mysql --no-defaults --socket=$SOCKET_FILE --port={{.Port}}"
 		else
 			MYSQL="$CLIENT_BASEDIR/bin/mysql --defaults-file=$SBDIR/my.sandbox.cnf"
 		fi
@@ -1010,15 +1010,16 @@ exit $exit_code`
 # so that we can run tests for dbdeployer without using the real
 # MySQL binaries.
 defaults_file=$1
+no_defaults_error="No valid defaults file provided: use --defaults-file=filename"
 if [ -z "$defaults_file" ]
 then
-    echo "No defaults file provided: use --defaults-file=filename"
+    echo "$no_defaults_error"
     exit 1
 fi
-valid_defaults=$(echo $defaults_file | grep '--defaults-file')
-if [ -z "$defaults_file" ]
+valid_defaults=$(echo "$defaults_file" | grep '\--defaults-file')
+if [ -z "$valid_defaults" ]
 then
-    echo "Not a valid defaults-file spec"
+    echo "$no_defaults_error"
     exit 1
 fi
 defaults_file=$(echo $defaults_file| sed 's/--defaults-file=//')
@@ -1110,6 +1111,7 @@ export CLIENT_LD_LIBRARY_PATH=$CLIENT_BASEDIR/lib:$CLIENT_BASEDIR/lib/mysql:$LD_
 export DYLD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$DYLD_LIBRARY_PATH
 export CLIENT_DYLD_LIBRARY_PATH=$CLIENT_BASEDIR/lib:$CLIENT_BASEDIR/lib/mysql:$DYLD_LIBRARY_PATH
 export PIDFILE=$SBDIR/data/mysql_sandbox{{.Port}}.pid
+export SOCKET_FILE={{.SocketFile}}
 [ -z "$SLEEP_TIME" ] && export SLEEP_TIME=1
 
 # dbdeployer is not compatible with .mylogin.cnf,
@@ -1336,6 +1338,7 @@ function check_output
 		"multiple":    MultipleTemplates,
 		"replication": ReplicationTemplates,
 		"group":       GroupTemplates,
+		"pxc":         PxcTemplates,
 	}
 )
 

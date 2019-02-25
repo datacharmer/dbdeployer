@@ -25,8 +25,19 @@ type Capability struct {
 type FeatureList map[string]Capability
 
 type Capabilities struct {
-	Flavor   string      `json:"flavor"`
-	Features FeatureList `json:"features"`
+	Flavor      string      `json:"flavor"`
+	Description string      `json:"description"`
+	Features    FeatureList `json:"features"`
+}
+
+type ElementPath struct {
+	dir      string
+	fileName string
+}
+type FlavorIndicator struct {
+	elements  []ElementPath
+	flavor    string
+	AllNeeded bool
 }
 
 const (
@@ -35,6 +46,7 @@ const (
 	PerconaServerFlavor = "percona"
 	MariaDbFlavor       = "mariadb"
 	NDBFlavor           = "ndb"
+	PxcFlavor           = "pxc"
 	TiDbFlavor          = "tidb"
 
 	// Feature names
@@ -55,10 +67,12 @@ const (
 	Roles            = "roles"
 	NativeAuth       = "nativeAuth"
 	DataDict         = "datadict"
+	XtradbCluster    = "xtradbCluster"
 )
 
 var MySQLCapabilities = Capabilities{
-	Flavor: MySQLFlavor,
+	Flavor:      MySQLFlavor,
+	Description: "MySQL server",
 	Features: FeatureList{
 		InstallDb: {
 			Description: "uses mysql_install_db",
@@ -132,16 +146,118 @@ var MySQLCapabilities = Capabilities{
 	},
 }
 
+// Flavor indicators must be listed from the most complex ones to the
+// simplest ones, because we want to catch the flavors that require
+// multiple elements to be identified. If we put the simpler ones on top,
+// we would miss the complex ones.
+var FlavorCompositionList = []FlavorIndicator{
+	{
+		AllNeeded: true,
+		elements: []ElementPath{
+			{"bin", "garbd"},
+			{"lib", "libgalera_smm.so"},
+			{"lib", "libperconaserverclient.so"},
+		},
+		flavor: PxcFlavor,
+	},
+	{
+		AllNeeded: true,
+		elements: []ElementPath{
+			{"bin", "garbd"},
+			{"lib", "libgalera_smm.a"},
+			{"lib", "libperconaserverclient.a"},
+		},
+		flavor: PxcFlavor,
+	},
+	{
+		AllNeeded: true,
+		elements: []ElementPath{
+			{"bin", "garbd"},
+			{"lib", "libgalera_smm.dylib"},
+			{"lib", "libperconaserverclient.dylib"},
+		},
+		flavor: PxcFlavor,
+	},
+	//{
+	//	AllNeeded: true,
+	//	elements: []ElementPath{
+	//		{"bin", "ndbd"},
+	//		{"bin", "ndb_mgm"},
+	//		{"bin", "ndb_mgmd"},
+	//	},
+	//	flavor: NDBFlavor,
+	//},
+	{
+		AllNeeded: false,
+		elements: []ElementPath{
+			{"bin", "aria_chk"},
+			{"lib", "libmariadbclient.a"},
+			{"lib", "libmariadbclient.dylib"},
+			{"lib", "libmariadb.a"},
+			{"lib", "libmariadb.dylib"},
+		},
+		flavor: MariaDbFlavor,
+	},
+
+	{
+		AllNeeded: false,
+		elements: []ElementPath{
+			{"lib", "libperconaserverclient.a"},
+			{"lib", "libperconaserverclient.so"},
+			{"lib", "libperconaserverclient.dylib"},
+		},
+		flavor: PerconaServerFlavor,
+	},
+
+	{
+		AllNeeded: false,
+		elements: []ElementPath{
+			{"bin", "tidb-server"},
+		},
+		flavor: TiDbFlavor,
+	},
+	{
+		AllNeeded: false,
+		elements: []ElementPath{
+			{"bin", "mysqld"},
+			{"bin", "mysqld-debug"},
+			{"lib", "libmysqlclient.a"},
+		},
+		flavor: MySQLFlavor,
+	},
+}
+
 var PerconaCapabilities = Capabilities{
-	Flavor:   PerconaServerFlavor,
-	Features: MySQLCapabilities.Features,
+	Flavor:      PerconaServerFlavor,
+	Description: "Percona Server",
+	Features:    MySQLCapabilities.Features,
 }
 
 var TiDBCapabilities = Capabilities{
-	// No capabilities so far
+	Flavor:      TiDbFlavor,
+	Description: "TiDB isolated server",
+	Features:    FeatureList{
+		// No capabilities so far
+	},
 }
 var NDBCapabilities = Capabilities{
-	// No capabilities so far
+	Flavor:      NDBFlavor,
+	Description: "MySQL NDB Cluster",
+	Features:    FeatureList{
+		// No capabilities so far
+	},
+}
+
+var PxcCapabilities = Capabilities{
+	Flavor:      PxcFlavor,
+	Description: "Percona XtraDB Cluster",
+	Features: addCapabilities(PerconaCapabilities.Features,
+		FeatureList{
+			XtradbCluster: {
+				Description: "Xtradb Cluster creation",
+				Since:       globals.MinimumXtradbClusterVersion,
+			},
+		}),
 }
 
 // NOTE: We only list the capabilities
@@ -165,8 +281,40 @@ var AllCapabilities = map[string]Capabilities{
 	MariaDbFlavor:       MariadbCapabilities,
 	TiDbFlavor:          TiDBCapabilities,
 	NDBFlavor:           NDBCapabilities,
+	PxcFlavor:           PxcCapabilities,
 }
 
+// Returns a set of existing capabilities with custom ones
+// added (or replaced) to the list
+func addCapabilities(flavorFeatures, features FeatureList) FeatureList {
+	var fList = make(FeatureList)
+	for fName, feature := range flavorFeatures {
+		fList[fName] = feature
+	}
+	for fName, feature := range features {
+		fList[fName] = feature
+	}
+	return fList
+}
+
+// Returns a subset of a flavor capabilities
+func copyCapabilities(flavor string, names []string) FeatureList {
+	var fList = make(FeatureList)
+	_, flavorExists := AllCapabilities[flavor]
+	if !flavorExists {
+		return fList
+	}
+	for fName, feature := range AllCapabilities[flavor].Features {
+		for _, n := range names {
+			if fName == n {
+				fList[n] = feature
+			}
+		}
+	}
+	return fList
+}
+
+// Returns true if a given flavor and version support the wanted feature
 func HasCapability(flavor, feature, version string) (bool, error) {
 	versionList, err := VersionToList(version)
 	if err != nil {

@@ -325,7 +325,11 @@ func showCapabilities(cmd *cobra.Command, args []string) {
 				featureNames = append(featureNames, featureName)
 				features[featureName] = cap
 			}
-			fmt.Printf("## %s\n", fl)
+			if capability.Description != fl && capability.Description != "" {
+				fmt.Printf("## %s (%s)\n", fl, capability.Description)
+			} else {
+				fmt.Printf("## %s\n", fl)
+			}
 			sort.Strings(featureNames)
 			for _, fn := range featureNames {
 				cap := features[fn]

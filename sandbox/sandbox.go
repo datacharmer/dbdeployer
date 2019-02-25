@@ -74,6 +74,8 @@ type SandboxDef struct {
 	HistoryDir           string           // Where to store the MySQL client history
 	LogFileName          string           // Where to log operations for this sandbox
 	Flavor               string           // The flavor of the binaries (MySQL, Percona, NDB, etc)
+	FlavorInPrompt       bool             // Add flavor to prompt
+	SocketInDatadir      bool             // Whether we want the socket in the data directory
 	SlavesReadOnly       bool             // Whether slaves will set the read_only flag
 	SlavesSuperReadOnly  bool             // Whether slaves will set the super_read_only flag
 	Logger               *defaults.Logger // Carries a logger across sandboxes
@@ -262,7 +264,7 @@ func sliceToText(stringSlice []string) string {
 	return text
 }
 
-func setMysqlxProperties(sandboxDef SandboxDef, globalTmpDir string) (SandboxDef, error) {
+func setMysqlxProperties(sandboxDef SandboxDef, socketDir string) (SandboxDef, error) {
 	mysqlxPort := sandboxDef.MysqlXPort
 	if mysqlxPort == 0 {
 		var err error
@@ -272,7 +274,7 @@ func setMysqlxProperties(sandboxDef SandboxDef, globalTmpDir string) (SandboxDef
 		}
 	}
 	sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, fmt.Sprintf("mysqlx-port=%d", mysqlxPort))
-	sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, fmt.Sprintf("mysqlx-socket=%s/mysqlx-%d.sock", globalTmpDir, mysqlxPort))
+	sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, fmt.Sprintf("mysqlx-socket=%s/mysqlx-%d.sock", socketDir, mysqlxPort))
 	sandboxDef.MorePorts = append(sandboxDef.MorePorts, mysqlxPort)
 	sandboxDef.MysqlXPort = mysqlxPort
 	return sandboxDef, nil
@@ -308,6 +310,12 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		// the environment variable $MYSQL_EDITOR, but this would potentially
 		// interfere with other sandboxes isolation. So I better leave this feature
 		// undocumented and only to be used in emergencies.
+
+		if sandboxDef.Prompt == "" || sandboxDef.Prompt == globals.PromptValue {
+			if !sandboxDef.FlavorInPrompt {
+				sandboxDef.Prompt = "TiDB"
+			}
+		}
 		if sandboxDef.ClientBasedir == "" {
 			return emptyExecutionList,
 				fmt.Errorf("flavor '%s' requires option --'%s'", common.TiDbFlavor, globals.ClientFromLabel)
@@ -346,8 +354,11 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	}
 
 	versionFname := common.VersionToName(sandboxDef.Version)
-	if sandboxDef.Prompt == "" {
+	if sandboxDef.Prompt == "" && !sandboxDef.FlavorInPrompt {
 		sandboxDef.Prompt = "mysql"
+	}
+	if sandboxDef.FlavorInPrompt {
+		sandboxDef.Prompt = sandboxDef.Flavor + "-" + sandboxDef.Prompt
 	}
 	if sandboxDef.DirName == "" {
 		if sandboxDef.Version != sandboxDef.BasedirName {
@@ -364,12 +375,17 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	logger.Printf("Single Sandbox directory defined as %s\n", sandboxDef.SandboxDir)
 	dataDir := path.Join(sandboxDir, globals.DataDirName)
 	tmpDir := path.Join(sandboxDir, "tmp")
+
 	globalTmpDir := os.Getenv("TMPDIR")
 	if globalTmpDir == "" {
 		globalTmpDir = "/tmp"
 	}
 	if !common.DirExists(globalTmpDir) {
 		return emptyExecutionList, fmt.Errorf("TMP directory %s does not exist", globalTmpDir)
+	}
+	socketDir := globalTmpDir
+	if sandboxDef.SocketInDatadir {
+		socketDir = dataDir
 	}
 	if sandboxDef.NodeNum == 0 && !sandboxDef.Force {
 		sandboxDef.Port, err = common.FindFreePort(sandboxDef.Port, sandboxDef.InstalledPorts, 1)
@@ -399,7 +415,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		}
 		if !isMinimumMySQLXDefault {
 			sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, "plugin_load_add=mysqlx=mysqlx.so")
-			sandboxDef, err = setMysqlxProperties(sandboxDef, globalTmpDir)
+			sandboxDef, err = setMysqlxProperties(sandboxDef, socketDir)
 			if err != nil {
 				return emptyExecutionList, err
 			}
@@ -485,7 +501,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, "mysqlx=OFF")
 			logger.Printf("Disabling MySQLX\n")
 		} else {
-			sandboxDef, err = setMysqlxProperties(sandboxDef, globalTmpDir)
+			sandboxDef, err = setMysqlxProperties(sandboxDef, socketDir)
 			if err != nil {
 				return emptyExecutionList, err
 			}
@@ -552,7 +568,8 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		"VersionRev":           verList[2],
 		"Datadir":              dataDir,
 		"Tmpdir":               tmpDir,
-		"GlobalTmpDir":         globalTmpDir,
+		"GlobalTmpDir":         socketDir,
+		"SocketFile":           path.Join(socketDir, fmt.Sprintf("mysql_sandbox%d.sock", sandboxDef.Port)),
 		"DbUser":               sandboxDef.DbUser,
 		"DbPassword":           sandboxDef.DbPassword,
 		"RplUser":              sandboxDef.RplUser,

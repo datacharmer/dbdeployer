@@ -74,6 +74,10 @@ const (
 	SkipStartLabel         = "skip-start"
 	UseTemplateLabel       = "use-template"
 	ClientFromLabel        = "client-from"
+	PromptLabel            = "prompt"
+	FlavorInPromptLabel    = "flavor-in-prompt"
+	PromptValue            = "mysql"
+	SocketInDatadirLabel   = "socket-in-datadir"
 
 	// Instantiated in cmd/single.go
 	MasterLabel = "master"
@@ -98,6 +102,7 @@ const (
 	SlaveListValue      = "3"
 	TopologyLabel       = "topology"
 	TopologyValue       = "master-slave"
+	PxcLabel            = "pxc"
 
 	// Instantiated in cmd/unpack.go and unpack/unpack.go
 	GzExt              = ".gz"
@@ -195,6 +200,7 @@ const (
 	ErrWhileStartingSandbox        = "error while starting sandbox %s"
 	ErrOptionRequiresVersion       = "option '--%s' requires MySQL version '%s'+"
 	ErrFeatureRequiresVersion      = "'%s' requires MySQL version '%s'+"
+	ErrFeatureRequiresCapability   = "'%s' requires flavor '%s' version '%s'+"
 	ErrArgumentRequired            = "argument required: %s"
 	ErrEncodingDefaults            = "error encoding defaults: '%s'"
 	ErrCreatingSandbox             = "error creating sandbox: '%s'"
@@ -248,6 +254,7 @@ var (
 	MinimumMysqlxDefaultVersion      = []int{8, 0, 11}
 	MariaDbMinimumGtidVersion        = []int{10, 0, 0}
 	MariaDbMinimumMultiSourceVersion = []int{10, 0, 0}
+	MinimumXtradbClusterVersion      = []int{5, 7, 14}
 )
 
 const (
