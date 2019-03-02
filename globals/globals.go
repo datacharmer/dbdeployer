@@ -118,8 +118,10 @@ const (
 	ConfirmLabel     = "confirm"
 
 	// Instantiated in cmd/sandboxes.go
-	CatalogLabel = "catalog"
-	HeaderLabel  = "header"
+	CatalogLabel  = "catalog"
+	HeaderLabel   = "header"
+	TableLabel    = "table"
+	FullInfoLabel = "full-info"
 
 	// Instantiated in cmd/templates.go
 	SimpleLabel       = "simple"

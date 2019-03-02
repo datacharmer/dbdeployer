@@ -17,38 +17,107 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/datacharmer/dbdeployer/globals"
 	"path"
+	//"strings"
 
+	"github.com/alexeyco/simpletable"
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/spf13/cobra"
-	"strings"
 )
 
-func showSandboxesFromCatalog(currentSandboxHome string, header bool) {
+func showSandboxesFromCatalog(currentSandboxHome string, useFlavor, useHeader, useTable bool) {
 	sandboxList, err := defaults.ReadCatalog()
+
 	common.ErrCheckExitf(err, 1, "error getting sandboxes from catalog: %s", err)
 	if len(sandboxList) == 0 {
 		return
 	}
-	template := "%-25s %-10s %-20s %5v %-25s %s \n"
-	if header {
-		fmt.Printf(template, "name", "version", "type", "nodes", "ports", "")
-		fmt.Printf(template, "----", "-------", "-----", "-----", "-----", "")
+
+	table := simpletable.New()
+
+	if useHeader {
+		table.Header = &simpletable.Header{
+			Cells: []*simpletable.Cell{
+				{Align: simpletable.AlignCenter, Text: "name"},
+				{Align: simpletable.AlignCenter, Text: "version"},
+				{Align: simpletable.AlignCenter, Text: "type"},
+				{Align: simpletable.AlignCenter, Text: "nodes"},
+				{Align: simpletable.AlignCenter, Text: "ports"},
+			},
+		}
+		if useFlavor {
+			table.Header.Cells = append(table.Header.Cells,
+				&simpletable.Cell{Align: simpletable.AlignCenter, Text: "flavor"},
+			)
+		}
 	}
 	for name, contents := range sandboxList {
+		var cells []*simpletable.Cell
 		ports := "["
 		for _, p := range contents.Port {
 			ports += fmt.Sprintf("%d ", p)
 		}
 		ports += "]"
-		extra := ""
-		if !strings.HasPrefix(contents.Destination, currentSandboxHome) {
-			extra = "(" + common.DirName(contents.Destination) + ")"
+		cells = append(cells, &simpletable.Cell{Text: common.BaseName(name)})
+		cells = append(cells, &simpletable.Cell{Text: contents.Version})
+		cells = append(cells, &simpletable.Cell{Text: contents.SBType})
+		cells = append(cells, &simpletable.Cell{Text: fmt.Sprintf("%d", len(contents.Nodes))})
+		cells = append(cells, &simpletable.Cell{Text: ports})
+
+		if useFlavor {
+			cells = append(cells, &simpletable.Cell{Text: contents.Flavor})
 		}
-		fmt.Printf(template, common.BaseName(name), contents.Version, contents.SBType, len(contents.Nodes), ports, extra)
+		table.Body.Cells = append(table.Body.Cells, cells)
 	}
+	table.SetStyle(simpletable.StyleCompactLite)
+	if useTable {
+		table.SetStyle(simpletable.StyleRounded)
+	}
+	table.Println()
+}
+
+func getFullSandboxInfo(sandboxHome string) []common.SandboxInfo {
+	var fullSandboxList []common.SandboxInfo
+	simpleSandboxList, err := common.GetInstalledSandboxes(sandboxHome)
+	if err != nil {
+		return fullSandboxList
+	}
+
+	for _, sb := range simpleSandboxList {
+		sbDescription := path.Join(sandboxHome, sb.SandboxName, globals.SandboxDescriptionName)
+		var tempSandboxDesc common.SandboxDescription
+		if common.FileExists(sbDescription) {
+			tempSandboxDesc, _ = common.ReadSandboxDescription(path.Join(sandboxHome, sb.SandboxName))
+		}
+		// No description file was found
+		// We try to get what we can. However, this should not happen unless users delete the description files
+		if tempSandboxDesc.SBType == "" {
+			tempSandboxDesc.SBType = "single"
+			initSlaves := path.Join(sb.SandboxName, globals.ScriptInitializeSlaves)
+			initNodes := path.Join(sb.SandboxName, globals.ScriptInitializeNodes)
+			startAll := path.Join(sb.SandboxName, globals.ScriptStartAll)
+			startAllExists := common.FileExists(startAll)
+			initSlavesExists := common.FileExists(initSlaves)
+			initNodesExists := common.FileExists(initNodes)
+			if initSlavesExists {
+				tempSandboxDesc.SBType = "master-slave"
+			}
+			if initNodesExists {
+				tempSandboxDesc.SBType = "replication"
+			}
+			if startAllExists && !initNodesExists && !initSlavesExists {
+				tempSandboxDesc.SBType = "multiple"
+			}
+			tempSandboxDesc.Version = "undetected"
+			tempSandboxDesc.Flavor = "undetected"
+			tempSandboxDesc.Port = []int{0}
+		}
+		fullSandboxList = append(fullSandboxList,
+			common.SandboxInfo{SandboxName: sb.SandboxName, SandboxDesc: tempSandboxDesc, Locked: sb.Locked})
+	}
+	return fullSandboxList
 }
 
 // Shows installed sandboxes
@@ -57,100 +126,93 @@ func showSandboxes(cmd *cobra.Command, args []string) {
 	SandboxHome, _ := flags.GetString(globals.SandboxHomeLabel)
 	readCatalog, _ := flags.GetBool(globals.CatalogLabel)
 	useHeader, _ := flags.GetBool(globals.HeaderLabel)
+	useFlavor, _ := flags.GetBool(globals.FlavorLabel)
+	useTable, _ := flags.GetBool(globals.TableLabel)
+	useFullInfo, _ := flags.GetBool(globals.FullInfoLabel)
+	if useFullInfo {
+		useHeader = true
+		useFlavor = true
+		useTable = true
+	}
 	if readCatalog {
-		showSandboxesFromCatalog(SandboxHome, useHeader)
+		showSandboxesFromCatalog(SandboxHome, useFlavor, useHeader, useTable)
 		return
 	}
 	var sandboxList []common.SandboxInfo
-	var err error
 	// If the sandbox directory hasn't been created yet, we start with an empty list
 	if common.DirExists(SandboxHome) {
-		sandboxList, err = common.GetInstalledSandboxes(SandboxHome)
-		common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList, err)
+		sandboxList = getFullSandboxInfo(SandboxHome)
 	}
-	var dirs []string
-	for _, sandboxInfo := range sandboxList {
-		fileName := sandboxInfo.SandboxName
-		description := "single"
-		sbDesc := path.Join(SandboxHome, fileName, globals.SandboxDescriptionName)
-		if common.FileExists(sbDesc) {
-			sbd, err := common.ReadSandboxDescription(path.Join(SandboxHome, fileName))
-			common.ErrCheckExitf(err, 1, "error reading sandbox description from %s", fileName)
-			locked := ""
-			if sandboxInfo.Locked {
-				locked = "(LOCKED)"
-			}
-			if sbd.Nodes == 0 {
-				portText := ""
-				for _, p := range sbd.Port {
-					if portText != "" {
-						portText += " "
-					}
-					portText += fmt.Sprintf("%d", p)
-				}
-				description = fmt.Sprintf("%-20s %10s [%s]", sbd.SBType, sbd.Version, portText)
-			} else {
-				var nodeDescriptions []common.SandboxDescription
-				innerSandboxList, err := common.GetInstalledSandboxes(path.Join(SandboxHome, fileName))
-				common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList, err)
-				innerFiles := common.SandboxInfoToFileNames(innerSandboxList)
-				for _, inner := range innerFiles {
-					innerSbDesc := path.Join(SandboxHome, fileName, inner, globals.SandboxDescriptionName)
-					if common.FileExists(innerSbDesc) {
-						sbNode, err := common.ReadSandboxDescription(fmt.Sprintf("%s/%s/%s", SandboxHome, fileName, inner))
-						common.ErrCheckExitf(err, 1, "error reading sandbox description from %s/%s/%s", SandboxHome, fileName, inner)
-						nodeDescriptions = append(nodeDescriptions, sbNode)
-					}
-				}
-				ports := ""
-				for _, nd := range nodeDescriptions {
-					for _, p := range nd.Port {
-						if ports != "" {
-							ports += " "
-						}
-						ports += fmt.Sprintf("%d", p)
-					}
-				}
-				//ports += " ]"
-				description = fmt.Sprintf("%-20s %10s [%s]", sbd.SBType, sbd.Version, ports)
-			}
-			dirs = append(dirs, fmt.Sprintf("%-25s : %s %s", fileName, description, locked))
-		} else {
-			locked := ""
-			noClear := path.Join(SandboxHome, fileName, globals.ScriptNoClear)
-			noClearAll := path.Join(SandboxHome, fileName, globals.ScriptNoClearAll)
-			start := path.Join(SandboxHome, fileName, globals.ScriptStart)
-			startAll := path.Join(SandboxHome, fileName, globals.ScriptStartAll)
-			initializeSlaves := path.Join(SandboxHome, fileName, globals.ScriptInitializeSlaves)
-			initializeNodes := path.Join(SandboxHome, fileName, globals.ScriptInitializeNodes)
-			if common.FileExists(noClear) || common.FileExists(noClearAll) {
-				locked = "(LOCKED)"
-			}
-			if common.FileExists(startAll) {
-				description = "multiple sandbox"
-			}
-			if common.FileExists(initializeSlaves) {
-				description = "master-slave replication"
-			}
-			if common.FileExists(initializeNodes) {
-				description = "group replication"
-			}
-			if common.FileExists(start) || common.FileExists(startAll) {
-				dirs = append(dirs, fmt.Sprintf("%-20s : *%s* %s ", fileName, description, locked))
-			}
+	if len(sandboxList) == 0 {
+		return
+	}
+	table := simpletable.New()
+
+	if useHeader {
+		table.Header = &simpletable.Header{
+			Cells: []*simpletable.Cell{
+				{Align: simpletable.AlignCenter, Text: "name"},
+				{Align: simpletable.AlignCenter, Text: "type"},
+				{Align: simpletable.AlignCenter, Text: "version"},
+				{Align: simpletable.AlignCenter, Text: "ports"},
+			},
+		}
+		if useFlavor {
+			table.Header.Cells = append(table.Header.Cells,
+				&simpletable.Cell{Align: simpletable.AlignCenter, Text: "flavor"},
+			)
+		}
+		if useTable {
+			table.Header.Cells = append(table.Header.Cells,
+				&simpletable.Cell{Align: simpletable.AlignCenter, Text: "nodes"},
+			)
+			table.Header.Cells = append(table.Header.Cells,
+				&simpletable.Cell{Align: simpletable.AlignCenter, Text: "locked"},
+			)
 		}
 	}
-	if useHeader {
-		//           1         2         3         4         5         6         7
-		//  12345678901234567890123456789012345678901234567890123456789012345678901234567890
-		//	fan_in_msb_5_7_21         : fan-in                   5.7.21 [14001 14002 14003]
-		template := "%-25s   %-23s %-8s %s\n"
-		fmt.Printf(template, "name", "type", "version", "ports")
-		fmt.Printf(template, "----------------", "-------", "-------", "-----")
+	for _, sb := range sandboxList {
+		var cells []*simpletable.Cell
+		sbName := common.BaseName(sb.SandboxName)
+		if !useTable {
+			numSpaces := 25 - len(sbName)
+			if numSpaces > 0 {
+				for N := 0; N < numSpaces; N++ {
+					sbName += " "
+				}
+			}
+			sbName += ": "
+		}
+		cells = append(cells, &simpletable.Cell{Text: sbName})
+		cells = append(cells, &simpletable.Cell{Text: sb.SandboxDesc.SBType})
+		cells = append(cells, &simpletable.Cell{Text: sb.SandboxDesc.Version})
+		isLocked := ""
+		if sb.Locked {
+			isLocked = "(LOCKED)"
+		}
+		ports := "["
+		for _, p := range sb.SandboxDesc.Port {
+			ports += fmt.Sprintf("%d ", p)
+		}
+		ports += "]"
+		if sb.Locked && !useTable {
+			ports += " " + isLocked
+		}
+		cells = append(cells, &simpletable.Cell{Text: ports})
+		if useFlavor {
+			cells = append(cells, &simpletable.Cell{Text: sb.SandboxDesc.Flavor})
+		}
+		if useTable {
+			cells = append(cells, &simpletable.Cell{Align: simpletable.AlignRight, Text: fmt.Sprintf("%d", sb.SandboxDesc.Nodes)})
+			cells = append(cells, &simpletable.Cell{Text: isLocked})
+		}
+		table.Body.Cells = append(table.Body.Cells, cells)
 	}
-	for _, dir := range dirs {
-		fmt.Println(dir)
+	table.SetStyle(simpletable.StyleCompactLite)
+	if useTable {
+		table.SetStyle(simpletable.StyleRounded)
 	}
+	table.Println()
 }
 
 var sandboxesCmd = &cobra.Command{
@@ -171,4 +233,7 @@ func init() {
 
 	sandboxesCmd.Flags().BoolP(globals.CatalogLabel, "", false, "Use sandboxes catalog instead of scanning directory")
 	sandboxesCmd.Flags().BoolP(globals.HeaderLabel, "", false, "Shows header with catalog output")
+	sandboxesCmd.Flags().BoolP(globals.TableLabel, "", false, "Shows sandbox list as a table")
+	sandboxesCmd.Flags().BoolP(globals.FlavorLabel, "", false, "Shows flavor in sandbox list")
+	sandboxesCmd.Flags().BoolP(globals.FullInfoLabel, "", false, "Shows all info in table format")
 }

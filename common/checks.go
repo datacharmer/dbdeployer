@@ -30,6 +30,7 @@ import (
 
 type SandboxInfo struct {
 	SandboxName string
+	SandboxDesc SandboxDescription
 	Locked      bool
 }
 
