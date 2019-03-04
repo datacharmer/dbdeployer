@@ -109,13 +109,20 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 	if nodes < 2 {
 		return emptyStringMap, fmt.Errorf("only one node requested. For single sandbox deployment, use the 'single' command")
 	}
+	stopNodeList := ""
+	for i := nodes; i > 0; i-- {
+		stopNodeList += fmt.Sprintf(" %d", i)
+	}
 	timestamp := time.Now()
+	nodeLabel := defaults.Defaults().NodePrefix
 	var data = common.StringMap{
-		"Copyright":  Copyright,
-		"AppVersion": common.VersionDef,
-		"DateTime":   timestamp.Format(time.UnixDate),
-		"SandboxDir": sandboxDef.SandboxDir,
-		"Nodes":      []common.StringMap{},
+		"Copyright":    Copyright,
+		"AppVersion":   common.VersionDef,
+		"DateTime":     timestamp.Format(time.UnixDate),
+		"SandboxDir":   sandboxDef.SandboxDir,
+		"StopNodeList": stopNodeList,
+		"NodeLabel":    nodeLabel,
+		"Nodes":        []common.StringMap{},
 	}
 
 	sbDesc := common.SandboxDescription{
@@ -144,17 +151,17 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 	}
 
 	logger.Printf("Defining multiple sandbox data: %v\n", stringMapToJson(data))
-	nodeLabel := defaults.Defaults().NodePrefix
 	for i := 1; i <= nodes; i++ {
 		sandboxDef.Port = basePort + i
 		data["Nodes"] = append(data["Nodes"].([]common.StringMap), common.StringMap{
-			"Copyright":  Copyright,
-			"AppVersion": common.VersionDef,
-			"DateTime":   timestamp.Format(time.UnixDate),
-			"Node":       i,
-			"NodePort":   sandboxDef.Port,
-			"NodeLabel":  nodeLabel,
-			"SandboxDir": sandboxDef.SandboxDir,
+			"Copyright":    Copyright,
+			"AppVersion":   common.VersionDef,
+			"DateTime":     timestamp.Format(time.UnixDate),
+			"Node":         i,
+			"NodePort":     sandboxDef.Port,
+			"NodeLabel":    nodeLabel,
+			"SandboxDir":   sandboxDef.SandboxDir,
+			"StopNodeList": stopNodeList,
 		})
 		sandboxDef.LoadGrants = true
 		sandboxDef.DirName = fmt.Sprintf("%s%d", nodeLabel, i)
@@ -193,11 +200,12 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		}
 
 		var dataNode = common.StringMap{
-			"Node":       i,
-			"NodePort":   sandboxDef.Port,
-			"NodeLabel":  nodeLabel,
-			"SandboxDir": sandboxDef.SandboxDir,
-			"Copyright":  Copyright,
+			"Node":         i,
+			"NodePort":     sandboxDef.Port,
+			"NodeLabel":    nodeLabel,
+			"SandboxDir":   sandboxDef.SandboxDir,
+			"Copyright":    Copyright,
+			"StopNodeList": stopNodeList,
 		}
 		logger.Printf("Creating node script for node %d\n", i)
 		logger.Printf("Defining multiple sandbox node inner data: %v\n", stringMapToJson(dataNode))
