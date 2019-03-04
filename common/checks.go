@@ -22,6 +22,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -139,7 +140,7 @@ func GetInstalledPorts(sandboxHome string) ([]int, error) {
 				}
 			} else {
 				var nodeDescr []SandboxDescription
-				innerInstalledSandboxes, err := GetInstalledSandboxes(sandboxHome)
+				innerInstalledSandboxes, err := GetInstalledSandboxes(filepath.Join(sandboxHome, fname))
 				if err != nil {
 					return []int{}, err
 				}
