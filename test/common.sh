@@ -496,6 +496,19 @@ function ok_executable_does_not_exist {
     ok_generic_does_not_exist $filename "file" "-x"
 }
 
+function ok_template {
+    filename=$1
+    no_values=$(grep 'no.value' $filename)
+    if [ -z "$no_values" ]
+    then
+        echo "ok - $filename does not have missing values"
+        pass=$((pass+1))
+    else
+        echo "not ok - $filename has missing values"
+        fail=$((fail+1))
+    fi
+    tests=$((tests+1))
+}
 
 function run {
     temp_stop_sec=$(date +%s)
@@ -562,6 +575,7 @@ function test_completeness {
         for fname in ${non_scripts[*]}
         do
             ok_file_exists $sbdir/$fname
+            ok_template $sbdir/$fname
         done
     else
         for dir in ${folders[*]}
@@ -569,6 +583,7 @@ function test_completeness {
             for fname in ${non_scripts[*]}
             do
                 ok_file_exists $sbdir/$dir/$fname
+                ok_template $sbdir/$dir/$fname
             done
         done
     fi
@@ -581,11 +596,13 @@ function test_completeness {
         fi
         fname=$f$script_postfix
         ok_executable_exists $sbdir/$fname
+        ok_template $sbdir/$fname
         if [ "$mode" != "single" ]
         then
             for dir in ${folders[*]}
             do
                 ok_executable_exists $sbdir/$dir/$f
+                ok_template $sbdir/$dir/$f
             done
         fi
     done
