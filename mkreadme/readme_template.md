@@ -74,6 +74,35 @@ The ``deploy replication`` command will install a master and two or more slaves,
 
 	{{dbdeployer deploy replication -h}}
 
+As of version 1.21.0, you can use Percona Xtradb Cluster tarballs to deploy replication of type *pxc*. This deployment only works on Linux.
+
+## Database server flavors
+
+Before version 1.19.0, dbdeployer assumed that it was dealing to some version of MySQL, using the version to decide which features it would support. In version 1.19.0 dbdeployer started using the concept of **capabilities**, which is a combination of server **flavor** + a version. Some flavors currently supported are
+
+* `mysql` : the classic MySQL server
+* `percona` : Percona Server, any version. For the purposes of deployment, it has the same capabilities as MySQL
+* `mariadb`: MariaDB server. Mostly the same as MySQL, but with differences in deployment methods.
+* `pxc`: Percona Xtradb Cluster
+* `tidb`: A stand-alone TiDB server.
+
+To see what every flavor can do, you can use the command `dbdeployer admin capabilities`.
+
+To see the features of a given flavor: `dbdeployer admin capabilities FLAVOR`.
+
+And to see what a given version of a flavor can do, you can use `dbdeployer admin capabilities FLAVOR VERSION`.
+
+For example
+
+```shell
+$ dbdeployer admin capabilities
+
+$ dbdeployer admin capabilities percona
+
+$ dbdeployer admin capabilities mysql 5.7.11
+$ dbdeployer admin capabilities mysql 5.7.13
+```
+
 ## Getting remote tarballs
 
 As of version 1.16.0, dbdeployer can download remote MySQL tarballs from a Github repository. The tarball are reduced ones, created inside [Mysql-Docker-Minimal](https://github.com/datacharmer/mysql-docker-minimal).
@@ -210,11 +239,11 @@ You can deploy a single sandbox for a Percona server version 5.7.22 using any of
     dbdeployer deploy single $HOME/opt/percona/5.7.22
 
     #3
-    dbdeployer defaults update sandbox-binary $HOME/opt/percona 
+    dbdeployer defaults update sandbox-binary $HOME/opt/percona
     dbdeployer deploy single 5.7.22
 
     #4
-    export SANDBOX_BINARY=$HOME/opt/percona 
+    export SANDBOX_BINARY=$HOME/opt/percona
     dbdeployer deploy single 5.7.22
 
 Methods #1 and #2 are equivalent. They set the sandbox binary directory temporarily to a new one, and use it for the current deployement
@@ -370,7 +399,7 @@ For replication, you also have ``show_binlog`` and ``show_relaylog`` in every sa
 
 In addition to enabling database logs, you can also have logs of the operations performed by dbdeployer when building and activating sandboxes.
 The logs are disabled by default. You can enable them for a given operation using ``--log-sb-operations``. When the logs are enabled, dbdeployer will create one or more log files in a directory under ``$HOME/sandboxes/logs``.
-For a single sandbox, the log directory will be named ``single_v_v_vv-xxxx``, where ``v_v_vv`` is the version number and ``xxxx`` is dbdeployer Process ID. Inside the directory, there will be a file names ``single.log``. 
+For a single sandbox, the log directory will be named ``single_v_v_vv-xxxx``, where ``v_v_vv`` is the version number and ``xxxx`` is dbdeployer Process ID. Inside the directory, there will be a file names ``single.log``.
 
 For a replication sandbox, the directory will be named ``replication_v_v_vv-xxxx`` and it will contain at least 3 files: ``master-slave-replication.log`` with replication operations, and two single sandbox (one for master and one for a slave) logs named ``replication-node-x.log``. If there is more than one slave, each one will have its own log.
 
@@ -378,7 +407,7 @@ dbdeployer logs will record which function ran which operation, with the data us
 
 The name of the log is available inside the file ``sbdescription.json`` in each sandbox. If logging is disabled, the log field is not listed.
 
-The logs are preserved until the corresponding sandbox is deleted. 
+The logs are preserved until the corresponding sandbox is deleted.
 
 Logging can be enabled permanently using the defaults: ``dbdeployer defaults update log-sb-operations true``. Similarly, you can change the log-directory either for a single operation (``--log-directory=...``) or permanently (``dbdeployer defaults update log-directory /my/path/to/logs``)
 
@@ -627,7 +656,7 @@ Should you need additional formats, though, dbdeployer is able to generate them 
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 
-This is the command used to help generating the API documentation. 
+This is the command used to help generating the API documentation.
 
 {{dbdeployer-docs tree -h}}
 

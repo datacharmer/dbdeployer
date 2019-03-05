@@ -78,14 +78,13 @@ func replicationSandbox(cmd *cobra.Command, args []string) {
 	}
 }
 
-// replicationCmd represents the replication command
 var replicationCmd = &cobra.Command{
 	Use: "replication MySQL-Version",
 	//Args:  cobra.ExactArgs(1),
 	Short: "create replication sandbox",
 	Long: `The replication command allows you to deploy several nodes in replication.
 Allowed topologies are "master-slave" for all versions, and  "group", "all-masters", "fan-in"
-for  5.7.17+. 
+for  5.7.17+.
 Topology "pcx" is available for binaries of type Percona Xtradb Cluster.
 For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
 the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
@@ -112,12 +111,7 @@ Use the "unpack" command to get the tarball into the right directory.
 }
 
 func init() {
-	// rootCmd.AddCommand(replicationCmd)
 	deployCmd.AddCommand(replicationCmd)
-	//replicationCmd.PersistentFlags().StringSliceP("master-options", "", "", "Extra options for the master")
-	//replicationCmd.PersistentFlags().StringSliceP("slave-options", "", "", "Extra options for the slaves")
-	//replicationCmd.PersistentFlags().StringSliceP("node-options", "", "", "Extra options for all nodes")
-	//replicationCmd.PersistentFlags().StringSliceP("one-node-options", "", "", "Extra options for one node (format #:option)")
 	replicationCmd.PersistentFlags().StringP(globals.MasterListLabel, "", globals.MasterListValue, "Which nodes are masters in a multi-source deployment")
 	replicationCmd.PersistentFlags().StringP(globals.SlaveListLabel, "", globals.SlaveListValue, "Which nodes are slaves in a multi-source deployment")
 	replicationCmd.PersistentFlags().StringP(globals.MasterIpLabel, "", globals.MasterIpValue, "Which IP the slaves will connect to")
