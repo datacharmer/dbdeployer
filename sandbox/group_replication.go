@@ -291,8 +291,8 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		sbItem.Nodes = append(sbItem.Nodes, sandboxDef.DirName)
 		sbItem.Port = append(sbItem.Port, sandboxDef.Port)
 		sbDesc.Port = append(sbDesc.Port, sandboxDef.Port)
-		sbItem.Port = append(sbItem.Port, sandboxDef.Port+defaults.Defaults().GroupPortDelta)
-		sbDesc.Port = append(sbDesc.Port, sandboxDef.Port+defaults.Defaults().GroupPortDelta)
+		sbItem.Port = append(sbItem.Port, groupPort)
+		sbDesc.Port = append(sbDesc.Port, groupPort)
 
 		if !sandboxDef.RunConcurrently {
 			installationMessage := "Installing and starting %s %d\n"
@@ -315,7 +315,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		if err != nil {
 			return err
 		}
-		if isMinimumMySQLXDefault {
+		if isMinimumMySQLXDefault || sandboxDef.EnableMysqlX {
 			sandboxDef.MysqlXPort = baseMysqlxPort + i
 			if !sandboxDef.DisableMysqlX {
 				sbDesc.Port = append(sbDesc.Port, baseMysqlxPort+i)

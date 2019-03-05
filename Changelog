@@ -1,3 +1,16 @@
+1.21.0	05-Mar-2019
+	NEW FEATURES:
+	- Added support for Percona Xtradb Cluster (--topology=pxc) [Linux only]
+	- Added check for Unix tools before deploying.
+1.20.0  24-Feb-2019 (not released)
+	NEW FEATURES:
+	- Added command "delete-binaries"
+	- Added option --overwrite to "unpack" command
+	- Added flavors to "sandboxes"
+	- Added options --flavor and --full-info to "sandboxes"
+	- Added options --flavor-in-prompt to "deploy"
+	- Added option --socket-in-datadir to "deploy"
+	- Added option --prompt to "deploy single"
 1.19.0	17-Feb-2019
 	ADJUSTMENTS:
 	- Changed "remote get" docs to reflect changed names

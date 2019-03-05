@@ -42,15 +42,16 @@ secure-file-priv=
 loose-innodb-status-file=1
 log-output=none
 wsrep_slave_threads=2
+wsrep_sst_receive_address=127.0.0.1:__RSYNC_PORT__
 `
 
 func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
 	var execLists []concurrent.ExecutionList
 	var err error
 
-	if sandboxDef.RunConcurrently {
-		fmt.Printf("Removing concurrency, as it doesn't work correctly with %s\n", sandboxDef.Flavor)
-		sandboxDef.RunConcurrently = false
+	err = common.CheckPrerequisites("PXC", globals.NeededPxcExecutables)
+	if err != nil {
+		return err
 	}
 	var logger *defaults.Logger
 	if sandboxDef.Logger != nil {
@@ -101,9 +102,12 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		return errors.Wrapf(err, "error retrieving free port for replication")
 	}
 	pxcPortDelta := defaults.Defaults().GroupPortDelta
+	pxcRsyncPortDelta := pxcPortDelta + nodes + 10
 	basePort = firstGroupPort - 1
 	baseGroupPort := basePort + pxcPortDelta
-	firstGroupPort, err = common.FindFreePort(baseGroupPort+1, sandboxDef.InstalledPorts, nodes)
+	baseRsyncPort := basePort + pxcRsyncPortDelta
+
+	firstGroupPort, err = common.FindFreePort(baseGroupPort+1, sandboxDef.InstalledPorts, nodes*2)
 	if err != nil {
 		return errors.Wrapf(err, "error retrieving PXC replication free port")
 	}
@@ -114,7 +118,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 			return err
 		}
 	}
-	for checkPort := baseGroupPort + 1; checkPort < baseGroupPort+nodes+1; checkPort++ {
+	for checkPort := baseGroupPort + 1; checkPort < baseGroupPort+(nodes*2)+1; checkPort++ {
 		err = checkPortAvailability("CreatePxcReplication-group", sandboxDef.SandboxDir, sandboxDef.InstalledPorts, checkPort)
 		if err != nil {
 			return err
@@ -124,6 +128,19 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 	if err != nil {
 		return err
 	}
+
+	firstGroupPort, err = common.FindFreePort(baseRsyncPort+1, sandboxDef.InstalledPorts, nodes)
+	if err != nil {
+		return errors.Wrapf(err, "error retrieving PXC replication free port")
+	}
+	baseRsyncPort = firstGroupPort - 1
+	for checkPort := baseRsyncPort + 1; checkPort < baseRsyncPort+nodes+1; checkPort++ {
+		err = checkPortAvailability("CreatePxcReplication-rsync", sandboxDef.SandboxDir, sandboxDef.InstalledPorts, checkPort)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = os.Mkdir(sandboxDef.SandboxDir, globals.PublicDirectoryAttr)
 	if err != nil {
 		return err
@@ -164,12 +181,18 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		"Nodes":             []common.StringMap{},
 	}
 	connectionString := ""
-	for i := 0; i < nodes; i++ {
-		groupPort := baseGroupPort + i + 1
-		if connectionString != "" {
-			connectionString += ","
+	// Connection ports are 1, 3, 5, etc
+	// IST ports are 2, 4, 6, etc
+	groupPorts := []int{0}
+	for i := 1; i <= nodes*2; i++ {
+		if i%2 == 0 {
+			groupPort := baseGroupPort + i
+			groupPorts = append(groupPorts, groupPort)
+			if connectionString != "" {
+				connectionString += ","
+			}
+			connectionString += fmt.Sprintf("127.0.0.1:%d", groupPort)
 		}
-		connectionString += fmt.Sprintf("127.0.0.1:%d", groupPort)
 	}
 	logger.Printf("Creating connection string %s\n", connectionString)
 
@@ -204,7 +227,8 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 	var auxGroupCommunication string = ""
 
 	for i := 1; i <= nodes; i++ {
-		groupPort := baseGroupPort + i
+		groupPort := groupPorts[i]
+		rsyncPort := baseRsyncPort + i
 		sandboxDef.Port = basePort + i
 		data["Nodes"] = append(data["Nodes"].([]common.StringMap), common.StringMap{
 			"Copyright":         Copyright,
@@ -225,13 +249,24 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 			"RplPassword":       sandboxDef.RplPassword})
 
 		sandboxDef.DirName = fmt.Sprintf("%s%d", nodeLabel, i)
-		sandboxDef.MorePorts = []int{groupPort}
+		sandboxDef.MorePorts = []int{
+			groupPort,
+			groupPort + 1, // IST port
+			rsyncPort}
 		sandboxDef.ServerId = (baseServerId + i) * 100
 		sbItem.Nodes = append(sbItem.Nodes, sandboxDef.DirName)
+
 		sbItem.Port = append(sbItem.Port, sandboxDef.Port)
 		sbDesc.Port = append(sbDesc.Port, sandboxDef.Port)
-		sbItem.Port = append(sbItem.Port, sandboxDef.Port+pxcPortDelta)
-		sbDesc.Port = append(sbDesc.Port, sandboxDef.Port+pxcPortDelta)
+
+		sbItem.Port = append(sbItem.Port, groupPort)
+		sbDesc.Port = append(sbDesc.Port, groupPort)
+
+		sbItem.Port = append(sbItem.Port, groupPort+1) // IST port
+		sbDesc.Port = append(sbDesc.Port, groupPort+1) // IST port
+
+		sbItem.Port = append(sbItem.Port, rsyncPort)
+		sbDesc.Port = append(sbDesc.Port, rsyncPort)
 
 		if i == 1 {
 			groupCommunication = "gcomm://"
@@ -253,12 +288,14 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		sandboxDef.ReplOptions = SingleTemplates["replication_options"].Contents + fmt.Sprintf("\n%s\n", pxcReplicationOptions)
 		reMasterIp := regexp.MustCompile(`127\.0\.0\.1`)
 		reGroupPort := regexp.MustCompile(`__GROUP_PORT__`)
+		reRSyncPort := regexp.MustCompile(`__RSYNC_PORT__`)
 		reGroupCommunication := regexp.MustCompile(`__GROUP_COMMUNICATION__`)
 		reBasedir := regexp.MustCompile(`__BASEDIR__`)
 		sandboxDef.ReplOptions = reMasterIp.ReplaceAllString(sandboxDef.ReplOptions, masterIp)
 		sandboxDef.ReplOptions = reGroupCommunication.ReplaceAllString(sandboxDef.ReplOptions, groupCommunication)
 		sandboxDef.ReplOptions = reBasedir.ReplaceAllString(sandboxDef.ReplOptions, sandboxDef.Basedir)
 		sandboxDef.ReplOptions = reGroupPort.ReplaceAllString(sandboxDef.ReplOptions, fmt.Sprintf("%d", groupPort))
+		sandboxDef.ReplOptions = reRSyncPort.ReplaceAllString(sandboxDef.ReplOptions, fmt.Sprintf("%d", rsyncPort))
 
 		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["gtid_options_57"].Contents)
 		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["repl_crash_safe_options"].Contents)
@@ -268,7 +305,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		if err != nil {
 			return err
 		}
-		if isMinimumMySQLXDefault {
+		if isMinimumMySQLXDefault || sandboxDef.EnableMysqlX {
 			sandboxDef.MysqlXPort = baseMysqlxPort + i
 			if !sandboxDef.DisableMysqlX {
 				sbDesc.Port = append(sbDesc.Port, baseMysqlxPort+i)

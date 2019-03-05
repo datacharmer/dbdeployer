@@ -299,6 +299,20 @@ func Which(filename string) string {
 	return globals.EmptyString
 }
 
+func CheckPrerequisites(label string, neededExecutables []string) error {
+	missingExecutables := []string{}
+	for _, executable := range neededExecutables {
+		execPath := Which(executable)
+		if execPath == "" {
+			missingExecutables = append(missingExecutables, executable)
+		}
+	}
+	if len(missingExecutables) > 0 {
+		return fmt.Errorf("[%s] missing executables: %v", label, missingExecutables)
+	}
+	return nil
+}
+
 // returns true if a given executable exists
 func ExecExists(filename string) bool {
 	_, err := exec.LookPath(filename)

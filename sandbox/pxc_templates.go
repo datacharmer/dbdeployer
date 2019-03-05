@@ -28,7 +28,8 @@ CHECK_NODE="SHOW GLOBAL STATUS WHERE variable_name IN"
 CHECK_NODE="$CHECK_NODE ('wsrep_local_state','wsrep_local_state_comment',"
 CHECK_NODE="$CHECK_NODE 'wsrep_local_commits','wsrep_received',"
 CHECK_NODE="$CHECK_NODE 'wsrep_cluster_size','wsrep_cluster_status',"
-CHECK_NODE="$CHECK_NODE 'wsrep_connected','wsrep_ready')"
+CHECK_NODE="$CHECK_NODE 'wsrep_local_state_uuid','wsrep_incoming_addresses',"
+CHECK_NODE="$CHECK_NODE 'wsrep_gcomm_uuid','wsrep_connected','wsrep_ready')"
 
 {{ range .Nodes}}
 	echo "# Node {{.Node}}"

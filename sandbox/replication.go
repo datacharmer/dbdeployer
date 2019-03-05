@@ -236,7 +236,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	if err != nil {
 		return err
 	}
-	if isMinimumMySQLXDefault {
+	if isMinimumMySQLXDefault || sandboxDef.EnableMysqlX {
 		sandboxDef.MysqlXPort = baseMysqlxPort + 1
 		if !sandboxDef.DisableMysqlX {
 			sbDesc.Port = append(sbDesc.Port, baseMysqlxPort+1)
@@ -280,7 +280,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		if err != nil {
 			return err
 		}
-		if isMinimumMySQLXDefault {
+		if isMinimumMySQLXDefault || sandboxDef.EnableMysqlX {
 			sandboxDef.MysqlXPort = baseMysqlxPort + i + 1
 			if !sandboxDef.DisableMysqlX {
 				sbDesc.Port = append(sbDesc.Port, baseMysqlxPort+i+1)

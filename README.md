@@ -3,7 +3,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.19.0 (17-Feb-2019 21:36 UTC)
+Documentation updated for version 1.21.0 (05-Mar-2019 19:10 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -15,7 +15,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.19.0
+    $ VERSION=1.21.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -50,7 +50,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.19.0
+    dbdeployer version 1.21.0
     
 
     $ dbdeployer -h
@@ -61,17 +61,18 @@ The program doesn't have any dependencies. Everything is included in the binary.
       dbdeployer [command]
     
     Available Commands:
-      admin       sandbox management tasks
-      defaults    tasks related to dbdeployer defaults
-      delete      delete an installed sandbox
-      deploy      deploy sandboxes
-      global      Runs a given command in every sandbox
-      help        Help about any command
-      remote      Manages remote tarballs
-      sandboxes   List installed sandboxes
-      unpack      unpack a tarball into the binary directory
-      usage       Shows usage of installed sandboxes
-      versions    List available versions
+      admin           sandbox management tasks
+      defaults        tasks related to dbdeployer defaults
+      delete          delete an installed sandbox
+      delete-binaries delete an expanded tarball
+      deploy          deploy sandboxes
+      global          Runs a given command in every sandbox
+      help            Help about any command
+      remote          Manages remote tarballs
+      sandboxes       List installed sandboxes
+      unpack          unpack a tarball into the binary directory
+      usage           Shows usage of installed sandboxes
+      versions        List available versions
     
     Flags:
           --config string           configuration file (default "$HOME/.dbdeployer/config.json")
@@ -117,6 +118,7 @@ If you don't have any tarballs installed in your system, you should first ``unpa
     Flags:
           --flavor string           Defines the tarball flavor (MySQL, NDB, Percona Server, etc)
       -h, --help                    help for unpack
+          --overwrite               Overwrite the destination directory if already exists
           --prefix string           Prefix for the final expanded directory
           --shell                   Unpack a shell tarball into the corresponding server directory
           --target-server string    Uses a different server to unpack a shell tarball
@@ -153,6 +155,7 @@ The easiest command is ``deploy single``, which installs a single sandbox.
           --enable-mysqlx                 Enables MySQLX plugin (5.7.12+)
           --expose-dd-tables              In MySQL 8.0+ shows data dictionary tables
           --flavor string                 Defines the tarball flavor (MySQL, NDB, Percona Server, etc)
+          --flavor-in-prompt              Add flavor values to prompt
           --force                         If a destination sandbox already exists, it will be overwritten
           --gtid                          enables GTID
       -h, --help                          help for deploy
@@ -179,6 +182,7 @@ The easiest command is ``deploy single``, which installs a single sandbox.
           --skip-report-host              Does not include report host in my.sandbox.cnf
           --skip-report-port              Does not include report port in my.sandbox.cnf
           --skip-start                    Does not start the database server
+          --socket-in-datadir             Create socket in datadir instead of $TMPDIR
           --use-template strings          [template_name:file_name] Replace existing template with one from file
     
     
@@ -201,8 +205,9 @@ The easiest command is ``deploy single``, which installs a single sandbox.
       dbdeployer deploy single MySQL-Version [flags]
     
     Flags:
-      -h, --help     help for single
-          --master   Make the server replication ready
+      -h, --help            help for single
+          --master          Make the server replication ready
+          --prompt string   Default prompt for the single client (default "mysql")
     
     
 
@@ -961,18 +966,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 1. Make sure you have go 1.10+ installed in your system, and that the ``$GOPATH`` variable is set.
 2. Run ``go get -u github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
-4. Run ``./scripts/build.sh {linux|OSX} 1.19.0``
-5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.19.0``
+4. Run ``./scripts/build.sh {linux|OSX} 1.21.0``
+5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.21.0``
 
 ## Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.19.0-docs.linux.tar.gz
-* dbdeployer-1.19.0-docs.osx.tar.gz
-* dbdeployer-1.19.0.linux.tar.gz
-* dbdeployer-1.19.0.osx.tar.gz
+* dbdeployer-1.21.0-docs.linux.tar.gz
+* dbdeployer-1.21.0-docs.osx.tar.gz
+* dbdeployer-1.21.0.linux.tar.gz
+* dbdeployer-1.21.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

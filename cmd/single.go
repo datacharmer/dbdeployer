@@ -148,7 +148,11 @@ func getFlavor(userDefinedFlavor, basedir string) string {
 
 func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxDef, error) {
 	var sd sandbox.SandboxDef
-
+	var err error
+	err = common.CheckPrerequisites("dbdeployer needed tools", globals.NeededExecutables)
+	if err != nil {
+		return sd, err
+	}
 	flags := cmd.Flags()
 
 	logSbOperations, _ := flags.GetBool(globals.LogSBOperationsLabel)

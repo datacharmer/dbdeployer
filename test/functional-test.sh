@@ -63,6 +63,7 @@ then
     export skip_dd_operations=1
     export skip_upgrade_operations=1
     export skip_multi_source_operations=1
+    export skip_pxc_operations=1
     export no_tests=1
 fi
 
@@ -96,6 +97,7 @@ do
             unset skip_dd_operations
             unset skip_upgrade_operations
             unset skip_multi_source_operations
+            unset skip_pxc_operations
             unset no_tests
             echo "# Enabling all tests"
             ;;
@@ -149,6 +151,11 @@ do
             unset no_tests
             echo "# Enabling multi-source operations tests"
             ;;
+        pxc)
+            unset skip_pxc_operations
+            unset no_tests
+            echo "# Enabling PXC operations tests"
+            ;;
         *)
             echo "Allowed tests (you can choose more than one):"
             echo "  main     : main deployment methods"
@@ -160,6 +167,7 @@ do
             echo "  dd       : data dictionary operations "
             echo "  upgrade  : upgrade operations "
             echo "  multi    : multi-source operations (fan-in, all-masters)"
+            echo "  pxc      : PXC operations"
             echo "  all      : enable all the above tests"
             echo ""
             echo "Allowed modifiers:"
@@ -612,12 +620,14 @@ fi
 [ -z "$group_short_versions" ] && group_short_versions=(5.7 8.0)
 [ -z "$dd_short_versions" ] && dd_short_versions=(8.0)
 [ -z "$semisync_short_versions" ] && semisync_short_versions=(5.5 5.6 5.7 8.0)
+[ -z "$pxc_short_versions" ] && pxc_short_versions=(pxc5.7)
 count=0
 all_versions=()
 tidb_versions=(tidb3.0.0)
 group_versions=()
 semisync_versions=()
 dd_versions=()
+pxc_versions=()
 
 OS=$(uname | tr '[:upper:]' '[:lower:]')
 if [ -x "sort_versions.$OS" ]
@@ -696,6 +706,16 @@ do
     fi
 done
 
+count=0
+for v in ${pxc_short_versions[*]}
+do
+    latest=$(ls $BINARY_DIR | grep "^$v" | ./sort_versions | tail -n 1)
+    if [ -n "$latest" ]
+    then
+        pxc_versions[$count]=$latest
+        count=$((count+1))
+    fi
+done
 
 unset will_fail
 for V in ${all_versions[*]}
@@ -1161,6 +1181,33 @@ function multi_source_operations {
     done
 }
 
+function pxc_operations {
+    current_test=pxc_operations
+    test_header pxc_operations "" double
+    operating_system=$(uname -s | tr 'A-Z' 'a-z' )
+    if [ "$operating_system" != "linux" ]
+    then
+        echo "Skipping PXC tests on non-Linux system"
+        return
+    fi
+    processes_before=$(pgrep mysqld | wc -l | tr -d ' \t')
+    for V in ${pxc_versions[*]}
+    do
+        echo "# PXC operations $V"
+        run dbdeployer deploy replication $V --topology=pxc
+        results "PXC $V"
+
+        capture_test run dbdeployer global test
+        capture_test run dbdeployer global test-replication
+        test_use_masters_slaves $V pxc_msb_ 3 3
+        test_ports $V pxc_msb_ 12 3
+        check_for_exit pxc_operations
+        test_deletion $V 1 $processes_before
+        results "pxc $V - after deletion"
+    done
+}
+
+
 if [ -z "$skip_main_deployment_methods" ]
 then
     main_deployment_methods
@@ -1196,6 +1243,10 @@ fi
 if [ -z "$skip_multi_source_operations" ]
 then
     multi_source_operations
+fi
+if [ -z "$skip_pxc_operations" ]
+then
+    pxc_operations
 fi
 
 stop_timer

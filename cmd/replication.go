@@ -31,7 +31,7 @@ func replicationSandbox(cmd *cobra.Command, args []string) {
 	if sd.Flavor == common.TiDbFlavor {
 		common.Exitf(1, "flavor '%s' is not suitable to create replication sandboxes", common.TiDbFlavor)
 	}
-	common.ErrCheckExitf(err, 1, "error filling sandbox definition")
+	common.ErrCheckExitf(err, 1, "error filling sandbox definition : %s", err)
 	sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 	flags := cmd.Flags()
 	semisync, _ = flags.GetBool(globals.SemiSyncLabel)
@@ -85,7 +85,8 @@ var replicationCmd = &cobra.Command{
 	Short: "create replication sandbox",
 	Long: `The replication command allows you to deploy several nodes in replication.
 Allowed topologies are "master-slave" for all versions, and  "group", "all-masters", "fan-in"
-for  5.7.17+.
+for  5.7.17+. 
+Topology "pcx" is available for binaries of type Percona Xtradb Cluster.
 For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
 the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
 Use the "unpack" command to get the tarball into the right directory.
@@ -106,6 +107,7 @@ Use the "unpack" command to get the tarball into the right directory.
 		$ dbdeployer deploy --topology=group replication 8.0 --single-primary
 		$ dbdeployer deploy --topology=all-masters replication 5.7
 		$ dbdeployer deploy --topology=fan-in replication 5.7
+		$ dbdeployer deploy --topology=pxc replication pxc5.7.25
 	`,
 }
 

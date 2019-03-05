@@ -55,6 +55,7 @@ const (
 	MyCnfFileLabel         = "my-cnf-file"
 	MyCnfOptionsLabel      = "my-cnf-options"
 	NativeAuthPluginLabel  = "native-auth-plugin"
+	OverwriteLabel         = "overwrite"
 	PortLabel              = "port"
 	PostGrantsSqlFileLabel = "post-grants-sql-file"
 	PostGrantsSqlLabel     = "post-grants-sql"
@@ -123,8 +124,10 @@ const (
 	ConfirmLabel     = "confirm"
 
 	// Instantiated in cmd/sandboxes.go
-	CatalogLabel = "catalog"
-	HeaderLabel  = "header"
+	CatalogLabel  = "catalog"
+	HeaderLabel   = "header"
+	TableLabel    = "table"
+	FullInfoLabel = "full-info"
 
 	// Instantiated in cmd/templates.go
 	SimpleLabel       = "simple"
@@ -272,4 +275,13 @@ var (
 	EmptyString  = ""
 	EmptyStrings []string
 	EmptyBytes   []byte
+
+	// Executables needed for dbdeployer generated scripts
+	NeededExecutables = []string{
+		"awk", "bash", "cat", "echo", "grep", "kill",
+		"ls", "mkdir", "printf", "rm", "sleep", "stat",
+		"test", "tr"}
+
+	// Extra executables needed for PXC
+	NeededPxcExecutables = []string{"rsync", "lsof"}
 )

@@ -174,7 +174,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		if err != nil {
 			return emptyStringMap, err
 		}
-		if isMinimumMySQLXDefault {
+		if isMinimumMySQLXDefault || sandboxDef.EnableMysqlX {
 			sandboxDef.MysqlXPort = baseMysqlxPort + i
 			if !sandboxDef.DisableMysqlX {
 				sbDesc.Port = append(sbDesc.Port, baseMysqlxPort+i)

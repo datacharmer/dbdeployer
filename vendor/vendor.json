@@ -3,6 +3,12 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "L5cAazIMZ8MArdtUZ5Mm36NDvIs=",
+			"path": "github.com/alexeyco/simpletable",
+			"revision": "1fa9009f10802febcb49056af26900ccb4db5c11",
+			"revisionTime": "2018-07-29T22:36:40Z"
+		},
+		{
 			"checksumSHA1": "iHA4KlS7lr1M2UPQWGpXuT5RdqQ=",
 			"path": "github.com/cpuguy83/go-md2man",
 			"revision": "",
