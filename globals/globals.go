@@ -258,6 +258,7 @@ var (
 	MariaDbMinimumGtidVersion        = []int{10, 0, 0}
 	MariaDbMinimumMultiSourceVersion = []int{10, 0, 0}
 	MinimumXtradbClusterVersion      = []int{5, 7, 14}
+	MinimumRootAuthVersion           = []int{10, 4, 3}
 )
 
 const (
