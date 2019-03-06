@@ -490,6 +490,14 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			logger.Printf("Using mysql_native_password for authentication\n")
 		}
 	}
+	// MariaDB 10.4.3 defaults to socket auth
+	isMinimumRootAuth, err := common.HasCapability(sandboxDef.Flavor, common.RootAuth, sandboxDef.Version)
+	if err != nil {
+		return emptyExecutionList, err
+	}
+	if isMinimumRootAuth {
+		sandboxDef.InitOptions = append(sandboxDef.InitOptions, "--auth-root-authentication-method=normal")
+	}
 	// 8.0.11
 	// isMinimumMySQLXDefault, err = common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
 	isMinimumMySQLXDefault, err = common.HasCapability(sandboxDef.Flavor, common.MySQLXDefault, sandboxDef.Version)

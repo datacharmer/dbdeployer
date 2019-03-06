@@ -68,6 +68,7 @@ const (
 	NativeAuth       = "nativeAuth"
 	DataDict         = "datadict"
 	XtradbCluster    = "xtradbCluster"
+	RootAuth         = "rootAuth"
 )
 
 var MySQLCapabilities = Capabilities{
@@ -269,6 +270,10 @@ var MariadbCapabilities = Capabilities{
 			Description: "uses mysql_install_db",
 			Since:       globals.MinimumMySQLInstallDb,
 			Until:       nil,
+		},
+		RootAuth: {
+			Description: "Root Authentication during install",
+			Since:       globals.MinimumRootAuthVersion,
 		},
 		DynVariables: MySQLCapabilities.Features[DynVariables],
 		SemiSynch:    MySQLCapabilities.Features[SemiSynch],
