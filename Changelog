@@ -1,3 +1,6 @@
+1.22.0	07-Mar-2019
+	ADJUSTMENTS:
+	Change default authentication plugin for MariaDB 10.4.3 (Issue #67)
 1.21.0	05-Mar-2019
 	NEW FEATURES:
 	- Added support for Percona Xtradb Cluster (--topology=pxc) [Linux only]
