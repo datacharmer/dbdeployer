@@ -104,6 +104,7 @@ const (
 	TopologyLabel       = "topology"
 	TopologyValue       = "master-slave"
 	PxcLabel            = "pxc"
+	NdbLabel            = "ndb"
 
 	// Instantiated in cmd/unpack.go and unpack/unpack.go
 	GzExt              = ".gz"
@@ -258,6 +259,7 @@ var (
 	MariaDbMinimumGtidVersion        = []int{10, 0, 0}
 	MariaDbMinimumMultiSourceVersion = []int{10, 0, 0}
 	MinimumXtradbClusterVersion      = []int{5, 7, 14}
+	MinimumNdbClusterVersion         = []int{7, 0, 0}
 	MinimumRootAuthVersion           = []int{10, 4, 3}
 )
 
@@ -268,6 +270,15 @@ const (
 	SandboxDescriptionName = "sbdescription.json"
 	ForbiddenDirName       = "lost+found"
 )
+
+var AllowedTopologies = []string{
+	MasterSlaveLabel,
+	GroupLabel,
+	PxcLabel,
+	FanInLabel,
+	AllMastersLabel,
+	NdbLabel,
+}
 
 var (
 	DashLine     = strings.Repeat("-", lineLength)
@@ -280,8 +291,8 @@ var (
 	// Executables needed for dbdeployer generated scripts
 	NeededExecutables = []string{
 		"awk", "bash", "cat", "echo", "grep", "kill",
-		"ls", "mkdir", "printf", "rm", "sleep", "stat",
-		"test", "tr"}
+		"ls", "mkdir", "printf", "rm", "seq", "sh",
+		"sleep", "stat", "test", "tr"}
 
 	// Extra executables needed for PXC
 	NeededPxcExecutables = []string{"rsync", "lsof"}

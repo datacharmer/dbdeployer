@@ -948,9 +948,12 @@ func writeScript(logger *defaults.Logger, tempVar TemplateCollection, scriptName
 	template := tempVar[templateName].Contents
 	template = common.TrimmedLines(template)
 	data["TemplateName"] = templateName
-	text := common.TemplateFill(template, data)
-	executableStatus := ""
 	var err error
+	text, err := common.SafeTemplateFill(templateName, template, data)
+	if err != nil {
+		return err
+	}
+	executableStatus := ""
 	if makeExecutable {
 		err = writeExec(scriptName, text, directory)
 		executableStatus = " executable"

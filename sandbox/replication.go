@@ -456,13 +456,18 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 			return fmt.Errorf(globals.ErrFeatureRequiresCapability, "Xtradb Cluster", common.PxcFlavor, common.IntSliceToDottedString(globals.MinimumXtradbClusterVersion))
 		}
 		sdef.SandboxDir = path.Join(sdef.SandboxDir, defaults.Defaults().PxcPrefix+common.VersionToName(origin))
+	case globals.NdbLabel:
+		isMinimumNdb, err := common.HasCapability(sdef.Flavor, common.NdbCluster, sdef.Version)
+		if err != nil {
+			return err
+		}
+		if !isMinimumNdb {
+			return fmt.Errorf(globals.ErrFeatureRequiresCapability, "NDB Cluster", common.NdbFlavor,
+				common.IntSliceToDottedString(globals.MinimumNdbClusterVersion))
+		}
+		sdef.SandboxDir = path.Join(sdef.SandboxDir, defaults.Defaults().NdbPrefix+common.VersionToName(origin))
 	default:
-		return fmt.Errorf("unrecognized topology. Accepted: '%s', '%s', '%s', '%s', '%s'",
-			globals.MasterSlaveLabel,
-			globals.GroupLabel,
-			globals.FanInLabel,
-			globals.AllMastersLabel,
-			globals.PxcLabel)
+		return fmt.Errorf("unrecognized topology. Accepted: '%v'", globals.AllowedTopologies)
 	}
 	if sdef.DirName != "" {
 		sdef.SandboxDir = path.Join(sandboxDir, sdef.DirName)
@@ -491,6 +496,8 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 		err = CreateAllMastersReplication(sdef, origin, nodes, masterIp)
 	case globals.PxcLabel:
 		err = CreatePxcReplication(sdef, origin, nodes, masterIp)
+	case globals.NdbLabel:
+		err = CreateNdbReplication(sdef, origin, nodes, masterIp)
 	}
 	return err
 }

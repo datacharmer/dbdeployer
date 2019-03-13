@@ -426,7 +426,7 @@ log-error={{.Datadir}}/msandbox.err
 		[ -n "$SBDEBUG" ] && VERBOSE_SQL=-v
 		if [ ! -f $SBDIR/$SOURCE_SCRIPT ]
 		then
-			[ -n "$VERBOSE_SQL" ] && echo "$SBDIR/$SOURCE_SCRIPT not found"
+			# [ -n "$VERBOSE_SQL" ] && echo "$SBDIR/$SOURCE_SCRIPT not found"
 			exit 0
 		fi
 		# echo "$MYSQL -u root -t $VERBOSE_SQL < $SBDIR/$SOURCE_SCRIPT"
@@ -1339,6 +1339,7 @@ function check_output
 		"replication": ReplicationTemplates,
 		"group":       GroupTemplates,
 		"pxc":         PxcTemplates,
+		"ndb":         NdbTemplates,
 	}
 )
 

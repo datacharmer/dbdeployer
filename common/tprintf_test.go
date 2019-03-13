@@ -49,8 +49,8 @@ func TestTemplateFill(t *testing.T) {
 		},
 	}
 	for _, td := range dataCollection {
-		result := TemplateFill(template, td.data)
-		if result == td.expected {
+		result, err := SafeTemplateFill("tmpl1", template, td.data)
+		if err == nil && result == td.expected {
 			t.Logf("ok - string formatted as expected: '%s'\n", result)
 		} else {
 			t.Logf("not ok - Expected %s - found %s\n", td.expected, result)
@@ -60,8 +60,14 @@ func TestTemplateFill(t *testing.T) {
 	template = `{{.DateTime}}`
 	// The DateTime field is auto generated
 	data := StringMap{}
-	result := TemplateFill(template, data)
+	result, err := SafeTemplateFill("tmpl2", template, data)
+	compare.OkIsNil("filling template 2", err, t)
 	//             Sun Oct    7  07: 42: 24 CEST 2018
 	reExpected := `\w+ \w+\s+\d+ \d+:\d+:\d+ \w+ \d+`
 	compare.OkMatchesString("Timestamp", result, reExpected, t)
+	template = `{{.NoSuchVar}} {{.SuchVarExists}}`
+	data = StringMap{"SuchVarExists": "something"}
+	result, err = SafeTemplateFill("tmpl3", template, data)
+	compare.OkIsNotNil("filling template 3", err, t)
+	compare.OkMatchesString("filling template string", err.Error(), `NoSuchVar`, t)
 }

@@ -45,7 +45,7 @@ const (
 	MySQLFlavor         = "mysql"
 	PerconaServerFlavor = "percona"
 	MariaDbFlavor       = "mariadb"
-	NDBFlavor           = "ndb"
+	NdbFlavor           = "ndb"
 	PxcFlavor           = "pxc"
 	TiDbFlavor          = "tidb"
 
@@ -68,6 +68,7 @@ const (
 	NativeAuth       = "nativeAuth"
 	DataDict         = "datadict"
 	XtradbCluster    = "xtradbCluster"
+	NdbCluster       = "ndbCluster"
 	RootAuth         = "rootAuth"
 )
 
@@ -179,15 +180,17 @@ var FlavorCompositionList = []FlavorIndicator{
 		},
 		flavor: PxcFlavor,
 	},
-	//{
-	//	AllNeeded: true,
-	//	elements: []ElementPath{
-	//		{"bin", "ndbd"},
-	//		{"bin", "ndb_mgm"},
-	//		{"bin", "ndb_mgmd"},
-	//	},
-	//	flavor: NDBFlavor,
-	//},
+	{
+		AllNeeded: true,
+		elements: []ElementPath{
+			{"bin", "ndbd"},
+			{"bin", "ndb_mgm"},
+			{"bin", "ndb_mgmd"},
+			{"bin", "ndbd"},
+			{"bin", "ndbmtd"},
+		},
+		flavor: NdbFlavor,
+	},
 	{
 		AllNeeded: false,
 		elements: []ElementPath{
@@ -241,11 +244,19 @@ var TiDBCapabilities = Capabilities{
 		// No capabilities so far
 	},
 }
-var NDBCapabilities = Capabilities{
-	Flavor:      NDBFlavor,
+var NdbCapabilities = Capabilities{
+	Flavor:      NdbFlavor,
 	Description: "MySQL NDB Cluster",
-	Features:    FeatureList{
-		// No capabilities so far
+	Features: FeatureList{
+		DynVariables: MySQLCapabilities.Features[DynVariables],
+		Initialize:   MySQLCapabilities.Features[Initialize],
+		CreateUser:   MySQLCapabilities.Features[CreateUser],
+		Roles:        MySQLCapabilities.Features[Roles],
+		SetPersist:   MySQLCapabilities.Features[SetPersist],
+		NdbCluster: {
+			Description: "MySQL NDB Cluster",
+			Since:       globals.MinimumNdbClusterVersion,
+		},
 	},
 }
 
@@ -285,7 +296,7 @@ var AllCapabilities = map[string]Capabilities{
 	PerconaServerFlavor: PerconaCapabilities,
 	MariaDbFlavor:       MariadbCapabilities,
 	TiDbFlavor:          TiDBCapabilities,
-	NDBFlavor:           NDBCapabilities,
+	NdbFlavor:           NdbCapabilities,
 	PxcFlavor:           PxcCapabilities,
 }
 

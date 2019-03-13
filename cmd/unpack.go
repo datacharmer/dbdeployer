@@ -32,12 +32,12 @@ import (
 func detectTarballFlavor(tarballName string) string {
 	flavor := ""
 	flavorsRegexps := map[string]string{
-		common.MySQLFlavor:         `mysql`,
 		common.PerconaServerFlavor: `Percona-Server`,
 		common.MariaDbFlavor:       `mariadb`,
-		common.NDBFlavor:           `mysql-cluster`,
+		common.NdbFlavor:           `mysql-cluster`,
 		common.TiDbFlavor:          `tidb`,
 		common.PxcFlavor:           `Percona-XtraDB-Cluster`,
+		common.MySQLFlavor:         `mysql`,
 	}
 
 	for key, value := range flavorsRegexps {

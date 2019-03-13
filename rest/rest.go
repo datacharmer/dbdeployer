@@ -38,7 +38,11 @@ func IndexUrl() string {
 		"RemoteRepo": defaults.Defaults().RemoteRepository,
 		"FileName":   defaults.Defaults().RemoteIndexFile,
 	}
-	return common.TemplateFill(IndexUrlTemplate, data)
+	iUrl, err := common.SafeTemplateFill("indexUrl func", IndexUrlTemplate, data)
+	if err != nil {
+		common.Exitf(1, "error creating Index Url: %s", err)
+	}
+	return iUrl
 }
 
 func FileUrl(fileName string) string {
@@ -46,7 +50,11 @@ func FileUrl(fileName string) string {
 		"RemoteRepo": defaults.Defaults().RemoteRepository,
 		"FileName":   fileName,
 	}
-	return common.TemplateFill(FileUrlTemplate, data)
+	fUrl, err := common.SafeTemplateFill("fileUrl func", FileUrlTemplate, data)
+	if err != nil {
+		common.Exitf(1, "error creating file URL: %s", err)
+	}
+	return fUrl
 }
 
 // DownloadFile will download a url to a local file. It's efficient because it will
