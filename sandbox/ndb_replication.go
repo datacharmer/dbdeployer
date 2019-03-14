@@ -28,16 +28,7 @@ import (
 	"time"
 )
 
-/*
-   set NDB cluster management port
-   add mgm port to nodes my.cnf
-   add mgm port to config.ini
-   add data directories to config.ini
-   add mgm port to cluster initialization script
-   add mgm port to cluster stop script
-*/
-
-func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
+func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNodes int, masterIp string) error {
 	var execLists []concurrent.ExecutionList
 	var err error
 
@@ -73,8 +64,11 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 	}
 
 	baseServerId := 0
-	if nodes < 3 {
-		return fmt.Errorf("Can't run NDB replication with less than 3 nodes")
+	if ndbNodes < 3 {
+		return fmt.Errorf("can't run MySQL Cluster with less than 3 NDB nodes")
+	}
+	if nodes < 2 {
+		return fmt.Errorf("can't run MySQL Cluster with less than 2 SQL nodes")
 	}
 	if common.DirExists(sandboxDef.SandboxDir) {
 		sandboxDef, err = checkDirectory(sandboxDef)
@@ -102,6 +96,15 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 	}
 	common.AddToCleanupStack(common.Rmdir, "Rmdir", sandboxDef.SandboxDir)
 	logger.Printf("Creating directory %s\n", sandboxDef.SandboxDir)
+	for i := 1; i <= ndbNodes; i++ {
+		nodeName := fmt.Sprintf("ndb%s%d", defaults.Defaults().NodePrefix, i)
+		nodeDir := path.Join(sandboxDef.SandboxDir, nodeName)
+		logger.Printf("Creating directory %s\n", nodeDir)
+		err = os.Mkdir(nodeDir, globals.PublicDirectoryAttr)
+		if err != nil {
+			return err
+		}
+	}
 	timestamp := time.Now()
 	slaveLabel := defaults.Defaults().SlavePrefix
 	slaveAbbr := defaults.Defaults().SlaveAbbr
@@ -131,6 +134,8 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		"MasterList":    masterList,
 		"NodeLabel":     nodeLabel,
 		"NumNodes":      nodes,
+		"NumNdbNodes":   ndbNodes,
+		"LastNode":      nodes + ndbNodes + 1,
 		"SlaveList":     slaveList,
 		"RplUser":       sandboxDef.RplUser,
 		"RplPassword":   sandboxDef.RplPassword,
@@ -141,7 +146,8 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		"StopNodeList":  stopNodeList,
 		"ClusterPort":   ndbClusterPort,
 		"Nodes":         []common.StringMap{},
-		"SQLNodes":      []common.StringMap{},
+		"NdbNodes":      []common.StringMap{},
+		"SqlNodes":      []common.StringMap{},
 	}
 	connectionString := fmt.Sprintf("ndb_connectstring=%s:%d", masterIp, ndbClusterPort)
 	logger.Printf("Creating connection string %s\n", connectionString)
@@ -199,9 +205,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 				"RplPassword":  sandboxDef.RplPassword}
 
 		data["Nodes"] = append(data["Nodes"].([]common.StringMap), nodeStringMap)
-		if i > 1 {
-			data["SQLNodes"] = append(data["SQLNodes"].([]common.StringMap), nodeStringMap)
-		}
+		data["SqlNodes"] = append(data["SqlNodes"].([]common.StringMap), common.StringMap{"Node": i + ndbNodes})
 		sandboxDef.DirName = fmt.Sprintf("%s%d", nodeLabel, i)
 		sandboxDef.MorePorts = []int{}
 		sandboxDef.ServerId = (baseServerId + i) * 100
@@ -221,8 +225,6 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 			fmt.Sprintf("\n%s\n%s\n", "ndbcluster", connectionString)
 		reMasterIp := regexp.MustCompile(`127\.0\.0\.1`)
 		sandboxDef.ReplOptions = reMasterIp.ReplaceAllString(sandboxDef.ReplOptions, masterIp)
-		// sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["gtid_options_57"].Contents)
-		// sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["repl_crash_safe_options"].Contents)
 		// 8.0.11
 		isMinimumMySQLXDefault, err := common.HasCapability(sandboxDef.Flavor, common.MySQLXDefault, sandboxDef.Version)
 		if err != nil {
@@ -265,10 +267,19 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 			"SandboxDir":  sandboxDef.SandboxDir,
 		}
 		logger.Printf("Create node script for node %d\n", i)
-		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sandboxDef.SandboxDir, dataNode, true)
+		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i),
+			"node_template", sandboxDef.SandboxDir, dataNode, true)
 		if err != nil {
 			return err
 		}
+	}
+	for i := 2; i <= ndbNodes; i++ {
+		data["NdbNodes"] = append(data["NdbNodes"].([]common.StringMap),
+			common.StringMap{
+				"Node":       i,
+				"NodeLabel":  data["NodeLabel"],
+				"SandboxDir": data["SandboxDir"],
+			})
 	}
 	logger.Printf("Writing sandbox description in %s\n", sandboxDef.SandboxDir)
 	err = common.WriteSandboxDescription(sandboxDef.SandboxDir, sbDesc)

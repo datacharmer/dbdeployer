@@ -3,7 +3,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.21.0 (05-Mar-2019 20:29 UTC)
+Documentation updated for version 1.23.0 (14-Mar-2019 15:23 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -15,7 +15,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.21.0
+    $ VERSION=1.23.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -50,7 +50,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.21.0
+    dbdeployer version 1.23.0
     
 
     $ dbdeployer -h
@@ -240,7 +240,7 @@ The ``deploy replication`` command will install a master and two or more slaves,
     The replication command allows you to deploy several nodes in replication.
     Allowed topologies are "master-slave" for all versions, and  "group", "all-masters", "fan-in"
     for  5.7.17+.
-    Topology "pcx" is available for binaries of type Percona Xtradb Cluster.
+    Topologies "pcx" and "ndb" are available for binaries of type Percona Xtradb Cluster and MySQL Cluster.
     For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
     the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
     Use the "unpack" command to get the tarball into the right directory.
@@ -263,12 +263,14 @@ The ``deploy replication`` command will install a master and two or more slaves,
     		$ dbdeployer deploy --topology=all-masters replication 5.7
     		$ dbdeployer deploy --topology=fan-in replication 5.7
     		$ dbdeployer deploy --topology=pxc replication pxc5.7.25
+    		$ dbdeployer deploy --topology=ndb replication ndb8.0.14
     	
     
     Flags:
       -h, --help                     help for replication
           --master-ip string         Which IP the slaves will connect to (default "127.0.0.1")
           --master-list string       Which nodes are masters in a multi-source deployment (default "1,2")
+          --ndb-nodes int            How many NDB nodes will be installed (default 3)
       -n, --nodes int                How many nodes will be installed (default 3)
           --read-only-slaves         Set read-only for slaves
           --repl-history-dir         uses the replication directory to store mysql client history
@@ -290,6 +292,7 @@ Before version 1.19.0, dbdeployer assumed that it was dealing to some version of
 * `percona` : Percona Server, any version. For the purposes of deployment, it has the same capabilities as MySQL
 * `mariadb`: MariaDB server. Mostly the same as MySQL, but with differences in deployment methods.
 * `pxc`: Percona Xtradb Cluster
+* `ndb`: MySQL Cluster (NDB)
 * `tidb`: A stand-alone TiDB server.
 
 To see what every flavor can do, you can use the command `dbdeployer admin capabilities`.
@@ -997,18 +1000,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 1. Make sure you have go 1.10+ installed in your system, and that the ``$GOPATH`` variable is set.
 2. Run ``go get -u github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
-4. Run ``./scripts/build.sh {linux|OSX} 1.21.0``
-5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.21.0``
+4. Run ``./scripts/build.sh {linux|OSX} 1.23.0``
+5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.23.0``
 
 ## Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.21.0-docs.linux.tar.gz
-* dbdeployer-1.21.0-docs.osx.tar.gz
-* dbdeployer-1.21.0.linux.tar.gz
-* dbdeployer-1.21.0.osx.tar.gz
+* dbdeployer-1.23.0-docs.linux.tar.gz
+* dbdeployer-1.23.0-docs.osx.tar.gz
+* dbdeployer-1.23.0.linux.tar.gz
+* dbdeployer-1.23.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

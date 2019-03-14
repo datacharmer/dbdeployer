@@ -36,6 +36,15 @@ type Slave struct {
 	MasterPort int
 }
 
+type ReplicationData struct {
+	Topology   string
+	MasterIp   string
+	Nodes      int
+	NdbNodes   int
+	MasterList string
+	SlaveList  string
+}
+
 func checkReadOnlyFlags(sandboxDef SandboxDef) (string, error) {
 	readOnlyOption := ""
 	if sandboxDef.SlavesSuperReadOnly && sandboxDef.SlavesReadOnly {
@@ -395,9 +404,10 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	return nil
 }
 
-func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, nodes int, masterIp, masterList, slaveList string) error {
-	if !common.IsIPV4(masterIp) {
-		return fmt.Errorf("IP %s is not a valid IPV4", masterIp)
+//func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, nodes int, masterIp, masterList, slaveList string) error {
+func CreateReplicationSandbox(sdef SandboxDef, origin string, replData ReplicationData) error {
+	if !common.IsIPV4(replData.MasterIp) {
+		return fmt.Errorf("IP %s is not a valid IPV4", replData.MasterIp)
 	}
 
 	Basedir := sdef.Basedir
@@ -406,7 +416,7 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 	}
 
 	sandboxDir := sdef.SandboxDir
-	switch topology {
+	switch replData.Topology {
 	case globals.MasterSlaveLabel:
 		sdef.SandboxDir = path.Join(sdef.SandboxDir, defaults.Defaults().MasterSlavePrefix+common.VersionToName(origin))
 	case globals.GroupLabel:
@@ -485,19 +495,19 @@ func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, n
 		sdef.HistoryDir = sdef.SandboxDir
 	}
 	var err error
-	switch topology {
+	switch replData.Topology {
 	case globals.MasterSlaveLabel:
-		err = CreateMasterSlaveReplication(sdef, origin, nodes, masterIp)
+		err = CreateMasterSlaveReplication(sdef, origin, replData.Nodes, replData.MasterIp)
 	case globals.GroupLabel:
-		err = CreateGroupReplication(sdef, origin, nodes, masterIp)
+		err = CreateGroupReplication(sdef, origin, replData.Nodes, replData.MasterIp)
 	case globals.FanInLabel:
-		err = CreateFanInReplication(sdef, origin, nodes, masterIp, masterList, slaveList)
+		err = CreateFanInReplication(sdef, origin, replData.Nodes, replData.MasterIp, replData.MasterList, replData.SlaveList)
 	case globals.AllMastersLabel:
-		err = CreateAllMastersReplication(sdef, origin, nodes, masterIp)
+		err = CreateAllMastersReplication(sdef, origin, replData.Nodes, replData.MasterIp)
 	case globals.PxcLabel:
-		err = CreatePxcReplication(sdef, origin, nodes, masterIp)
+		err = CreatePxcReplication(sdef, origin, replData.Nodes, replData.MasterIp)
 	case globals.NdbLabel:
-		err = CreateNdbReplication(sdef, origin, nodes, masterIp)
+		err = CreateNdbReplication(sdef, origin, replData.Nodes, replData.NdbNodes, replData.MasterIp)
 	}
 	return err
 }

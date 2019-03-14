@@ -93,7 +93,9 @@ const (
 	MasterListValue     = "1,2"
 	MasterSlaveLabel    = "master-slave"
 	NodesLabel          = "nodes"
+	NdbNodesLabel       = "ndb-nodes"
 	NodesValue          = 3
+	NdbNodesValue       = 3
 	ReplHistoryDirLabel = "repl-history-dir"
 	SemiSyncLabel       = "semi-sync"
 	ReadOnlyLabel       = "read-only-slaves"

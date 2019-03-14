@@ -248,11 +248,13 @@ var NdbCapabilities = Capabilities{
 	Flavor:      NdbFlavor,
 	Description: "MySQL NDB Cluster",
 	Features: FeatureList{
-		DynVariables: MySQLCapabilities.Features[DynVariables],
-		Initialize:   MySQLCapabilities.Features[Initialize],
-		CreateUser:   MySQLCapabilities.Features[CreateUser],
-		Roles:        MySQLCapabilities.Features[Roles],
-		SetPersist:   MySQLCapabilities.Features[SetPersist],
+		CreateUser:    MySQLCapabilities.Features[CreateUser],
+		DataDict:      MySQLCapabilities.Features[DataDict],
+		DynVariables:  MySQLCapabilities.Features[DynVariables],
+		Initialize:    MySQLCapabilities.Features[Initialize],
+		MySQLXDefault: MySQLCapabilities.Features[MySQLXDefault],
+		Roles:         MySQLCapabilities.Features[Roles],
+		SetPersist:    MySQLCapabilities.Features[SetPersist],
 		NdbCluster: {
 			Description: "MySQL NDB Cluster",
 			Since:       globals.MinimumNdbClusterVersion,

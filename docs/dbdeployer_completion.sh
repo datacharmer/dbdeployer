@@ -883,6 +883,7 @@ _dbdeployer_deploy_replication()
 
     flags+=("--master-ip=")
     flags+=("--master-list=")
+    flags+=("--ndb-nodes=")
     flags+=("--nodes=")
     two_word_flags+=("-n")
     flags+=("--read-only-slaves")

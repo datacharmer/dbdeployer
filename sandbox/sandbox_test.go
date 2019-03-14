@@ -353,7 +353,12 @@ func expectFailure(sandboxDef SandboxDef, label, deployment, regex string, args 
 		if !ok {
 			origin = sandboxDef.Version
 		}
-		err := CreateReplicationSandbox(sandboxDef, origin, topology, nodes, masterIp, "", "")
+		err := CreateReplicationSandbox(sandboxDef, origin, ReplicationData{
+			Topology:   topology,
+			Nodes:      nodes,
+			MasterIp:   masterIp,
+			MasterList: "",
+			SlaveList:  ""})
 		compare.OkIsNotNil(label, err, t)
 		if err != nil {
 			compare.OkMatchesString(label, err.Error(), regex, t)
@@ -599,7 +604,8 @@ func testCreateReplicationSandbox(t *testing.T) {
 		t.Logf("%s", sandboxDefToJson(sandboxDef))
 	}
 
-	err := CreateReplicationSandbox(sandboxDef, latestVersion, globals.MasterSlaveLabel, 3, "127.0.0.1", "1", "2,3")
+	err := CreateReplicationSandbox(sandboxDef, latestVersion, ReplicationData{
+		Topology: globals.MasterSlaveLabel, Nodes: 3, MasterIp: "127.0.0.1", MasterList: "1", SlaveList: "2,3"})
 	if err != nil {
 		t.Fatal(fmt.Sprintf(globals.ErrCreatingSandbox, err))
 	}
