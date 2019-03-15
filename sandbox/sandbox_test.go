@@ -172,7 +172,7 @@ func testDetectFlavor(t *testing.T) {
 		FlavorDetection{"3.0.0", []MockFileSet{
 			MockFileSet{"bin",
 				[]ScriptDef{
-					{"tidb-server", noOpMockTemplateName, true},
+					{globals.FnTiDbServer, noOpMockTemplateName, true},
 				}},
 		},
 			common.TiDbFlavor,
@@ -188,7 +188,7 @@ func testDetectFlavor(t *testing.T) {
 		FlavorDetection{"10.3.0", []MockFileSet{
 			MockFileSet{"lib",
 				[]ScriptDef{
-					{"libmariadbclient.a", noOpMockTemplateName, false},
+					{globals.FnLibMariadbClientA, noOpMockTemplateName, false},
 				}},
 		},
 			common.MariaDbFlavor,
@@ -196,7 +196,7 @@ func testDetectFlavor(t *testing.T) {
 		FlavorDetection{"8.0.14", []MockFileSet{
 			MockFileSet{"lib",
 				[]ScriptDef{
-					{"libperconaserverclient.a", noOpMockTemplateName, false},
+					{globals.FnLibPerconaServerClientA, noOpMockTemplateName, false},
 				}},
 		},
 			common.PerconaServerFlavor,
@@ -204,12 +204,12 @@ func testDetectFlavor(t *testing.T) {
 		FlavorDetection{"8.0.12", []MockFileSet{
 			MockFileSet{"bin",
 				[]ScriptDef{
-					{"garbd", noOpMockTemplateName, true},
+					{globals.FnGarbd, noOpMockTemplateName, true},
 				}},
 			MockFileSet{"lib",
 				[]ScriptDef{
-					{"libperconaserverclient.so", noOpMockTemplateName, false},
-					{"libgalera_smm.so", noOpMockTemplateName, false},
+					{globals.FnLibPerconaServerClientSo, noOpMockTemplateName, false},
+					{globals.FnLibGaleraSmmSo, noOpMockTemplateName, false},
 				}},
 		},
 			common.PxcFlavor,
@@ -217,15 +217,31 @@ func testDetectFlavor(t *testing.T) {
 		FlavorDetection{"5.7.77", []MockFileSet{
 			MockFileSet{"bin",
 				[]ScriptDef{
-					{"garbd", noOpMockTemplateName, true},
+					{globals.FnGarbd, noOpMockTemplateName, true},
 				}},
 			MockFileSet{"lib",
 				[]ScriptDef{
-					{"libperconaserverclient.a", noOpMockTemplateName, false},
-					{"libgalera_smm.a", noOpMockTemplateName, false},
+					{globals.FnLibPerconaServerClientA, noOpMockTemplateName, false},
+					{globals.FnLibGaleraSmmA, noOpMockTemplateName, false},
 				}},
 		},
 			common.PxcFlavor,
+		},
+		FlavorDetection{"6.7.8", []MockFileSet{
+			MockFileSet{"bin",
+				[]ScriptDef{
+					{globals.FnNdbdMgm, noOpMockTemplateName, true},
+					{globals.FnNdbdMgmd, noOpMockTemplateName, true},
+					{globals.FnNdbd, noOpMockTemplateName, true},
+					{globals.FnNdbdMtd, noOpMockTemplateName, true},
+				}},
+			MockFileSet{"lib",
+				[]ScriptDef{
+					{globals.FnLibMySQLClientA, noOpMockTemplateName, false},
+					{globals.FnNdbdEngineSo, noOpMockTemplateName, false},
+				}},
+		},
+			common.NdbFlavor,
 		},
 	}
 
@@ -264,7 +280,7 @@ func testCreateTidbMockSandbox(t *testing.T) {
 		fileSet := MockFileSet{
 			"bin",
 			[]ScriptDef{
-				{"tidb-server", "tidb_mock_template", true},
+				{globals.FnTiDbServer, "tidb_mock_template", true},
 			},
 		}
 		fileSets := []MockFileSet{fileSet}

@@ -44,6 +44,15 @@ then
     exit 0
 fi
 
+function check_exit_code {
+    exit_code=$?
+    msg="$1"
+    if [ "$exit_code" != "0" ]
+    then
+        echo "ERROR : $msg"
+        exit $exit_code
+    fi
+}
 
 NUM_NODES={{.NumNodes}}
 NUM_NDB_NODES={{.NumNdbNodes}}
@@ -60,8 +69,7 @@ done
 
 $BASEDIR/bin/ndb_mgmd -f ndb_conf/config.ini \
     --configdir=$PWD/ndb_conf --ndb-connectstring="host=localhost:$cluster_port"
-exit_code=$?
-if [ "$exit_code" != "0" ] ; then echo "ERROR during initialization" ; exit $exit_code ; fi
+check_exit_code "ndb initialization"
 
 if [ -f stopped_cluster ]
 then
@@ -71,15 +79,16 @@ fi
 for i in $(seq 2 $NUM_NDB_NODES)
 do
     $BASEDIR/bin/ndbmtd --ndb-nodeid=$i --ndb-connectstring="host=localhost:$cluster_port"
-    exit_code=$?
-    if [ "$exit_code" != "0" ] ; then echo "ERROR during initialization" ; exit $exit_code ; fi
+    check_exit_code "ndb node $i start"
 done
 
 for i in $(seq 1 $NUM_NODES)
 do
 	echo "executing 'start' on {{.NodeLabel}} $i"
 	$SBDIR/{{.NodeLabel}}$i/start 
+    check_exit_code "mysql node $i start"
 	$SBDIR/{{.NodeLabel}}$i/load_grants
+    check_exit_code "mysql node $i load grants"
 done
 date > cluster_initialized
 `

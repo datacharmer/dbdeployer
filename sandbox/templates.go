@@ -1344,7 +1344,7 @@ function check_output
 )
 
 func init() {
-	// The command dbdeployer defaults template show templateName
+	// The command "dbdeployer defaults template show templateName"
 	// depends on the template names being unique across all collections.
 	// This initialisation routine will ensure that there are no duplicates.
 	var seen = make(map[string]bool)

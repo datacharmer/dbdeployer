@@ -224,16 +224,16 @@ func CheckTarballOperatingSystem(basedir string) error {
 		isBinary bool
 	}
 	var findingList = map[string]OSFinding{
-		"libmysqlclient.a":             {"lib", "linux", MySQLFlavor, true}, // 4.1 and old 5.0 releases
-		"libmysqlclient.so":            {"lib", "linux", MySQLFlavor, true},
-		"libmariadbclient.so":          {"lib", "linux", MariaDbFlavor, true},
-		"libmariadbclient.dylib":       {"lib", "linux", MariaDbFlavor, true},
-		"libperconaserverclient.so":    {"lib", "linux", PerconaServerFlavor, true},
-		"libperconaserverclient.dylib": {"lib", "darwin", PerconaServerFlavor, true},
-		"libmysqlclient.dylib":         {"lib", "darwin", MySQLFlavor, true},
-		"tidb-server":                  {"bin", "any", TiDbFlavor, true},
-		"table.h":                      {"sql", "source", "any", false},
-		"mysqlprovision.zip":           {"share/mysqlsh", "shell", "any", false},
+		globals.FnLibMySQLClientA:             {"lib", "linux", MySQLFlavor, true}, // 4.1 and old 5.0 releases
+		globals.FnLibMySQLClientSo:            {"lib", "linux", MySQLFlavor, true},
+		globals.FnLibMariadbClientSo:          {"lib", "linux", MariaDbFlavor, true},
+		globals.FnLibMariadbClientDylib:       {"lib", "linux", MariaDbFlavor, true},
+		globals.FnLibPerconaServerClientSo:    {"lib", "linux", PerconaServerFlavor, true},
+		globals.FnLibPerconaServerClientDylib: {"lib", "darwin", PerconaServerFlavor, true},
+		globals.FnLibMySQLClientDylib:         {"lib", "darwin", MySQLFlavor, true},
+		globals.FnTiDbServer:                  {"bin", "any", TiDbFlavor, true},
+		globals.FnTableH:                      {"sql", "source", "any", false},
+		globals.FnMysqlProvisionZip:           {"share/mysqlsh", "shell", "any", false},
 	}
 	wantedOsFound := false
 	var foundList = make(map[string]OSFinding)

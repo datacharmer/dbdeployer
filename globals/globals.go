@@ -271,6 +271,37 @@ const (
 	ExecutableFileAttr     = 0744
 	SandboxDescriptionName = "sbdescription.json"
 	ForbiddenDirName       = "lost+found"
+
+	// File names found in tarballs
+	FnAriaChk                     = "aria_chk"
+	FnGarbd                       = "garbd"
+	FnLibGaleraSmmA               = "libgalera_smm.a"
+	FnLibGaleraSmmDylib           = "libgalera_smm.dylib"
+	FnLibGaleraSmmSo              = "libgalera_smm.so"
+	FnLibMariadbA                 = "libmariadb.a"
+	FnLibMariadbClientA           = "libmariadbclient.a"
+	FnLibMariadbClientDylib       = "libmariadbclient.dylib"
+	FnLibMariadbClientSo          = "libmariadbclient.so"
+	FnLibMariadbDylib             = "libmariadb.dylib"
+	FnLibMySQLClientA             = "libmysqlclient.a"
+	FnLibMySQLClientDylib         = "libmysqlclient.dylib"
+	FnLibMySQLClientSo            = "libmysqlclient.so"
+	FnLibPerconaServerClientA     = "libperconaserverclient.a"
+	FnLibPerconaServerClientDylib = "libperconaserverclient.dylib"
+	FnLibPerconaServerClientSo    = "libperconaserverclient.so"
+	FnMysql                       = "mysql"
+	FnMysqlInstallDb              = "mysql_install_db"
+	FnMysqlProvisionZip           = "mysqlprovision.zip"
+	FnMysqld                      = "mysqld"
+	FnMysqldDebug                 = "mysqld-debug"
+	FnMysqldSafe                  = "mysqld_safe"
+	FnNdbd                        = "ndbd"
+	FnNdbdEngineSo                = "ndb_engine.so"
+	FnNdbdMgm                     = "ndb_mgm"
+	FnNdbdMgmd                    = "ndb_mgmd"
+	FnNdbdMtd                     = "ndbmtd"
+	FnTableH                      = "table.h"
+	FnTiDbServer                  = "tidb-server"
 )
 
 var AllowedTopologies = []string{
@@ -292,9 +323,9 @@ var (
 
 	// Executables needed for dbdeployer generated scripts
 	NeededExecutables = []string{
-		"awk", "bash", "cat", "echo", "grep", "kill",
-		"ls", "mkdir", "printf", "rm", "seq", "sh",
-		"sleep", "stat", "test", "tr"}
+		"awk", "bash", "cat", "date", "echo", "grep", "hostname",
+		"kill", "ls", "mkdir", "mv", "printf", "rm", "seq", "sh",
+		"sleep", "stat", "tail", "test", "[", "touch", "tr", "wc"}
 
 	// Extra executables needed for PXC
 	NeededPxcExecutables = []string{"rsync", "lsof"}
