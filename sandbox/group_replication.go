@@ -423,7 +423,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 			return fmt.Errorf("error initializing group replication: %s", err)
 		}
 	}
-	common.CondPrintf("Replication directory installed in %s\n", common.ReplaceLiteralHome(sandboxDef.SandboxDir))
+	common.CondPrintf("Group Replication directory installed in %s\n", common.ReplaceLiteralHome(sandboxDef.SandboxDir))
 	common.CondPrintf("run 'dbdeployer usage multiple' for basic instructions'\n")
 	return nil
 }

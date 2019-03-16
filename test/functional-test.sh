@@ -64,6 +64,7 @@ then
     export skip_upgrade_operations=1
     export skip_multi_source_operations=1
     export skip_pxc_operations=1
+    export skip_ndb_operations=1
     export no_tests=1
 fi
 
@@ -98,6 +99,7 @@ do
             unset skip_upgrade_operations
             unset skip_multi_source_operations
             unset skip_pxc_operations
+            unset skip_ndb_operations
             unset no_tests
             echo "# Enabling all tests"
             ;;
@@ -156,6 +158,11 @@ do
             unset no_tests
             echo "# Enabling PXC operations tests"
             ;;
+        ndb)
+            unset skip_ndb_operations
+            unset no_tests
+            echo "# Enabling NDB operations tests"
+            ;;
         *)
             echo "Allowed tests (you can choose more than one):"
             echo "  main     : main deployment methods"
@@ -168,6 +175,7 @@ do
             echo "  upgrade  : upgrade operations "
             echo "  multi    : multi-source operations (fan-in, all-masters)"
             echo "  pxc      : PXC operations"
+            echo "  ndb      : NDB operations"
             echo "  all      : enable all the above tests"
             echo ""
             echo "Allowed modifiers:"
@@ -218,9 +226,10 @@ function test_ports {
     dir_name=$2
     expected_ports=$3
     nodes=$4
-    major=$(echo $running_version | tr '.' ' ' | awk '{print $1}')
-    minor=$(echo $running_version | tr '.' ' ' | awk '{print $2}')
-    rev=$(echo $running_version | tr '.' ' ' | awk '{print $3}')
+    bare_version=$(echo $running_version | sed -e 's/^[^0-9]*//')
+    major=$(echo $bare_version | tr '.' ' ' | awk '{print $1}')
+    minor=$(echo $bare_version | tr '.' ' ' | awk '{print $2}')
+    rev=$(echo $bare_version | tr '.' ' ' | awk '{print $3}')
     if [[ $major -eq 8 && $minor -eq 0  && $rev -ge 11 ]]
     then
         expected_ports=$((expected_ports+nodes))
@@ -621,6 +630,7 @@ fi
 [ -z "$dd_short_versions" ] && dd_short_versions=(8.0)
 [ -z "$semisync_short_versions" ] && semisync_short_versions=(5.5 5.6 5.7 8.0)
 [ -z "$pxc_short_versions" ] && pxc_short_versions=(pxc5.7)
+[ -z "$ndb_short_versions" ] && ndb_short_versions=(ndb7.6 ndb8.0)
 count=0
 all_versions=()
 tidb_versions=(tidb3.0.0)
@@ -628,6 +638,7 @@ group_versions=()
 semisync_versions=()
 dd_versions=()
 pxc_versions=()
+ndb_versions=()
 
 OS=$(uname | tr '[:upper:]' '[:lower:]')
 if [ -x "sort_versions.$OS" ]
@@ -716,6 +727,17 @@ do
         count=$((count+1))
     fi
 done
+count=0
+ndb_short_versions=()
+for v in ${ndb_short_versions[*]}
+do
+    latest=$(ls $BINARY_DIR | grep "^$v" | ./sort_versions | tail -n 1)
+    if [ -n "$latest" ]
+    then
+        ndb_versions[$count]=$latest
+        count=$((count+1))
+    fi
+done
 
 unset will_fail
 for V in ${all_versions[*]}
@@ -757,27 +779,12 @@ function main_deployment_methods {
     for V in ${all_versions[*]}
     do
         # We test the main deployment methods
-        # and also the ability of dbdeployer to handle
-        # operations while similar calls occur
-        # in the background
         echo $dotted_line
         for stype in single multiple replication
         do
-            echo "# Parallel deployment: $stype $V"
-            install_out="/tmp/${stype}-${V}-$$"
-            run dbdeployer deploy $stype $CUSTOM_OPTIONS $V > $install_out 2>&1 &
+            run dbdeployer deploy $stype $CUSTOM_OPTIONS $V 
         done
         echo $dotted_line
-        # wait for the installation processes to finish
-        wait
-        # Display the result of each installation
-        for stype in single multiple replication
-        do
-            install_out="/tmp/${stype}-${V}-$$"
-            cat $install_out
-            echo $dotted_line
-            rm $install_out
-        done
         # Runs the post installation check.
         for stype in single multiple replication
         do
@@ -1207,6 +1214,26 @@ function pxc_operations {
     done
 }
 
+function ndb_operations {
+    current_test=ndb_operations
+    test_header ndb_operations "" double
+    processes_before=$(pgrep mysqld | wc -l | tr -d ' \t')
+    for V in ${ndb_versions[*]}
+    do
+        echo "# NDB operations $V"
+        run dbdeployer deploy replication $V --topology=ndb
+        results "NDB $V"
+
+        capture_test run dbdeployer global test
+        capture_test run dbdeployer global test-replication
+        test_use_masters_slaves $V ndb_msb_ 3 3
+        test_ports $V ndb_msb_ 4 3
+        check_for_exit ndb_operations
+        test_deletion $V 1 $processes_before
+        results "pxc $V - after deletion"
+    done
+}
+
 
 if [ -z "$skip_main_deployment_methods" ]
 then
@@ -1247,6 +1274,10 @@ fi
 if [ -z "$skip_pxc_operations" ]
 then
     pxc_operations
+fi
+if [ -z "$skip_ndb_operations" ]
+then
+    ndb_operations
 fi
 
 stop_timer

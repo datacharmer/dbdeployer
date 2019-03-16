@@ -41,8 +41,9 @@ type DbdeployerDefaults struct {
 	AllMastersReplicationBasePort int `json:"all-masters-replication-base-port"`
 	MultipleBasePort              int `json:"multiple-base-port"`
 	// GaleraBasePort                 int    `json:"galera-base-port"`
-	PxcBasePort int `json:"pxc-base-port"`
-	// NdbBasePort                    int    `json:"ndb-base-port"`
+	PxcBasePort       int    `json:"pxc-base-port"`
+	NdbBasePort       int    `json:"ndb-base-port"`
+	NdbClusterPort    int    `json:"ndb-cluster-port"`
 	GroupPortDelta    int    `json:"group-port-delta"`
 	MysqlXPortDelta   int    `json:"mysqlx-port-delta"`
 	MasterName        string `json:"master-name"`
@@ -62,7 +63,7 @@ type DbdeployerDefaults struct {
 	RemoteIndexFile   string `json:"remote-index-file"`
 	// GaleraPrefix                   string `json:"galera-prefix"`
 	PxcPrefix string `json:"pxc-prefix"`
-	// NdbPrefix                      string `json:"ndb-prefix"`
+	NdbPrefix string `json:"ndb-prefix"`
 	Timestamp string `json:"timestamp"`
 }
 
@@ -101,7 +102,8 @@ var (
 		MultipleBasePort:              16000,
 		PxcBasePort:                   18000,
 		// GaleraBasePort:                17000,
-		// NdbBasePort:                   19000,
+		NdbBasePort:       19000,
+		NdbClusterPort:    20000,
 		GroupPortDelta:    125,
 		MysqlXPortDelta:   10000,
 		MasterName:        "master",
@@ -120,7 +122,7 @@ var (
 		RemoteRepository:  "https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata",
 		RemoteIndexFile:   "available.json",
 		// GaleraPrefix:                  "galera_msb_",
-		// NdbPrefix:                     "ndb_msb_",
+		NdbPrefix: "ndb_msb_",
 		PxcPrefix: "pxc_msb_",
 		Timestamp: time.Now().Format(time.UnixDate),
 	}
@@ -210,7 +212,8 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		checkInt("all-masters-base-port", nd.AllMastersReplicationBasePort, minPortValue, maxPortValue) &&
 		// checkInt("galera-base-port", nd.GaleraBasePort, minPortValue, maxPortValue) &&
 		checkInt("pxc-base-port", nd.PxcBasePort, minPortValue, maxPortValue) &&
-		// checkInt("ndb-base-port", nd.NdbBasePort, minPortValue, maxPortValue) &&
+		checkInt("ndb-base-port", nd.NdbBasePort, minPortValue, maxPortValue) &&
+		checkInt("ndb-cluster-port", nd.NdbClusterPort, minPortValue, maxPortValue) &&
 		checkInt("group-port-delta", nd.GroupPortDelta, 101, 299) &&
 		checkInt("mysqlx-port-delta", nd.MysqlXPortDelta, 2000, 15000)
 	if !allInts {
@@ -222,7 +225,8 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		nd.MultipleBasePort != nd.MasterSlaveBasePort &&
 		nd.MultipleBasePort != nd.FanInReplicationBasePort &&
 		nd.MultipleBasePort != nd.AllMastersReplicationBasePort &&
-		// nd.MultipleBasePort != nd.NdbBasePort &&
+		nd.MultipleBasePort != nd.NdbBasePort &&
+		nd.MultipleBasePort != nd.NdbClusterPort &&
 		// nd.MultipleBasePort != nd.GaleraBasePort &&
 		nd.MultipleBasePort != nd.PxcBasePort &&
 		nd.MultiplePrefix != nd.GroupSpPrefix &&
@@ -232,7 +236,7 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		nd.MultiplePrefix != nd.FanInPrefix &&
 		nd.MultiplePrefix != nd.AllMastersPrefix &&
 		nd.MasterAbbr != nd.SlaveAbbr &&
-		// nd.MultiplePrefix != nd.NdbPrefix &&
+		nd.MultiplePrefix != nd.NdbPrefix &&
 		// nd.MultiplePrefix != nd.GaleraPrefix &&
 		nd.MultiplePrefix != nd.PxcPrefix &&
 		nd.SandboxHome != nd.SandboxBinary
@@ -253,7 +257,7 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		nd.MultiplePrefix != "" &&
 		nd.PxcPrefix != "" &&
 		// nd.GaleraPrefix != "" &&
-		//nd.NdbPrefix != "" &&
+		nd.NdbPrefix != "" &&
 		nd.SandboxHome != "" &&
 		nd.SandboxBinary != "" &&
 		nd.RemoteIndexFile != "" &&
@@ -327,8 +331,10 @@ func UpdateDefaults(label, value string, storeDefaults bool) {
 		newDefaults.FanInReplicationBasePort = common.Atoi(value)
 	case "all-masters-base-port":
 		newDefaults.AllMastersReplicationBasePort = common.Atoi(value)
-	// case "ndb-base-port":
-	//	 new_defaults.NdbBasePort = common.Atoi(value)
+	case "ndb-base-port":
+		newDefaults.NdbBasePort = common.Atoi(value)
+	case "ndb-cluster-port":
+		newDefaults.NdbClusterPort = common.Atoi(value)
 	// case "galera-base-port":
 	//	 new_defaults.GaleraBasePort = common.Atoi(value)
 	case "pxc-base-port":
@@ -371,8 +377,8 @@ func UpdateDefaults(label, value string, storeDefaults bool) {
 	// 	new_defaults.GaleraPrefix = value
 	case "pxc-prefix":
 		newDefaults.PxcPrefix = value
-	// case "ndb-prefix":
-	// 	new_defaults.NdbPrefix = value
+	case "ndb-prefix":
+		newDefaults.NdbPrefix = value
 	default:
 		common.Exitf(1, "unrecognized label %s", label)
 	}

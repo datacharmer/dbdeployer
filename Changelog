@@ -1,3 +1,7 @@
+1.23.0	14-Mar-2019
+	NEW FEATURES:
+	- Add support for MySQL Cluster (topology=ndb)
+	- Add option --ndb-nodes to replication
 1.22.0	07-Mar-2019
 	ADJUSTMENTS:
 	Change default authentication plugin for MariaDB 10.4.3 (Issue #67)

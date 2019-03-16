@@ -146,7 +146,9 @@ func LoadAbbreviations() {
 			for _, item := range abbreviations[arg] {
 				if item != "" {
 					// Replaces possible vars with their value
-					item = common.TemplateFill(item, variables)
+
+					item, err = common.SafeTemplateFill("loadAbbreviations func", item, variables)
+					common.ErrCheckExitf(err, 1, "error filling abbreviations template: %s", err)
 					// adds the replacement items to the new argument list
 					replacement += " " + item
 					newArgs = append(newArgs, item)

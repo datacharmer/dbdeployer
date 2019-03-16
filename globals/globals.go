@@ -93,7 +93,9 @@ const (
 	MasterListValue     = "1,2"
 	MasterSlaveLabel    = "master-slave"
 	NodesLabel          = "nodes"
+	NdbNodesLabel       = "ndb-nodes"
 	NodesValue          = 3
+	NdbNodesValue       = 3
 	ReplHistoryDirLabel = "repl-history-dir"
 	SemiSyncLabel       = "semi-sync"
 	ReadOnlyLabel       = "read-only-slaves"
@@ -104,6 +106,7 @@ const (
 	TopologyLabel       = "topology"
 	TopologyValue       = "master-slave"
 	PxcLabel            = "pxc"
+	NdbLabel            = "ndb"
 
 	// Instantiated in cmd/unpack.go and unpack/unpack.go
 	GzExt              = ".gz"
@@ -258,6 +261,7 @@ var (
 	MariaDbMinimumGtidVersion        = []int{10, 0, 0}
 	MariaDbMinimumMultiSourceVersion = []int{10, 0, 0}
 	MinimumXtradbClusterVersion      = []int{5, 7, 14}
+	MinimumNdbClusterVersion         = []int{7, 0, 0}
 	MinimumRootAuthVersion           = []int{10, 4, 3}
 )
 
@@ -267,7 +271,47 @@ const (
 	ExecutableFileAttr     = 0744
 	SandboxDescriptionName = "sbdescription.json"
 	ForbiddenDirName       = "lost+found"
+
+	// File names found in tarballs
+	FnAriaChk                     = "aria_chk"
+	FnGarbd                       = "garbd"
+	FnLibGaleraSmmA               = "libgalera_smm.a"
+	FnLibGaleraSmmDylib           = "libgalera_smm.dylib"
+	FnLibGaleraSmmSo              = "libgalera_smm.so"
+	FnLibMariadbA                 = "libmariadb.a"
+	FnLibMariadbClientA           = "libmariadbclient.a"
+	FnLibMariadbClientDylib       = "libmariadbclient.dylib"
+	FnLibMariadbClientSo          = "libmariadbclient.so"
+	FnLibMariadbDylib             = "libmariadb.dylib"
+	FnLibMySQLClientA             = "libmysqlclient.a"
+	FnLibMySQLClientDylib         = "libmysqlclient.dylib"
+	FnLibMySQLClientSo            = "libmysqlclient.so"
+	FnLibPerconaServerClientA     = "libperconaserverclient.a"
+	FnLibPerconaServerClientDylib = "libperconaserverclient.dylib"
+	FnLibPerconaServerClientSo    = "libperconaserverclient.so"
+	FnMysql                       = "mysql"
+	FnMysqlInstallDb              = "mysql_install_db"
+	FnMysqlProvisionZip           = "mysqlprovision.zip"
+	FnMysqld                      = "mysqld"
+	FnMysqldDebug                 = "mysqld-debug"
+	FnMysqldSafe                  = "mysqld_safe"
+	FnNdbd                        = "ndbd"
+	FnNdbdEngineSo                = "ndb_engine.so"
+	FnNdbdMgm                     = "ndb_mgm"
+	FnNdbdMgmd                    = "ndb_mgmd"
+	FnNdbdMtd                     = "ndbmtd"
+	FnTableH                      = "table.h"
+	FnTiDbServer                  = "tidb-server"
 )
+
+var AllowedTopologies = []string{
+	MasterSlaveLabel,
+	GroupLabel,
+	PxcLabel,
+	FanInLabel,
+	AllMastersLabel,
+	NdbLabel,
+}
 
 var (
 	DashLine     = strings.Repeat("-", lineLength)
@@ -279,9 +323,9 @@ var (
 
 	// Executables needed for dbdeployer generated scripts
 	NeededExecutables = []string{
-		"awk", "bash", "cat", "echo", "grep", "kill",
-		"ls", "mkdir", "printf", "rm", "sleep", "stat",
-		"test", "tr"}
+		"awk", "bash", "cat", "date", "echo", "grep", "hostname",
+		"kill", "ls", "mkdir", "mv", "printf", "rm", "seq", "sh",
+		"sleep", "stat", "tail", "test", "[", "touch", "tr", "wc"}
 
 	// Extra executables needed for PXC
 	NeededPxcExecutables = []string{"rsync", "lsof"}

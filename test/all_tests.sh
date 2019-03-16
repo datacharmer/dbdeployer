@@ -120,6 +120,8 @@ function all_tests {
     run_test ./test/mock/direct-paths.sh
     run_test ./test/mock/expected_ports.sh
     run_test ./test/mock/read-only-replication.sh
+    run_test ./test/mock/ndb_test.sh
+    run_test ./test/mock/pxc_test.sh
     if [ -n "$COMPLETE_PORT_TEST" ]
     then
         run_test ./test/mock/port-clash.sh

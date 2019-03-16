@@ -71,7 +71,8 @@ func main() {
 		"CompatibleVersionDate": compatibleVersionDate,
 		"Timestamp":             time.Now().Format("2006-01-02 15:04"),
 	}
-	versionCode := common.TemplateFill(template, data)
+	versionCode, err := common.SafeTemplateFill("create-version-source-file", template, data)
+	common.ErrCheckExitf(err, 1, "error filling version code template %s", err)
 
 	err = common.WriteString(versionCode, versionDestFile)
 	common.ErrCheckExitf(err, 1, "error writing version code file %s", versionDestFile)

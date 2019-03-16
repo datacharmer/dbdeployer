@@ -139,48 +139,54 @@ Here is a sample of the results at the end:
 ```
 # ----------------------------------------------------------------
 # defaults-change           - tests:   81 - pass:   81 - fail:    0
-# direct-paths              - tests: 1674 - pass: 1674 - fail:    0
-# docker-test               - tests: 4073 - pass: 4073 - fail:    0
+# direct-paths              - tests: 3096 - pass: 3096 - fail:    0
+# docker-test               - tests: 4870 - pass: 4870 - fail:    0
 # expected_ports            - tests:    6 - pass:    6 - fail:    0
-# functional-test           - tests: 4101 - pass: 4101 - fail:    0
-# go-unit-tests             - tests:  679 - pass:  679 - fail:    0
+# functional-test           - tests: 4898 - pass: 4898 - fail:    0
+# go-unit-tests             - tests:  689 - pass:  689 - fail:    0
+# ndb_test                  - tests:  474 - pass:  474 - fail:    0
 # port-clash                - tests:  180 - pass:  180 - fail:    0
-# read-only-replication     - tests: 1800 - pass: 1800 - fail:    0
+# pxc_test                  - tests:  148 - pass:  148 - fail:    0
+# read-only-replication     - tests: 3060 - pass: 3060 - fail:    0
 # sanity_check              - tests:    0 - pass:    0 - fail:    0
 # short-versions            - tests:   42 - pass:   42 - fail:    0
 # ----------------------------------------------------------------
-sanity_check                   []        - time:    6s (        6s) - exit code: 0
-go-unit-tests                  []        - time:   74s (    1m:14s) - exit code: 0
-functional-test                []        - time: 1909s (   31m:49s) - exit code: 0
-docker-test                    [1.18.0]  - time: 1891s (   31m:31s) - exit code: 0
-defaults-change                []        - time:    5s (        5s) - exit code: 0
-short-versions                 []        - time:    6s (        6s) - exit code: 0
-direct-paths                   []        - time:   11s (       11s) - exit code: 0
+sanity_check                   []        - time:    3s (        3s) - exit code: 0
+go-unit-tests                  []        - time:   51s (       51s) - exit code: 0
+functional-test                []        - time: 1916s (   31m:56s) - exit code: 0
+docker-test                    [1.23.0]  - time: 1941s (   32m:21s) - exit code: 0
+defaults-change                []        - time:    6s (        6s) - exit code: 0
+short-versions                 []        - time:    5s (        5s) - exit code: 0
+direct-paths                   []        - time:   16s (       16s) - exit code: 0
 expected_ports                 []        - time:    2s (        2s) - exit code: 0
-read-only-replication          []        - time:   13s (       13s) - exit code: 0
-port-clash                     [sparse]  - time:  263s (    4m:23s) - exit code: 0
+read-only-replication          []        - time:   17s (       17s) - exit code: 0
+ndb_test                       []        - time:    3s (        3s) - exit code: 0
+pxc_test                       []        - time:    1s (        1s) - exit code: 0
+port-clash                     [sparse]  - time:  129s (    2m:09s) - exit code: 0
 # Deployed: 111 sandboxes (1143 total ports) - Changed: 0
 # ----------------------------------------------------------------
 # defaults-change           - tests:   81 - pass:   81 - fail:    0
-# direct-paths              - tests: 1674 - pass: 1674 - fail:    0
-# docker-test               - tests: 4073 - pass: 4073 - fail:    0
+# direct-paths              - tests: 3096 - pass: 3096 - fail:    0
+# docker-test               - tests: 4870 - pass: 4870 - fail:    0
 # expected_ports            - tests:    6 - pass:    6 - fail:    0
-# functional-test           - tests: 4101 - pass: 4101 - fail:    0
-# go-unit-tests             - tests:  679 - pass:  679 - fail:    0
+# functional-test           - tests: 4898 - pass: 4898 - fail:    0
+# go-unit-tests             - tests:  689 - pass:  689 - fail:    0
+# ndb_test                  - tests:  474 - pass:  474 - fail:    0
 # port-clash                - tests:  180 - pass:  180 - fail:    0
-# read-only-replication     - tests: 1800 - pass: 1800 - fail:    0
+# pxc_test                  - tests:  148 - pass:  148 - fail:    0
+# read-only-replication     - tests: 3060 - pass: 3060 - fail:    0
 # sanity_check              - tests:    0 - pass:    0 - fail:    0
 # short-versions            - tests:   42 - pass:   42 - fail:    0
 # ----------------------------------------------------------------
 # ----------------------------------------------------------------
-# Total tests: 12636
-#       pass : 12636
+# Total tests: 17544
+#       pass : 17544
 #       fail : 0
 # ----------------------------------------------------------------
 OS:  Darwin
-Started: Sat Feb 16 16:10:39 CET 2019
-Ended  : Sat Feb 16 17:20:19 CET 2019
-Elapsed: 4180 seconds (1h:9m:40s)
+Started: Fri Mar 15 21:51:57 CET 2019
+Ended  : Fri Mar 15 23:00:08 CET 2019
+Elapsed: 4091 seconds (1h:8m:11s)
 # Exit code: 0
 Runs concurrently: yes
 ```

@@ -153,22 +153,22 @@ func MySQLMockSet(debug bool) []MockFileSet {
 			{libmysqlclientFileName, noOpMockTemplateName, false},
 		},
 	}
-	mysqld := "mysqld"
+	mysqld := globals.FnMysqld
 	if debug {
-		mysqld = "mysqld-debug"
+		mysqld = globals.FnMysqldDebug
 	}
 	binFileSet := MockFileSet{
 		"bin",
 		[]ScriptDef{
 			{mysqld, noOpMockTemplateName, true},
-			{"mysql", noOpMockTemplateName, true},
-			{"mysqld_safe", "mysqld_safe_mock_template", true},
+			{globals.FnMysql, noOpMockTemplateName, true},
+			{globals.FnMysqldSafe, "mysqld_safe_mock_template", true},
 		},
 	}
 	scriptsFileSet := MockFileSet{
 		"scripts",
 		[]ScriptDef{
-			{"mysql_install_db", noOpMockTemplateName, true},
+			{globals.FnMysqlInstallDb, noOpMockTemplateName, true},
 		},
 	}
 	fileSet = append(fileSet, binFileSet)

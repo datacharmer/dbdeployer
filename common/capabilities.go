@@ -45,7 +45,7 @@ const (
 	MySQLFlavor         = "mysql"
 	PerconaServerFlavor = "percona"
 	MariaDbFlavor       = "mariadb"
-	NDBFlavor           = "ndb"
+	NdbFlavor           = "ndb"
 	PxcFlavor           = "pxc"
 	TiDbFlavor          = "tidb"
 
@@ -68,6 +68,7 @@ const (
 	NativeAuth       = "nativeAuth"
 	DataDict         = "datadict"
 	XtradbCluster    = "xtradbCluster"
+	NdbCluster       = "ndbCluster"
 	RootAuth         = "rootAuth"
 )
 
@@ -155,47 +156,49 @@ var FlavorCompositionList = []FlavorIndicator{
 	{
 		AllNeeded: true,
 		elements: []ElementPath{
-			{"bin", "garbd"},
-			{"lib", "libgalera_smm.so"},
-			{"lib", "libperconaserverclient.so"},
+			{"bin", globals.FnGarbd},
+			{"lib", globals.FnLibGaleraSmmSo},
+			{"lib", globals.FnLibPerconaServerClientSo},
 		},
 		flavor: PxcFlavor,
 	},
 	{
 		AllNeeded: true,
 		elements: []ElementPath{
-			{"bin", "garbd"},
-			{"lib", "libgalera_smm.a"},
-			{"lib", "libperconaserverclient.a"},
+			{"bin", globals.FnGarbd},
+			{"lib", globals.FnLibGaleraSmmA},
+			{"lib", globals.FnLibPerconaServerClientA},
 		},
 		flavor: PxcFlavor,
 	},
 	{
 		AllNeeded: true,
 		elements: []ElementPath{
-			{"bin", "garbd"},
-			{"lib", "libgalera_smm.dylib"},
-			{"lib", "libperconaserverclient.dylib"},
+			{"bin", globals.FnGarbd},
+			{"lib", globals.FnLibGaleraSmmDylib},
+			{"lib", globals.FnLibPerconaServerClientDylib},
 		},
 		flavor: PxcFlavor,
 	},
-	//{
-	//	AllNeeded: true,
-	//	elements: []ElementPath{
-	//		{"bin", "ndbd"},
-	//		{"bin", "ndb_mgm"},
-	//		{"bin", "ndb_mgmd"},
-	//	},
-	//	flavor: NDBFlavor,
-	//},
+	{
+		AllNeeded: true,
+		elements: []ElementPath{
+			{"bin", globals.FnNdbd},
+			{"bin", globals.FnNdbdMgm},
+			{"bin", globals.FnNdbdMgmd},
+			{"bin", globals.FnNdbdMtd},
+			{"lib", globals.FnNdbdEngineSo},
+		},
+		flavor: NdbFlavor,
+	},
 	{
 		AllNeeded: false,
 		elements: []ElementPath{
-			{"bin", "aria_chk"},
-			{"lib", "libmariadbclient.a"},
-			{"lib", "libmariadbclient.dylib"},
-			{"lib", "libmariadb.a"},
-			{"lib", "libmariadb.dylib"},
+			{"bin", globals.FnAriaChk},
+			{"lib", globals.FnLibMariadbClientA},
+			{"lib", globals.FnLibMariadbClientDylib},
+			{"lib", globals.FnLibMariadbA},
+			{"lib", globals.FnLibMariadbDylib},
 		},
 		flavor: MariaDbFlavor,
 	},
@@ -203,9 +206,9 @@ var FlavorCompositionList = []FlavorIndicator{
 	{
 		AllNeeded: false,
 		elements: []ElementPath{
-			{"lib", "libperconaserverclient.a"},
-			{"lib", "libperconaserverclient.so"},
-			{"lib", "libperconaserverclient.dylib"},
+			{"lib", globals.FnLibPerconaServerClientA},
+			{"lib", globals.FnLibPerconaServerClientSo},
+			{"lib", globals.FnLibPerconaServerClientDylib},
 		},
 		flavor: PerconaServerFlavor,
 	},
@@ -213,16 +216,16 @@ var FlavorCompositionList = []FlavorIndicator{
 	{
 		AllNeeded: false,
 		elements: []ElementPath{
-			{"bin", "tidb-server"},
+			{"bin", globals.FnTiDbServer},
 		},
 		flavor: TiDbFlavor,
 	},
 	{
 		AllNeeded: false,
 		elements: []ElementPath{
-			{"bin", "mysqld"},
-			{"bin", "mysqld-debug"},
-			{"lib", "libmysqlclient.a"},
+			{"bin", globals.FnMysqld},
+			{"bin", globals.FnMysqldDebug},
+			{"lib", globals.FnLibMySQLClientA},
 		},
 		flavor: MySQLFlavor,
 	},
@@ -241,11 +244,21 @@ var TiDBCapabilities = Capabilities{
 		// No capabilities so far
 	},
 }
-var NDBCapabilities = Capabilities{
-	Flavor:      NDBFlavor,
+var NdbCapabilities = Capabilities{
+	Flavor:      NdbFlavor,
 	Description: "MySQL NDB Cluster",
-	Features:    FeatureList{
-		// No capabilities so far
+	Features: FeatureList{
+		CreateUser:    MySQLCapabilities.Features[CreateUser],
+		DataDict:      MySQLCapabilities.Features[DataDict],
+		DynVariables:  MySQLCapabilities.Features[DynVariables],
+		Initialize:    MySQLCapabilities.Features[Initialize],
+		MySQLXDefault: MySQLCapabilities.Features[MySQLXDefault],
+		Roles:         MySQLCapabilities.Features[Roles],
+		SetPersist:    MySQLCapabilities.Features[SetPersist],
+		NdbCluster: {
+			Description: "MySQL NDB Cluster",
+			Since:       globals.MinimumNdbClusterVersion,
+		},
 	},
 }
 
@@ -285,7 +298,7 @@ var AllCapabilities = map[string]Capabilities{
 	PerconaServerFlavor: PerconaCapabilities,
 	MariaDbFlavor:       MariadbCapabilities,
 	TiDbFlavor:          TiDBCapabilities,
-	NDBFlavor:           NDBCapabilities,
+	NdbFlavor:           NdbCapabilities,
 	PxcFlavor:           PxcCapabilities,
 }
 

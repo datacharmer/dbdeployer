@@ -28,13 +28,14 @@ func replicationSandbox(cmd *cobra.Command, args []string) {
 	var semisync bool
 	common.CheckOrigin(args)
 	sd, err := fillSandboxDdefinition(cmd, args)
+	common.ErrCheckExitf(err, 1, "error filling sandbox definition : %s", err)
 	if sd.Flavor == common.TiDbFlavor {
 		common.Exitf(1, "flavor '%s' is not suitable to create replication sandboxes", common.TiDbFlavor)
 	}
-	common.ErrCheckExitf(err, 1, "error filling sandbox definition : %s", err)
 	sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
 	flags := cmd.Flags()
 	semisync, _ = flags.GetBool(globals.SemiSyncLabel)
+	ndbNodes, _ := flags.GetInt(globals.NdbNodesLabel)
 	nodes, _ := flags.GetInt(globals.NodesLabel)
 	topology, _ := flags.GetString(globals.TopologyLabel)
 	masterIp, _ := flags.GetString(globals.MasterIpLabel)
@@ -61,18 +62,34 @@ func replicationSandbox(cmd *cobra.Command, args []string) {
 		if isMinimumSync {
 			sd.SemiSyncOptions = sandbox.SingleTemplates["semisync_master_options"].Contents
 		} else {
-			common.Exitf(1, "--semi-sync requires version %s+", common.IntSliceToDottedString(globals.MinimumSemiSyncVersion))
+			common.Exitf(1, "--%s requires version %s+",
+				globals.SemiSyncLabel,
+				common.IntSliceToDottedString(globals.MinimumSemiSyncVersion))
 		}
 	}
 	if sd.SinglePrimary && topology != globals.GroupLabel {
-		common.Exit(1, "option 'single-primary' can only be used with 'group' topology ")
+		common.Exitf(1, "option '%s' can only be used with '%s' topology ",
+			globals.SinglePrimaryLabel,
+			globals.GroupLabel)
+	}
+	if ndbNodes != globals.NdbNodesValue && topology != globals.NdbLabel {
+		common.Exitf(1, "option '%s' can only be used with '%s' topology ",
+			globals.NdbNodesLabel,
+			globals.NdbLabel)
+
 	}
 	origin := args[0]
 	if args[0] != sd.BasedirName {
 		origin = sd.BasedirName
 	}
-	//common.CondPrintf("%#v\n",sd)
-	err = sandbox.CreateReplicationSandbox(sd, origin, topology, nodes, masterIp, masterList, slaveList)
+	err = sandbox.CreateReplicationSandbox(sd, origin,
+		sandbox.ReplicationData{
+			Topology:   topology,
+			Nodes:      nodes,
+			NdbNodes:   ndbNodes,
+			MasterIp:   masterIp,
+			MasterList: masterList,
+			SlaveList:  slaveList})
 	if err != nil {
 		common.Exitf(1, globals.ErrCreatingSandbox, err)
 	}
@@ -85,13 +102,15 @@ var replicationCmd = &cobra.Command{
 	Long: `The replication command allows you to deploy several nodes in replication.
 Allowed topologies are "master-slave" for all versions, and  "group", "all-masters", "fan-in"
 for  5.7.17+.
-Topology "pcx" is available for binaries of type Percona Xtradb Cluster.
+Topologies "pcx" and "ndb" are available for binaries of type Percona Xtradb Cluster and MySQL Cluster.
 For this command to work, there must be a directory $HOME/opt/mysql/5.7.21, containing
 the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
 Use the "unpack" command to get the tarball into the right directory.
 `,
 	//Allowed topologies are "master-slave", "group" (requires 5.7.17+),
 	//"fan-in" and "all-masters" (require 5.7.9+)
+	// pxc (requires PXC tarball),
+	// ndb (Requires NDB tarball)
 	Run: replicationSandbox,
 	Example: `
 		$ dbdeployer deploy replication 5.7    # deploys highest revision for 5.7
@@ -107,6 +126,7 @@ Use the "unpack" command to get the tarball into the right directory.
 		$ dbdeployer deploy --topology=all-masters replication 5.7
 		$ dbdeployer deploy --topology=fan-in replication 5.7
 		$ dbdeployer deploy --topology=pxc replication pxc5.7.25
+		$ dbdeployer deploy --topology=ndb replication ndb8.0.14
 	`,
 }
 
@@ -117,6 +137,7 @@ func init() {
 	replicationCmd.PersistentFlags().StringP(globals.MasterIpLabel, "", globals.MasterIpValue, "Which IP the slaves will connect to")
 	replicationCmd.PersistentFlags().StringP(globals.TopologyLabel, "t", globals.TopologyValue, "Which topology will be installed")
 	replicationCmd.PersistentFlags().IntP(globals.NodesLabel, "n", globals.NodesValue, "How many nodes will be installed")
+	replicationCmd.PersistentFlags().IntP(globals.NdbNodesLabel, "", globals.NdbNodesValue, "How many NDB nodes will be installed")
 	replicationCmd.PersistentFlags().BoolP(globals.SinglePrimaryLabel, "", false, "Using single primary for group replication")
 	replicationCmd.PersistentFlags().BoolP(globals.SemiSyncLabel, "", false, "Use semi-synchronous plugin")
 	replicationCmd.PersistentFlags().BoolP(globals.ReadOnlyLabel, "", false, "Set read-only for slaves")

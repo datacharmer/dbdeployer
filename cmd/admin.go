@@ -102,7 +102,8 @@ func preserveSandbox(sandboxDir, sandboxName string) {
 		"NoClearCmd":   noClearCmd,
 	}
 	template = common.TrimmedLines(template)
-	newClearMessage := common.TemplateFill(template, data)
+	newClearMessage, err := common.SafeTemplateFill("preserveSandbox func", template, data)
+	common.ErrCheckExitf(err, 1, "error filling preservation file: %s", err)
 	err = common.WriteString(newClearMessage, clear)
 	if err != nil {
 		common.Exitf(1, "%+v", err)

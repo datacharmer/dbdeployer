@@ -494,7 +494,7 @@ for M in $MASTERS
 do
 	echo "# master $M"
     $SBDIR/{{.NodeLabel}}$M/use test -e "drop table if exists t$M"
-    $SBDIR/{{.NodeLabel}}$M/use test -e "create table t$M(id int not null primary key, sid int)"
+    $SBDIR/{{.NodeLabel}}$M/use test -e "create table t$M(id int not null primary key, sid int) {{.EngineClause}}"
     $SBDIR/{{.NodeLabel}}$M/use test -e "insert into t$M values ($M, @@server_id)"
 	# $SBDIR/{{.NodeLabel}}$M/use test -e "show tables from test"
 	total_tables=$((total_tables+1))

@@ -647,7 +647,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		return emptyExecutionList, err
 	}
 	if isMinimumDefaultInitialize {
-		script = path.Join(sandboxDef.Basedir, "bin", "mysqld")
+		script = path.Join(sandboxDef.Basedir, "bin", globals.FnMysqld)
 		if sandboxDef.CustomMysqld != "" {
 			script = path.Join(sandboxDef.Basedir, "bin", sandboxDef.CustomMysqld)
 		}
@@ -658,7 +658,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		return emptyExecutionList, err
 	}
 	if usesMysqlInstallDb {
-		script = path.Join(sandboxDef.Basedir, "scripts", "mysql_install_db")
+		script = path.Join(sandboxDef.Basedir, "scripts", globals.FnMysqlInstallDb)
 	}
 	if script != "" && !common.ExecExists(script) {
 		common.CondPrintf("SCRIPT\n")
@@ -948,9 +948,12 @@ func writeScript(logger *defaults.Logger, tempVar TemplateCollection, scriptName
 	template := tempVar[templateName].Contents
 	template = common.TrimmedLines(template)
 	data["TemplateName"] = templateName
-	text := common.TemplateFill(template, data)
-	executableStatus := ""
 	var err error
+	text, err := common.SafeTemplateFill(templateName, template, data)
+	if err != nil {
+		return err
+	}
+	executableStatus := ""
 	if makeExecutable {
 		err = writeExec(scriptName, text, directory)
 		executableStatus = " executable"
