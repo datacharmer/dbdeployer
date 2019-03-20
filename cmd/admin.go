@@ -97,7 +97,7 @@ func preserveSandbox(sandboxDir, sandboxName string) {
 		"TemplateName": "sb_locked_template",
 		"SandboxDir":   sandboxName,
 		"AppVersion":   common.VersionDef,
-		"Copyright":    sandbox.Copyright,
+		"Copyright":    globals.Copyright,
 		"ClearCmd":     clearCmd,
 		"NoClearCmd":   noClearCmd,
 	}

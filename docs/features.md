@@ -41,14 +41,14 @@ MySQL upgrade               | no              | yes         |
 MySQLX support              | no              | yes         |
 fan-in                      | no              | yes  [^14]  |
 all-masters                 | no              | yes  [^15]  |
-galera                      | no              | no          | yes [^16]
-mysql cluster               | no              | no          | yes [^16]
+Percona Xtradb cluster      | no              | yes         | 
+MySQL Cluster               | no              | yes         |
 pre-post grants shell action| yes             | no          | maybe
 getting remote tarballs     | yes             | yes         |
-load plugins                | yes             | yes [^17]   |
-circular replication        | yes             | no          | no [^18]
+load plugins                | yes             | yes [^16]   |
+circular replication        | yes             | no          | no [^17]
 master-master  (circular)   | yes             | no          | no
-Windows support             | no              | no [^19]    |
+Windows support             | no              | no [^18]    |
 
 [^1]: It's achieved using ``--export_binaries`` and then abandoning the operation.
 
@@ -80,10 +80,8 @@ Windows support             | no              | no [^19]    |
 
 [^15]: Same as n. 14.
 
-[^16]: I may need some help on those.
+[^16]: Using pre-grants and post-grants options, all plugins can be loaded.
 
-[^17]: Using pre-grants and post-grants options, all plugins can be loaded.
+[^17]: Circular replication should not be used anymore. There are enough good alternatives (multi-source, group replication) to avoid this old technology.
 
-[^18]: Circular replication should not be used anymore. There are enough good alternatives (multi-source, group replication) to avoid this old technology.
-
-[^19]: I don't do Windows. But you can fork the project if you do.
+[^18]: I don't do Windows. But you can fork the project if you do.

@@ -19,7 +19,7 @@ exec_dir=$(dirname $0)
 cd $exec_dir
 cd ..
 
-local_items=(.build cmd defaults common globals unpack abbreviations concurrent sandbox compare rest)
+local_items=(.build cmd defaults common globals cookbook unpack abbreviations concurrent sandbox compare rest)
 exit_code=0
 spaces="        "
 function run {

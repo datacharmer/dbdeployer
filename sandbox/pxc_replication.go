@@ -162,7 +162,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 	}
 	nodeLabel := defaults.Defaults().NodePrefix
 	var data = common.StringMap{
-		"Copyright":         Copyright,
+		"Copyright":         globals.Copyright,
 		"AppVersion":        common.VersionDef,
 		"DateTime":          timestamp.Format(time.UnixDate),
 		"SandboxDir":        sandboxDef.SandboxDir,
@@ -231,7 +231,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		rsyncPort := baseRsyncPort + i
 		sandboxDef.Port = basePort + i
 		data["Nodes"] = append(data["Nodes"].([]common.StringMap), common.StringMap{
-			"Copyright":         Copyright,
+			"Copyright":         globals.Copyright,
 			"AppVersion":        common.VersionDef,
 			"DateTime":          timestamp.Format(time.UnixDate),
 			"Node":              i,
@@ -332,7 +332,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 			execLists = append(execLists, list)
 		}
 		var dataNode = common.StringMap{
-			"Copyright":         Copyright,
+			"Copyright":         globals.Copyright,
 			"AppVersion":        common.VersionDef,
 			"DateTime":          timestamp.Format(time.UnixDate),
 			"Node":              i,

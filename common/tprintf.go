@@ -93,6 +93,20 @@ func hasKey(sm StringMap, wantedKey string) bool {
 	return false
 }
 
+// Gets a list of all variables mentioned in a template
+func GetVarsFromTemplate(tmpl string) []string {
+	var varList []string
+
+	reTemplateVar := regexp.MustCompile(`\{\{\.([^{]+)\}\}`)
+	captureList := reTemplateVar.FindAllStringSubmatch(tmpl, -1)
+	if len(captureList) > 0 {
+		for _, capture := range captureList {
+			varList = append(varList, capture[1])
+		}
+	}
+	return varList
+}
+
 // SafeTemplateFill passed template string is formatted using its operands and returns the resulting string.
 // It checks that the data was safely initialized
 func SafeTemplateFill(template_name, tmpl string, data StringMap) (string, error) {
@@ -117,17 +131,16 @@ func SafeTemplateFill(template_name, tmpl string, data StringMap) (string, error
 
 	/**/
 	// First, we get all variables in the pattern {{.VarName}}
-	reTemplateVar := regexp.MustCompile(`\{\{\.([^{]+)\}\}`)
-	varList := reTemplateVar.FindAllStringSubmatch(tmpl, -1)
+	varList := GetVarsFromTemplate(tmpl)
 	if len(varList) > 0 {
 		for _, capture := range varList {
 			// For each variable in the template text, we look whether it is
 			// in the map
-			if !hasKey(data, capture[1]) {
+			if !hasKey(data, capture) {
 				//fmt.Printf("### >>> %#v<<<\n", data)
 				return globals.EmptyString,
 					fmt.Errorf("data field '%s' (intended for template '%s') was not initialized ",
-						capture[1], template_name)
+						capture, template_name)
 			}
 		}
 	}
