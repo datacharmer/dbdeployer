@@ -171,23 +171,76 @@ See [Issue#18 on GitHub](https://github.com/datacharmer/dbdeployer/issues/18#iss
 
 # Practical examples
 
-Several examples of dbdeployer usages are listed in [./cookbook](https://github.com/datacharmer/dbdeployer/tree/master/cookbook).
+Several examples of dbdeployer usages are avaibale with the command ``dbdeployer cookbook``
 
-     *	single.sh
-     *	replication-master-slave.sh
-     *	replication-group-multi-primary.sh
-     *	replication-group-single-primary.sh
-     *	replication-all-masters.sh
-     *	replication-fan-in.sh
 
-     *	show-sandboxes.sh
-     *	operations-single.sh
-     *	operations-replication.sh
-     *	operations-restart.sh
-     *	upgrade.sh
-     *	delete-all.sh
+```
+$ dbdeployer cookbook list
+.------------------------.------------------------------------.--------------------------------------------------------------------.--------.
+|         recipe         |            script name             |                            description                             | needed |
+|                        |                                    |                                                                    | flavor |
++------------------------+------------------------------------+--------------------------------------------------------------------+--------+
+| delete                 | delete-sandboxes.sh                | Delete all deployed sandboxes                                      |        |
+| group-single           | group-single-primary-deployment.sh | Creation of a single-primary group replication sandbox             | mysql  |
+| replication-restart    | repl-operations-restart.sh         | Show how to restart sandboxes with custom options                  |        |
+| upgrade                | upgrade.sh                         | Shows a complete upgrade example from 5.5 to 8.0                   | mysql  |
+| pxc                    | pxc-deployment.sh                  | Shows deployment with pxc                                          | pxc    |
+| master-slave           | master-slave-deployment.sh         | Creation of a master/slave replication sandbox                     |        |
+| all-masters            | all-masters-deployment.sh          | Creation of an all-masters replication sandbox                     | mysql  |
+| group-multi            | group-multi-primary-deployment.sh  | Creation of a multi-primary group replication sandbox              | mysql  |
+| tidb                   | tidb-deployment.sh                 | Shows deployment and some operations with TiDB                     | tidb   |
+| ndb                    | ndb-deployment.sh                  | Shows deployment with ndb                                          | ndb    |
+| remote                 | remote.sh                          | Shows how to get a remote MySQL tarball                            |        |
+| single                 | single-deployment.sh               | Creation of a single sandbox                                       |        |
+| single-reinstall       | single-reinstall.sh                | Re-installs a single sandbox                                       |        |
+| show                   | show-sandboxes.sh                  | Show deployed sandboxes                                            |        |
+| fan-in                 | fan-in-deployment.sh               | Creation of a fan-in (many masters, one slave) replication sandbox | mysql  |
+| replication-operations | repl-operations.sh                 | Show how to run operations in a replication sandbox                |        |
+| prerequisites          | prerequisites.sh                   | Shows dbdeployer prerequisites and how to make them                |        |
+'------------------------'------------------------------------'--------------------------------------------------------------------'--------'
+ ```
 
-See [cookbook/README.md](https://github.com/datacharmer/dbdeployer/blob/master/cookbook/README.md) for more information.
+Using this command, dbdeployer can produce sample scripts for common operations.
+
+For example `dbdeployer cookbook create single` will create the directory `./recipes` containing the script `single-deployment.sh`, using the versions available in your machine. If no versions are found, the script `prerequisites.sh` will show which steps to take.
+
+`dbdeployer cookbook create ALL` will create all the recipe scripts .
+
+The scripts in the `./recipes` directory show some of the most interesting ways of using dbdeployer.
+
+Each `*deployment*` or `*operations*` script runs with this syntax:
+
+```bash
+./recipes/script_name.sh [version]
+```
+
+where `version` is `5.7.23`, or `8.0.12`, or `ndb7.6.9`, or any other recent version of MySQL. For this to work, you ned to have unpacked the tarball binaries for the corresponding version. 
+See `./recipes/prerequisites.sh` for practical steps.
+
+You can run the same command several times, provided that you use a different version at every call.
+
+```bash
+./recipes/single-deployment.sh 5.7.24
+./recipes/single-deployment.sh 8.0.13
+```
+
+`./recipes/upgrade.sh` is a complete example of upgrade operations. It runs an upgrade from 5.5 to 5.6, then the upgraded database is upgraded to 5.7, and finally to 8.0. Along the way, each database writes to the same table, so that you can see the effects of the upgrade.
+Here's an example.
+```
++----+-----------+------------+----------+---------------------+
+| id | server_id | vers       | urole    | ts                  |
++----+-----------+------------+----------+---------------------+
+|  1 |      5553 | 5.5.53-log | original | 2019-03-22 07:48:46 |
+|  2 |      5641 | 5.6.41-log | upgraded | 2019-03-22 07:48:54 |
+|  3 |      5641 | 5.6.41-log | original | 2019-03-22 07:48:59 |
+|  4 |      5725 | 5.7.25-log | upgraded | 2019-03-22 07:49:09 |
+|  5 |      5725 | 5.7.25-log | original | 2019-03-22 07:49:14 |
+|  6 |      8015 | 8.0.15     | upgraded | 2019-03-22 07:49:25 |
++----+-----------+------------+----------+---------------------+
+```
+dbdeployer will detect the latest versions available in you system. If you don't have all the versions mentioned here, you should edit the script and use only the ones you want (such as 5.7.25 and 8.0.15).
+
+    {{dbdeployer cookbook}}
 
 # Standard and non-standard basedir names
 
@@ -333,7 +386,7 @@ Multiple sandboxes can be deployed using replication with several topologies (us
 * **master-slave** is the default topology. It will install one master and two slaves. More slaves can be added with the option ``--nodes``.
 * **group** will deploy three peer nodes in group replication. If you want to use a single primary deployment, add the option ``--single-primary``. Available for MySQL 5.7 and later.
 * **fan-in** is the opposite of master-slave. Here we have one slave and several masters. This topology requires MySQL 5.7 or higher.
-**all-masters** is a special case of fan-in, where all nodes are masters and are also slaves of all nodes.
+* **all-masters** is a special case of fan-in, where all nodes are masters and are also slaves of all nodes.
 
 It is possible to tune the flow of data in multi-source topologies. The default for fan-in is three nodes, where 1 and 2 are masters, and 2 are slaves. You can change the predefined settings by providing the list of components:
 
@@ -355,6 +408,8 @@ In the above example, we get 5 nodes instead of 3. The first three are master (`
     # fail: 0
 
 The first three lines show that each master has done something. In our case, each master has created a different table. Slaves in nodes 5 and 6 then count how many tables they found, and if they got the tables from all masters, the test succeeds.
+
+Two more topologies, **ndb** and **pxc** require binaries of dedicated flavors, respectively _MySQL Cluster_ and _Percona Xtradb Cluster_. dbdeployer detects whether an expanded tarball satisfies the flavor requirements, and deploys only when the criteria are met.
 
 # Skip server start
 

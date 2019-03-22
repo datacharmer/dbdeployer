@@ -1,18 +1,5 @@
 # List of shell scripts to be checked by sanity check
 ./.build/set_version.sh
-./cookbook/cookbook_include.sh
-./cookbook/delete-all.sh
-./cookbook/operations-replication.sh
-./cookbook/operations-restart.sh
-./cookbook/operations-single.sh
-./cookbook/replication-all-masters.sh
-./cookbook/replication-fan-in.sh
-./cookbook/replication-group-multi-primary.sh
-./cookbook/replication-group-single-primary.sh
-./cookbook/replication-master-slave.sh
-./cookbook/show-sandboxes.sh
-./cookbook/single.sh
-./cookbook/upgrade.sh
 ./mkreadme/build_readme.sh
 ./scripts/build.sh
 ./scripts/sanity_check.sh
@@ -27,3 +14,5 @@
 ./test/mock/port-clash.sh
 ./test/mock/set-mock.sh
 ./test/mock/short-versions.sh
+./test/mock/pxc_test.sh
+./test/mock/ndb_test.sh

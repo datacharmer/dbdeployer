@@ -47,6 +47,30 @@ func SandboxInfoToFileNames(sbList []SandboxInfo) (fileNames []string) {
 	return
 }
 
+// Returns the list of versions of a given flavor, or an empty list if no
+// versions were available for that flavor
+func GetFlavoredVersionsFromDir(basedir, flavor string) []string {
+	var versions []string
+
+	tempVersions, _ := GetVersionsFromDir(basedir)
+	for _, ver := range tempVersions {
+
+		dirPath := path.Join(basedir, ver)
+		flavorPath := path.Join(dirPath, "FLAVOR")
+		var foundFlavor string = MySQLFlavor
+		if FileExists(flavorPath) {
+			foundFlavor, _ = SlurpAsString(flavorPath)
+		} else {
+			foundFlavor = DetectBinaryFlavor(dirPath)
+		}
+		if flavor == foundFlavor {
+			versions = append(versions, ver)
+		}
+	}
+
+	return versions
+}
+
 // Returns the list of versions available for deployment
 func GetVersionsFromDir(basedir string) ([]string, error) {
 	var dirs []string

@@ -14,20 +14,24 @@
 // limitations under the License.
 package cookbook
 
+import "github.com/datacharmer/dbdeployer/common"
+
 type RecipeTemplate struct {
-	Description  string
-	ScriptName   string
-	Notes        string
-	Contents     string
-	IsExecutable bool
+	Description    string
+	ScriptName     string
+	Notes          string
+	Contents       string
+	RequiredFlavor string
+	IsExecutable   bool
 }
 
 type RecipesCollection map[string]RecipeTemplate
 
 const (
-	CookbookInclude = "cookbook_include.sh"
+	CookbookInclude       = "cookbook_include.sh"
 	CookbookPrerequisites = "prerequisites.sh"
 )
+
 var recipeInclude string = `
 if [ -z "$SANDBOX_HOME" ]
 then
@@ -464,12 +468,12 @@ var tidbDeployment string = `#!/bin/bash
 cd $(dirname $0)
 source cookbook_include.sh
 
-tidb_version=3.0.0
+tidb_version={{.LatestVersion}}
 tidb_postfix=$(echo $tidb_version | tr '.' '_')
 client_version={{.Latest5_7}}
-single_path=msb_tidb$tidb_postfix
-multiple_path=multi_msb_tidb$tidb_postfix
-if [ ! -d $SANDBOX_BINARY/tidb$tidb_version ]
+single_path=msb_$tidb_postfix
+multiple_path=multi_msb_$tidb_postfix
+if [ ! -d $SANDBOX_BINARY/$tidb_version ]
 then
     echo "Get tidb from one of these URLs" 
     echo "wget https://download.pingcap.org/tidb-master-darwin-amd64.tar.gz"
@@ -499,12 +503,12 @@ fi
 
 if [ "$deploy_single" == "yes" ]
 then
-    dbdeployer deploy single tidb$tidb_version --client-from=$client_version
+    dbdeployer deploy single $tidb_version --client-from=$client_version
 fi
 
 if [ "$deploy_multi" == "yes" ]
 then
-    dbdeployer deploy multiple tidb$tidb_version --client-from=$client_version
+    dbdeployer deploy multiple $tidb_version --client-from=$client_version
 fi
 
 $SANDBOX_HOME/$single_path/test_sb
@@ -556,14 +560,7 @@ cd $recipes_dir
 source cookbook_include.sh
 
 version=$1
-if [ -z "$version" ]
-then
-    echo "NDB version needed"
-    echo "If none is available now, "
-    echo "try 'dbdeployer cookbook prerequisites' "
-    echo "and '$recipes_dir/prerequisites.sh' "
-    exit 1
-fi
+[ -z "$version" ] && version={{.LatestVersion}}
 check_version $version
 
 if [ -n "$(dbdeployer sandboxes | grep 'ndb\s*'$version)" ]
@@ -590,14 +587,7 @@ then
 fi
 
 version=$1
-if [ -z "$version" ]
-then
-    echo "PXC version needed"
-    echo "If none is available now, "
-    echo "try 'dbdeployer cookbook prerequisites' "
-    echo "and '$recipes_dir/prerequisites.sh' "
-    exit 1
-fi
+[ -z "$version" ] && version={{.LatestVersion}}
 check_version $version
 
 if [ -n "$(dbdeployer sandboxes | grep 'pxc\s*'$version)" ]
@@ -609,8 +599,6 @@ else
     )
 fi
 `
-
-
 
 var prerequisites string = `#!/bin/bash
 {{.Copyright}}
@@ -739,28 +727,32 @@ var RecipesList = RecipesCollection{
 		IsExecutable: true,
 	},
 	"fan-in": RecipeTemplate{
-		Description:  "Creation of a fan-in (many masters, one slave) replication sandbox",
-		ScriptName:   "fan-in-deployment.sh",
-		Contents:     fanInDeployment,
-		IsExecutable: true,
+		Description:    "Creation of a fan-in (many masters, one slave) replication sandbox",
+		ScriptName:     "fan-in-deployment.sh",
+		Contents:       fanInDeployment,
+		RequiredFlavor: common.MySQLFlavor,
+		IsExecutable:   true,
 	},
 	"all-masters": RecipeTemplate{
-		Description:  "Creation of an all-masters replication sandbox",
-		ScriptName:   "all-masters-deployment.sh",
-		Contents:     allMastersDeployment,
-		IsExecutable: true,
+		Description:    "Creation of an all-masters replication sandbox",
+		ScriptName:     "all-masters-deployment.sh",
+		Contents:       allMastersDeployment,
+		RequiredFlavor: common.MySQLFlavor,
+		IsExecutable:   true,
 	},
 	"group-multi": RecipeTemplate{
-		Description:  "Creation of a multi-primary group replication sandbox",
-		ScriptName:   "group-multi-primary-deployment.sh",
-		Contents:     groupMultiPrimaryDeployment,
-		IsExecutable: true,
+		Description:    "Creation of a multi-primary group replication sandbox",
+		ScriptName:     "group-multi-primary-deployment.sh",
+		Contents:       groupMultiPrimaryDeployment,
+		RequiredFlavor: common.MySQLFlavor,
+		IsExecutable:   true,
 	},
 	"group-single": RecipeTemplate{
-		Description:  "Creation of a single-primary group replication sandbox",
-		ScriptName:   "group-single-primary-deployment.sh",
-		Contents:     groupSinglePrimaryDeployment,
-		IsExecutable: true,
+		Description:    "Creation of a single-primary group replication sandbox",
+		ScriptName:     "group-single-primary-deployment.sh",
+		Contents:       groupSinglePrimaryDeployment,
+		RequiredFlavor: common.MySQLFlavor,
+		IsExecutable:   true,
 	},
 	"replication-restart": RecipeTemplate{
 		Description:  "Show how to restart sandboxes with custom options",
@@ -775,28 +767,32 @@ var RecipesList = RecipesCollection{
 		IsExecutable: true,
 	},
 	"upgrade": RecipeTemplate{
-		Description:  "Shows a complete upgrade example from 5.5 to 8.0",
-		ScriptName:   "upgrade.sh",
-		Contents:     upgradeTemplate,
-		IsExecutable: true,
+		Description:    "Shows a complete upgrade example from 5.5 to 8.0",
+		ScriptName:     "upgrade.sh",
+		Contents:       upgradeTemplate,
+		RequiredFlavor: common.MySQLFlavor,
+		IsExecutable:   true,
 	},
 	"tidb": RecipeTemplate{
-		Description:  "Shows deployment and some operations with TiDB",
-		ScriptName:   "tidb-deployment.sh",
-		Contents:     tidbDeployment,
-		IsExecutable: true,
+		Description:    "Shows deployment and some operations with TiDB",
+		ScriptName:     "tidb-deployment.sh",
+		Contents:       tidbDeployment,
+		RequiredFlavor: common.TiDbFlavor,
+		IsExecutable:   true,
 	},
 	"ndb": RecipeTemplate{
-		Description:  "Shows deployment with ndb",
-		ScriptName:   "ndb-deployment.sh",
-		Contents:     ndbDeployment,
-		IsExecutable: true,
+		Description:    "Shows deployment with ndb",
+		ScriptName:     "ndb-deployment.sh",
+		Contents:       ndbDeployment,
+		RequiredFlavor: common.NdbFlavor,
+		IsExecutable:   true,
 	},
 	"pxc": RecipeTemplate{
-		Description:  "Shows deployment with pxc",
-		ScriptName:   "pxc-deployment.sh",
-		Contents:     pxcDeployment,
-		IsExecutable: true,
+		Description:    "Shows deployment with pxc",
+		ScriptName:     "pxc-deployment.sh",
+		Contents:       pxcDeployment,
+		RequiredFlavor: common.PxcFlavor,
+		IsExecutable:   true,
 	},
 	"remote": RecipeTemplate{
 		Description:  "Shows how to get a remote MySQL tarball",

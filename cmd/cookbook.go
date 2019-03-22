@@ -41,19 +41,21 @@ func listCookbook(cmd *cobra.Command, args []string) {
 func showCookbook(cmd *cobra.Command, args []string) {
 	checkArgs("show", "show recipe_name", args, 1)
 	raw, _ := cmd.Flags().GetBool(globals.RawLabel)
-	cookbook.ShowRecipe(args[0], raw)
+	flavor, _ := cmd.Flags().GetString(globals.FlavorLabel)
+	cookbook.ShowRecipe(args[0], flavor, raw)
 }
 
 func createCookbook(cmd *cobra.Command, args []string) {
 	checkArgs("run", "run recipe_name", args, 1)
-	cookbook.CreateRecipe(args[0])
+	flavor, _ := cmd.Flags().GetString(globals.FlavorLabel)
+	cookbook.CreateRecipe(args[0], flavor)
 }
 
 var cookbookCmd = &cobra.Command{
-	Use:   "cookbook",
+	Use:     "cookbook",
 	Aliases: []string{"recipes", "samples"},
-	Short: "Shows dbdeployer samples",
-	Long:  `Shows practical examples of dbdeployer usages, by creating usage scripts.`,
+	Short:   "Shows dbdeployer samples",
+	Long:    `Shows practical examples of dbdeployer usages, by creating usage scripts.`,
 }
 
 var listCookbookCmd = &cobra.Command{
@@ -71,11 +73,11 @@ var showCookbookCmd = &cobra.Command{
 }
 
 var createCookbookCmd = &cobra.Command{
-	Use:   "create recipe_name or ALL",
+	Use:     "create recipe_name or ALL",
 	Aliases: []string{"make"},
-	Short: "creates a script for a given recipe",
-	Long:  `creates a script for given recipe`,
-	Run:   createCookbook,
+	Short:   "creates a script for a given recipe",
+	Long:    `creates a script for given recipe`,
+	Run:     createCookbook,
 }
 
 func init() {
@@ -84,4 +86,5 @@ func init() {
 	cookbookCmd.AddCommand(createCookbookCmd)
 	cookbookCmd.AddCommand(showCookbookCmd)
 	showCookbookCmd.Flags().BoolP(globals.RawLabel, "", false, "Shows the recipe without variable substitution")
+	setPflag(cookbookCmd, globals.FlavorLabel, "", "", "", "For which flavor this recipe is", false)
 }

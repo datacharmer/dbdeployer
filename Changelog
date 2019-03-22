@@ -1,3 +1,7 @@
+1.24.0	22-Mar-2019
+	NEW FEATURES:
+	- Add command "cookbook" with subcommands list, show, create
+	- Replace cookbook static sample scripts with dynamically created ones
 1.23.0	14-Mar-2019
 	NEW FEATURES:
 	- Add support for MySQL Cluster (topology=ndb)

@@ -370,6 +370,111 @@ _dbdeployer_admin()
     noun_aliases=()
 }
 
+_dbdeployer_cookbook_create()
+{
+    last_command="dbdeployer_cookbook_create"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--config=")
+    flags+=("--flavor=")
+    flags+=("--sandbox-binary=")
+    flags+=("--sandbox-home=")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_dbdeployer_cookbook_list()
+{
+    last_command="dbdeployer_cookbook_list"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--config=")
+    flags+=("--flavor=")
+    flags+=("--sandbox-binary=")
+    flags+=("--sandbox-home=")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_dbdeployer_cookbook_show()
+{
+    last_command="dbdeployer_cookbook_show"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--raw")
+    local_nonpersistent_flags+=("--raw")
+    flags+=("--config=")
+    flags+=("--flavor=")
+    flags+=("--sandbox-binary=")
+    flags+=("--sandbox-home=")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_dbdeployer_cookbook()
+{
+    last_command="dbdeployer_cookbook"
+
+    command_aliases=()
+
+    commands=()
+    commands+=("create")
+    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+        command_aliases+=("make")
+        aliashash["make"]="create"
+    fi
+    commands+=("list")
+    commands+=("show")
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--flavor=")
+    flags+=("--config=")
+    flags+=("--sandbox-binary=")
+    flags+=("--sandbox-home=")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _dbdeployer_defaults_export()
 {
     last_command="dbdeployer_defaults_export"
@@ -1492,6 +1597,13 @@ _dbdeployer_root_command()
     if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
         command_aliases+=("manage")
         aliashash["manage"]="admin"
+    fi
+    commands+=("cookbook")
+    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+        command_aliases+=("recipes")
+        aliashash["recipes"]="cookbook"
+        command_aliases+=("samples")
+        aliashash["samples"]="cookbook"
     fi
     commands+=("defaults")
     if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then

@@ -32,7 +32,7 @@ type DbdeployerDefaults struct {
 	UseSandboxCatalog bool   `json:"use-sandbox-catalog"`
 	LogSBOperations   bool   `json:"log-sb-operations"`
 	LogDirectory      string `json:"log-directory"`
-	CookbookDirectory      string `json:"cookbook-directory"`
+	CookbookDirectory string `json:"cookbook-directory"`
 
 	//UseConcurrency    			   bool   `json:"use-concurrency"`
 	MasterSlaveBasePort           int `json:"master-slave-base-port"`
@@ -94,7 +94,7 @@ var (
 		UseSandboxCatalog: true,
 		LogSBOperations:   false,
 		LogDirectory:      path.Join(homeDir, "sandboxes", "logs"),
-		CookbookDirectory:      "recipes",
+		CookbookDirectory: "recipes",
 		//UseConcurrency :			   true,
 		MasterSlaveBasePort:           11000,
 		GroupReplicationBasePort:      12000,

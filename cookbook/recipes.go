@@ -26,13 +26,15 @@ import (
 	"strings"
 )
 
-type CookbookError struct {
-	Error error
-	Code int
-}
-
 const (
 	ErrNoVersionFound = 1
+	ErrNoRecipeFound  = 2
+	VersionNotFound   = "NOTFOUND"
+)
+
+var (
+	AuxiliaryRecipes        = []string{"prerequisites", "include"}
+	PrerequisitesShown bool = false
 )
 
 func ListRecipes() {
@@ -43,6 +45,7 @@ func ListRecipes() {
 			{Align: simpletable.AlignCenter, Text: "recipe"},
 			{Align: simpletable.AlignCenter, Text: "script name"},
 			{Align: simpletable.AlignCenter, Text: "description"},
+			{Align: simpletable.AlignCenter, Text: "needed\n flavor"},
 		},
 	}
 
@@ -52,6 +55,7 @@ func ListRecipes() {
 			cells = append(cells, &simpletable.Cell{Text: name})
 			cells = append(cells, &simpletable.Cell{Text: template.ScriptName})
 			cells = append(cells, &simpletable.Cell{Text: template.Description})
+			cells = append(cells, &simpletable.Cell{Text: template.RequiredFlavor})
 			table.Body.Cells = append(table.Body.Cells, cells)
 		}
 	}
@@ -59,16 +63,15 @@ func ListRecipes() {
 	table.Println()
 }
 
-
 func getCookbookDirectory() string {
-		cookbookDir := defaults.Defaults().CookbookDirectory
+	cookbookDir := defaults.Defaults().CookbookDirectory
 	if !common.DirExists(cookbookDir) {
 		err := os.Mkdir(cookbookDir, globals.PublicDirectoryAttr)
 		if err != nil {
 			common.Exitf(1, "error creating cookbook directory %s: %s", cookbookDir, err)
 		}
 	}
-		return cookbookDir
+	return cookbookDir
 }
 
 func recipeExists(recipeName string) bool {
@@ -82,84 +85,91 @@ func recipeExists(recipeName string) bool {
 func createPrerequisites() string {
 	cookbookDir := getCookbookDirectory()
 	preReqScript := path.Join(cookbookDir, CookbookPrerequisites)
-
-	for _, recipeName := range []string{"prerequisites", "include"} {
-		recipe := RecipesList[recipeName]
-		recipeText := recipe.Contents
-		targetScript := path.Join(cookbookDir, recipe.ScriptName)
-		err := common.WriteString(recipeText, targetScript)
-		if err != nil {
-			common.Exitf(1, "error writing file %s: %s", targetScript, err)
-		}
-		if recipe.IsExecutable {
-			err = os.Chmod(targetScript, globals.ExecutableFileAttr)
-			if err != nil {
-				common.Exitf(1, "error while making file %s executable: %s", targetScript, err)
-			}
-		}
-		fmt.Printf("%s created\n", targetScript)
+	for _, recipeName := range AuxiliaryRecipes {
+		CreateRecipe(recipeName, "")
 	}
 	return preReqScript
 }
 
-func showPrerequisites() {
+func showPrerequisites(flavor string) {
+	if PrerequisitesShown {
+		return
+	}
 	prerequisitesScript := createPrerequisites()
-	fmt.Printf("No tarballs were found in your environment\n")
+	fmt.Printf("No tarballs for flavor %s were found in your environment\n", flavor)
 	fmt.Printf("Please read instructions in %s\n", prerequisitesScript)
-	os.Exit(0)
+	PrerequisitesShown = true
 }
 
-func ShowRecipe(recipeName string, raw bool) {
+func ShowRecipe(recipeName string, flavor string, raw bool) {
 	if !recipeExists(recipeName) {
 		fmt.Printf("recipe %s not found\n", recipeName)
 		os.Exit(1)
 	}
 	if raw {
-		fmt.Printf("%s\n",RecipesList[recipeName].Contents)
+		fmt.Printf("%s\n", RecipesList[recipeName].Contents)
 		return
 	}
-	recipeText, cberr := GetRecipe(recipeName)
-	if cberr.Error != nil {
-		if cberr.Code == ErrNoVersionFound {
-			showPrerequisites()
-		}
-		common.Exitf(1, "error getting recipe %s: %s", recipeName, cberr.Error)
+	recipe := RecipesList[recipeName]
+	if recipe.RequiredFlavor != "" && flavor == "" {
+		flavor = recipe.RequiredFlavor
+	}
+	if flavor == "" {
+		flavor = common.MySQLFlavor
+	}
+	recipeText, err, _ := GetRecipe(recipeName, flavor)
+	if err != nil {
+		showPrerequisites(flavor)
 	}
 	fmt.Printf("%s\n", recipeText)
 }
 
-func CreateRecipe(recipeName string) {
+func CreateRecipe(recipeName, flavor string) {
+	var isRecursive bool = false
+
+	for _, auxRecipeName := range AuxiliaryRecipes {
+		if auxRecipeName == recipeName {
+			isRecursive = true
+		}
+	}
 	if strings.ToLower(recipeName) == "all" {
 		for name, _ := range RecipesList {
-			CreateRecipe(name)
+			CreateRecipe(name, flavor)
 		}
 		return
 	}
 	recipe := RecipesList[recipeName]
+	if recipe.RequiredFlavor != "" {
+		flavor = recipe.RequiredFlavor
+	}
+	if flavor == "" {
+		flavor = common.MySQLFlavor
+	}
 	if !recipeExists(recipeName) {
 		fmt.Printf("recipe %s not found\n", recipeName)
 		os.Exit(1)
 	}
-	recipeText, cberr := GetRecipe(recipeName)
-	if cberr.Error != nil {
-		if cberr.Code == ErrNoVersionFound {
-			showPrerequisites()
-		}
-		common.Exitf(1, "error getting recipe %s: %s", recipeName, cberr.Error)
+	recipeText, err, versionCode := GetRecipe(recipeName, flavor)
+	if err != nil && !isRecursive {
+		showPrerequisites(flavor)
+		common.Exitf(1, "error getting recipe %s: %s", recipeName, err)
+	}
+	if versionCode == ErrNoVersionFound && !isRecursive {
+		showPrerequisites(flavor)
 	}
 	cookbookDir := getCookbookDirectory()
 	if recipe.ScriptName != CookbookInclude {
 		targetInclude := path.Join(cookbookDir, CookbookInclude)
-		if !common.FileExists(targetInclude) {
-			CreateRecipe("include")
+		if !common.FileExists(targetInclude) && !isRecursive {
+			CreateRecipe("include", flavor)
 		}
 	}
 	targetScript := path.Join(cookbookDir, recipe.ScriptName)
-	if common.FileExists(targetScript) {
-		fmt.Printf("Script %s already created\n", targetScript)
-		return
-	}
-	err := common.WriteString(recipeText, targetScript)
+	//if common.FileExists(targetScript) {
+	//	fmt.Printf("Script %s already created\n", targetScript)
+	//	return
+	//}
+	err = common.WriteString(recipeText, targetScript)
 	if err != nil {
 		common.Exitf(1, "error writing file %s: %s", targetScript, err)
 	}
@@ -172,52 +182,47 @@ func CreateRecipe(recipeName string) {
 	fmt.Printf("%s created\n", targetScript)
 }
 
-func GetLatestVersion(wantedVersion string) (string, CookbookError) {
+func GetLatestVersion(wantedVersion, flavor string) string {
 	if wantedVersion == "" {
 		wantedVersion = os.Getenv("WANTED_VERSION")
-	}
-	if wantedVersion == "" {
-		wantedVersion = "5.7"
 	}
 	sandboxBinary := os.Getenv("SANDBOX_BINARY")
 	if sandboxBinary == "" {
 		sandboxBinary = defaults.Defaults().SandboxBinary
 	}
-	versions, err := common.GetVersionsFromDir(sandboxBinary)
-	if err != nil {
-		return "", CookbookError{Error:err, Code: ErrNoVersionFound}
-	}
+	versions := common.GetFlavoredVersionsFromDir(sandboxBinary, flavor)
 	if len(versions) == 0 {
-		return "", CookbookError{Error: fmt.Errorf("no sorted version found for %s", wantedVersion), Code: ErrNoVersionFound}
+		return VersionNotFound + "_" + flavor
 	}
 
 	sortedVersions := common.SortVersionsSubset(versions, wantedVersion)
 	if len(sortedVersions) < 1 {
-		return globals.EmptyString, CookbookError{fmt.Errorf("no sorted versions found"), ErrNoVersionFound}
+		return VersionNotFound + "_" + flavor
 	}
 	latestVersion := sortedVersions[len(sortedVersions)-1]
-	return latestVersion, CookbookError{nil, 0}
+	return latestVersion
 }
 
-func GetRecipe(recipeName string) (string, CookbookError) {
+func GetRecipe(recipeName, flavor string) (string, error, int) {
 	var text string
 
 	recipe, ok := RecipesList[recipeName]
 	if !ok {
-		return text, CookbookError{fmt.Errorf("recipe %s not found", recipeName), 0}
+		return text, fmt.Errorf("recipe %s not found", recipeName), ErrNoRecipeFound
 	}
 	latestVersions := make(map[string]string)
 	for _, version := range []string{"5.0", "5.1", "5.5", "5.6", "5.7", "8.0"} {
-		latest, _ := GetLatestVersion(version)
+		latest := GetLatestVersion(version, common.MySQLFlavor)
 		if latest != "" {
 			latestVersions[version] = latest
 		} else {
-			latestVersions[version] =  fmt.Sprintf("NOTFOUND_%s", version)
+			latestVersions[version] = fmt.Sprintf("%s_%s", VersionNotFound, version)
 		}
 	}
-	latestVersion, cberr := GetLatestVersion("")
-	if cberr.Error != nil {
-		return globals.EmptyString, cberr
+	latestVersion := GetLatestVersion("", flavor)
+	versionCode := 0
+	if latestVersion == VersionNotFound {
+		versionCode = ErrNoVersionFound
 	}
 	var data = common.StringMap{
 		"Copyright":     globals.Copyright,
@@ -232,7 +237,7 @@ func GetRecipe(recipeName string) (string, CookbookError) {
 	}
 	text, err := common.SafeTemplateFill(recipeName, recipe.Contents, data)
 	if err != nil {
-		return globals.EmptyString, CookbookError{err, 0}
+		return globals.EmptyString, err, versionCode
 	}
-	return text, CookbookError{nil, 0}
+	return text, nil, versionCode
 }
