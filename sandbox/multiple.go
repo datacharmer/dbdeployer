@@ -116,7 +116,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 	timestamp := time.Now()
 	nodeLabel := defaults.Defaults().NodePrefix
 	var data = common.StringMap{
-		"Copyright":    Copyright,
+		"Copyright":    globals.Copyright,
 		"AppVersion":   common.VersionDef,
 		"DateTime":     timestamp.Format(time.UnixDate),
 		"SandboxDir":   sandboxDef.SandboxDir,
@@ -154,7 +154,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 	for i := 1; i <= nodes; i++ {
 		sandboxDef.Port = basePort + i
 		data["Nodes"] = append(data["Nodes"].([]common.StringMap), common.StringMap{
-			"Copyright":    Copyright,
+			"Copyright":    globals.Copyright,
 			"AppVersion":   common.VersionDef,
 			"DateTime":     timestamp.Format(time.UnixDate),
 			"Node":         i,
@@ -204,7 +204,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 			"NodePort":     sandboxDef.Port,
 			"NodeLabel":    nodeLabel,
 			"SandboxDir":   sandboxDef.SandboxDir,
-			"Copyright":    Copyright,
+			"Copyright":    globals.Copyright,
 			"StopNodeList": stopNodeList,
 		}
 		logger.Printf("Creating node script for node %d\n", i)

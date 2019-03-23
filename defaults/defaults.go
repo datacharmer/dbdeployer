@@ -32,6 +32,7 @@ type DbdeployerDefaults struct {
 	UseSandboxCatalog bool   `json:"use-sandbox-catalog"`
 	LogSBOperations   bool   `json:"log-sb-operations"`
 	LogDirectory      string `json:"log-directory"`
+	CookbookDirectory string `json:"cookbook-directory"`
 
 	//UseConcurrency    			   bool   `json:"use-concurrency"`
 	MasterSlaveBasePort           int `json:"master-slave-base-port"`
@@ -93,6 +94,7 @@ var (
 		UseSandboxCatalog: true,
 		LogSBOperations:   false,
 		LogDirectory:      path.Join(homeDir, "sandboxes", "logs"),
+		CookbookDirectory: "recipes",
 		//UseConcurrency :			   true,
 		MasterSlaveBasePort:           11000,
 		GroupReplicationBasePort:      12000,
@@ -317,6 +319,8 @@ func UpdateDefaults(label, value string, storeDefaults bool) {
 		newDefaults.LogSBOperations = common.TextToBool(value)
 	case "log-directory":
 		newDefaults.LogDirectory = value
+	case "cookbook-directory":
+		newDefaults.CookbookDirectory = value
 	//case "use-concurrency":
 	//	new_defaults.UseConcurrency = common.TextToBool(value)
 	case "master-slave-base-port":

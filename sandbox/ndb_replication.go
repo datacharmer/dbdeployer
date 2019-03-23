@@ -125,7 +125,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		"Basedir":       sandboxDef.Basedir,
 		"EngineClause":  "engine=ndbcluster",
 		"ClientBasedir": sandboxDef.ClientBasedir,
-		"Copyright":     Copyright,
+		"Copyright":     globals.Copyright,
 		"ClusterName":   fmt.Sprintf("%s_%s", defaults.Defaults().NdbPrefix, sandboxDef.Version),
 		"AppVersion":    common.VersionDef,
 		"DateTime":      timestamp.Format(time.UnixDate),
@@ -186,7 +186,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		sandboxDef.Port = basePort + i
 		nodeStringMap :=
 			common.StringMap{
-				"Copyright":    Copyright,
+				"Copyright":    globals.Copyright,
 				"AppVersion":   common.VersionDef,
 				"DateTime":     timestamp.Format(time.UnixDate),
 				"ClusterPort":  ndbClusterPort,
@@ -252,7 +252,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 			execLists = append(execLists, list)
 		}
 		var dataNode = common.StringMap{
-			"Copyright":   Copyright,
+			"Copyright":   globals.Copyright,
 			"AppVersion":  common.VersionDef,
 			"ClusterPort": ndbClusterPort,
 			"DateTime":    timestamp.Format(time.UnixDate),
