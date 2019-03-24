@@ -282,6 +282,7 @@ func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxD
 	sd.SkipReportPort, _ = flags.GetBool(globals.SkipReportPortLabel)
 	sd.DisableMysqlX, _ = flags.GetBool(globals.DisableMysqlXLabel)
 	sd.EnableMysqlX, _ = flags.GetBool(globals.EnableMysqlXLabel)
+	sd.EnableAdminAddress, _ = flags.GetBool(globals.EnableAdminAddressLabel)
 	sd.SocketInDatadir, _ = flags.GetBool(globals.SocketInDatadirLabel)
 	if common.IsEnvSet("SOCKET_IN_DATADIR") {
 		sd.SocketInDatadir = true

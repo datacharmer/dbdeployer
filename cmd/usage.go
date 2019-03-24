@@ -75,6 +75,9 @@ Examples:
 if mysqlsh was installed, with preference to the binaries found in "basedir".
 This script is created only if the X plugin was enabled (5.7.12+ with --enable-mysqlx
 or 8.0.11+ without --disable-mysqlx)
+
+"./use_admin" is created when the sandbox is deployed with --enable-admin-address (8.0.14+)
+and allows using the database as administrator, with a dedicated port.
 `
 	const multipleUsage string = ` USING MULTIPLE SERVER SANDBOX
 On a replication sandbox, you have the same commands (run "dbdeployer usage single"), 
@@ -97,6 +100,13 @@ m                      > invokes MySQL client in the master
 s1, s2, n1, n2         > invokes MySQL client in slave 1, 2, node 1, 2
 
 The scripts "check_slaves" or "check_nodes" give the status of replication in the sandbox.
+
+When the sandbox is deployed with --enable-admin-address (8.0.14+) the following scripts
+are also created:
+
+ma                    > invokes the MySQL client in the master as admin
+sa1, sa2, na1, na2    > invokes MySQL client as admin in slave 1, 2, node 1, 2
+use_all_admin "SQL"   > runs a SQL statement in all nodes as admin
 `
 	request := ""
 	if len(args) > 0 {

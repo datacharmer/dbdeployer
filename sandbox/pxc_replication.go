@@ -129,6 +129,11 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		return err
 	}
 
+	baseAdminPort, err := getBaseAdminPort(basePort, sandboxDef, nodes)
+	if err != nil {
+		return err
+	}
+
 	firstGroupPort, err = common.FindFreePort(baseRsyncPort+1, sandboxDef.InstalledPorts, nodes)
 	if err != nil {
 		return errors.Wrapf(err, "error retrieving PXC replication free port")
@@ -313,6 +318,12 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 				logger.Printf("adding port %d to node %d\n", baseMysqlxPort+i, i)
 			}
 		}
+		if sandboxDef.EnableAdminAddress {
+			sandboxDef.AdminPort = baseAdminPort + i
+			sbDesc.Port = append(sbDesc.Port, baseAdminPort+i)
+			sbItem.Port = append(sbItem.Port, baseAdminPort+i)
+			logger.Printf("adding port %d to node %d\n", baseAdminPort+i, i)
+		}
 		sandboxDef.Multi = true
 		if i == 1 {
 			sandboxDef.LoadGrants = true
@@ -349,6 +360,14 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sandboxDef.SandboxDir, dataNode, true)
 		if err != nil {
 			return err
+		}
+		if sandboxDef.EnableAdminAddress {
+			logger.Printf("Create admin script for node %d\n", i)
+			err = writeScript(logger, MultipleTemplates, fmt.Sprintf("na%d", i),
+				"node_admin_template", sandboxDef.SandboxDir, dataNode, true)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	logger.Printf("Writing sandbox description in %s\n", sandboxDef.SandboxDir)
@@ -401,6 +420,14 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 
 	for _, sb := range []ScriptBatch{sbMultiple, sbRepl, sbPxc} {
 		err := writeScripts(sb)
+		if err != nil {
+			return err
+		}
+	}
+	if sandboxDef.EnableAdminAddress {
+		logger.Printf("Creating admin script for all nodes\n")
+		err = writeScript(logger, MultipleTemplates, "use_all_admin",
+			"use_multi_admin_template", sandboxDef.SandboxDir, data, true)
 		if err != nil {
 			return err
 		}

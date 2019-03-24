@@ -77,6 +77,42 @@ func getBaseMysqlxPort(basePort int, sdef SandboxDef, nodes int) (int, error) {
 	return baseMysqlxPort, nil
 }
 
+func getBaseAdminPort(basePort int, sdef SandboxDef, nodes int) (int, error) {
+	baseAdminPort := basePort + defaults.Defaults().AdminPortDelta
+	if !sdef.EnableAdminAddress {
+		return basePort, nil
+	}
+	// 8.0.14
+	isMinimumAdminAddress, err := common.HasCapability(sdef.Flavor, common.AdminAddress, sdef.Version)
+	if err != nil {
+		return 0, err
+	}
+	if !isMinimumAdminAddress {
+		return 0, fmt.Errorf(globals.ErrFeatureRequiresCapability,
+			globals.EnableAdminAddressLabel,
+			common.MySQLFlavor,
+			common.IntSliceToDottedString(globals.MinimumAdminAddressVersion))
+	}
+	if isMinimumAdminAddress {
+		// FindFreePort returns the first free port, but base_port will be used
+		// with a counter. Thus the availability will be checked using
+		// "base_port + 1"
+		firstAdminPort, err := common.FindFreePort(baseAdminPort+1, sdef.InstalledPorts, nodes)
+		if err != nil {
+			return -1, errors.Wrapf(err, "error finding a free admin port")
+		}
+		baseAdminPort = firstAdminPort - 1
+		for N := 1; N <= nodes; N++ {
+			checkPort := baseAdminPort + N
+			err := checkPortAvailability("get_base_admin_port", sdef.SandboxDir, sdef.InstalledPorts, checkPort)
+			if err != nil {
+				return 0, err
+			}
+		}
+	}
+	return baseAdminPort, nil
+}
+
 func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
 	var execLists []concurrent.ExecutionList
 	var err error
@@ -153,6 +189,10 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		}
 	}
 	baseMysqlxPort, err := getBaseMysqlxPort(basePort, sandboxDef, nodes)
+	if err != nil {
+		return err
+	}
+	baseAdminPort, err := getBaseAdminPort(basePort, sandboxDef, nodes)
 	if err != nil {
 		return err
 	}
@@ -323,6 +363,12 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 				logger.Printf("adding port %d to node %d\n", baseMysqlxPort+i, i)
 			}
 		}
+		if sandboxDef.EnableAdminAddress {
+			sandboxDef.AdminPort = baseAdminPort + i
+			sbDesc.Port = append(sbDesc.Port, baseAdminPort+i)
+			sbItem.Port = append(sbItem.Port, baseAdminPort+i)
+			logger.Printf("adding port %d to node %d\n", baseAdminPort+i, i)
+		}
 		sandboxDef.Multi = true
 		sandboxDef.LoadGrants = true
 		sandboxDef.Prompt = fmt.Sprintf("%s%d", nodeLabel, i)
@@ -355,6 +401,13 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sandboxDef.SandboxDir, dataNode, true)
 		if err != nil {
 			return err
+		}
+		if sandboxDef.EnableAdminAddress {
+			err = writeScript(logger, MultipleTemplates, fmt.Sprintf("na%d", i), "node_admin_template", sandboxDef.SandboxDir, dataNode, true)
+			if err != nil {
+				return err
+			}
+
 		}
 	}
 	logger.Printf("Writing sandbox description in %s\n", sandboxDef.SandboxDir)
@@ -408,6 +461,14 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 
 	for _, sb := range []ScriptBatch{sbMultiple, sbRepl, sbGroup} {
 		err := writeScripts(sb)
+		if err != nil {
+			return err
+		}
+	}
+	if sandboxDef.EnableAdminAddress {
+		logger.Printf("Creating admin script for all nodes\n")
+		err = writeScript(logger, MultipleTemplates, "use_all_admin",
+			"use_multi_admin_template", sandboxDef.SandboxDir, data, true)
 		if err != nil {
 			return err
 		}

@@ -728,7 +728,6 @@ do
     fi
 done
 count=0
-ndb_short_versions=()
 for v in ${ndb_short_versions[*]}
 do
     latest=$(ls $BINARY_DIR | grep "^$v" | ./sort_versions | tail -n 1)

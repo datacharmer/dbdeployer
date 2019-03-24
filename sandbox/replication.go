@@ -120,6 +120,10 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	if err != nil {
 		return err
 	}
+	baseAdminPort, err := getBaseAdminPort(basePort, sandboxDef, nodes)
+	if err != nil {
+		return err
+	}
 	for checkPort := basePort + 1; checkPort < basePort+nodes+1; checkPort++ {
 		err := checkPortAvailability("CreateMasterSlaveReplication", sandboxDef.SandboxDir, sandboxDef.InstalledPorts, checkPort)
 		if err != nil {
@@ -254,6 +258,13 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		}
 	}
 
+	if sandboxDef.EnableAdminAddress {
+		sandboxDef.AdminPort = baseAdminPort + 1
+		sbDesc.Port = append(sbDesc.Port, baseAdminPort+1)
+		sbItem.Port = append(sbItem.Port, baseAdminPort+1)
+		logger.Printf("Adding admin port %d to master\n", baseAdminPort+1)
+	}
+
 	sandboxDef.ReadOnlyOptions = readOnlyOptions
 	nodeLabel := defaults.Defaults().NodePrefix
 	for i := 1; i <= slaves; i++ {
@@ -297,7 +308,12 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 				logger.Printf("Adding mysqlx port %d to slave %d\n", baseMysqlxPort+i+1, i)
 			}
 		}
-
+		if sandboxDef.EnableAdminAddress {
+			sandboxDef.AdminPort = baseAdminPort + i + 1
+			sbDesc.Port = append(sbDesc.Port, baseAdminPort+i+1)
+			sbItem.Port = append(sbItem.Port, baseAdminPort+i+1)
+			logger.Printf("Adding admin port %d to slave %d\n", baseAdminPort+i+1, i)
+		}
 		installationMessage = "Installing and starting %s%d\n"
 		if sandboxDef.SkipStart {
 			installationMessage = "Installing %s%d\n"
@@ -336,13 +352,22 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		err = writeScripts(ScriptBatch{ReplicationTemplates, logger, sandboxDef.SandboxDir, dataSlave,
 			[]ScriptDef{
 				{fmt.Sprintf("%s%d", slaveAbbr, i), "slave_template", true},
-				{fmt.Sprintf("n%d", i), "slave_template", true},
+				{fmt.Sprintf("n%d", i+1), "slave_template", true},
 			}})
 		if err != nil {
 			return err
 		}
-		// writeScript(logger, ReplicationTemplates, fmt.Sprintf("%s%d", slaveAbbr, i), "slave_template", sandboxDef.SandboxDir, dataSlave, true)
-		// writeScript(logger, ReplicationTemplates, fmt.Sprintf("n%d", i+1), "slave_template", sandboxDef.SandboxDir, dataSlave, true)
+		if sandboxDef.EnableAdminAddress {
+			logger.Printf("Create slave admin script %d\n", i)
+			err = writeScripts(ScriptBatch{ReplicationTemplates, logger, sandboxDef.SandboxDir, dataSlave,
+				[]ScriptDef{
+					{fmt.Sprintf("%sa%d", slaveAbbr, i), "slave_admin_template", true},
+					{fmt.Sprintf("na%d", i+1), "slave_admin_template", true},
+				}})
+			if err != nil {
+				return err
+			}
+		}
 	}
 	err = common.WriteSandboxDescription(sandboxDef.SandboxDir, sbDesc)
 	if err != nil {
@@ -381,8 +406,12 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		},
 	}
 	if sandboxDef.SemiSyncOptions != "" {
-		// writeScript(logger, ReplicationTemplates, "post_initialization", "semi_sync_start_template", sandboxDef.SandboxDir, data, true)
 		sb.scripts = append(sb.scripts, ScriptDef{"post_initialization", "semi_sync_start_template", true})
+	}
+	if sandboxDef.EnableAdminAddress {
+		sb.scripts = append(sb.scripts, ScriptDef{masterAbbr + "a", "master_admin_template", true})
+		sb.scripts = append(sb.scripts, ScriptDef{"na1", "master_admin_template", true})
+		sb.scripts = append(sb.scripts, ScriptDef{"use_all_admin", "use_all_admin_template", true})
 	}
 	logger.Printf("Create replication scripts\n")
 	err = writeScripts(sb)

@@ -95,6 +95,12 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 	if err != nil {
 		return emptyStringMap, err
 	}
+
+	baseAdminPort, err := getBaseAdminPort(basePort, sandboxDef, nodes)
+	if err != nil {
+		return emptyStringMap, err
+	}
+
 	err = os.Mkdir(sandboxDef.SandboxDir, globals.PublicDirectoryAttr)
 	if err != nil {
 		return emptyStringMap, err
@@ -182,6 +188,13 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 				logger.Printf("Adding mysqlx port %d to node %d\n", baseMysqlxPort+i, i)
 			}
 		}
+
+		if sandboxDef.EnableAdminAddress {
+			sandboxDef.AdminPort = baseAdminPort + i
+			sbDesc.Port = append(sbDesc.Port, baseAdminPort+i)
+			sbItem.Port = append(sbItem.Port, baseAdminPort+i)
+			logger.Printf("adding port %d to node %d\n", baseAdminPort+i, i)
+		}
 		sandboxDef.Multi = true
 		sandboxDef.NodeNum = i
 		sandboxDef.Prompt = fmt.Sprintf("%s%d", nodeLabel, i)
@@ -212,6 +225,14 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sandboxDef.SandboxDir, dataNode, true)
 		if err != nil {
 			return data, err
+		}
+		if sandboxDef.EnableAdminAddress {
+			logger.Printf("Creating admin script for node %d\n", i)
+			err = writeScript(logger, MultipleTemplates, fmt.Sprintf("na%d", i),
+				"node_admin_template", sandboxDef.SandboxDir, dataNode, true)
+			if err != nil {
+				return data, err
+			}
 		}
 	}
 	logger.Printf("Write sandbox description\n")
@@ -245,6 +266,14 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 	err = writeScripts(sbMultiple)
 	if err != nil {
 		return data, err
+	}
+	if sandboxDef.EnableAdminAddress {
+		logger.Printf("Creating admin script for all nodes\n")
+		err = writeScript(logger, MultipleTemplates, "use_all_admin",
+			"use_multi_admin_template", sandboxDef.SandboxDir, data, true)
+		if err != nil {
+			return data, err
+		}
 	}
 	logger.Printf("Run concurrent tasks\n")
 	concurrent.RunParallelTasksByPriority(execLists)

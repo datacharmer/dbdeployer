@@ -90,6 +90,12 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 	if err != nil {
 		return err
 	}
+
+	baseAdminPort, err := getBaseAdminPort(basePort, sandboxDef, nodes)
+	if err != nil {
+		return err
+	}
+
 	err = os.Mkdir(sandboxDef.SandboxDir, globals.PublicDirectoryAttr)
 	if err != nil {
 		return err
@@ -238,6 +244,14 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 				logger.Printf("adding port %d to node %d\n", baseMysqlxPort+i, i)
 			}
 		}
+
+		if sandboxDef.EnableAdminAddress {
+			sandboxDef.AdminPort = baseAdminPort + i
+			sbDesc.Port = append(sbDesc.Port, baseAdminPort+i)
+			sbItem.Port = append(sbItem.Port, baseAdminPort+i)
+			logger.Printf("adding port %d to node %d\n", baseAdminPort+i, i)
+		}
+
 		sandboxDef.Multi = true
 		sandboxDef.LoadGrants = true
 		sandboxDef.Prompt = fmt.Sprintf("%s%d", nodeLabel, i)
@@ -271,6 +285,14 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 			"node_template", sandboxDef.SandboxDir, dataNode, true)
 		if err != nil {
 			return err
+		}
+		if sandboxDef.EnableAdminAddress {
+			logger.Printf("Create admin script for node %d\n", i)
+			err = writeScript(logger, MultipleTemplates, fmt.Sprintf("na%d", i),
+				"node_admin_template", sandboxDef.SandboxDir, dataNode, true)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	for i := 2; i <= ndbNodes; i++ {
@@ -338,6 +360,14 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		err := writeScripts(sb)
 		if err != nil {
 			fmt.Printf("%s\n", err)
+			return err
+		}
+	}
+	if sandboxDef.EnableAdminAddress {
+		logger.Printf("Creating admin script for all nodes\n")
+		err = writeScript(logger, MultipleTemplates, "use_all_admin",
+			"use_multi_admin_template", sandboxDef.SandboxDir, data, true)
+		if err != nil {
 			return err
 		}
 	}
