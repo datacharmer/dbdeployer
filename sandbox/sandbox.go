@@ -47,6 +47,7 @@ type SandboxDef struct {
 	InstalledPorts       []int            // Which ports should be skipped in port assignment for this SB
 	Port                 int              // Port assigned to this sandbox
 	MysqlXPort           int              // XPlugin port for this sandbox
+	AdminPort            int              // Admin port for this sandbox (8.0.14+)
 	UserPort             int              // Custom port provided by user
 	BasePort             int              // Base port for calculating more ports in multiple SB
 	MorePorts            []int            // Additional ports that belong to this sandbox
@@ -84,6 +85,7 @@ type SandboxDef struct {
 	NativeAuthPlugin     bool             // Use the native password plugin for MySQL 8.0.4+
 	DisableMysqlX        bool             // Disable Xplugin (MySQL 8.0.11+)
 	EnableMysqlX         bool             // Enable Xplugin (MySQL 5.7.12+)
+	EnableAdminAddress   bool             // Enable Admin address (MySQL 8.0.14+)
 	KeepUuid             bool             // Do not change UUID
 	SinglePrimary        bool             // Use single primary for group replication
 	Force                bool             // Overwrite an existing sandbox with same target
@@ -280,6 +282,33 @@ func setMysqlxProperties(sandboxDef SandboxDef, socketDir string) (SandboxDef, e
 	return sandboxDef, nil
 }
 
+func setAdminPortProperties(sandboxDef SandboxDef) (SandboxDef, error) {
+	if !sandboxDef.EnableAdminAddress {
+		return sandboxDef, nil
+	}
+	isMinimumAdminAddress, err := common.HasCapability(sandboxDef.Flavor, common.AdminAddress, sandboxDef.Version)
+	if err != nil {
+		return sandboxDef, err
+	}
+	if !isMinimumAdminAddress {
+		return sandboxDef, fmt.Errorf(globals.ErrOptionRequiresVersion, globals.EnableAdminAddressLabel,
+			common.IntSliceToDottedString(globals.MinimumAdminAddressVersion))
+	}
+	adminPort := sandboxDef.AdminPort
+	if adminPort == 0 {
+		var err error
+		adminPort, err = common.FindFreePort(sandboxDef.Port+defaults.Defaults().AdminPortDelta, sandboxDef.InstalledPorts, 1)
+		if err != nil {
+			return SandboxDef{}, errors.Wrapf(err, "error detecting free admin port")
+		}
+	}
+	sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, fmt.Sprintf("admin-port=%d", adminPort))
+	sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, fmt.Sprintf("admin-address=127.0.0.1"))
+	sandboxDef.MorePorts = append(sandboxDef.MorePorts, adminPort)
+	sandboxDef.AdminPort = adminPort
+	return sandboxDef, nil
+}
+
 func CreateChildSandbox(sandboxDef SandboxDef) (execList []concurrent.ExecutionList, err error) {
 	return createSingleSandbox(sandboxDef)
 }
@@ -396,6 +425,13 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	}
 	usingPlugins := false
 	rightPluginDir := true // Assuming we can use the right plugin directory
+
+	// 8.0.14
+	sandboxDef, err = setAdminPortProperties(sandboxDef)
+	if err != nil {
+		return emptyExecutionList, err
+	}
+
 	if sandboxDef.EnableMysqlX {
 		// 5.7.12
 		// isMinimumMySQLX, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxVersion)
@@ -404,7 +440,8 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			return emptyExecutionList, err
 		}
 		if !isMinimumMySQLX {
-			return emptyExecutionList, fmt.Errorf(globals.ErrOptionRequiresVersion, "enable-mysqlx", common.IntSliceToDottedString(globals.MinimumMysqlxVersion))
+			return emptyExecutionList, fmt.Errorf(globals.ErrOptionRequiresVersion, globals.EnableMysqlXLabel,
+				common.IntSliceToDottedString(globals.MinimumMysqlxVersion))
 		}
 		// If the version is 8.0.11 or later, MySQL X is enabled already
 		// 8.0.11
@@ -567,6 +604,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		"CustomMysqld":         sandboxDef.CustomMysqld,
 		"Port":                 sandboxDef.Port,
 		"MysqlXPort":           sandboxDef.MysqlXPort,
+		"AdminPort":            sandboxDef.AdminPort,
 		"MysqlShell":           mysqlshExecutable,
 		"BasePort":             sandboxDef.BasePort,
 		"Prompt":               sandboxDef.Prompt,
@@ -789,6 +827,9 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			{globals.ScriptMySandboxCnf, "my_cnf_template", false},
 			{globals.ScriptAfterStart, "after_start_template", true},
 		},
+	}
+	if sandboxDef.EnableAdminAddress {
+		sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptUseAdmin, "use_admin_template", true})
 	}
 	if sandboxDef.MysqlXPort != 0 {
 		sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptMysqlsh, "mysqlsh_template", true})

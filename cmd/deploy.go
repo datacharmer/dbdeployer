@@ -52,6 +52,7 @@ func init() {
 	deployCmd.PersistentFlags().Bool(globals.SkipStartLabel, false, "Does not start the database server")
 	deployCmd.PersistentFlags().Bool(globals.DisableMysqlXLabel, false, "Disable MySQLX plugin (8.0.11+)")
 	deployCmd.PersistentFlags().Bool(globals.EnableMysqlXLabel, false, "Enables MySQLX plugin (5.7.12+)")
+	deployCmd.PersistentFlags().Bool(globals.EnableAdminAddressLabel, false, "Enables admin address (8.0.14+)")
 	deployCmd.PersistentFlags().Bool(globals.SkipLoadGrantsLabel, false, "Does not load the grants")
 	deployCmd.PersistentFlags().Bool(globals.SkipReportHostLabel, false, "Does not include report host in my.sandbox.cnf")
 	deployCmd.PersistentFlags().Bool(globals.SkipReportPortLabel, false, "Does not include report port in my.sandbox.cnf")

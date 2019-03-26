@@ -70,6 +70,7 @@ const (
 	XtradbCluster    = "xtradbCluster"
 	NdbCluster       = "ndbCluster"
 	RootAuth         = "rootAuth"
+	AdminAddress     = "adminAddress"
 )
 
 var MySQLCapabilities = Capabilities{
@@ -144,6 +145,10 @@ var MySQLCapabilities = Capabilities{
 		DataDict: {
 			Description: "data dictionary",
 			Since:       globals.MinimumDataDictionaryVersion,
+		},
+		AdminAddress: {
+			Description: "Connection through admin address",
+			Since:       globals.MinimumAdminAddressVersion,
 		},
 	},
 }

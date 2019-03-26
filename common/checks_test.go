@@ -69,8 +69,8 @@ func TestFindFreePort(t *testing.T) {
 	var data = []testFreePort{
 		{usedPorts: []int{}, basePort: 5000, howMany: 1, expected: 5000},
 		{usedPorts: []int{4999, 5001}, basePort: 5000, howMany: 1, expected: 5000},
-		{usedPorts: []int{3306, 1186, 33060}, basePort: 5000, howMany: 1, expected: 5000},
-		{usedPorts: []int{3306, 1186, 33060, 5000}, basePort: 5000, howMany: 1, expected: 5001},
+		{usedPorts: []int{3306, 1186, 33060, 33062}, basePort: 5000, howMany: 1, expected: 5000},
+		{usedPorts: []int{3306, 1186, 33060, 33062, 5000}, basePort: 5000, howMany: 1, expected: 5001},
 		{usedPorts: []int{5000, 5001, 5002}, basePort: 5000, howMany: 1, expected: 5003},
 		{usedPorts: []int{5000, 5001, 5002}, basePort: 5000, howMany: 3, expected: 5003},
 		{usedPorts: []int{5000, 5001, 5002, 5005}, basePort: 5000, howMany: 3, expected: 5006},

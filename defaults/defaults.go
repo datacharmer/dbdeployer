@@ -47,6 +47,7 @@ type DbdeployerDefaults struct {
 	NdbClusterPort    int    `json:"ndb-cluster-port"`
 	GroupPortDelta    int    `json:"group-port-delta"`
 	MysqlXPortDelta   int    `json:"mysqlx-port-delta"`
+	AdminPortDelta    int    `json:"admin-port-delta"`
 	MasterName        string `json:"master-name"`
 	MasterAbbr        string `json:"master-abbr"`
 	NodePrefix        string `json:"node-prefix"`
@@ -108,6 +109,7 @@ var (
 		NdbClusterPort:    20000,
 		GroupPortDelta:    125,
 		MysqlXPortDelta:   10000,
+		AdminPortDelta:    11000,
 		MasterName:        "master",
 		MasterAbbr:        "m",
 		NodePrefix:        "node",
@@ -120,9 +122,14 @@ var (
 		MultiplePrefix:    "multi_msb_",
 		FanInPrefix:       "fan_in_msb_",
 		AllMastersPrefix:  "all_masters_msb_",
-		ReservedPorts:     []int{1186, 3306, 33060},
-		RemoteRepository:  "https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata",
-		RemoteIndexFile:   "available.json",
+		ReservedPorts: []int{
+			1186,  // MySQL Cluster
+			3306,  // MySQL Server regular port
+			33060, // MySQLX
+			33062, // MySQL Server admin port
+		},
+		RemoteRepository: "https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata",
+		RemoteIndexFile:  "available.json",
 		// GaleraPrefix:                  "galera_msb_",
 		NdbPrefix: "ndb_msb_",
 		PxcPrefix: "pxc_msb_",
@@ -217,7 +224,8 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		checkInt("ndb-base-port", nd.NdbBasePort, minPortValue, maxPortValue) &&
 		checkInt("ndb-cluster-port", nd.NdbClusterPort, minPortValue, maxPortValue) &&
 		checkInt("group-port-delta", nd.GroupPortDelta, 101, 299) &&
-		checkInt("mysqlx-port-delta", nd.MysqlXPortDelta, 2000, 15000)
+		checkInt("mysqlx-port-delta", nd.MysqlXPortDelta, 2000, 15000) &&
+		checkInt("admin-port-delta", nd.AdminPortDelta, 2000, 15000)
 	if !allInts {
 		return false
 	}
@@ -347,6 +355,8 @@ func UpdateDefaults(label, value string, storeDefaults bool) {
 		newDefaults.GroupPortDelta = common.Atoi(value)
 	case "mysqlx-port-delta":
 		newDefaults.MysqlXPortDelta = common.Atoi(value)
+	case "admin-port-delta":
+		newDefaults.AdminPortDelta = common.Atoi(value)
 	case "master-name":
 		newDefaults.MasterName = value
 	case "master-abbr":

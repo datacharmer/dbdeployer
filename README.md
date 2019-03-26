@@ -1,7 +1,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.24.0 (22-Mar-2019 11:31 UTC)
+Documentation updated for version 1.25.0 (24-Mar-2019 07:26 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -28,6 +28,7 @@ Documentation updated for version 1.24.0 (22-Mar-2019 11:31 UTC)
 - [Sandbox management](#Sandbox-management)
 - [Sandbox macro operations](#Sandbox-macro-operations)
 - [Sandbox upgrade](#Sandbox-upgrade)
+- [Dedicated admin address](#Dedicated-admin-address)
 - [Compiling dbdeployer](#Compiling-dbdeployer)
 - [Generating additional documentation](#Generating-additional-documentation)
 - [Command line completion](#Command-line-completion)
@@ -44,7 +45,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.24.0
+    $ VERSION=1.25.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -79,7 +80,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.24.0
+    dbdeployer version 1.25.0
     
 
     $ dbdeployer -h
@@ -181,6 +182,7 @@ The easiest command is ``deploy single``, which installs a single sandbox.
       -u, --db-user string                database user (default "msandbox")
           --defaults strings              Change defaults on-the-fly (--defaults=label:value)
           --disable-mysqlx                Disable MySQLX plugin (8.0.11+)
+          --enable-admin-address          Enables admin address (8.0.14+)
           --enable-general-log            Enables general log for the sandbox (MySQL 5.1+)
           --enable-mysqlx                 Enables MySQLX plugin (5.7.12+)
           --expose-dd-tables              In MySQL 8.0+ shows data dictionary tables
@@ -1096,6 +1098,42 @@ dbdeployer checks all the conditions, then
 
 The older version is, at this point, not operational anymore, and can be deleted.
 
+# Dedicated admin address
+
+MySQL 8.0.14+ introduces the options [`--admin-address` and `--admin-port`](https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_admin_address) to allow a dedicated connection for admin users using a different port. In regular server deployments, the port is 33062, but sandboxes need a different port for each one. Starting with dbdeployer 1.25.0, the option `--enable-admin-address` will create an admin port for each sandbox. In addition to the `./use` script, each single sandbox has a `./use_admin` script that makes administrative access easier.
+
+```
+$ dbdeployer deploy single 8.0.15 --enable-admin-address
+Database installed in $HOME/sandboxes/msb_8_0_15
+run 'dbdeployer usage single' for basic instructions'
+.. sandbox server started
+
+$ ~/sandboxes/msb_8_0_15/use_admin
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 9
+Server version: 8.0.15 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+## ADMIN ##mysql [127.0.0.1:19015] {root} ((none)) > select user(), @@port, @@admin_port;
++----------------+--------+--------------+
+| user()         | @@port | @@admin_port |
++----------------+--------+--------------+
+| root@localhost |   8015 |        19015 |
++----------------+--------+--------------+
+1 row in set (0.00 sec)
+
+## ADMIN ##mysql [127.0.0.1:19015] {root} ((none)) >
+```
+Multiple sandboxes have other shortcuts for the same purpose: `./ma` gives access to the master with admin user, as do the `./sa1` and `./sa2` scripts for slaves. There are similar `./na1` `./na2` scripts for all nodes, and a `./use_all_admin` script sends a query to all nodes through an admin user.
+
+
 # Compiling dbdeployer
 
 Should you need to compile your own binaries for dbdeployer, follow these steps:
@@ -1103,18 +1141,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 1. Make sure you have go 1.10+ installed in your system, and that the ``$GOPATH`` variable is set.
 2. Run ``go get -u github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
-4. Run ``./scripts/build.sh {linux|OSX} 1.24.0``
-5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.24.0``
+4. Run ``./scripts/build.sh {linux|OSX} 1.25.0``
+5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.25.0``
 
 # Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.24.0-docs.linux.tar.gz
-* dbdeployer-1.24.0-docs.osx.tar.gz
-* dbdeployer-1.24.0.linux.tar.gz
-* dbdeployer-1.24.0.osx.tar.gz
+* dbdeployer-1.25.0-docs.linux.tar.gz
+* dbdeployer-1.25.0-docs.osx.tar.gz
+* dbdeployer-1.25.0.linux.tar.gz
+* dbdeployer-1.25.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 
