@@ -19,11 +19,12 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
-	"strings"
 )
 
 func writeApi(showHidden bool) {

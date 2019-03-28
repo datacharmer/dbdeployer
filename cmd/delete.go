@@ -18,14 +18,15 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"os"
+	"path"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
-	"os"
-	"path"
 )
 
 func deleteSandbox(cmd *cobra.Command, args []string) {

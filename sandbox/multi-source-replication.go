@@ -17,13 +17,14 @@ package sandbox
 
 import (
 	"fmt"
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/defaults"
-	"github.com/datacharmer/dbdeployer/globals"
 	"path"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
 )
 
 func checkNodeLists(nodes int, mlist, slist []int) error {

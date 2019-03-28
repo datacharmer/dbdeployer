@@ -17,13 +17,14 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"os"
+	"path"
+	"strings"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/spf13/cobra"
-	"os"
-	"path"
-	"strings"
 )
 
 func sandboxesUsingBinariesDir(basedir, binariesDir string) []string {

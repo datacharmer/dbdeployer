@@ -18,12 +18,13 @@ package rest
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/defaults"
-	"github.com/pkg/errors"
 	"io"
 	"net/http"
 	"os"
+
+	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/pkg/errors"
 )
 
 type RemoteFilesMap = map[string][]string

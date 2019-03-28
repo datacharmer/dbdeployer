@@ -17,14 +17,15 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path"
+	"sort"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"os"
-	"path"
-	"sort"
 )
 
 func unPreserveSandbox(sandboxDir, sandboxName string) {

@@ -17,14 +17,14 @@ package sandbox
 
 import (
 	"fmt"
-	"github.com/datacharmer/dbdeployer/globals"
-	"github.com/pkg/errors"
 	"os"
 	"path"
+	"runtime"
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
-	"runtime"
+	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/pkg/errors"
 )
 
 // Code in this module creates a fake directory structure that allows

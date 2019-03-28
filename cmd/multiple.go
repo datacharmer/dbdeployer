@@ -16,8 +16,6 @@
 package cmd
 
 import (
-	//"fmt"
-
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/sandbox"

@@ -19,8 +19,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/datacharmer/dbdeployer/globals"
-	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
 	"os"
@@ -30,6 +28,9 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/pkg/errors"
 )
 
 type SandboxUser struct {

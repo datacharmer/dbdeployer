@@ -20,7 +20,6 @@ import (
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"github.com/spf13/cobra"
-	//"fmt"
 )
 
 func replicationSandbox(cmd *cobra.Command, args []string) {

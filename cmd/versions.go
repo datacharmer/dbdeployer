@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/spf13/cobra"
 )

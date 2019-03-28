@@ -54,15 +54,16 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"fmt"
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/globals"
-	"github.com/pkg/errors"
-	"github.com/xi2/xz"
 	"io"
 	"os"
 	"path"
 	"strconv"
 	"strings"
+
+	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/pkg/errors"
+	"github.com/xi2/xz"
 )
 
 const (

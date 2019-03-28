@@ -16,14 +16,14 @@ package defaults
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path"
+	"runtime"
 	"sync"
 
 	"github.com/datacharmer/dbdeployer/common"
-	"io/ioutil"
-	"runtime"
 )
 
 type Logger struct {

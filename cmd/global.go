@@ -17,10 +17,11 @@ package cmd
 
 import (
 	"fmt"
+	"path"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/spf13/cobra"
-	"path"
 )
 
 func globalRunCommand(cmd *cobra.Command, executable string, args []string, requireArgs bool, skipMissing bool) {

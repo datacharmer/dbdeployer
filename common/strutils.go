@@ -17,13 +17,14 @@ package common
 
 import (
 	"fmt"
-	"github.com/datacharmer/dbdeployer/globals"
 	"io/ioutil"
 	"os"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/datacharmer/dbdeployer/globals"
 )
 
 type CleanupFunc func(target string)

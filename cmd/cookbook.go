@@ -16,13 +16,12 @@
 package cmd
 
 import (
-	//"fmt"
-
 	"fmt"
+	"os"
+
 	"github.com/datacharmer/dbdeployer/cookbook"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 func checkArgs(label, syntax string, args []string, howManyWanted int) {

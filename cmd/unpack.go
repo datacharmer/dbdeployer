@@ -17,13 +17,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/datacharmer/dbdeployer/globals"
 	"os"
 	"path"
 	"regexp"
 	"strings"
 
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/unpack"
 	"github.com/spf13/cobra"
 )

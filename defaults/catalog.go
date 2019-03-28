@@ -16,15 +16,15 @@
 package defaults
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/datacharmer/dbdeployer/globals"
 	"os"
 	"strings"
 	"sync"
-
-	"encoding/json"
-	"github.com/datacharmer/dbdeployer/common"
 	"time"
+
+	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/globals"
 )
 
 type SandboxItem struct {

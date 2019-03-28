@@ -18,7 +18,6 @@ package cmd
 import (
 	"fmt"
 	"path"
-	//"strings"
 
 	"github.com/alexeyco/simpletable"
 	"github.com/datacharmer/dbdeployer/common"

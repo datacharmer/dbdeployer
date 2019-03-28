@@ -18,11 +18,12 @@ package common
 import (
 	"bytes"
 	"fmt"
-	"github.com/datacharmer/dbdeployer/globals"
 	"reflect"
 	"regexp"
 	"text/template"
 	"time"
+
+	"github.com/datacharmer/dbdeployer/globals"
 )
 
 // StringMap defines the map of variable types, for brevity

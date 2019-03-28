@@ -17,11 +17,12 @@ package concurrent
 
 import (
 	"fmt"
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/defaults"
 	"os/exec"
 	"sync"
 	"time"
+
+	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/defaults"
 )
 
 type CommonChan chan *exec.Cmd

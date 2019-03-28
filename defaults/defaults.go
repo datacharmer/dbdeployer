@@ -18,11 +18,12 @@ package defaults
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/globals"
 	"os"
 	"path"
 	"time"
+
+	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/globals"
 )
 
 type DbdeployerDefaults struct {

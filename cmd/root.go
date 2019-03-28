@@ -16,12 +16,12 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/spf13/cobra"
-	"os"
-	//"github.com/davecgh/go-spew/spew"
 )
 
 // rootCmd represents the base command when called without any subcommands

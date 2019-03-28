@@ -16,11 +16,12 @@ package unpack
 
 import (
 	"fmt"
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/globals"
 	"io/ioutil"
 	"os"
 	"path"
+
+	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/globals"
 )
 
 func MergeShell(tarball, extension, basedir, destination, bareName string, verbosity int) error {
