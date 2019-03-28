@@ -17,8 +17,6 @@ package sandbox
 
 import (
 	"fmt"
-	"github.com/datacharmer/dbdeployer/globals"
-	"github.com/pkg/errors"
 	"os"
 	"path"
 	"time"
@@ -26,6 +24,8 @@ import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/pkg/errors"
 )
 
 type Node struct {
@@ -260,6 +260,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 			{globals.ScriptClearAll, "clear_multi_template", true},
 			{globals.ScriptSendKillAll, "send_kill_multi_template", true},
 			{globals.ScriptUseAll, "use_multi_template", true},
+			{globals.ScriptReplicateFrom, "replicate_from_multi_template", true},
 		},
 	}
 

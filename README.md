@@ -1,7 +1,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.25.0 (24-Mar-2019 07:26 UTC)
+Documentation updated for version 1.26.0 (28-Mar-2019 19:53 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -29,6 +29,8 @@ Documentation updated for version 1.25.0 (24-Mar-2019 07:26 UTC)
 - [Sandbox macro operations](#Sandbox-macro-operations)
 - [Sandbox upgrade](#Sandbox-upgrade)
 - [Dedicated admin address](#Dedicated-admin-address)
+- [Obtaining sandbox metadata](#Obtaining-sandbox-metadata)
+- [Replication between sandboxes](#Replication-between-sandboxes)
 - [Compiling dbdeployer](#Compiling-dbdeployer)
 - [Generating additional documentation](#Generating-additional-documentation)
 - [Command line completion](#Command-line-completion)
@@ -45,7 +47,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.25.0
+    $ VERSION=1.26.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -80,7 +82,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.25.0
+    dbdeployer version 1.26.0
     
 
     $ dbdeployer -h
@@ -201,6 +203,7 @@ The easiest command is ``deploy single``, which installs a single sandbox.
       -c, --my-cnf-options strings        mysqld options to add to my.sandbox.cnf
           --native-auth-plugin            in 8.0.4+, uses the native password auth plugin
           --port int                      Overrides default port
+          --port-as-server-id             Use the port number as server ID
           --post-grants-sql strings       SQL queries to run after loading grants
           --post-grants-sql-file string   SQL file to run after loading grants
           --pre-grants-sql strings        SQL queries to run before loading grants
@@ -400,29 +403,32 @@ Several examples of dbdeployer usages are avaibale with the command ``dbdeployer
 
 ```
 $ dbdeployer cookbook list
-.------------------------.------------------------------------.--------------------------------------------------------------------.--------.
-|         recipe         |            script name             |                            description                             | needed |
-|                        |                                    |                                                                    | flavor |
-+------------------------+------------------------------------+--------------------------------------------------------------------+--------+
-| delete                 | delete-sandboxes.sh                | Delete all deployed sandboxes                                      |        |
-| group-single           | group-single-primary-deployment.sh | Creation of a single-primary group replication sandbox             | mysql  |
-| replication-restart    | repl-operations-restart.sh         | Show how to restart sandboxes with custom options                  |        |
-| upgrade                | upgrade.sh                         | Shows a complete upgrade example from 5.5 to 8.0                   | mysql  |
-| pxc                    | pxc-deployment.sh                  | Shows deployment with pxc                                          | pxc    |
-| master-slave           | master-slave-deployment.sh         | Creation of a master/slave replication sandbox                     |        |
-| all-masters            | all-masters-deployment.sh          | Creation of an all-masters replication sandbox                     | mysql  |
-| group-multi            | group-multi-primary-deployment.sh  | Creation of a multi-primary group replication sandbox              | mysql  |
-| tidb                   | tidb-deployment.sh                 | Shows deployment and some operations with TiDB                     | tidb   |
-| ndb                    | ndb-deployment.sh                  | Shows deployment with ndb                                          | ndb    |
-| remote                 | remote.sh                          | Shows how to get a remote MySQL tarball                            |        |
-| single                 | single-deployment.sh               | Creation of a single sandbox                                       |        |
-| single-reinstall       | single-reinstall.sh                | Re-installs a single sandbox                                       |        |
-| show                   | show-sandboxes.sh                  | Show deployed sandboxes                                            |        |
-| fan-in                 | fan-in-deployment.sh               | Creation of a fan-in (many masters, one slave) replication sandbox | mysql  |
-| replication-operations | repl-operations.sh                 | Show how to run operations in a replication sandbox                |        |
-| prerequisites          | prerequisites.sh                   | Shows dbdeployer prerequisites and how to make them                |        |
-'------------------------'------------------------------------'--------------------------------------------------------------------'--------'
- ```
+.----------------------------------.-------------------------------------.--------------------------------------------------------------------.--------.
+|              recipe              |             script name             |                            description                             | needed |
+|                                  |                                     |                                                                    | flavor |
++----------------------------------+-------------------------------------+--------------------------------------------------------------------+--------+
+| all-masters                      | all-masters-deployment.sh           | Creation of an all-masters replication sandbox                     | mysql  |
+| delete                           | delete-sandboxes.sh                 | Delete all deployed sandboxes                                      |        |
+| fan-in                           | fan-in-deployment.sh                | Creation of a fan-in (many masters, one slave) replication sandbox | mysql  |
+| group-multi                      | group-multi-primary-deployment.sh   | Creation of a multi-primary group replication sandbox              | mysql  |
+| group-single                     | group-single-primary-deployment.sh  | Creation of a single-primary group replication sandbox             | mysql  |
+| master-slave                     | master-slave-deployment.sh          | Creation of a master/slave replication sandbox                     |        |
+| ndb                              | ndb-deployment.sh                   | Shows deployment with ndb                                          | ndb    |
+| prerequisites                    | prerequisites.sh                    | Shows dbdeployer prerequisites and how to make them                |        |
+| pxc                              | pxc-deployment.sh                   | Shows deployment with pxc                                          | pxc    |
+| remote                           | remote.sh                           | Shows how to get a remote MySQL tarball                            |        |
+| replication-restart              | repl-operations-restart.sh          | Show how to restart sandboxes with custom options                  |        |
+| replication-operations           | repl-operations.sh                  | Show how to run operations in a replication sandbox                |        |
+| replication_between_groups       | replication-between-groups.sh       | Shows how to run replication between two group replications        | mysql  |
+| replication_between_master_slave | replication-between-master-slave.sh | Shows how to run replication between two master/slave replications |        |
+| replication_between_ndb          | replication-between-ndb.sh          | Shows how to run replication between two NDB clusters              | ndb    |
+| show                             | show-sandboxes.sh                   | Show deployed sandboxes                                            |        |
+| single                           | single-deployment.sh                | Creation of a single sandbox                                       |        |
+| single-reinstall                 | single-reinstall.sh                 | Re-installs a single sandbox                                       |        |
+| tidb                             | tidb-deployment.sh                  | Shows deployment and some operations with TiDB                     | tidb   |
+| upgrade                          | upgrade.sh                          | Shows a complete upgrade example from 5.5 to 8.0                   | mysql  |
+'----------------------------------'-------------------------------------'--------------------------------------------------------------------'--------'
+```
 
 Using this command, dbdeployer can produce sample scripts for common operations.
 
@@ -931,6 +937,9 @@ The command "usage" shows how to use the scripts that were installed with each s
     This script is created only if the X plugin was enabled (5.7.12+ with --enable-mysqlx
     or 8.0.11+ without --disable-mysqlx)
     
+    "./use_admin" is created when the sandbox is deployed with --enable-admin-address (8.0.14+)
+    and allows using the database as administrator, with a dedicated port.
+    
      USING MULTIPLE SERVER SANDBOX
     On a replication sandbox, you have the same commands (run "dbdeployer usage single"), 
     with an "_all" suffix, meaning that you propagate the command to all the members. 
@@ -952,6 +961,13 @@ The command "usage" shows how to use the scripts that were installed with each s
     s1, s2, n1, n2         > invokes MySQL client in slave 1, 2, node 1, 2
     
     The scripts "check_slaves" or "check_nodes" give the status of replication in the sandbox.
+    
+    When the sandbox is deployed with --enable-admin-address (8.0.14+) the following scripts
+    are also created:
+    
+    ma                    > invokes the MySQL client in the master as admin
+    sa1, sa2, na1, na2    > invokes MySQL client as admin in slave 1, 2, node 1, 2
+    use_all_admin "SQL"   > runs a SQL statement in all nodes as admin
     
     
 
@@ -1133,6 +1149,212 @@ Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 ```
 Multiple sandboxes have other shortcuts for the same purpose: `./ma` gives access to the master with admin user, as do the `./sa1` and `./sa2` scripts for slaves. There are similar `./na1` `./na2` scripts for all nodes, and a `./use_all_admin` script sends a query to all nodes through an admin user.
 
+# Obtaining sandbox metadata
+
+As of version 1.26.0, dbdeployer creates a `metadata` script in every single sandbox. Using this script, we can get quick information about the sandbox, even if the database server is not running.
+
+For example:
+
+```
+$ ~/sandboxes/msb_8_0_15/metadata help
+Syntax: ~/sandboxes/msb_8_0_15/metadata request
+Available requests:
+  version
+  major
+  minor
+  rev
+  short (= major.minor)
+
+  basedir
+  cbasedir (Client Basedir)
+  datadir
+  port
+  xport (MySQLX port)
+  aport (Admin port)
+  socket
+  serverid (server id)
+  pid (PID file)
+  flavor
+  sbhome (SANDBOX_HOME)
+  sbbin (SANDBOX_BINARY)
+  sbtype (Sandbox Type)
+
+
+$ ~/sandboxes/msb_8_0_15/metadata version
+8.0.15
+
+$ ~/sandboxes/msb_8_0_15/metadata short
+8.0
+
+$ cat $(~/sandboxes/msb_8_0_15/metadata pid)
+27361
+# (finds the PID file and shows its contents)
+```
+
+# Replication between sandboxes
+
+Every sandbox (created by dbdeployer 1.26.0+) includes a script called `replicate_from`, which allows replication from another sandbox, provided that both sandboxes are well configured to start replication.
+
+Here's an example:
+
+```
+# deploying a sandbox with binary log and server ID
+$ dbdeployer deploy single 8.0 --master
+# 8.0 => 8.0.15
+Database installed in $HOME/sandboxes/msb_8_0_15
+run 'dbdeployer usage single' for basic instructions'
+. sandbox server started
+
+# Same, for version 5.7
+$ dbdeployer deploy single 5.7 --master
+# 5.7 => 5.7.25
+Database installed in $HOME/sandboxes/msb_5_7_25
+run 'dbdeployer usage single' for basic instructions'
+. sandbox server started
+
+# deploying a sandbox without binary log and server ID
+$ dbdeployer deploy single 5.6
+# 5.6 => 5.6.41
+Database installed in $HOME/sandboxes/msb_5_6_41
+run 'dbdeployer usage single' for basic instructions'
+. sandbox server started
+
+# situation:
+$ dbdeployer sandboxes --full-info
+.------------.--------.---------.---------------.--------.-------.--------.
+|    name    |  type  | version |     ports     | flavor | nodes | locked |
++------------+--------+---------+---------------+--------+-------+--------+
+| msb_5_6_41 | single | 5.6.41  | [5641 ]       | mysql  |     0 |        |
+| msb_5_7_25 | single | 5.7.25  | [5725 ]       | mysql  |     0 |        |
+| msb_8_0_15 | single | 8.0.15  | [8015 18015 ] | mysql  |     0 |        |
+'------------'--------'---------'---------------'--------'-------'--------'
+
+# Try replicating from the sandbox without binlogs and server ID. It fails
+$ ~/sandboxes/msb_5_7_25/replicate_from  msb_5_6_41
+No binlog information found in /Users/gmax/sandboxes/msb_5_6_41
+
+# Try replicating from a master of a bigger version than the slave. It fails
+$ ~/sandboxes/msb_5_7_25/replicate_from  msb_8_0_15
+Master major version should be lower than slave version (or equal)
+
+# Try replicating from 5.7 to 8.0. It succeeds
+
+$ ~/sandboxes/msb_8_0_15/replicate_from  msb_5_7_25
+Connecting to /Users/gmax/sandboxes/msb_5_7_25
+--------------
+CHANGE MASTER TO master_host="127.0.0.1",
+master_port=5725,
+master_user="rsandbox",
+master_password="rsandbox"
+, master_log_file="mysql-bin.000001", master_log_pos=4089
+--------------
+
+--------------
+start slave
+--------------
+
+              Master_Log_File: mysql-bin.000001
+          Read_Master_Log_Pos: 4089
+             Slave_IO_Running: Yes
+            Slave_SQL_Running: Yes
+          Exec_Master_Log_Pos: 4089
+           Retrieved_Gtid_Set:
+            Executed_Gtid_Set:
+                Auto_Position: 0
+
+```
+
+The same method can be used to replicate between composite sandboxes. However, some extra steps may be necessary when replicating between clusters, as conflicts and pipeline blocks may happen.
+There are at least three things to keep in mind:
+
+1. As seen above, the version of the slave must be either the same as the master or higher.
+2. Some topologies need the activation of `log-slave-updates` for this kind of replication to work correctly. For example, `PXC` and `master-slave` need this option to get replication from another cluster to all their nodes.
+3. **dbdeployer composite sandboxes have all the same server_id**. When replicating to another entity, we get a conflict, and replication does not start. To avoid this problem, we need to use  the option `--port-as-server-id` when deploying the cluster.
+
+Here are examples of a few complex replication scenarios:
+
+## a. NDB to NDB
+
+Here we need to make sure that the server IDs are different.
+
+```
+$ dbdeployer deploy replication ndb8.0.14 --topology=ndb \
+    --port-as-server-id \
+    --sandbox-directory=ndb_ndb8_0_14_1 --concurrent
+[...]
+$ dbdeployer deploy replication ndb8.0.14 --topology=ndb \
+    --port-as-server-id \
+    --sandbox-directory=ndb_ndb8_0_14_2 --concurrent
+[...]
+
+$ dbdeployer sandboxes --full-info
+.-----------------.--------.-----------.----------------------------------------------.--------.-------.--------.
+|      name       |  type  |  version  |                    ports                     | flavor | nodes | locked |
++-----------------+--------+-----------+----------------------------------------------+--------+-------+--------+
+| ndb_ndb8_0_14_1 | ndb    | ndb8.0.14 | [21400 28415 38415 28416 38416 28417 38417 ] | ndb    |     3 |        |
+| ndb_ndb8_0_14_2 | ndb    | ndb8.0.14 | [21401 28418 38418 28419 38419 28420 38420 ] | ndb    |     3 |        |
+'-----------------'--------'-----------'----------------------------------------------'--------'-------'--------'
+
+$ ~/sandboxes/ndb_ndb8_0_14_1/replicate_from ndb_ndb8_0_14_2
+[...]
+```
+
+## b. Group replication to group replication. 
+
+Also here, the only caveat is to ensure uniqueness of server IDs.
+```
+$ dbdeployer deploy replication 8.0.15 --topology=group \
+    --concurrent --port-as-server-id \
+    --sandbox-directory=group_8_0_15_1
+[...]
+
+$ dbdeployer deploy replication 8.0.15 --topology=group \
+    --concurrent --port-as-server-id \
+    --sandbox-directory=group_8_0_15_2
+[...]
+
+$ ~/sandboxes/group_8_0_15_1/replicate_from group_8_0_15_2
+[...]
+```
+
+## c. Master/slave to master/slave.
+
+In addition to caring about the server ID, we also need to make sure that the replication spreads to the slaves.
+
+```
+$ dbdeployer deploy replication 8.0.15 --topology=master-slave \
+    --concurrent --port-as-server-id \
+    --sandbox-directory=ms_8_0_15_1 \
+    -c log-slave-updates
+[...]
+
+$ dbdeployer deploy replication 8.0.15 --topology=master-slave \
+    --concurrent --port-as-server-id \
+    --sandbox-directory=ms_8_0_15_2 \
+    -c log-slave-updates
+[...]
+
+$  ~/sandboxes/ms_8_0_15_1/replicate_from ms_8_0_15_2
+[...]
+```
+
+## d. Hibrid replication
+
+Using the same methods, we can replicate from a cluster to a single sandbox (e,g. group replication to single 8.0 sandbox) or the other way around (single 8.0 sandbox to group replication).
+We onlly need to make sure there are no conflicts as mentioned above. The script `replicate_from` can catch some issues, but I am sure there is still room for mistakes. For example, replicating from a NDB cluster to a single sandbox won't work, as the single one can't process the `ndbengine` tables.
+
+Examples:
+
+```
+# group replication to single
+~/sandboxes/msb_8_0_15/replicate_from group_8_0_15_2
+
+# single to master/slave
+~/sandboxes/ms_8_0_15_1/replicate_from msb_8_0_15
+
+# master/slave to group
+~/sandboxes/group_8_0_15_2/replicate_from ms_8_0_15_1
+```
 
 # Compiling dbdeployer
 
@@ -1141,18 +1363,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 1. Make sure you have go 1.10+ installed in your system, and that the ``$GOPATH`` variable is set.
 2. Run ``go get -u github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
-4. Run ``./scripts/build.sh {linux|OSX} 1.25.0``
-5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.25.0``
+4. Run ``./scripts/build.sh {linux|OSX} 1.26.0``
+5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.26.0``
 
 # Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.25.0-docs.linux.tar.gz
-* dbdeployer-1.25.0-docs.osx.tar.gz
-* dbdeployer-1.25.0.linux.tar.gz
-* dbdeployer-1.25.0.osx.tar.gz
+* dbdeployer-1.26.0-docs.linux.tar.gz
+* dbdeployer-1.26.0-docs.osx.tar.gz
+* dbdeployer-1.26.0.linux.tar.gz
+* dbdeployer-1.26.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

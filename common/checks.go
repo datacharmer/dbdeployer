@@ -17,8 +17,6 @@ package common
 
 import (
 	"fmt"
-	"github.com/datacharmer/dbdeployer/globals"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
 	"path"
@@ -27,6 +25,9 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/pkg/errors"
 )
 
 type SandboxInfo struct {
@@ -156,14 +157,13 @@ func GetInstalledPorts(sandboxHome string) ([]int, error) {
 			if err != nil {
 				return []int{}, errors.Wrap(err, "error reading sandbox description")
 			}
-			if sbd.Nodes == 0 {
-				for _, p := range sbd.Port {
-					if !seenPorts[p] {
-						portCollection = append(portCollection, p)
-						seenPorts[p] = true
-					}
+			for _, p := range sbd.Port {
+				if !seenPorts[p] {
+					portCollection = append(portCollection, p)
+					seenPorts[p] = true
 				}
-			} else {
+			}
+			if sbd.Nodes != 0 {
 				var nodeDescr []SandboxDescription
 				innerInstalledSandboxes, err := GetInstalledSandboxes(filepath.Join(sandboxHome, fname))
 				if err != nil {

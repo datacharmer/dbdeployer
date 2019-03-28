@@ -55,6 +55,7 @@ then
     # If there is any option on the command line,
     # disable all tests
     export skip_main_deployment_methods=1
+    export skip_custom_replication_methods=1
     export skip_tidb_deployment_methods=1
     export skip_skip_start_deployment=1
     export skip_pre_post_operations=1
@@ -90,6 +91,7 @@ do
             ;;
         all)
             unset skip_main_deployment_methods
+            unset skip_custom_replication_methods
             unset skip_tidb_deployment_methods
             unset skip_skip_start_deployment
             unset skip_pre_post_operations
@@ -117,6 +119,11 @@ do
             unset skip_skip_start_deployment
             unset no_tests
             echo "# Enabling skip-start tests"
+            ;;
+        custrep)
+            unset skip_custom_replication_methods
+            unset no_tests
+            echo "# Enabling custom replication methods tests"
             ;;
         semi)
             unset skip_semisync_operations
@@ -168,6 +175,7 @@ do
             echo "  main     : main deployment methods"
             echo "  tidb     : tidb deployment methods"
             echo "  skip     : skip-start deployments"
+            echo "  custrep  : custom replication methods"
             echo "  pre/post : pre/post grants operations"
             echo "  semi     : semisync operations"
             echo "  group    : group replication operations "
@@ -1084,6 +1092,100 @@ function dd_operations {
     done
 }
 
+function replicate_between_sandboxes {
+    master_dir=$1
+    slave_dir=$2
+    run $SANDBOX_HOME/$slave_dir/replicate_from $master_dir
+
+    results "replication from $master_dir to $slave_dir"
+    master_use_script=use
+    if [ -x $SANDBOX_HOME/$master_dir/m ]
+    then
+        master_use_script=m
+    elif [ -x $SANDBOX_HOME/$master_dir/n1 ]
+    then
+        master_use_script=n1
+    fi
+
+    slave_use_script=use
+    if [ -x $SANDBOX_HOME/$slave_dir/s1 ]
+    then
+        slave_use_script=s1
+    elif [ -x $SANDBOX_HOME/$slave_dir/n3 ]
+    then
+        slave_use_script=n3
+    fi
+
+    if [ ! -x $SANDBOX_HOME/$master_dir/$master_use_script ]
+    then
+        echo "not ok - master_use_script $master_dir/$master_use_script not found"
+        exit 1
+    fi
+    if [ ! -x $SANDBOX_HOME/$slave_dir/$slave_use_script ]
+    then
+        echo "not ok - slave_use_script $slave_dir/$slave_use_script not found"
+        exit 1
+    fi
+    #(set -x
+    $SANDBOX_HOME/$master_dir/$master_use_script -e 'create table test.t1(id int not null primary key, sid int, p int)'
+    $SANDBOX_HOME/$master_dir/$master_use_script -e 'insert into test.t1 values (1, @@server_id, @@port)'
+    #)
+    sleep 1
+    #(set -x
+    #$SANDBOX_HOME/$slave_dir/use -e 'select sid as master_server_id, p as master_port, @@server_id as slave_server_id, @@port as slave_port from test.t1'
+    #)
+ 
+    master_sid=$($SANDBOX_HOME/$slave_dir/$slave_use_script -e 'select sid from test.t1')
+    slave_sid=$($SANDBOX_HOME/$slave_dir/$slave_use_script -e 'select @@server_id')
+    ok_not_equal "retrieved server_id from master and slave differ" "$master_sid" "$slave_sid"
+    master_port=$($SANDBOX_HOME/$slave_dir/$slave_use_script -e 'select p from test.t1')
+    slave_port=$($SANDBOX_HOME/$slave_dir/$slave_use_script -e 'select @@port')
+    ok_not_equal "retrieved port from master and slave differ" "$master_port" "$slave_port"
+}
+
+function custom_replication_methods {
+    current_test=custom_replication_methods
+    test_header custom_replication_methods "" double
+    latest_5_7=$(ls "$BINARY_DIR" | grep "^5.7" | ./sort_versions | tail -n 1)
+    latest_8_0=$(ls "$BINARY_DIR" | grep "^8.0" | ./sort_versions | tail -n 1)
+    if [ -z "$latest_5_7" -a -z "$latest_8_0" ]
+    then
+        echo "Skipping custom replication test. No suitable version found for 5.7 and 8.0"
+        return
+    fi
+
+    v_path_5_7=$(echo msb_$latest_5_7| tr '.' '_')
+    v_path_8_0=$(echo msb_$latest_8_0| tr '.' '_')
+    run dbdeployer deploy single $latest_5_7 --master
+    run dbdeployer deploy single $latest_8_0 --master
+    capture_test replicate_between_sandboxes $v_path_5_7 $v_path_8_0
+
+    run dbdeployer deploy single $latest_5_7 --master --sandbox-directory=master57 --port-as-server-id
+    run dbdeployer deploy single $latest_5_7 --master --sandbox-directory=slave57 --port-as-server-id
+    capture_test replicate_between_sandboxes master57 slave57
+
+    run dbdeployer deploy single $latest_8_0 --master --sandbox-directory=master80 --port-as-server-id
+    run dbdeployer deploy single $latest_8_0 --master --sandbox-directory=slave80 --port-as-server-id
+    capture_test replicate_between_sandboxes master80 slave80
+
+    dbdeployer delete ALL --skip-confirm
+    results "custom replication single - after deletion"
+
+    run dbdeployer deploy replication $latest_5_7 \
+        --sandbox-directory=rsandbox_master57 --port-as-server-id \
+        -c log-slave-updates
+
+    run dbdeployer deploy replication $latest_5_7 \
+        --sandbox-directory=rsandbox_slave57 --port-as-server-id \
+        -c log-slave-updates
+
+    capture_test replicate_between_sandboxes rsandbox_master57 rsandbox_slave57
+
+    dbdeployer delete ALL --skip-confirm
+    results "custom replication multi - after deletion"
+}
+
+
 function upgrade_operations {
     current_test=upgrade_operations
     test_header upgrade_operations "" double
@@ -1277,6 +1379,10 @@ fi
 if [ -z "$skip_ndb_operations" ]
 then
     ndb_operations
+fi
+if [ -z "$skip_custom_replication_methods" ]
+then
+    custom_replication_methods
 fi
 
 stop_timer

@@ -43,6 +43,19 @@ then
     export SANDBOX_BINARY=$HOME/opt/mysql
 fi
 
+function run {
+    (set -x
+    $@
+    )
+    exit_code=$?
+    echo $exit_code
+    if [ "$exit_code" != "0" ]
+    then
+        echo "ERROR running $@"
+        exit $exit_code
+    fi
+}
+
 function check_version {
     wanted_version=$1
     check_upgrade=$2
@@ -109,9 +122,7 @@ then
     echo "single version $version is already installed"
 else
     header "Deploying a single sandbox for version $version"
-    (set -x
-    dbdeployer deploy single $version
-    )
+    run dbdeployer deploy single $version
 fi
 `
 
@@ -128,15 +139,16 @@ check_version $version
 if [ -z "$(dbdeployer sandboxes | grep 'single\s*'$version)" ]
 then
     echo "single version $version is not installed"
-    echo "Run './single.sh $version' before trying again"
+    echo "Run './single-deployment.sh $version' before trying again"
     exit 1
 fi
 
 header "Deploying the same sandbox again, with different parameters" \
        "We need to use --force, as we are overwriting an existing sandbox" \
        "Incidentally, the new deployment will run a query before and after the grants"
+
+# run dbdeployer deploy single $version
 (set -x
-dbdeployer deploy single $version
 dbdeployer deploy single $version --pre-grants-sql='select host, user from mysql.user' \
     --post-grants-sql='select host, user from mysql.user' --force
 )
@@ -145,18 +157,14 @@ sandbox_dir=msb_$(echo $version | tr '.' '_' )
 
 header "Deploying the same sandbox with a different directory. " \
        "No --force is necessary, as dbdeployer will choose a different port"
-(set -x
-dbdeployer deploy single $version --sandbox-directory=${sandbox_dir}_new
-)
+
+run dbdeployer deploy single $version --sandbox-directory=${sandbox_dir}_new
+
 echo ""
-(set -x
-dbdeployer sandboxes --header
-)
+run dbdeployer sandboxes --header
 
 header "Removing the second sandbox"
-(set -x
-dbdeployer delete ${sandbox_dir}_new
-)
+run dbdeployer delete ${sandbox_dir}_new
 `
 
 var showSandboxes string = `#!/bin/bash
@@ -165,14 +173,12 @@ var showSandboxes string = `#!/bin/bash
 cd $(dirname $0)
 source cookbook_include.sh
 
-(set -x
-dbdeployer sandboxes --full-info
-)
+run dbdeployer sandboxes --full-info
 
 # Alternative:
-#(set -x
-#dbdeployer sandboxes --header --catalog
-#)
+#
+# run dbdeployer sandboxes --header --catalog
+#
 `
 var deleteAll string = `#!/bin/bash
 {{.Copyright}}
@@ -181,11 +187,11 @@ cd $(dirname $0)
 source cookbook_include.sh
 
 echo "WARNING: This script deletes all installed sandboxes"
-(set -x
-dbdeployer delete all --concurrent
-)
+
+run dbdeployer delete all --concurrent
+
 # you can also skip manual confirmation:
-# dbdeployer delete all --concurrent --skip-confirm
+# run dbdeployer delete all --concurrent --skip-confirm
 `
 
 var masterSlaveDeployment string = `#!/bin/bash
@@ -201,9 +207,7 @@ if [ -n "$(dbdeployer sandboxes | grep 'master-slave\s*'$version)" ]
 then
     echo "replication version $version is already installed"
 else
-    (set -x
-    dbdeployer deploy replication $version --concurrent
-    )
+    run dbdeployer deploy replication $version --concurrent $MASTER_SLAVE_OPTIONS
 fi
 `
 var fanInDeployment string = `#!/bin/bash
@@ -220,9 +224,7 @@ if [ -n "$(dbdeployer sandboxes | grep 'fan-in\s*'$version)" ]
 then
     echo "fan-in replication version $version is already installed"
 else
-    (set -x
-    dbdeployer deploy replication $version --topology=fan-in --concurrent
-    )
+    run dbdeployer deploy replication $version --topology=fan-in --concurrent $FAN_IN_OPTIONS
 fi
 `
 var allMastersDeployment string = `#!/bin/bash
@@ -238,9 +240,7 @@ if [ -n "$(dbdeployer sandboxes | grep 'all-masters\s*'$version)" ]
 then
     echo "all-masters replication version $version is already installed"
 else
-    (set -x
-    dbdeployer deploy replication $version --topology=all-masters --concurrent
-    )
+    run dbdeployer deploy replication $version --topology=all-masters --concurrent $ALL_MASTERS_OPTIONS
 fi
 `
 var groupMultiPrimaryDeployment string = `#!/bin/bash
@@ -257,9 +257,7 @@ if [ -n "$(dbdeployer sandboxes | grep 'group-multi-primary\s*'$version)" ]
 then
     echo "group replication version $version is already installed"
 else
-    (set -x
-    dbdeployer deploy replication $version --topology=group --concurrent
-    )
+    run dbdeployer deploy replication $version --topology=group --concurrent $GROUP_MP_OPTIONS
 fi
 `
 var groupSinglePrimaryDeployment string = `#!/bin/bash
@@ -276,9 +274,7 @@ if [ -n "$(dbdeployer sandboxes | grep 'group-single-primary\s*'$version)" ]
 then
     echo "group replication (single primary) version $version is already installed"
 else
-    (set -x
-    dbdeployer deploy replication $version --topology=group --single-primary --concurrent
-    )
+    run dbdeployer deploy replication $version --topology=group --single-primary --concurrent $GROUP_SP_OPTIONS
 fi
 `
 
@@ -317,9 +313,7 @@ $sandbox_dir/use_all 'select @@max_connections'
 )
 
 header "Restarting slave #2 without specifying any values."
-(set -x
-$sandbox_dir/node2/restart
-)
+run $sandbox_dir/node2/restart
 
 header "Checking the value for max-connections in all nodes: node #2 has again the default value"
 (set -x
@@ -332,9 +326,7 @@ $sandbox_dir/node2/add_option max-connections=99
 )
 
 header "Restarting slave #2 without specifying any values. We'll see that its own value is preserved"
-(set -x
-$sandbox_dir/node2/restart
-)
+run $sandbox_dir/node2/restart
 
 header "Checking the value for max-connections in all nodes: node #2 has kept its own value"
 (set -x
@@ -395,9 +387,7 @@ $sandbox_dir/use_all "SELECT COUNT(*) FROM test.t1"
 )
 
 header "Checking the status of all slaves"
-(set -x
-$sandbox_dir/check_slaves
-)
+run $sandbox_dir/check_slaves
 
 header "Running a multiple query in all slaves"
 (set -x
@@ -419,15 +409,11 @@ function upgrade_db {
 
     if [ ! -d $SANDBOX_HOME/$upgrade_from_dir ]
     then
-        ( set -x 
-        dbdeployer deploy single $UPGRADE_FROM --master
-        )
+        run dbdeployer deploy single $UPGRADE_FROM --master
     fi
     if [ ! -d $SANDBOX_HOME/$upgrade_to_dir ]
     then
-        (set -x 
-        dbdeployer deploy single $UPGRADE_TO --master
-        )
+        run dbdeployer deploy single $UPGRADE_TO --master
     fi
     (set -x
     $SANDBOX_HOME/$upgrade_from_dir/use -e "CREATE TABLE IF NOT EXISTS test.upgrade_log(id int not null auto_increment primary key, server_id int, vers varchar(50), urole varchar(20), ts timestamp)"
@@ -503,12 +489,12 @@ fi
 
 if [ "$deploy_single" == "yes" ]
 then
-    dbdeployer deploy single $tidb_version --client-from=$client_version
+    dbdeployer deploy single $tidb_version --client-from=$client_version $TIDB_SINGLE_OPTIONS
 fi
 
 if [ "$deploy_multi" == "yes" ]
 then
-    dbdeployer deploy multiple $tidb_version --client-from=$client_version
+    dbdeployer deploy multiple $tidb_version --client-from=$client_version $TIDB_MULTI_OPTIONS
 fi
 
 $SANDBOX_HOME/$single_path/test_sb
@@ -520,9 +506,7 @@ var remoteOperations string = `#!/bin/bash
 cd $(dirname $0)
 source cookbook_include.sh
 
-( set -x 
-dbdeployer remote list
-)
+run dbdeployer remote list
 
 os=$(uname -s | tr 'A-Z' 'a-z')
 if [ "$os" != "linux" ]
@@ -540,9 +524,7 @@ then
 	exit 1
 fi
 
-( set -x 
-dbdeployer remote get mysql-$version
-)
+run dbdeployer remote get mysql-$version
 if [ ! -f mysql-${version}.tar.xz ]
 then
 	echo "error downloading mysql-${version}.tar.xz"
@@ -567,9 +549,8 @@ if [ -n "$(dbdeployer sandboxes | grep 'ndb\s*'$version)" ]
 then
     echo "ndb replication version $version is already installed"
 else
-    (set -x
-    dbdeployer deploy replication $version --topology=ndb --concurrent
-    )
+    
+    run dbdeployer deploy replication $version --topology=ndb --concurrent $NDB_OPTIONS
 fi
 `
 var pxcDeployment string = `#!/bin/bash
@@ -594,9 +575,7 @@ if [ -n "$(dbdeployer sandboxes | grep 'pxc\s*'$version)" ]
 then
     echo "pxc replication version $version is already installed"
 else
-    (set -x
-    dbdeployer deploy replication $version --topology=pxc --concurrent
-    )
+    run dbdeployer deploy replication $version --topology=pxc --concurrent $PXC_OPTIONS
 fi
 `
 
@@ -679,6 +658,124 @@ darwin)
     ;;
 esac
 
+`
+
+var replicationBetweenGroups string = `#!/bin/bash
+{{.Copyright}}
+# Generated by dbdeployer {{.AppVersion}} using template {{.TemplateName}} on {{.DateTime}}
+
+cd $(dirname $0)
+source cookbook_include.sh
+
+version=$1
+[ -z "$version" ] && version={{.LatestVersion}}
+check_version $version
+path_version=$(echo $version | tr '.' '_')
+
+group1=group_${path_version}_1
+group2=group_${path_version}_2
+
+run dbdeployer deploy replication $version --topology=group --concurrent \
+        --port-as-server-id --sandbox-directory=$group1
+
+run dbdeployer deploy replication $version --topology=group --concurrent \
+        --port-as-server-id --sandbox-directory=$group2
+
+run dbdeployer sandboxes --full-info
+
+run $SANDBOX_HOME/$group1/replicate_from $group2
+
+echo "# Inserting data in $group2 node1"
+(set -x
+$SANDBOX_HOME/$group2/n1 -e 'create table if not exists test.t1 (id int not null primary key, server_id int )'
+$SANDBOX_HOME/$group2/n1 -e 'insert into test.t1 values (1, @@server_id)'
+)
+
+sleep 1
+echo "# Retrieving data from one of $group1 nodes"
+echo "# At this point, the data was replicated twice"
+(set -x
+$SANDBOX_HOME/$group1/n2 -e 'select *, @@port from test.t1'
+)
+`
+var replicationBetweenMasterSlave string = `#!/bin/bash
+{{.Copyright}}
+# Generated by dbdeployer {{.AppVersion}} using template {{.TemplateName}} on {{.DateTime}}
+cd $(dirname $0)
+source cookbook_include.sh
+
+version=$1
+[ -z "$version" ] && version={{.LatestVersion}}
+check_version $version
+path_version=$(echo $version | tr '.' '_')
+
+master_slave1=ms_${path_version}_1
+master_slave2=ms_${path_version}_2
+
+run dbdeployer deploy replication $version --topology=master-slave --concurrent \
+    --port-as-server-id --sandbox-directory=$master_slave1 \
+    -c log-slave-updates
+
+	run dbdeployer deploy replication $version --topology=master-slave --concurrent \
+    --port-as-server-id --sandbox-directory=$master_slave2 \
+    -c log-slave-updates
+
+run dbdeployer sandboxes --full-info
+
+run $SANDBOX_HOME/$master_slave1/replicate_from $master_slave2
+
+echo "# Inserting data in $master_slave2 master"
+(set -x
+$SANDBOX_HOME/$master_slave2/m -e 'create table if not exists test.t1 (id int not null primary key, server_id int )'
+$SANDBOX_HOME/$master_slave2/m -e 'insert into test.t1 values (1, @@server_id)'
+)
+
+sleep 1
+echo "# Retrieving data from $master_slave1 slave"
+echo "# At this point, the data was replicated twice"
+(set -x
+$SANDBOX_HOME/$master_slave1/s1 -e 'select *, @@port from test.t1'
+)
+`
+
+var replicationBetweenNdb string = `#!/bin/bash
+{{.Copyright}}
+# Generated by dbdeployer {{.AppVersion}} using template {{.TemplateName}} on {{.DateTime}}
+cd $(dirname $0)
+source cookbook_include.sh
+
+version=$1
+[ -z "$version" ] && version={{.LatestVersion}}
+check_version $version
+path_version=$(echo $version | tr '.' '_')
+
+ndb1=ndb_${path_version}_1
+ndb2=ndb_${path_version}_2
+
+run dbdeployer deploy replication $version --topology=ndb  \
+        --port-as-server-id --sandbox-directory=$ndb1 \
+        --concurrent
+
+run dbdeployer deploy replication $version --topology=ndb  \
+        --port-as-server-id --sandbox-directory=$ndb2 \
+        --concurrent
+
+run dbdeployer sandboxes --full-info
+
+run $SANDBOX_HOME/$ndb1/replicate_from $ndb2
+
+echo "# Inserting data in $ndb2 node1"
+(set -x
+$SANDBOX_HOME/$ndb2/n1 -e 'create table if not exists test.t1 (id int not null primary key, server_id int ) engine=ndbcluster'
+$SANDBOX_HOME/$ndb2/n1 -e 'insert into test.t1 values (1, @@server_id)'
+)
+
+sleep 3
+echo "# Retrieving data from one of $ndb1 nodes"
+echo "# At this point, the data was replicated twice"
+(set -x
+$SANDBOX_HOME/$ndb1/n2 -e 'select *, @@port from test.t1'
+)
 `
 
 /*
@@ -805,5 +902,25 @@ var RecipesList = RecipesCollection{
 		ScriptName:   CookbookPrerequisites,
 		Contents:     prerequisites,
 		IsExecutable: true,
+	},
+	"replication_between_groups": RecipeTemplate{
+		Description:    "Shows how to run replication between two group replications",
+		ScriptName:     "replication-between-groups.sh",
+		Contents:       replicationBetweenGroups,
+		RequiredFlavor: common.MySQLFlavor,
+		IsExecutable:   true,
+	},
+	"replication_between_master_slave": RecipeTemplate{
+		Description:  "Shows how to run replication between two master/slave replications",
+		ScriptName:   "replication-between-master-slave.sh",
+		Contents:     replicationBetweenMasterSlave,
+		IsExecutable: true,
+	},
+	"replication_between_ndb": RecipeTemplate{
+		Description:    "Shows how to run replication between two NDB clusters",
+		ScriptName:     "replication-between-ndb.sh",
+		Contents:       replicationBetweenNdb,
+		RequiredFlavor: common.NdbFlavor,
+		IsExecutable:   true,
 	},
 }

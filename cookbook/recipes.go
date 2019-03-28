@@ -16,14 +16,16 @@ package cookbook
 
 import (
 	"fmt"
+	"os"
+	"path"
+	"regexp"
+	"sort"
+	"strings"
+
 	"github.com/alexeyco/simpletable"
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
-	"os"
-	"path"
-	"regexp"
-	"strings"
 )
 
 const (
@@ -37,6 +39,17 @@ var (
 	PrerequisitesShown bool = false
 )
 
+type TemplateSort struct {
+	name       string
+	scriptName string
+}
+
+type ByScriptName []TemplateSort
+
+func (a ByScriptName) Len() int           { return len(a) }
+func (a ByScriptName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByScriptName) Less(i, j int) bool { return a[i].scriptName < a[j].scriptName }
+
 func ListRecipes() {
 	table := simpletable.New()
 
@@ -49,10 +62,17 @@ func ListRecipes() {
 		},
 	}
 
+	var recipeSortList ByScriptName
+
 	for name, template := range RecipesList {
+		recipeSortList = append(recipeSortList, TemplateSort{name: name, scriptName: template.ScriptName})
+	}
+	sort.Sort(recipeSortList)
+	for _, sortTemplate := range recipeSortList {
+		template := RecipesList[sortTemplate.name]
 		if template.IsExecutable {
 			var cells []*simpletable.Cell
-			cells = append(cells, &simpletable.Cell{Text: name})
+			cells = append(cells, &simpletable.Cell{Text: sortTemplate.name})
 			cells = append(cells, &simpletable.Cell{Text: template.ScriptName})
 			cells = append(cells, &simpletable.Cell{Text: template.Description})
 			cells = append(cells, &simpletable.Cell{Text: template.RequiredFlavor})

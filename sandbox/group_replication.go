@@ -17,8 +17,6 @@ package sandbox
 
 import (
 	"fmt"
-	"github.com/datacharmer/dbdeployer/globals"
-	"github.com/pkg/errors"
 	"os"
 	"path"
 	"regexp"
@@ -27,9 +25,12 @@ import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/pkg/errors"
 )
 
 const (
+	defaultGroupName        = "%08d-bbbb-cccc-dddd-eeeeeeeeeeee"
 	GroupReplOptions string = `
 binlog_checksum=NONE
 log_slave_updates=ON
@@ -39,7 +40,7 @@ group_replication_start_on_boot=OFF
 group_replication_bootstrap_group=OFF
 transaction_write_set_extraction=XXHASH64
 report-host=127.0.0.1
-loose-group_replication_group_name="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+loose-group_replication_group_name="__GROUP_NAME__"
 `
 	GroupReplSinglePrimary string = `
 loose-group-replication-single-primary-mode=on
@@ -344,7 +345,11 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		}
 		sandboxDef.ReplOptions = SingleTemplates["replication_options"].Contents + fmt.Sprintf("\n%s\n%s\n", GroupReplOptions, singleMultiPrimary)
 		reMasterIp := regexp.MustCompile(`127\.0\.0\.1`)
+		reGroupName := regexp.MustCompile(`__GROUP_NAME__`)
 		sandboxDef.ReplOptions = reMasterIp.ReplaceAllString(sandboxDef.ReplOptions, masterIp)
+
+		groupName := fmt.Sprintf(defaultGroupName, basePort)
+		sandboxDef.ReplOptions = reGroupName.ReplaceAllString(sandboxDef.ReplOptions, groupName)
 		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["gtid_options_57"].Contents)
 		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["repl_crash_safe_options"].Contents)
 		sandboxDef.ReplOptions += fmt.Sprintf("\nloose-group-replication-local-address=%s:%d\n", masterIp, groupPort)
@@ -435,6 +440,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 			{globals.ScriptClearAll, "clear_multi_template", true},
 			{globals.ScriptSendKillAll, "send_kill_multi_template", true},
 			{globals.ScriptUseAll, "use_multi_template", true},
+			{globals.ScriptReplicateFrom, "replicate_from_multi_template", true},
 		},
 	}
 	sbRepl := ScriptBatch{

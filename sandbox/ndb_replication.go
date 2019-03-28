@@ -17,15 +17,16 @@ package sandbox
 
 import (
 	"fmt"
+	"os"
+	"path"
+	"regexp"
+	"time"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/pkg/errors"
-	"os"
-	"path"
-	"regexp"
-	"time"
 )
 
 func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNodes int, masterIp string) error {
@@ -62,6 +63,15 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 	if sandboxDef.BasePort > 0 {
 		basePort = sandboxDef.BasePort
 	}
+
+	// FindFreePort returns the first free port, but base_port will be used
+	// with a counter. Thus the availability will be checked using
+	// "base_port + 1"
+	firstPort, err := common.FindFreePort(basePort+1, sandboxDef.InstalledPorts, nodes)
+	if err != nil {
+		return errors.Wrapf(err, "error getting free port for ndb deployment")
+	}
+	basePort = firstPort - 1
 
 	baseServerId := 0
 	if ndbNodes < 3 {
@@ -329,6 +339,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 			{globals.ScriptClearAll, "clear_multi_template", true},
 			{globals.ScriptSendKillAll, "send_kill_multi_template", true},
 			{globals.ScriptUseAll, "use_multi_template", true},
+			{globals.ScriptReplicateFrom, "replicate_from_multi_template", true},
 		},
 	}
 	sbRepl := ScriptBatch{

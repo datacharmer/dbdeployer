@@ -16,14 +16,15 @@ package sandbox
 
 import (
 	"fmt"
+	"os"
+	"regexp"
+	"time"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/pkg/errors"
-	"os"
-	"regexp"
-	"time"
 )
 
 var pxcReplicationOptions string = `
@@ -395,6 +396,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 			{globals.ScriptClearAll, "clear_multi_template", true},
 			{globals.ScriptSendKillAll, "send_kill_multi_template", true},
 			{globals.ScriptUseAll, "use_multi_template", true},
+			{globals.ScriptReplicateFrom, "replicate_from_multi_template", true},
 		},
 	}
 	sbRepl := ScriptBatch{

@@ -17,11 +17,14 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"regexp"
+	"runtime"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/rest"
 	"github.com/spf13/cobra"
-	"regexp"
 )
 
 func listRemoteFiles(cmd *cobra.Command, args []string) {
@@ -39,6 +42,21 @@ func downloadFile(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
 		common.Exit(1, "command 'download' requires a version [and optionally a file-name]")
 	}
+	currentOs := runtime.GOOS
+	skipOsCheckVar := "DBDEPLOYER_FORCE_REMOTE_GET"
+	skipOsCheck := os.Getenv(skipOsCheckVar) != ""
+	if currentOs != "linux" {
+		if skipOsCheck {
+			fmt.Printf("Variable '%s' was set. Forcing download on OS '%s'\n", skipOsCheckVar, currentOs)
+			fmt.Println(globals.HashLine)
+			fmt.Printf("# WARNING: the binaries being downloaded WILL NOT WORK on the current OS.\n")
+			fmt.Println(globals.HashLine)
+		} else {
+			common.Exit(0, "The binaries retrieved by this command are only for Linux",
+				fmt.Sprintf("Set the environment variable '%s' to force a download on a non-Linux host", skipOsCheckVar))
+		}
+	}
+
 	version := args[0]
 
 	fileName := version

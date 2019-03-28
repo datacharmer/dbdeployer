@@ -378,7 +378,7 @@ source {{.SandboxDir}}/sb_include
 
 # Removes the scripts that we know for sure won't be used with TiDB
 #
-scripts_to_delete=(add_option show_log show_binlog show_relaylog)
+scripts_to_delete=(add_option show_binlog show_relaylog replicate_from connection.sql)
 for script in ${scripts_to_delete[*]}
 do
     if [ -f $SBDIR/$script ]

@@ -17,8 +17,6 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/datacharmer/dbdeployer/globals"
-	"github.com/pkg/errors"
 	"os"
 	"path"
 	"regexp"
@@ -26,7 +24,9 @@ import (
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/sandbox"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -284,6 +284,7 @@ func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxD
 	sd.EnableMysqlX, _ = flags.GetBool(globals.EnableMysqlXLabel)
 	sd.EnableAdminAddress, _ = flags.GetBool(globals.EnableAdminAddressLabel)
 	sd.SocketInDatadir, _ = flags.GetBool(globals.SocketInDatadirLabel)
+	sd.PortAsServerId, _ = flags.GetBool(globals.PortAsServerIdLabel)
 	if common.IsEnvSet("SOCKET_IN_DATADIR") {
 		sd.SocketInDatadir = true
 	}

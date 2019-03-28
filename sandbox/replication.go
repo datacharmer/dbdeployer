@@ -17,8 +17,6 @@ package sandbox
 
 import (
 	"fmt"
-	"github.com/datacharmer/dbdeployer/globals"
-	"github.com/pkg/errors"
 	"os"
 	"path"
 	"time"
@@ -26,6 +24,8 @@ import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/pkg/errors"
 )
 
 type Slave struct {
@@ -403,6 +403,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 			{masterAbbr, "master_template", true},
 			{"n1", "master_template", true},
 			{"test_replication", "test_replication_template", true},
+			{globals.ScriptReplicateFrom, "repl_replicate_from_template", true},
 		},
 	}
 	if sandboxDef.SemiSyncOptions != "" {

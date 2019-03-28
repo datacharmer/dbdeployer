@@ -1,4 +1,19 @@
-1.25.0	24-Mar-2019
+1.26.0	26-Mar-2019
+	NEW FEATURES
+	- Add custom replication_from script to each sandbox.
+	- Add metadata script to each sandbox
+	- Add option -port-as-server-id
+	- Add more info in sb_include script
+	- Add connection info scripts to each sandbox
+	- Add cookbook scripts for replication between groups, ndb, master/slave.
+	BUGS FIXED
+	- Fix "remote get" bug: it should fail on Mac (Issue #76)
+	- Fix port detection bug for NDB. The cluster port was not used in the
+	  search for free ports.
+	- Sort cookbook listing (it was being displayed in random order)
+	TESTING
+	- Add test for replication between sandboxes (single and master/slave)
+1.25.0	24-Mar-2019 (not released)
 	ADJUSTMENTS/NEW FEATURES:
 	- Add option --enable-admin-address for 8.0.14+
 	- When admin address is enabled, ./use_admin is created for each sandbox

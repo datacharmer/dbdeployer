@@ -18,8 +18,6 @@ package sandbox
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/datacharmer/dbdeployer/globals"
-	"github.com/pkg/errors"
 	"os"
 	"path"
 	"regexp"
@@ -28,6 +26,8 @@ import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/pkg/errors"
 )
 
 type SandboxDef struct {
@@ -75,6 +75,7 @@ type SandboxDef struct {
 	HistoryDir           string           // Where to store the MySQL client history
 	LogFileName          string           // Where to log operations for this sandbox
 	Flavor               string           // The flavor of the binaries (MySQL, Percona, NDB, etc)
+	PortAsServerId       bool             // Whether we use the port number as server ID
 	FlavorInPrompt       bool             // Add flavor to prompt
 	SocketInDatadir      bool             // Whether we want the socket in the data directory
 	SlavesReadOnly       bool             // Whether slaves will set the read_only flag
@@ -609,6 +610,8 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		"BasePort":             sandboxDef.BasePort,
 		"Prompt":               sandboxDef.Prompt,
 		"Version":              sandboxDef.Version,
+		"Flavor":               sandboxDef.Flavor,
+		"SandboxType":          sandboxDef.SBType,
 		"VersionMajor":         verList[0],
 		"VersionMinor":         verList[1],
 		"VersionRev":           verList[2],
@@ -641,6 +644,9 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	}
 	if sandboxDef.SkipReportPort {
 		data["ReportPort"] = ""
+	}
+	if sandboxDef.PortAsServerId {
+		sandboxDef.ServerId = sandboxDef.Port
 	}
 	if sandboxDef.ServerId > 0 {
 		data["ServerId"] = fmt.Sprintf("server-id=%d", sandboxDef.ServerId)
@@ -826,6 +832,11 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			{globals.ScriptTestSb, "test_sb_template", true},
 			{globals.ScriptMySandboxCnf, "my_cnf_template", false},
 			{globals.ScriptAfterStart, "after_start_template", true},
+			{globals.ScriptConnectionSql, "connection_info_sql", false},
+			{globals.ScriptConnectionConf, "connection_info_conf", false},
+			{globals.ScriptConnectionJson, "connection_info_json", false},
+			{globals.ScriptReplicateFrom, "replicate_from", true},
+			{globals.ScriptMetadata, "metadata_template", true},
 		},
 	}
 	if sandboxDef.EnableAdminAddress {

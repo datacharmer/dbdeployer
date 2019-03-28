@@ -17,13 +17,14 @@ package cmd
 
 import (
 	"fmt"
+	"math/rand"
+	"os"
+	"path"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/spf13/cobra"
-	"math/rand"
-	"os"
-	"path"
 )
 
 var deployCmd = &cobra.Command{
@@ -63,6 +64,7 @@ func init() {
 	deployCmd.PersistentFlags().Bool(globals.LogSBOperationsLabel, defaults.LogSBOperations, "Logs sandbox operations to a file")
 	deployCmd.PersistentFlags().Bool(globals.SocketInDatadirLabel, false, "Create socket in datadir instead of $TMPDIR")
 	deployCmd.PersistentFlags().Bool(globals.FlavorInPromptLabel, false, "Add flavor values to prompt")
+	deployCmd.PersistentFlags().Bool(globals.PortAsServerIdLabel, false, "Use the port number as server ID")
 
 	setPflag(deployCmd, globals.LogLogDirectoryLabel, "", "", defaults.Defaults().LogDirectory, "Where to store dbdeployer logs", false)
 	setPflag(deployCmd, globals.RemoteAccessLabel, "", "", globals.RemoteAccessValue, "defines the database access ", false)
