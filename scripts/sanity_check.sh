@@ -72,7 +72,6 @@ do
     done
     cd - > /dev/null
 done
-# for SF in $(grep -v '^#' ./scripts/sh.txt)
 for SF in $(git ls-tree -r HEAD --name-only | grep '\.sh' | grep -v dbdeployer_completion )
 do
     has_copyright1=$(head -n 2 $SF | tail -n 1 | grep DBDeployer )

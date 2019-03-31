@@ -36,5 +36,6 @@ run ./test/mock/expected_ports.sh
 run ./test/mock/read-only-replication.sh
 run ./test/mock/ndb_test.sh
 run ./test/mock/pxc_test.sh
+run ./test/mock/cookbook.sh
 run ./test/docker-test.sh $(cat .build/VERSION)
 

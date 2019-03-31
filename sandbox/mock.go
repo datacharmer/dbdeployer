@@ -31,7 +31,7 @@ import (
 // the testing of sandboxes without having MySQL packages.
 
 const (
-	defaultMockDir       string = "mock_dir"
+	DefaultMockDir       string = "mock_dir"
 	noOpMockTemplateName        = "no_op_mock_template"
 )
 
@@ -44,9 +44,9 @@ var (
 	mockSandboxHome   string
 )
 
-func setMockEnvironment(mockUpperDir string) error {
+func SetMockEnvironment(mockUpperDir string) error {
 	if mockUpperDir == "" {
-		mockUpperDir = defaultMockDir
+		mockUpperDir = DefaultMockDir
 	}
 	if common.DirExists(mockUpperDir) {
 		return fmt.Errorf("mock directory %s already exists. Aborting", mockUpperDir)
@@ -77,7 +77,7 @@ func setMockEnvironment(mockUpperDir string) error {
 	return nil
 }
 
-func removeMockEnvironment(mockUpperDir string) error {
+func RemoveMockEnvironment(mockUpperDir string) error {
 	if !common.DirExists(mockUpperDir) {
 		return fmt.Errorf("mock directory %s doesn't exist. Aborting", mockUpperDir)
 	}
@@ -97,9 +97,9 @@ type MockFileSet struct {
 	fileSet []ScriptDef
 }
 
-func createCustomMockVersion(version string, fileSet []MockFileSet) error {
+func CreateCustomMockVersion(version string, fileSet []MockFileSet) error {
 	if mockSandboxBinary == "" {
-		return fmt.Errorf("mock directory not set yet. - Call setMockEnvironment() first")
+		return fmt.Errorf("mock directory not set yet. - Call SetMockEnvironment() first")
 	}
 	logger, _, err := defaults.NewLogger(common.LogDirName(), "mock")
 	if err != nil {
@@ -177,9 +177,9 @@ func MySQLMockSet(debug bool) []MockFileSet {
 	return fileSet
 }
 
-func createMockVersion(version string) error {
+func CreateMockVersion(version string) error {
 	var fileSet = MySQLMockSet(false)
-	return createCustomMockVersion(version, fileSet)
+	return CreateCustomMockVersion(version, fileSet)
 }
 
 func init() {

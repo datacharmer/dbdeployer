@@ -390,6 +390,25 @@ function ok_greater_equal {
     ok_comparison greater_equal "$label" "$value1" "$value2"
 }
 
+function ok_empty {
+    label=$1
+    value=$2
+    if [ -z "$value" ]
+    then
+        echo "ok - $label - unwanted value is empty"
+        pass=$((pass+1))
+    else
+        echo "not ok - $label - unwanted value is not empty: '$value' "
+        fail=$((fail+1))
+        if [ -n "$EXIT_ON_FAILURE" ]
+        then
+            echo "pass: $pass - fail: $fail"
+            exit
+        fi
+    fi
+    tests=$((tests+1))
+}
+
 function ok_contains {
     label=$1
     value1=$2

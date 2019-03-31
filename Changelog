@@ -1,3 +1,14 @@
+1.27.0	31-Mar-2019
+	NEW FEATURES
+	- Add cookbook recipes:
+	  . replication across multiple versions
+	  . replication from group replication to single sandbox
+	  . replication from group replication to master/slave
+	  . replication from single sandbox to group replication
+	  . replication from master/slave to group replication
+	  . replication between single sandboxes
+	  . circular replication
+
 1.26.0	26-Mar-2019
 	NEW FEATURES
 	- Add custom replication_from script to each sandbox.

@@ -90,7 +90,7 @@ var singleScriptNames = []string{
 }
 
 func testCreateMockSandbox(t *testing.T) {
-	err := setMockEnvironment("mock_dir")
+	err := SetMockEnvironment(DefaultMockDir)
 	if err != nil {
 		t.Fatal("mock dir creation failed")
 	}
@@ -107,7 +107,7 @@ func testCreateMockSandbox(t *testing.T) {
 		mysqlVersion := v.version
 		pathVersion := v.path
 		port := v.port
-		err = createMockVersion(mysqlVersion)
+		err = CreateMockVersion(mysqlVersion)
 		compare.OkIsNil("version creation", err, t)
 		var sandboxDef = SandboxDef{
 			Version:    mysqlVersion,
@@ -143,13 +143,13 @@ func testCreateMockSandbox(t *testing.T) {
 		}
 		okPortExists(t, sandboxDir, sandboxDef.Port)
 	}
-	err = removeMockEnvironment("mock_dir")
+	err = RemoveMockEnvironment(DefaultMockDir)
 	compare.OkIsNil("removal", err, t)
 }
 
 func testDetectFlavor(t *testing.T) {
 
-	err := setMockEnvironment("mock_dir")
+	err := SetMockEnvironment(DefaultMockDir)
 	if err != nil {
 		t.Fatal("mock dir creation failed")
 	}
@@ -246,7 +246,7 @@ func testDetectFlavor(t *testing.T) {
 	}
 
 	for _, fd := range flavorDetectionSet {
-		err = createCustomMockVersion(fd.version, fd.setup)
+		err = CreateCustomMockVersion(fd.version, fd.setup)
 		compare.OkIsNil("mock creation", err, t)
 		basedir := path.Join(mockSandboxBinary, fd.version)
 		detectedFlavor := common.DetectBinaryFlavor(basedir)
@@ -255,13 +255,13 @@ func testDetectFlavor(t *testing.T) {
 			detectedFlavor, fd.expected, t)
 	}
 
-	err = removeMockEnvironment("mock_dir")
+	err = RemoveMockEnvironment(DefaultMockDir)
 	compare.OkIsNil("removal", err, t)
 
 }
 
 func testCreateTidbMockSandbox(t *testing.T) {
-	err := setMockEnvironment("mock_dir")
+	err := SetMockEnvironment(DefaultMockDir)
 	if err != nil {
 		t.Fatal("mock dir creation failed")
 	}
@@ -271,7 +271,7 @@ func testCreateTidbMockSandbox(t *testing.T) {
 		{"5.0.50", "5_0_50", 5050},
 		{"8.0.80", "8_0_80", 8080},
 	}
-	err = createMockVersion("5.7.25")
+	err = CreateMockVersion("5.7.25")
 	compare.OkIsNil("MySQL support version creation", err, t)
 	for _, v := range versions {
 		tidbVersion := v.version
@@ -284,7 +284,7 @@ func testCreateTidbMockSandbox(t *testing.T) {
 			},
 		}
 		fileSets := []MockFileSet{fileSet}
-		err = createCustomMockVersion(tidbVersion, fileSets)
+		err = CreateCustomMockVersion(tidbVersion, fileSets)
 		compare.OkIsNil("TiDB version creation", err, t)
 		mockSandboxDir := defaults.Defaults().SandboxPrefix + pathVersion
 		var sandboxDef = SandboxDef{
@@ -333,7 +333,7 @@ func testCreateTidbMockSandbox(t *testing.T) {
 		}
 
 	}
-	err = removeMockEnvironment("mock_dir")
+	err = RemoveMockEnvironment(DefaultMockDir)
 	compare.OkIsNil("removal", err, t)
 }
 
@@ -384,14 +384,14 @@ func expectFailure(sandboxDef SandboxDef, label, deployment, regex string, args 
 }
 
 func testFailSandboxConditions(t *testing.T) {
-	err := setMockEnvironment("mock_dir")
+	err := SetMockEnvironment(DefaultMockDir)
 	if err != nil {
 		t.Fatal("mock dir creation failed")
 	}
 	compare.OkIsNil("mock creation", err, t)
 	mysqlVersion := "5.6.99"
 	pathVersion := "5_6_99"
-	err = createMockVersion(mysqlVersion)
+	err = CreateMockVersion(mysqlVersion)
 	compare.OkIsNil("version creation", err, t)
 	var sandboxDef = SandboxDef{
 		Version:        mysqlVersion,
@@ -463,7 +463,7 @@ func testFailSandboxConditions(t *testing.T) {
 	sandboxDef.MyCnfFile = ""
 	mysqlVersion = "5.0.99"
 	pathVersion = "5_0_99"
-	err = createMockVersion(mysqlVersion)
+	err = CreateMockVersion(mysqlVersion)
 	compare.OkIsNil("version creation", err, t)
 	sandboxDef.SlavesReadOnly = true
 	sandboxDef.Port = 5099
@@ -481,7 +481,7 @@ func testFailSandboxConditions(t *testing.T) {
 	sandboxDef.MyCnfFile = ""
 	mysqlVersion = "5.7.0"
 	pathVersion = "5_7_0"
-	err = createMockVersion(mysqlVersion)
+	err = CreateMockVersion(mysqlVersion)
 	compare.OkIsNil("version creation", err, t)
 	sandboxDef.SlavesReadOnly = true
 	sandboxDef.Port = 5700
@@ -511,7 +511,7 @@ func testFailSandboxConditions(t *testing.T) {
 		t)
 
 	// t.Logf("%+v", err)
-	err = removeMockEnvironment("mock_dir")
+	err = RemoveMockEnvironment(DefaultMockDir)
 	compare.OkIsNil("removal", err, t)
 }
 

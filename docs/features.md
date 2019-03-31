@@ -2,53 +2,54 @@
 
 This table compares features from [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox) and [dbdeployer](https://github.com/datacharmer/dbdeployer).
 
-Feature                     | MySQL-Sandbox   | dbdeployer  | dbdeployer planned
---------------------------- | :-------------- | :---------- | :-----------------
-Single sandbox deployment   | yes             | yes         |
-unpack command              | sort of [^1]    | yes         |
-multiple sandboxes          | yes             | yes         |
-master-slave replication    | yes             | yes         |
-"force" flag                | yes             | yes         |
-pre-post grants SQL action  | yes             | yes         |
-initialization options      | yes             | yes         |
-my.cnf options              | yes             | yes         |
-custom my.cnf               | yes             | yes         |
-friendly UUID generation    | yes             | yes         |
-global commands             | yes             | yes         |
-test replication flow       | yes             | yes         |
-delete command              | yes [^2]        | yes         |
-show data dictionary tables | yes             | yes         |
-lock/unlock sandboxes       | yes             | yes         |
-finding free ports          | yes             | yes         |
-semi-sync replication       | yes             | yes         |
-group replication  SP       | no              | yes         |
-group replication  MP       | no              | yes         |
-prevent port collision      | no              | yes  [^3]   |
-visible initialization      | no              | yes  [^4]   |
-visible script templates    | no              | yes  [^5]   |
-replaceable templates       | no              | yes  [^6]   |
-configurable defaults       | no              | yes  [^7]   |
-list of source binaries     | no              | yes  [^8]   |
-list of installed sandboxes | no              | yes  [^9]   |
-test script per sandbox     | no              | yes  [^10]  |
-integrated usage help       | no              | yes  [^11]  |
-custom abbreviations        | no              | yes  [^12]  |
-version flag                | no              | yes  [^13]  |
-sandboxes global catalog    | no              | yes         |
-concurrent deployment       | no              | yes         |
-command line completion     | no              | yes         |
-MySQL upgrade               | no              | yes         |
-MySQLX support              | no              | yes         |
-fan-in                      | no              | yes  [^14]  |
-all-masters                 | no              | yes  [^15]  |
-Percona Xtradb cluster      | no              | yes         | 
-MySQL Cluster               | no              | yes         |
-pre-post grants shell action| yes             | no          | maybe
-getting remote tarballs     | yes             | yes         |
-load plugins                | yes             | yes [^16]   |
-circular replication        | yes             | no          | no [^17]
-master-master  (circular)   | yes             | no          | no
-Windows support             | no              | no [^18]    |
+Feature                     | MySQL-Sandbox   | dbdeployer    | dbdeployer planned
+--------------------------- | :-------------- | :------------ | :-----------------
+Single sandbox deployment   | yes             | yes           |
+unpack command              | sort of [^1]    | yes           |
+multiple sandboxes          | yes             | yes           |
+master-slave replication    | yes             | yes           |
+"force" flag                | yes             | yes           |
+pre-post grants SQL action  | yes             | yes           |
+initialization options      | yes             | yes           |
+my.cnf options              | yes             | yes           |
+custom my.cnf               | yes             | yes           |
+friendly UUID generation    | yes             | yes           |
+global commands             | yes             | yes           |
+test replication flow       | yes             | yes           |
+delete command              | yes [^2]        | yes           |
+show data dictionary tables | yes             | yes           |
+lock/unlock sandboxes       | yes             | yes           |
+finding free ports          | yes             | yes           |
+semi-sync replication       | yes             | yes           |
+group replication  SP       | no              | yes           |
+group replication  MP       | no              | yes           |
+prevent port collision      | no              | yes  [^3]     |
+visible initialization      | no              | yes  [^4]     |
+visible script templates    | no              | yes  [^5]     |
+replaceable templates       | no              | yes  [^6]     |
+configurable defaults       | no              | yes  [^7]     |
+list of source binaries     | no              | yes  [^8]     |
+list of installed sandboxes | no              | yes  [^9]     |
+test script per sandbox     | no              | yes  [^10]    |
+integrated usage help       | no              | yes  [^11]    |
+custom abbreviations        | no              | yes  [^12]    |
+version flag                | no              | yes  [^13]    |
+sandboxes global catalog    | no              | yes           |
+concurrent deployment       | no              | yes           |
+command line completion     | no              | yes           |
+MySQL upgrade               | no              | yes           |
+MySQLX support              | no              | yes           |
+fan-in                      | no              | yes  [^14]    |
+all-masters                 | no              | yes  [^15]    |
+Percona Xtradb cluster      | no              | yes           | 
+MySQL Cluster               | no              | yes           |
+Inter-sandbox replication   | limited [^16]   | yes           |
+pre-post grants shell action| yes             | no            | maybe
+getting remote tarballs     | yes             | yes           |
+load plugins                | yes             | yes [^17]     |
+circular replication        | yes             | sort of [^18] | 
+master-master  (circular)   | yes             | no            | no
+Windows support             | no              | no [^19]      |
 
 [^1]: It's achieved using ``--export_binaries`` and then abandoning the operation.
 
@@ -80,8 +81,11 @@ Windows support             | no              | no [^18]    |
 
 [^15]: Same as n. 14.
 
-[^16]: Using pre-grants and post-grants options, all plugins can be loaded.
+[^16]: Single sandboxes could replicate from another using option `--slaveof`
 
-[^17]: Circular replication should not be used anymore. There are enough good alternatives (multi-source, group replication) to avoid this old technology.
+[^17]: Using pre-grants and post-grants options, all plugins can be loaded.
 
-[^18]: I don't do Windows. But you can fork the project if you do.
+[^18]: Circular replication should not be used anymore. There are enough good alternatives (multi-source, group replication) to avoid this old technology. 
+However, using  the script `replicate_from`, it is possible to run circular replication. There is an example in the cookbook.
+
+[^19]: I don't do Windows. But you can fork the project if you do.

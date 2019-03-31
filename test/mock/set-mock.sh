@@ -121,6 +121,16 @@ function create_mock_pxc_version {
     echo pxc > $SANDBOX_BINARY/$version_label/FLAVOR
 }
 
+function create_mock_tidb_version {
+    version_label=$1
+    make_dir $SANDBOX_BINARY/$version_label
+    make_dir $SANDBOX_BINARY/$version_label/bin
+
+    dbdeployer defaults templates show tidb_mock_template > $SANDBOX_BINARY/$version_label/bin/tidb-server
+    chmod +x $SANDBOX_BINARY/$version_label/bin/*
+    echo tidb > $SANDBOX_BINARY/$version_label/FLAVOR
+}
+
 # a mock tarball is a tarball that contains mock MySQL executables
 # for the purpose of testing "dbdeployer unpack"
 function create_mock_tarball {

@@ -177,34 +177,7 @@ See [Issue#18 on GitHub](https://github.com/datacharmer/dbdeployer/issues/18#iss
 Several examples of dbdeployer usages are avaibale with the command ``dbdeployer cookbook``
 
 
-```
-$ dbdeployer cookbook list
-.----------------------------------.-------------------------------------.--------------------------------------------------------------------.--------.
-|              recipe              |             script name             |                            description                             | needed |
-|                                  |                                     |                                                                    | flavor |
-+----------------------------------+-------------------------------------+--------------------------------------------------------------------+--------+
-| all-masters                      | all-masters-deployment.sh           | Creation of an all-masters replication sandbox                     | mysql  |
-| delete                           | delete-sandboxes.sh                 | Delete all deployed sandboxes                                      |        |
-| fan-in                           | fan-in-deployment.sh                | Creation of a fan-in (many masters, one slave) replication sandbox | mysql  |
-| group-multi                      | group-multi-primary-deployment.sh   | Creation of a multi-primary group replication sandbox              | mysql  |
-| group-single                     | group-single-primary-deployment.sh  | Creation of a single-primary group replication sandbox             | mysql  |
-| master-slave                     | master-slave-deployment.sh          | Creation of a master/slave replication sandbox                     |        |
-| ndb                              | ndb-deployment.sh                   | Shows deployment with ndb                                          | ndb    |
-| prerequisites                    | prerequisites.sh                    | Shows dbdeployer prerequisites and how to make them                |        |
-| pxc                              | pxc-deployment.sh                   | Shows deployment with pxc                                          | pxc    |
-| remote                           | remote.sh                           | Shows how to get a remote MySQL tarball                            |        |
-| replication-restart              | repl-operations-restart.sh          | Show how to restart sandboxes with custom options                  |        |
-| replication-operations           | repl-operations.sh                  | Show how to run operations in a replication sandbox                |        |
-| replication_between_groups       | replication-between-groups.sh       | Shows how to run replication between two group replications        | mysql  |
-| replication_between_master_slave | replication-between-master-slave.sh | Shows how to run replication between two master/slave replications |        |
-| replication_between_ndb          | replication-between-ndb.sh          | Shows how to run replication between two NDB clusters              | ndb    |
-| show                             | show-sandboxes.sh                   | Show deployed sandboxes                                            |        |
-| single                           | single-deployment.sh                | Creation of a single sandbox                                       |        |
-| single-reinstall                 | single-reinstall.sh                 | Re-installs a single sandbox                                       |        |
-| tidb                             | tidb-deployment.sh                  | Shows deployment and some operations with TiDB                     | tidb   |
-| upgrade                          | upgrade.sh                          | Shows a complete upgrade example from 5.5 to 8.0                   | mysql  |
-'----------------------------------'-------------------------------------'--------------------------------------------------------------------'--------'
-```
+    {{dbdeployer cookbook list}}
 
 Using this command, dbdeployer can produce sample scripts for common operations.
 

@@ -61,6 +61,7 @@ func GetFlavoredVersionsFromDir(basedir, flavor string) []string {
 		var foundFlavor string = MySQLFlavor
 		if FileExists(flavorPath) {
 			foundFlavor, _ = SlurpAsString(flavorPath)
+			foundFlavor = strings.TrimSpace(foundFlavor)
 		} else {
 			foundFlavor = DetectBinaryFlavor(dirPath)
 		}

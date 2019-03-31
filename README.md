@@ -1,7 +1,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.26.0 (28-Mar-2019 19:53 UTC)
+Documentation updated for version 1.27.0 (31-Mar-2019 10:35 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -47,7 +47,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.26.0
+    $ VERSION=1.27.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -82,7 +82,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.26.0
+    dbdeployer version 1.27.0
     
 
     $ dbdeployer -h
@@ -401,34 +401,40 @@ See [Issue#18 on GitHub](https://github.com/datacharmer/dbdeployer/issues/18#iss
 Several examples of dbdeployer usages are avaibale with the command ``dbdeployer cookbook``
 
 
-```
-$ dbdeployer cookbook list
-.----------------------------------.-------------------------------------.--------------------------------------------------------------------.--------.
-|              recipe              |             script name             |                            description                             | needed |
-|                                  |                                     |                                                                    | flavor |
-+----------------------------------+-------------------------------------+--------------------------------------------------------------------+--------+
-| all-masters                      | all-masters-deployment.sh           | Creation of an all-masters replication sandbox                     | mysql  |
-| delete                           | delete-sandboxes.sh                 | Delete all deployed sandboxes                                      |        |
-| fan-in                           | fan-in-deployment.sh                | Creation of a fan-in (many masters, one slave) replication sandbox | mysql  |
-| group-multi                      | group-multi-primary-deployment.sh   | Creation of a multi-primary group replication sandbox              | mysql  |
-| group-single                     | group-single-primary-deployment.sh  | Creation of a single-primary group replication sandbox             | mysql  |
-| master-slave                     | master-slave-deployment.sh          | Creation of a master/slave replication sandbox                     |        |
-| ndb                              | ndb-deployment.sh                   | Shows deployment with ndb                                          | ndb    |
-| prerequisites                    | prerequisites.sh                    | Shows dbdeployer prerequisites and how to make them                |        |
-| pxc                              | pxc-deployment.sh                   | Shows deployment with pxc                                          | pxc    |
-| remote                           | remote.sh                           | Shows how to get a remote MySQL tarball                            |        |
-| replication-restart              | repl-operations-restart.sh          | Show how to restart sandboxes with custom options                  |        |
-| replication-operations           | repl-operations.sh                  | Show how to run operations in a replication sandbox                |        |
-| replication_between_groups       | replication-between-groups.sh       | Shows how to run replication between two group replications        | mysql  |
-| replication_between_master_slave | replication-between-master-slave.sh | Shows how to run replication between two master/slave replications |        |
-| replication_between_ndb          | replication-between-ndb.sh          | Shows how to run replication between two NDB clusters              | ndb    |
-| show                             | show-sandboxes.sh                   | Show deployed sandboxes                                            |        |
-| single                           | single-deployment.sh                | Creation of a single sandbox                                       |        |
-| single-reinstall                 | single-reinstall.sh                 | Re-installs a single sandbox                                       |        |
-| tidb                             | tidb-deployment.sh                  | Shows deployment and some operations with TiDB                     | tidb   |
-| upgrade                          | upgrade.sh                          | Shows a complete upgrade example from 5.5 to 8.0                   | mysql  |
-'----------------------------------'-------------------------------------'--------------------------------------------------------------------'--------'
-```
+    $ dbdeployer cookbook list
+    .----------------------------------.-------------------------------------.---------------------------------------------------------------------------------------.--------.
+    |              recipe              |             script name             |                                      description                                      | needed |
+    |                                  |                                     |                                                                                       | flavor |
+    +----------------------------------+-------------------------------------+---------------------------------------------------------------------------------------+--------+
+    | all-masters                      | all-masters-deployment.sh           | Creation of an all-masters replication sandbox                                        | mysql  |
+    | circular_replication             | circular-replication.sh             | Shows how to run replication between nodes of a multiple deployment                   |        |
+    | delete                           | delete-sandboxes.sh                 | Delete all deployed sandboxes                                                         |        |
+    | fan-in                           | fan-in-deployment.sh                | Creation of a fan-in (many masters, one slave) replication sandbox                    | mysql  |
+    | group-multi                      | group-multi-primary-deployment.sh   | Creation of a multi-primary group replication sandbox                                 | mysql  |
+    | group-single                     | group-single-primary-deployment.sh  | Creation of a single-primary group replication sandbox                                | mysql  |
+    | master-slave                     | master-slave-deployment.sh          | Creation of a master/slave replication sandbox                                        |        |
+    | ndb                              | ndb-deployment.sh                   | Shows deployment with ndb                                                             | ndb    |
+    | prerequisites                    | prerequisites.sh                    | Shows dbdeployer prerequisites and how to make them                                   |        |
+    | pxc                              | pxc-deployment.sh                   | Shows deployment with pxc                                                             | pxc    |
+    | remote                           | remote.sh                           | Shows how to get a remote MySQL tarball                                               |        |
+    | replication-restart              | repl-operations-restart.sh          | Show how to restart sandboxes with custom options                                     |        |
+    | replication-operations           | repl-operations.sh                  | Show how to run operations in a replication sandbox                                   |        |
+    | replication_between_groups       | replication-between-groups.sh       | Shows how to run replication between two group replications                           | mysql  |
+    | replication_between_master_slave | replication-between-master-slave.sh | Shows how to run replication between two master/slave replications                    |        |
+    | replication_between_ndb          | replication-between-ndb.sh          | Shows how to run replication between two NDB clusters                                 | ndb    |
+    | replication_between_single       | replication-between-single.sh       | Shows how to run replication between two single sandboxes                             |        |
+    | replication_group_master_slave   | replication-group-master-slave.sh   | Shows how to run replication between a group replication and master/slave replication | mysql  |
+    | replication_group_single         | replication-group-single.sh         | Shows how to run replication between a group replication and a single sandbox         | mysql  |
+    | replication_master_slave_group   | replication-master-slave-group.sh   | Shows how to run replication between master/slave replication and group replication   | mysql  |
+    | replication_multi_versions       | replication-multi-versions.sh       | Shows how to run replication between different MySQL versions                         |        |
+    | replication_single_group         | replication-single-group.sh         | Shows how to run replication between a single sandbox an group replication            | mysql  |
+    | show                             | show-sandboxes.sh                   | Show deployed sandboxes                                                               |        |
+    | single                           | single-deployment.sh                | Creation of a single sandbox                                                          |        |
+    | single-reinstall                 | single-reinstall.sh                 | Re-installs a single sandbox                                                          |        |
+    | tidb                             | tidb-deployment.sh                  | Shows deployment and some operations with TiDB                                        | tidb   |
+    | upgrade                          | upgrade.sh                          | Shows a complete upgrade example from 5.5 to 8.0                                      | mysql  |
+    '----------------------------------'-------------------------------------'---------------------------------------------------------------------------------------'--------'
+    
 
 Using this command, dbdeployer can produce sample scripts for common operations.
 
@@ -1363,18 +1369,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 1. Make sure you have go 1.10+ installed in your system, and that the ``$GOPATH`` variable is set.
 2. Run ``go get -u github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
-4. Run ``./scripts/build.sh {linux|OSX} 1.26.0``
-5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.26.0``
+4. Run ``./scripts/build.sh {linux|OSX} 1.27.0``
+5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.27.0``
 
 # Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.26.0-docs.linux.tar.gz
-* dbdeployer-1.26.0-docs.osx.tar.gz
-* dbdeployer-1.26.0.linux.tar.gz
-* dbdeployer-1.26.0.osx.tar.gz
+* dbdeployer-1.27.0-docs.linux.tar.gz
+* dbdeployer-1.27.0-docs.osx.tar.gz
+* dbdeployer-1.27.0.linux.tar.gz
+* dbdeployer-1.27.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 
