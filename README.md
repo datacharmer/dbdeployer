@@ -35,6 +35,7 @@ Documentation updated for version 1.28.0 (14-Apr-2019 14:17 UTC)
 - [Generating additional documentation](#Generating-additional-documentation)
 - [Command line completion](#Command-line-completion)
 - [Using dbdeployer source for other projects](#Using-dbdeployer-source-for-other-projects)
+- [Exporting dbdeployer structure](#Exporting-dbdeployer-structure)
 - [Semantic versioning](#Semantic-versioning)
 - [Do not edit](#Do-not-edit)
 

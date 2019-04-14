@@ -35,6 +35,7 @@ Documentation updated for version {{.Version}} ({{.Date}})
 - [Generating additional documentation](#Generating-additional-documentation)
 - [Command line completion](#Command-line-completion)
 - [Using dbdeployer source for other projects](#Using-dbdeployer-source-for-other-projects)
+- [Exporting dbdeployer structure](#Exporting-dbdeployer-structure)
 - [Semantic versioning](#Semantic-versioning)
 - [Do not edit](#Do-not-edit)
 
