@@ -25,6 +25,7 @@ import (
 	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/dustin/go-humanize/english"
 	"github.com/pkg/errors"
 )
 
@@ -379,8 +380,12 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		return errors.Wrapf(err, "unable to update catalog")
 	}
 
-	initializeSlaves := "initialize_" + slaveLabel + "s"
-	checkSlaves := "check_" + slaveLabel + "s"
+	slavePlural := english.PluralWord(2, slaveLabel, "")
+	masterPlural := english.PluralWord(2, masterLabel, "")
+	initializeSlaves := "initialize_" + slavePlural
+	checkSlaves := "check_" + slavePlural
+	useAllMasters := "use_all_" + masterPlural
+	useAllSlaves := "use_all_" + slavePlural
 
 	sb := ScriptBatch{
 		tc:         ReplicationTemplates,
@@ -396,8 +401,8 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 			{globals.ScriptClearAll, "clear_all_template", true},
 			{globals.ScriptSendKillAll, "send_kill_all_template", true},
 			{globals.ScriptUseAll, "use_all_template", true},
-			{globals.ScriptUseAllSlaves, "use_all_slaves_template", true},
-			{globals.ScriptUseAllMasters, "use_all_masters_template", true},
+			{useAllSlaves, "use_all_slaves_template", true},
+			{useAllMasters, "use_all_masters_template", true},
 			{initializeSlaves, "init_slaves_template", true},
 			{checkSlaves, "check_slaves_template", true},
 			{masterAbbr, "master_template", true},

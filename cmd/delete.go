@@ -130,7 +130,8 @@ var deleteCmd = &cobra.Command{
 	$ dbdeployer delete rsandbox_5_7_21`,
 	Long: `Stops the sandbox (and its depending sandboxes, if any), and removes it.
 Warning: this command is irreversible!`,
-	Run: deleteSandbox,
+	Run:         deleteSandbox,
+	Annotations: map[string]string{"export": ExportAnnotationToJson(SandboxDirExport)},
 }
 
 func init() {

@@ -30,7 +30,7 @@ function check_exit_code {
 
 }
 
-for dir in abbreviations common sandbox cookbook concurrent rest
+for dir in abbreviations cmd common sandbox cookbook concurrent rest
 do
     cd $dir
     echo "# Testing $dir"

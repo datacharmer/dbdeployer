@@ -359,29 +359,33 @@ to create and manipulate sandboxes.
 	}
 
 	templatesShowCmd = &cobra.Command{
-		Use:   "show template_name",
-		Short: "Show a given template",
-		Long:  ``,
-		Run:   showTemplate,
+		Use:         "show template_name",
+		Short:       "Show a given template",
+		Long:        ``,
+		Run:         showTemplate,
+		Annotations: map[string]string{"export": ExportAnnotationToJson(TemplateNameExport)},
 	}
 	templatesDescribeCmd = &cobra.Command{
-		Use:     "describe template_name",
-		Aliases: []string{"descr", "structure", "struct"},
-		Short:   "Describe a given template",
-		Long:    ``,
-		Run:     runDescribeTemplate,
+		Use:         "describe template_name",
+		Aliases:     []string{"descr", "structure", "struct"},
+		Short:       "Describe a given template",
+		Long:        ``,
+		Run:         runDescribeTemplate,
+		Annotations: map[string]string{"export": ExportAnnotationToJson(TemplateNameExport)},
 	}
 	templatesExportCmd = &cobra.Command{
-		Use:   "export group_name directory_name [template_name]",
-		Short: "Exports templates to a directory",
-		Long:  `Exports a group of templates (or "ALL") to a given directory`,
-		Run:   exportTemplates,
+		Use:         "export group_name directory_name [template_name]",
+		Short:       "Exports templates to a directory",
+		Long:        `Exports a group of templates (or "ALL") to a given directory`,
+		Run:         exportTemplates,
+		Annotations: map[string]string{"export": ExportAnnotationToJson(TemplateGroupExport)},
 	}
 	templatesImportCmd = &cobra.Command{
-		Use:   "import group_name directory_name [template_name]",
-		Short: "imports templates from a directory",
-		Long:  `Imports a group of templates (or "ALL") from a given directory`,
-		Run:   importTemplates,
+		Use:         "import group_name directory_name [template_name]",
+		Short:       "imports templates from a directory",
+		Long:        `Imports a group of templates (or "ALL") from a given directory`,
+		Run:         importTemplates,
+		Annotations: map[string]string{"export": ExportAnnotationToJson(TemplateGroupExport)},
 	}
 	templatesResetCmd = &cobra.Command{
 		Use:     "reset",

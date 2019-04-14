@@ -185,6 +185,7 @@ If there is already an expanded tarball with the same version, a new one can be 
     $ dbdeployer unpack --unpack-version=8.0.18 --prefix=bld mysql-mybuild.tar.gz
     Unpacking tarball mysql-mybuild.tar.gz to $HOME/opt/mysql/bld8.0.18
 	`,
+	Annotations: map[string]string{"export": ExportAnnotationToJson(StringExport)},
 }
 
 func init() {

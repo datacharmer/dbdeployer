@@ -1374,7 +1374,8 @@ function show_help {
     echo "  aport (Admin port)"
     echo "  socket"
     echo "  serverid (server id)"
-    echo "  pid (PID file)"
+    echo "  pid (Process ID)"
+    echo "  pidfile (PID file)"
     echo "  flavor"
     echo "  sbhome (SANDBOX_HOME)"
     echo "  sbbin (SANDBOX_BINARY)"
@@ -1416,8 +1417,14 @@ case $request in
     socket)
         echo "$SOCKET_FILE"
         ;;
-    pid)
+    pidfile)
         echo "$PIDFILE"
+        ;;
+    pid)
+        if [ -f "$PIDFILE" ]
+        then
+            cat $PIDFILE
+        fi
         ;;
     basedir)
         echo "$BASEDIR"

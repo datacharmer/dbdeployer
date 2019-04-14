@@ -92,11 +92,12 @@ such as showing the defaults and saving new ones.`,
 	}
 
 	defaultsLoadCmd = &cobra.Command{
-		Use:     "load file_name",
-		Short:   "Load defaults from file",
-		Aliases: []string{"import"},
-		Long:    fmt.Sprintf(`Reads defaults from file and saves them to dbdeployer configuration file (%s)`, defaults.ConfigurationFile),
-		Run:     loadDefaults,
+		Use:         "load file_name",
+		Short:       "Load defaults from file",
+		Aliases:     []string{"import"},
+		Long:        fmt.Sprintf(`Reads defaults from file and saves them to dbdeployer configuration file (%s)`, defaults.ConfigurationFile),
+		Run:         loadDefaults,
+		Annotations: map[string]string{"export": ExportAnnotationToJson(StringExport)},
 	}
 
 	defaultsUpdateCmd = &cobra.Command{
@@ -107,14 +108,16 @@ such as showing the defaults and saving new ones.`,
 `,
 		Long: `Updates one field of the defaults. Stores the result in the dbdeployer configuration file.
 Use "dbdeployer defaults show" to see which values are available`,
-		Run: updateDefaults,
+		Run:         updateDefaults,
+		Annotations: map[string]string{"export": ExportAnnotationToJson(DoubleStringExport)},
 	}
 
 	defaultsExportCmd = &cobra.Command{
-		Use:   "export filename",
-		Short: "Export current defaults to a given file",
-		Long:  `Saves current defaults to a user-defined file`,
-		Run:   exportDefaults,
+		Use:         "export filename",
+		Short:       "Export current defaults to a given file",
+		Long:        `Saves current defaults to a user-defined file`,
+		Run:         exportDefaults,
+		Annotations: map[string]string{"export": ExportAnnotationToJson(StringExport)},
 	}
 
 	defaultsStoreCmd = &cobra.Command{

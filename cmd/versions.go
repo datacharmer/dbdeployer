@@ -17,18 +17,13 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/datacharmer/dbdeployer/globals"
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/spf13/cobra"
 )
 
-// Shows the MySQL versions available in $SANDBOX_BINARY
-// (default $HOME/opt/mysql)
-func showVersions(cmd *cobra.Command, args []string) {
-	Basedir, err := getAbsolutePathFromFlag(cmd, "sandbox-binary")
-	common.ErrCheckExitf(err, 1, "error getting absolute path for 'sandbox-binary'")
-	dirs, err := common.GetVersionsFromDir(Basedir)
-	common.ErrCheckExitf(err, 1, "error reading directory %s: %s", Basedir, err)
+func listVersions(dirs []string, basedir, flavor string, iteration int) {
 	maxWidth := 80
 	maxLen := 0
 	for _, dir := range dirs {
@@ -36,7 +31,17 @@ func showVersions(cmd *cobra.Command, args []string) {
 			maxLen = len(dir)
 		}
 	}
-	fmt.Printf("Basedir: %s\n", Basedir)
+	var header string
+
+	if basedir != "" && iteration == 0 {
+		header = fmt.Sprintf("Basedir: %s\n", basedir)
+	}
+	if flavor != "" {
+		header += fmt.Sprintf("(Flavor: %s)\n", flavor)
+	}
+	if header != "" {
+		fmt.Printf("%s", header)
+	}
 	columns := int(maxWidth / (maxLen + 2))
 	mask := fmt.Sprintf("%%-%ds", maxLen+2)
 	count := 0
@@ -51,6 +56,40 @@ func showVersions(cmd *cobra.Command, args []string) {
 	fmt.Println("")
 }
 
+// Shows the MySQL versions available in $SANDBOX_BINARY
+// (default $HOME/opt/mysql)
+func showVersions(cmd *cobra.Command, args []string) {
+	var err error
+	basedir, err := getAbsolutePathFromFlag(cmd, "sandbox-binary")
+	common.ErrCheckExitf(err, 1, "error getting absolute path for 'sandbox-binary'")
+	flavor, _ := cmd.Flags().GetString(globals.FlavorLabel)
+	byFlavor, _ := cmd.Flags().GetBool(globals.ByFlavorLabel)
+
+	var versionInfoList []common.VersionInfo
+	var dirs []string
+	var flavoredLists = make(map[string][]string)
+
+	versionInfoList = common.GetVersionInfoFromDir(basedir)
+	if byFlavor {
+		for _, verInfo := range versionInfoList {
+			flavoredLists[verInfo.Flavor] = append(flavoredLists[verInfo.Flavor], verInfo.Version)
+		}
+		count := 0
+		for f, versions := range flavoredLists {
+			listVersions(versions, basedir, f, count)
+			count++
+			fmt.Println("")
+		}
+	} else {
+		for _, verInfo := range versionInfoList {
+			if flavor == verInfo.Flavor || flavor == "" {
+				dirs = append(dirs, verInfo.Version)
+			}
+		}
+		listVersions(dirs, basedir, flavor, 0)
+	}
+}
+
 // versionsCmd represents the versions command
 var versionsCmd = &cobra.Command{
 	Use:     "versions",
@@ -62,4 +101,6 @@ var versionsCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(versionsCmd)
+	setPflag(versionsCmd, globals.FlavorLabel, "", "", "", "Get only versions of the given flavor", false)
+	versionsCmd.Flags().BoolP(globals.ByFlavorLabel, "", false, "Shows versions list by flavor")
 }

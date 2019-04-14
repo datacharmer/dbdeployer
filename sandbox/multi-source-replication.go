@@ -25,6 +25,7 @@ import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/dustin/go-humanize/english"
 )
 
 func checkNodeLists(nodes int, mlist, slist []int) error {
@@ -190,6 +191,12 @@ func CreateAllMastersReplication(sandboxDef SandboxDef, origin string, nodes int
 		}
 	}
 	logger.Printf("Writing all-masters replication scripts in %s\n", sandboxDef.SandboxDir)
+
+	slavePlural := english.PluralWord(2, slaveLabel, "")
+	masterPlural := english.PluralWord(2, masterLabel, "")
+	useAllMasters := "use_all_" + masterPlural
+	useAllSlaves := "use_all_" + slavePlural
+
 	sbMulti := ScriptBatch{
 		tc:         ReplicationTemplates,
 		logger:     logger,
@@ -197,8 +204,8 @@ func CreateAllMastersReplication(sandboxDef SandboxDef, origin string, nodes int
 		sandboxDir: sandboxDir,
 		scripts: []ScriptDef{
 			{globals.ScriptTestReplication, "multi_source_test_template", true},
-			{globals.ScriptUseAllSlaves, "multi_source_use_slaves_template", true},
-			{globals.ScriptUseAllMasters, "multi_source_use_masters_template", true},
+			{useAllSlaves, "multi_source_use_slaves_template", true},
+			{useAllMasters, "multi_source_use_masters_template", true},
 			{globals.ScriptCheckMsNodes, "check_multi_source_template", true},
 			{globals.ScriptInitializeMsNodes, "multi_source_template", true},
 		},
@@ -313,6 +320,11 @@ func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 			return err
 		}
 	}
+
+	slavePlural := english.PluralWord(2, slaveLabel, "")
+	masterPlural := english.PluralWord(2, masterLabel, "")
+	useAllMasters := "use_all_" + masterPlural
+	useAllSlaves := "use_all_" + slavePlural
 	sbMulti := ScriptBatch{
 		tc:         ReplicationTemplates,
 		logger:     logger,
@@ -321,8 +333,8 @@ func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		scripts: []ScriptDef{
 			{globals.ScriptTestReplication, "multi_source_test_template", true},
 			{globals.ScriptCheckMsNodes, "check_multi_source_template", true},
-			{globals.ScriptUseAllSlaves, "multi_source_use_slaves_template", true},
-			{globals.ScriptUseAllMasters, "multi_source_use_masters_template", true},
+			{useAllSlaves, "multi_source_use_slaves_template", true},
+			{useAllMasters, "multi_source_use_masters_template", true},
 			{globals.ScriptInitializeMsNodes, "multi_source_template", true},
 		},
 	}

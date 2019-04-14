@@ -127,6 +127,7 @@ Use the "unpack" command to get the tarball into the right directory.
 		$ dbdeployer deploy --topology=pxc replication pxc5.7.25
 		$ dbdeployer deploy --topology=ndb replication ndb8.0.14
 	`,
+	Annotations: map[string]string{"export": ExportAnnotationToJson(ReplicationExport)},
 }
 
 func init() {

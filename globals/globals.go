@@ -139,6 +139,12 @@ const (
 	SimpleLabel       = "simple"
 	WithContentsLabel = "with-contents"
 
+	// Instantiated in cmd/cookbook.go
+	SortByLabel = "sort-by"
+
+	// Instantiated in cmd/versions.go
+	ByFlavorLabel = "by-flavor"
+
 	// Instantiated in sandbox package
 	AutoCnfName          = "auto.cnf"
 	DataDirName          = "data"
@@ -174,11 +180,9 @@ const (
 
 	ScriptCheckMsNodes      = "check_ms_nodes"
 	ScriptCheckNodes        = "check_nodes"
-	ScriptCheckSlaves       = "check_slaves"
 	ScriptClearAll          = "clear_all"
 	ScriptInitializeMsNodes = "initialize_ms_nodes"
 	ScriptInitializeNodes   = "initialize_nodes"
-	ScriptInitializeSlaves  = "initialize_slaves"
 	ScriptNoClearAll        = "no_clear_all"
 	ScriptRestartAll        = "restart_all"
 	ScriptSendKillAll       = "send_kill_all"
@@ -188,8 +192,16 @@ const (
 	ScriptTestReplication   = "test_replication"
 	ScriptTestSbAll         = "test_sb_all"
 	ScriptUseAll            = "use_all"
-	ScriptUseAllMasters     = "use_all_masters"
-	ScriptUseAllSlaves      = "use_all_slaves"
+
+	// These constants are kept for reference
+	// although they are not used directly in the code.
+	// Their value is determined by the variable names
+	// for masters and slaves defined in defaults/defaults.go
+	// and possibly modified by user options
+	ScriptInitializeSlaves = "initialize_slaves"
+	ScriptCheckSlaves      = "check_slaves"
+	ScriptUseAllMasters    = "use_all_masters"
+	ScriptUseAllSlaves     = "use_all_slaves"
 )
 
 // Common error messages

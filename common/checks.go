@@ -36,6 +36,11 @@ type SandboxInfo struct {
 	Locked      bool
 }
 
+type VersionInfo struct {
+	Version string
+	Flavor  string
+}
+
 var portDebug bool = IsEnvSet("PORT_DEBUG")
 
 type PortMap map[int]bool
@@ -53,6 +58,19 @@ func SandboxInfoToFileNames(sbList []SandboxInfo) (fileNames []string) {
 func GetFlavoredVersionsFromDir(basedir, flavor string) []string {
 	var versions []string
 
+	tempVersions := GetVersionInfoFromDir(basedir)
+	for _, ver := range tempVersions {
+		if ver.Flavor == flavor {
+			versions = append(versions, ver.Version)
+		}
+	}
+
+	return versions
+}
+
+func GetVersionInfoFromDir(basedir string) []VersionInfo {
+	var versionInfos []VersionInfo
+
 	tempVersions, _ := GetVersionsFromDir(basedir)
 	for _, ver := range tempVersions {
 
@@ -65,12 +83,9 @@ func GetFlavoredVersionsFromDir(basedir, flavor string) []string {
 		} else {
 			foundFlavor = DetectBinaryFlavor(dirPath)
 		}
-		if flavor == foundFlavor {
-			versions = append(versions, ver)
-		}
+		versionInfos = append(versionInfos, VersionInfo{Version: ver, Flavor: foundFlavor})
 	}
-
-	return versions
+	return versionInfos
 }
 
 // Returns the list of versions available for deployment

@@ -164,7 +164,8 @@ It does not check if the query is compatible with every version deployed.
 For example, a query using @@port won't run in MySQL 5.0.x`,
 		Example: `
 	$ dbdeployer global use "select @@server_id, @@port"`,
-		Run: useAllSandboxes,
+		Run:         useAllSandboxes,
+		Annotations: map[string]string{"export": ExportAnnotationToJson(StringExport)},
 	}
 )
 

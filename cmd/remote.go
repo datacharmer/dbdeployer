@@ -92,11 +92,12 @@ func downloadFile(cmd *cobra.Command, args []string) {
 }
 
 var remoteDownloadCmd = &cobra.Command{
-	Use:     "download version [file-name]",
-	Aliases: []string{"get"},
-	Short:   "download a remote tarball into a local file",
-	Long:    `If no file name is given, the file name will be mysql-<version>.tar.xz`,
-	Run:     downloadFile,
+	Use:         "download version [file-name]",
+	Aliases:     []string{"get"},
+	Short:       "download a remote tarball into a local file",
+	Long:        `If no file name is given, the file name will be <version>.tar.xz`,
+	Run:         downloadFile,
+	Annotations: map[string]string{"export": ExportAnnotationToJson(StringExport)},
 }
 
 var remoteListCmd = &cobra.Command{

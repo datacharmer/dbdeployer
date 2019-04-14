@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/datacharmer/dbdeployer/defaults"
 	"os"
 	"path"
 	"sort"
@@ -316,7 +317,7 @@ func showCapabilities(cmd *cobra.Command, args []string) {
 		if flavor == "" || (flavor != "" && flavor == fl) {
 			var features = make(common.FeatureList)
 			var featureNames []string
-			for featureName, cap := range capability.Features {
+			for featureName, capability := range capability.Features {
 
 				if version != "" {
 					can, _ := common.HasCapability(flavor, featureName, version)
@@ -325,7 +326,7 @@ func showCapabilities(cmd *cobra.Command, args []string) {
 					}
 				}
 				featureNames = append(featureNames, featureName)
-				features[featureName] = cap
+				features[featureName] = capability
 			}
 			if capability.Description != fl && capability.Description != "" {
 				fmt.Printf("## %s (%s)\n", fl, capability.Description)
@@ -334,13 +335,13 @@ func showCapabilities(cmd *cobra.Command, args []string) {
 			}
 			sort.Strings(featureNames)
 			for _, fn := range featureNames {
-				cap := features[fn]
-				minVers := common.IntSliceToDottedString(cap.Since)
+				capability := features[fn]
+				minVers := common.IntSliceToDottedString(capability.Since)
 				untilVers := ""
-				if cap.Until != nil {
-					untilVers = "until " + common.IntSliceToDottedString(cap.Until)
+				if capability.Until != nil {
+					untilVers = "until " + common.IntSliceToDottedString(capability.Until)
 				}
-				fmt.Printf("%-25s: %-45s : since %s  %s\n", fn, cap.Description, minVers, untilVers)
+				fmt.Printf("%-25s: %-45s : since %s  %s\n", fn, capability.Description, minVers, untilVers)
 			}
 			fmt.Println()
 		}
@@ -362,15 +363,17 @@ var (
 		Long: `Prevents deletion for a given sandbox.
 Note that the deletion being prevented is only the one occurring through dbdeployer. 
 Users can still delete locked sandboxes manually.`,
-		Run: lockSandbox,
+		Run:         lockSandbox,
+		Annotations: map[string]string{"export": ExportAnnotationToJson(SandboxDirExport)},
 	}
 
 	adminUnlockCmd = &cobra.Command{
-		Use:     "unlock sandbox_name",
-		Aliases: []string{"unpreserve"},
-		Short:   "Unlocks a sandbox",
-		Long:    `Removes lock, allowing deletion of a given sandbox`,
-		Run:     unlockSandbox,
+		Use:         "unlock sandbox_name",
+		Aliases:     []string{"unpreserve"},
+		Short:       "Unlocks a sandbox",
+		Long:        `Removes lock, allowing deletion of a given sandbox`,
+		Run:         unlockSandbox,
+		Annotations: map[string]string{"export": ExportAnnotationToJson(SandboxDirExport)},
 	}
 	adminUpgradeCmd = &cobra.Command{
 		Use:   "upgrade sandbox_name newer_sandbox",
@@ -378,8 +381,10 @@ Users can still delete locked sandboxes manually.`,
 		Long: `Upgrades a sandbox to a newer version.
 The sandbox with the new version must exist already.
 The data directory of the old sandbox will be moved to the new one.`,
-		Example: "dbdeployer admin upgrade msb_8_0_11 msb_8_0_12",
-		Run:     runUpgradeSandbox,
+		Example:     "dbdeployer admin upgrade msb_8_0_11 msb_8_0_12",
+		Run:         runUpgradeSandbox,
+		Args:        SandboxNames(2),
+		Annotations: map[string]string{"export": ExportAnnotationToJson(DoubleSandboxDirExport)},
 	}
 	adminCapabilitiesCmd = &cobra.Command{
 		Use:   "capabilities [flavor [version]]",
@@ -395,6 +400,26 @@ dbdeployer admin capabilities mysql 5.7.13
 		Run: showCapabilities,
 	}
 )
+
+func SandboxNames(n int) cobra.PositionalArgs {
+	return func(cmd *cobra.Command, args []string) error {
+
+		if len(args) < n {
+			return fmt.Errorf("requires at least %d arg(s). Received: %d", n, len(args))
+		}
+		var notFound []string
+		for _, arg := range args {
+			dir := path.Join(defaults.Defaults().SandboxHome, arg)
+			if !common.DirExists(dir) {
+				notFound = append(notFound, arg)
+			}
+		}
+		if len(notFound) > 0 {
+			return fmt.Errorf(globals.ErrDirectoryNotFoundInUpper, notFound, defaults.Defaults().SandboxHome)
+		}
+		return nil
+	}
+}
 
 func init() {
 	rootCmd.AddCommand(adminCmd)

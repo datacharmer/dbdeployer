@@ -67,6 +67,16 @@ func OkEqualString(label, a, b string, t *testing.T) {
 	}
 }
 
+// Checks whether a string is not empty
+func OkNotEmptyString(label, a string, t *testing.T) {
+	if a != "" {
+		t.Logf("ok - %s: string is not empty as expected\n", label)
+	} else {
+		t.Logf("not ok - %s: String is empty", label)
+		t.Fail()
+	}
+}
+
 // Compares two booleans
 func OkEqualBool(label string, a, b bool, t *testing.T) {
 	if a == b {

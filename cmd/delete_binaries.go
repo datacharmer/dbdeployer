@@ -108,7 +108,8 @@ var deleteBinariesCmd = &cobra.Command{
 	Long: `Removes the given directory and all its subdirectories.
 It will fail if the directory is still used by any sandbox.
 Warning: this command is irreversible!`,
-	Run: runDeleteBinaries,
+	Run:         runDeleteBinaries,
+	Annotations: map[string]string{"export": ExportAnnotationToJson(DeployExport)},
 }
 
 func init() {

@@ -603,13 +603,13 @@ The difference is that using ``dbdeployer defaults update`` the value is changed
 
 You can list the available MySQL versions with
 
-    $ dbdeployer versions
+    $ dbdeployer versions # Alias: available
 
-Also "available" is a recognized alias for this command.
+Optionally, you can ask for only the versions of a given flavor (`dndeployer versions --flavor=ndb`)  or to show all the versions distinct by flavor (`dbdeployer versions --by-flavor`)
 
 And you can list which sandboxes were already installed
 
-    $ dbdeployer sandboxes  # Aliases: installed, deployed
+    $ dbdeployer sandboxes # Aliases: installed, deployed
 
 The command "usage" shows how to use the scripts that were installed with each sandbox.
 
@@ -757,7 +757,8 @@ Available requests:
   aport (Admin port)
   socket
   serverid (server id)
-  pid (PID file)
+  pid (Process ID)
+  pidfile (PID file)
   flavor
   sbhome (SANDBOX_HOME)
   sbbin (SANDBOX_BINARY)
@@ -770,9 +771,8 @@ $ ~/sandboxes/msb_8_0_15/metadata version
 $ ~/sandboxes/msb_8_0_15/metadata short
 8.0
 
-$ cat $(~/sandboxes/msb_8_0_15/metadata pid)
+$ ~/sandboxes/msb_8_0_15/metadata pid
 27361
-# (finds the PID file and shows its contents)
 ```
 
 # Replication between sandboxes
@@ -999,6 +999,13 @@ Then, you can use completion as follows:
 # Using dbdeployer source for other projects
 
 If you need to create sandboxes from other Go apps, see  [dbdeployer-as-library.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/coding/dbdeployer-as-library.md).
+
+# Exporting dbdeployer structure
+
+If you want to use dbdeployer from other applications, it may be useful to have the command structure in a format that can be used from several programming languages. 
+There is a command for that (since dbdeployer 1.28.0) that produces the commands and options information structure as a JSON structure.
+
+    {{dbdeployer export -h}}
 
 # Semantic versioning
 

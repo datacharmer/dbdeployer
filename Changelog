@@ -1,3 +1,16 @@
+1.28.0	14-Apr-2019
+	NEW FEATURES
+	- Add option --sort-by=[name,flavor,script] to cookbook list
+	- Add option --flavor for versions command
+	- Add command export to show dbdeployer command structure as JSON 
+	- Add cookbook recipes 
+		. Single sandbox deployed without starting the server
+		. Replication sandbox deployed without starting the servers
+		. Replication sandbox with custom names for directories and scripts
+		. Single sandbox with admin address enabled
+	BUGS FIXES
+	- Fixed plural of custom replication names
+
 1.27.0	31-Mar-2019
 	NEW FEATURES
 	- Add cookbook recipes:

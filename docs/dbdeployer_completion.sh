@@ -388,6 +388,7 @@ _dbdeployer_cookbook_create()
     flags+=("--flavor=")
     flags+=("--sandbox-binary=")
     flags+=("--sandbox-home=")
+    flags+=("--sort-by=")
 
     must_have_one_flag=()
     must_have_one_noun=()
@@ -412,6 +413,7 @@ _dbdeployer_cookbook_list()
     flags+=("--flavor=")
     flags+=("--sandbox-binary=")
     flags+=("--sandbox-home=")
+    flags+=("--sort-by=")
 
     must_have_one_flag=()
     must_have_one_noun=()
@@ -438,6 +440,7 @@ _dbdeployer_cookbook_show()
     flags+=("--flavor=")
     flags+=("--sandbox-binary=")
     flags+=("--sandbox-home=")
+    flags+=("--sort-by=")
 
     must_have_one_flag=()
     must_have_one_noun=()
@@ -466,6 +469,7 @@ _dbdeployer_cookbook()
     flags_completion=()
 
     flags+=("--flavor=")
+    flags+=("--sort-by=")
     flags+=("--config=")
     flags+=("--sandbox-binary=")
     flags+=("--sandbox-home=")
@@ -1205,6 +1209,30 @@ _dbdeployer_deploy()
     noun_aliases=()
 }
 
+_dbdeployer_export()
+{
+    last_command="dbdeployer_export"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--force-output-to-terminal")
+    flags+=("--config=")
+    flags+=("--sandbox-binary=")
+    flags+=("--sandbox-home=")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _dbdeployer_global_restart()
 {
     last_command="dbdeployer_global_restart"
@@ -1585,6 +1613,9 @@ _dbdeployer_versions()
     flags_with_completion=()
     flags_completion=()
 
+    flags+=("--by-flavor")
+    local_nonpersistent_flags+=("--by-flavor")
+    flags+=("--flavor=")
     flags+=("--config=")
     flags+=("--sandbox-binary=")
     flags+=("--sandbox-home=")
@@ -1627,6 +1658,11 @@ _dbdeployer_root_command()
     fi
     commands+=("delete-binaries")
     commands+=("deploy")
+    commands+=("export")
+    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+        command_aliases+=("dump")
+        aliashash["dump"]="export"
+    fi
     commands+=("global")
     commands+=("remote")
     commands+=("sandboxes")

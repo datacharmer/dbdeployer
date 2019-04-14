@@ -23,6 +23,7 @@ import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/dustin/go-humanize/english"
 	"github.com/spf13/cobra"
 )
 
@@ -92,9 +93,12 @@ func getFullSandboxInfo(sandboxHome string) []common.SandboxInfo {
 		}
 		// No description file was found
 		// We try to get what we can. However, this should not happen unless users delete the description files
+		slaveLabel := defaults.Defaults().SlavePrefix
+		slavePlural := english.PluralWord(2, slaveLabel, "")
+		initializeSlaves := "initialize_" + slavePlural
 		if tempSandboxDesc.SBType == "" {
 			tempSandboxDesc.SBType = "single"
-			initSlaves := path.Join(sb.SandboxName, globals.ScriptInitializeSlaves)
+			initSlaves := path.Join(sb.SandboxName, initializeSlaves)
 			initNodes := path.Join(sb.SandboxName, globals.ScriptInitializeNodes)
 			startAll := path.Join(sb.SandboxName, globals.ScriptStartAll)
 			startAllExists := common.FileExists(startAll)

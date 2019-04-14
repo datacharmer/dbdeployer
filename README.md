@@ -1,7 +1,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.27.0 (31-Mar-2019 10:35 UTC)
+Documentation updated for version 1.28.0 (14-Apr-2019 14:17 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -47,7 +47,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.27.0
+    $ VERSION=1.28.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -82,7 +82,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.27.0
+    dbdeployer version 1.28.0
     
 
     $ dbdeployer -h
@@ -99,6 +99,7 @@ The program doesn't have any dependencies. Everything is included in the binary.
       delete          delete an installed sandbox
       delete-binaries delete an expanded tarball
       deploy          deploy sandboxes
+      export          Exports the command structure in JSON format
       global          Runs a given command in every sandbox
       help            Help about any command
       remote          Manages remote tarballs
@@ -406,31 +407,35 @@ Several examples of dbdeployer usages are avaibale with the command ``dbdeployer
     |              recipe              |             script name             |                                      description                                      | needed |
     |                                  |                                     |                                                                                       | flavor |
     +----------------------------------+-------------------------------------+---------------------------------------------------------------------------------------+--------+
+    | admin                            | admin-single.sh                     | Single sandbox with admin address enabled                                             | mysql  |
     | all-masters                      | all-masters-deployment.sh           | Creation of an all-masters replication sandbox                                        | mysql  |
-    | circular_replication             | circular-replication.sh             | Shows how to run replication between nodes of a multiple deployment                   |        |
-    | delete                           | delete-sandboxes.sh                 | Delete all deployed sandboxes                                                         |        |
+    | circular_replication             | circular-replication.sh             | Shows how to run replication between nodes of a multiple deployment                   | -      |
+    | custom-named-replication         | custom-named-replication.sh         | Replication sandbox with custom names for directories and scripts                     | -      |
+    | delete                           | delete-sandboxes.sh                 | Delete all deployed sandboxes                                                         | -      |
     | fan-in                           | fan-in-deployment.sh                | Creation of a fan-in (many masters, one slave) replication sandbox                    | mysql  |
     | group-multi                      | group-multi-primary-deployment.sh   | Creation of a multi-primary group replication sandbox                                 | mysql  |
     | group-single                     | group-single-primary-deployment.sh  | Creation of a single-primary group replication sandbox                                | mysql  |
-    | master-slave                     | master-slave-deployment.sh          | Creation of a master/slave replication sandbox                                        |        |
+    | master-slave                     | master-slave-deployment.sh          | Creation of a master/slave replication sandbox                                        | -      |
     | ndb                              | ndb-deployment.sh                   | Shows deployment with ndb                                                             | ndb    |
-    | prerequisites                    | prerequisites.sh                    | Shows dbdeployer prerequisites and how to make them                                   |        |
+    | prerequisites                    | prerequisites.sh                    | Shows dbdeployer prerequisites and how to make them                                   | -      |
     | pxc                              | pxc-deployment.sh                   | Shows deployment with pxc                                                             | pxc    |
-    | remote                           | remote.sh                           | Shows how to get a remote MySQL tarball                                               |        |
-    | replication-restart              | repl-operations-restart.sh          | Show how to restart sandboxes with custom options                                     |        |
-    | replication-operations           | repl-operations.sh                  | Show how to run operations in a replication sandbox                                   |        |
+    | remote                           | remote.sh                           | Shows how to get a remote MySQL tarball                                               | -      |
+    | replication-operations           | repl-operations.sh                  | Show how to run operations in a replication sandbox                                   | -      |
+    | replication-restart              | repl-operations-restart.sh          | Show how to restart sandboxes with custom options                                     | -      |
     | replication_between_groups       | replication-between-groups.sh       | Shows how to run replication between two group replications                           | mysql  |
-    | replication_between_master_slave | replication-between-master-slave.sh | Shows how to run replication between two master/slave replications                    |        |
+    | replication_between_master_slave | replication-between-master-slave.sh | Shows how to run replication between two master/slave replications                    | -      |
     | replication_between_ndb          | replication-between-ndb.sh          | Shows how to run replication between two NDB clusters                                 | ndb    |
-    | replication_between_single       | replication-between-single.sh       | Shows how to run replication between two single sandboxes                             |        |
+    | replication_between_single       | replication-between-single.sh       | Shows how to run replication between two single sandboxes                             | -      |
     | replication_group_master_slave   | replication-group-master-slave.sh   | Shows how to run replication between a group replication and master/slave replication | mysql  |
     | replication_group_single         | replication-group-single.sh         | Shows how to run replication between a group replication and a single sandbox         | mysql  |
     | replication_master_slave_group   | replication-master-slave-group.sh   | Shows how to run replication between master/slave replication and group replication   | mysql  |
-    | replication_multi_versions       | replication-multi-versions.sh       | Shows how to run replication between different MySQL versions                         |        |
+    | replication_multi_versions       | replication-multi-versions.sh       | Shows how to run replication between different MySQL versions                         | -      |
     | replication_single_group         | replication-single-group.sh         | Shows how to run replication between a single sandbox an group replication            | mysql  |
-    | show                             | show-sandboxes.sh                   | Show deployed sandboxes                                                               |        |
-    | single                           | single-deployment.sh                | Creation of a single sandbox                                                          |        |
-    | single-reinstall                 | single-reinstall.sh                 | Re-installs a single sandbox                                                          |        |
+    | show                             | show-sandboxes.sh                   | Show deployed sandboxes                                                               | -      |
+    | single                           | single-deployment.sh                | Creation of a single sandbox                                                          | -      |
+    | single-reinstall                 | single-reinstall.sh                 | Re-installs a single sandbox                                                          | -      |
+    | skip-start-replication           | skip-start-replication.sh           | Replication sandbox deployed without starting the servers                             | -      |
+    | skip-start-single                | skip-start-single.sh                | Single sandbox deployed without starting the server                                   | -      |
     | tidb                             | tidb-deployment.sh                  | Shows deployment and some operations with TiDB                                        | tidb   |
     | upgrade                          | upgrade.sh                          | Shows a complete upgrade example from 5.5 to 8.0                                      | mysql  |
     '----------------------------------'-------------------------------------'---------------------------------------------------------------------------------------'--------'
@@ -491,8 +496,9 @@ dbdeployer will detect the latest versions available in you system. If you don't
       show        Shows the contents of a given recipe
     
     Flags:
-          --flavor string   For which flavor this recipe is
-      -h, --help            help for cookbook
+          --flavor string    For which flavor this recipe is
+      -h, --help             help for cookbook
+          --sort-by string   Sort order for the list (name, flavor, script) (default "name")
     
     
 
@@ -878,13 +884,13 @@ The difference is that using ``dbdeployer defaults update`` the value is changed
 
 You can list the available MySQL versions with
 
-    $ dbdeployer versions
+    $ dbdeployer versions # Alias: available
 
-Also "available" is a recognized alias for this command.
+Optionally, you can ask for only the versions of a given flavor (`dndeployer versions --flavor=ndb`)  or to show all the versions distinct by flavor (`dbdeployer versions --by-flavor`)
 
 And you can list which sandboxes were already installed
 
-    $ dbdeployer sandboxes  # Aliases: installed, deployed
+    $ dbdeployer sandboxes # Aliases: installed, deployed
 
 The command "usage" shows how to use the scripts that were installed with each sandbox.
 
@@ -1179,7 +1185,8 @@ Available requests:
   aport (Admin port)
   socket
   serverid (server id)
-  pid (PID file)
+  pid (Process ID)
+  pidfile (PID file)
   flavor
   sbhome (SANDBOX_HOME)
   sbbin (SANDBOX_BINARY)
@@ -1192,9 +1199,8 @@ $ ~/sandboxes/msb_8_0_15/metadata version
 $ ~/sandboxes/msb_8_0_15/metadata short
 8.0
 
-$ cat $(~/sandboxes/msb_8_0_15/metadata pid)
+$ ~/sandboxes/msb_8_0_15/metadata pid
 27361
-# (finds the PID file and shows its contents)
 ```
 
 # Replication between sandboxes
@@ -1369,18 +1375,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 1. Make sure you have go 1.10+ installed in your system, and that the ``$GOPATH`` variable is set.
 2. Run ``go get -u github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
-4. Run ``./scripts/build.sh {linux|OSX} 1.27.0``
-5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.27.0``
+4. Run ``./scripts/build.sh {linux|OSX} 1.28.0``
+5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.28.0``
 
 # Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.27.0-docs.linux.tar.gz
-* dbdeployer-1.27.0-docs.osx.tar.gz
-* dbdeployer-1.27.0.linux.tar.gz
-* dbdeployer-1.27.0.osx.tar.gz
+* dbdeployer-1.28.0-docs.linux.tar.gz
+* dbdeployer-1.28.0-docs.osx.tar.gz
+* dbdeployer-1.28.0.linux.tar.gz
+* dbdeployer-1.28.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 
@@ -1440,6 +1446,28 @@ Then, you can use completion as follows:
 # Using dbdeployer source for other projects
 
 If you need to create sandboxes from other Go apps, see  [dbdeployer-as-library.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/coding/dbdeployer-as-library.md).
+
+# Exporting dbdeployer structure
+
+If you want to use dbdeployer from other applications, it may be useful to have the command structure in a format that can be used from several programming languages. 
+There is a command for that (since dbdeployer 1.28.0) that produces the commands and options information structure as a JSON structure.
+
+    $ dbdeployer export -h
+    Exports the command line structure, with examples and flags, to a JSON structure.
+    If a command is given, only the structure of that command and below will be exported.
+    Given the length of the output, it is recommended to pipe it to a file or to another command.
+    
+    Usage:
+      dbdeployer export [command [sub-command]] [ > filename ] [ | command ]  [flags]
+    
+    Aliases:
+      export, dump
+    
+    Flags:
+          --force-output-to-terminal   display output to terminal regardless of pipes being used
+      -h, --help                       help for export
+    
+    
 
 # Semantic versioning
 

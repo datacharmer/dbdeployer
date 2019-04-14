@@ -26,6 +26,7 @@ import (
 	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/dustin/go-humanize/english"
 	"github.com/pkg/errors"
 )
 
@@ -342,14 +343,20 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 			{globals.ScriptReplicateFrom, "replicate_from_multi_template", true},
 		},
 	}
+
+	slavePlural := english.PluralWord(2, slaveLabel, "")
+	masterPlural := english.PluralWord(2, masterLabel, "")
+	useAllMasters := "use_all_" + masterPlural
+	useAllSlaves := "use_all_" + slavePlural
+
 	sbRepl := ScriptBatch{
 		tc:         ReplicationTemplates,
 		logger:     logger,
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []ScriptDef{
-			{globals.ScriptUseAllSlaves, "multi_source_use_slaves_template", true},
-			{globals.ScriptUseAllMasters, "multi_source_use_masters_template", true},
+			{useAllSlaves, "multi_source_use_slaves_template", true},
+			{useAllMasters, "multi_source_use_masters_template", true},
 			{globals.ScriptTestReplication, "multi_source_test_template", true},
 		},
 	}

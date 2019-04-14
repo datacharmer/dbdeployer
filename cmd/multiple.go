@@ -42,7 +42,6 @@ func multipleSandbox(cmd *cobra.Command, args []string) {
 
 var multipleCmd = &cobra.Command{
 	Use:   "multiple MySQL-Version",
-	Args:  cobra.ExactArgs(1),
 	Short: "create multiple sandbox",
 	Long: `Creates several sandboxes of the same version,
 without any replication relationship.
@@ -54,6 +53,7 @@ Use the "unpack" command to get the tarball into the right directory.
 	Example: `
 	$ dbdeployer deploy multiple 5.7.21
 	`,
+	Annotations: map[string]string{"export": ExportAnnotationToJson(DeployExport)},
 }
 
 func init() {
