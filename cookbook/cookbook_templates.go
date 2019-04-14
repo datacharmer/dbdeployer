@@ -291,7 +291,7 @@ header "To make the sandbox operational, you need to run" \
 	   "and $SANDBOX_HOME/$sandbox_dir/master/load_grants"
 
 header "Note that only the master needs to load grants. The slaves get them through replication" \
-       "which will start when you run $SANDBOX_HOME/sandbox_dir/initialize_slaves"
+       "which will start when you run $SANDBOX_HOME/$sandbox_dir/initialize_slaves"
 
 `
 
