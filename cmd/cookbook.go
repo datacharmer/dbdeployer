@@ -34,7 +34,9 @@ func checkArgs(label, syntax string, args []string, howManyWanted int) {
 }
 
 func listCookbook(cmd *cobra.Command, args []string) {
-	cookbook.ListRecipes()
+	flavor, _ := cmd.Flags().GetString(globals.FlavorLabel)
+	sortBy, _ := cmd.Flags().GetString(globals.SortByLabel)
+	cookbook.ListRecipes(flavor, sortBy)
 }
 
 func showCookbook(cmd *cobra.Command, args []string) {
@@ -65,18 +67,20 @@ var listCookbookCmd = &cobra.Command{
 }
 
 var showCookbookCmd = &cobra.Command{
-	Use:   "show recipe_name",
-	Short: "Shows the contents of a given recipe",
-	Long:  `Shows the contents of a given recipe, without actually running it`,
-	Run:   showCookbook,
+	Use:         "show recipe_name",
+	Short:       "Shows the contents of a given recipe",
+	Long:        `Shows the contents of a given recipe, without actually running it`,
+	Run:         showCookbook,
+	Annotations: map[string]string{"export": ExportAnnotationToJson(CookbookNameExport)},
 }
 
 var createCookbookCmd = &cobra.Command{
-	Use:     "create recipe_name or ALL",
-	Aliases: []string{"make"},
-	Short:   "creates a script for a given recipe",
-	Long:    `creates a script for given recipe`,
-	Run:     createCookbook,
+	Use:         "create recipe_name or ALL",
+	Aliases:     []string{"make"},
+	Short:       "creates a script for a given recipe",
+	Long:        `creates a script for given recipe`,
+	Run:         createCookbook,
+	Annotations: map[string]string{"export": ExportAnnotationToJson(CookbookNameExport)},
 }
 
 func init() {
@@ -86,4 +90,5 @@ func init() {
 	cookbookCmd.AddCommand(showCookbookCmd)
 	showCookbookCmd.Flags().BoolP(globals.RawLabel, "", false, "Shows the recipe without variable substitution")
 	setPflag(cookbookCmd, globals.FlavorLabel, "", "", "", "For which flavor this recipe is", false)
+	setPflag(cookbookCmd, globals.SortByLabel, "", "", "name", "Sort order for the list (name, flavor, script)", false)
 }

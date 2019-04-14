@@ -42,15 +42,28 @@ var (
 type TemplateSort struct {
 	name       string
 	scriptName string
+	flavor     string
 }
 
 type ByScriptName []TemplateSort
+type ByName []TemplateSort
+type ByFlavorAndName []TemplateSort
 
 func (a ByScriptName) Len() int           { return len(a) }
 func (a ByScriptName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByScriptName) Less(i, j int) bool { return a[i].scriptName < a[j].scriptName }
 
-func ListRecipes() {
+func (a ByName) Len() int           { return len(a) }
+func (a ByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByName) Less(i, j int) bool { return a[i].name < a[j].name }
+
+func (a ByFlavorAndName) Len() int      { return len(a) }
+func (a ByFlavorAndName) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByFlavorAndName) Less(i, j int) bool {
+	return a[i].flavor < a[j].flavor || (a[i].flavor == a[j].flavor && a[i].name < a[j].name)
+}
+
+func ListRecipes(flavor, sortBy string) {
 	table := simpletable.New()
 
 	table.Header = &simpletable.Header{
@@ -62,21 +75,40 @@ func ListRecipes() {
 		},
 	}
 
-	var recipeSortList ByScriptName
+	var recipeSortList []TemplateSort
 
 	for name, template := range RecipesList {
-		recipeSortList = append(recipeSortList, TemplateSort{name: name, scriptName: template.ScriptName})
+		recipeSortList = append(recipeSortList, TemplateSort{
+			name:       name,
+			scriptName: template.ScriptName,
+			flavor:     template.RequiredFlavor,
+		})
 	}
-	sort.Sort(recipeSortList)
+
+	switch sortBy {
+	case "name":
+		sort.Sort(ByName(recipeSortList))
+	case "script":
+		sort.Sort(ByScriptName(recipeSortList))
+	case "flavor":
+		sort.Sort(ByFlavorAndName(recipeSortList))
+	default:
+		common.Exitf(1, "sort parameter '%s' incorrect. Accepted: [name, script, flavor]", sortBy)
+	}
 	for _, sortTemplate := range recipeSortList {
 		template := RecipesList[sortTemplate.name]
 		if template.IsExecutable {
-			var cells []*simpletable.Cell
-			cells = append(cells, &simpletable.Cell{Text: sortTemplate.name})
-			cells = append(cells, &simpletable.Cell{Text: template.ScriptName})
-			cells = append(cells, &simpletable.Cell{Text: template.Description})
-			cells = append(cells, &simpletable.Cell{Text: template.RequiredFlavor})
-			table.Body.Cells = append(table.Body.Cells, cells)
+			if flavor == "" || flavor == template.RequiredFlavor {
+				var cells []*simpletable.Cell
+				if template.RequiredFlavor == "" {
+					template.RequiredFlavor = "-"
+				}
+				cells = append(cells, &simpletable.Cell{Text: sortTemplate.name})
+				cells = append(cells, &simpletable.Cell{Text: template.ScriptName})
+				cells = append(cells, &simpletable.Cell{Text: template.Description})
+				cells = append(cells, &simpletable.Cell{Text: template.RequiredFlavor})
+				table.Body.Cells = append(table.Body.Cells, cells)
+			}
 		}
 	}
 	table.SetStyle(simpletable.StyleRounded)
