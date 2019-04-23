@@ -213,8 +213,7 @@ func checkInt(name string, val, min, max int) bool {
 }
 
 func ValidateDefaults(nd DbdeployerDefaults) bool {
-	var allInts bool
-	allInts = checkInt("master-slave-base-port", nd.MasterSlaveBasePort, minPortValue, maxPortValue) &&
+	allIntegers := checkInt("master-slave-base-port", nd.MasterSlaveBasePort, minPortValue, maxPortValue) &&
 		checkInt("group-replication-base-port", nd.GroupReplicationBasePort, minPortValue, maxPortValue) &&
 		checkInt("group-replication-sp-base-port", nd.GroupReplicationSpBasePort, minPortValue, maxPortValue) &&
 		checkInt("multiple-base-port", nd.MultipleBasePort, minPortValue, maxPortValue) &&
@@ -227,11 +226,10 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		checkInt("group-port-delta", nd.GroupPortDelta, 101, 299) &&
 		checkInt("mysqlx-port-delta", nd.MysqlXPortDelta, 2000, 15000) &&
 		checkInt("admin-port-delta", nd.AdminPortDelta, 2000, 15000)
-	if !allInts {
+	if !allIntegers {
 		return false
 	}
-	var noConflicts bool
-	noConflicts = nd.MultipleBasePort != nd.GroupReplicationSpBasePort &&
+	noConflicts := nd.MultipleBasePort != nd.GroupReplicationSpBasePort &&
 		nd.MultipleBasePort != nd.GroupReplicationBasePort &&
 		nd.MultipleBasePort != nd.MasterSlaveBasePort &&
 		nd.MultipleBasePort != nd.FanInReplicationBasePort &&

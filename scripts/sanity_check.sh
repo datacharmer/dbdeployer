@@ -19,7 +19,20 @@ exec_dir=$(dirname $0)
 cd $exec_dir
 cd ..
 
-local_items=(.build cmd defaults common globals cookbook unpack abbreviations concurrent sandbox compare rest)
+function exists_in_path {
+    what=$1
+    for dir in $(echo $PATH | tr ':' ' ')
+    do
+        wanted=$dir/$what
+        if [ -x $wanted ]
+        then
+            echo $wanted
+            return
+        fi
+    done
+}
+
+local_items=(.build cmd defaults common globals compare cookbook unpack abbreviations concurrent sandbox compare rest)
 exit_code=0
 spaces="        "
 function run {
@@ -82,6 +95,19 @@ do
         echo "File $SF has no copyright"
     fi
 done
+
+STATIC_CHECK=$(exists_in_path staticcheck)
+
+if [ -n "$STATIC_CHECK" ]
+then
+    echo ""
+    echo "## staticcheck"
+    for dir in ${local_items[*]}
+    do
+        echo "# $dir"
+        run staticcheck github.com/datacharmer/dbdeployer/$dir
+    done
+fi
 
 if [ "$exit_code" == "0" ]
 then

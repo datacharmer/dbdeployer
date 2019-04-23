@@ -103,9 +103,7 @@ func deleteSandbox(cmd *cobra.Command, args []string) {
 			if err != nil {
 				common.Exitf(1, globals.ErrWhileDeletingSandbox, err)
 			}
-			for _, list := range execList {
-				execLists = append(execLists, list)
-			}
+			execLists = append(execLists, execList...)
 		}
 	}
 	concurrent.RunParallelTasksByPriority(execLists)
@@ -131,7 +129,7 @@ var deleteCmd = &cobra.Command{
 	Long: `Stops the sandbox (and its depending sandboxes, if any), and removes it.
 Warning: this command is irreversible!`,
 	Run:         deleteSandbox,
-	Annotations: map[string]string{"export": ExportAnnotationToJson(SandboxDirExport)},
+	Annotations: map[string]string{"export": makeExportArgs(globals.ExportSandboxDir, 1)},
 }
 
 func init() {

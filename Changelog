@@ -1,3 +1,10 @@
+1.28.2	22-Apr-2019
+	BUGS FIXED
+	- Add missing error checks
+	- Clean code that was failing static ckecks
+	TESTING
+	- Add export tests
+	- Add conditional static check to sanity test
 1.28.1	14-Apr-2019
 	BUGS FIXED
 	Add missing '$' in recipe skip-start-replication

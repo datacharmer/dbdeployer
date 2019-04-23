@@ -42,9 +42,8 @@ func Execute() {
 	// If the command line was not set in the abbreviations module,
 	// we save it here, before it is processed by Cobra
 	if len(common.CommandLineArgs) == 0 {
-		for _, arg := range os.Args {
-			common.CommandLineArgs = append(common.CommandLineArgs, arg)
-		}
+
+		common.CommandLineArgs = append(common.CommandLineArgs, os.Args...)
 	}
 	if err := rootCmd.Execute(); err != nil {
 		common.Exitf(1, "%s", err)

@@ -95,12 +95,14 @@ func LoadAbbreviations() {
 		common.Exitf(1, "error reading abbreviation file")
 	}
 	// Loads abbreviations from file
+	reIsEmpty := regexp.MustCompile(`^\s*$`)
+	reIsComment := regexp.MustCompile(`^\s*#`)
 	for _, abbreviation := range abbrLines {
 		abbreviation = strings.TrimSpace(abbreviation)
 		list := strings.Split(abbreviation, " ")
 		abbr := list[0]
-		isComment, _ := regexp.MatchString(`^\s*#`, abbr)
-		isEmpty, _ := regexp.MatchString(`^\s*#\$`, abbr)
+		isComment := reIsComment.MatchString(abbr)
+		isEmpty := reIsEmpty.MatchString(abbr)
 		if isComment || isEmpty {
 			continue
 		}
@@ -175,9 +177,7 @@ func LoadAbbreviations() {
 			fmt.Printf("# %s\n", os.Args)
 		}
 	}
-	for _, arg := range os.Args {
-		common.CommandLineArgs = append(common.CommandLineArgs, arg)
-	}
+	common.CommandLineArgs = append(common.CommandLineArgs, os.Args...)
 }
 
 func init() {

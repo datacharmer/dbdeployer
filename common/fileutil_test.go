@@ -99,7 +99,7 @@ def = world
 		compare.OkIsNil("err for written sample file", err, t)
 		readConfig, err := ParseConfigFile(sampleConfigFile)
 		compare.OkIsNil("err for read sample file", err, t)
-		for k, _ := range sampleConfig {
+		for k := range sampleConfig {
 			val, ok := readConfig[k]
 			compare.OkEqualBool("key", ok, true, t)
 			count := 0
@@ -285,7 +285,7 @@ echo -n "You asked for $value, didn't you?"
 	if err != nil {
 		t.Skip("error creating command", err)
 	}
-	out, err := RunCmd(scriptName)
+	_, err = RunCmd(scriptName)
 	compare.OkIsNotNil("[RunCmd] command execution expected err", err, t)
 	if err == nil {
 		t.Skip("[RunCmd] unexpected success of failing command", err)
@@ -297,7 +297,7 @@ echo -n "You asked for $value, didn't you?"
 		t.Skip("error creating command", err)
 	}
 
-	out, err = RunCmd(scriptName)
+	out, err := RunCmd(scriptName)
 	compare.OkIsNil("[RunCmd] command execution err", err, t)
 	if err != nil {
 		t.Skip("[RunCmd] error executing command", err)

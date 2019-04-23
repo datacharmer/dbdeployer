@@ -138,12 +138,13 @@ Here is a sample of the results at the end:
 
 ```
 # ----------------------------------------------------------------
+# cookbook                  - tests:   60 - pass:   60 - fail:    0
 # defaults-change           - tests:   81 - pass:   81 - fail:    0
 # direct-paths              - tests: 3096 - pass: 3096 - fail:    0
-# docker-test               - tests: 4870 - pass: 4870 - fail:    0
-# expected_ports            - tests:    6 - pass:    6 - fail:    0
-# functional-test           - tests: 4898 - pass: 4898 - fail:    0
-# go-unit-tests             - tests:  689 - pass:  689 - fail:    0
+# docker-test               - tests: 4878 - pass: 4878 - fail:    0
+# expected_ports            - tests:   18 - pass:   18 - fail:    0
+# functional-test           - tests: 4988 - pass: 4988 - fail:    0
+# go-unit-tests             - tests: 1046 - pass: 1046 - fail:    0
 # ndb_test                  - tests:  474 - pass:  474 - fail:    0
 # port-clash                - tests:  180 - pass:  180 - fail:    0
 # pxc_test                  - tests:  148 - pass:  148 - fail:    0
@@ -152,25 +153,27 @@ Here is a sample of the results at the end:
 # short-versions            - tests:   42 - pass:   42 - fail:    0
 # ----------------------------------------------------------------
 sanity_check                   []        - time:    3s (        3s) - exit code: 0
-go-unit-tests                  []        - time:   51s (       51s) - exit code: 0
-functional-test                []        - time: 1916s (   31m:56s) - exit code: 0
-docker-test                    [1.23.0]  - time: 1941s (   32m:21s) - exit code: 0
+go-unit-tests                  []        - time:   52s (       52s) - exit code: 0
+functional-test                []        - time: 2152s (   35m:52s) - exit code: 0
+docker-test                    [1.28.2]  - time: 2069s (   34m:29s) - exit code: 0
 defaults-change                []        - time:    6s (        6s) - exit code: 0
-short-versions                 []        - time:    5s (        5s) - exit code: 0
-direct-paths                   []        - time:   16s (       16s) - exit code: 0
+short-versions                 []        - time:    6s (        6s) - exit code: 0
+direct-paths                   []        - time:   18s (       18s) - exit code: 0
 expected_ports                 []        - time:    2s (        2s) - exit code: 0
-read-only-replication          []        - time:   17s (       17s) - exit code: 0
-ndb_test                       []        - time:    3s (        3s) - exit code: 0
+read-only-replication          []        - time:   21s (       21s) - exit code: 0
+ndb_test                       []        - time:    4s (        4s) - exit code: 0
 pxc_test                       []        - time:    1s (        1s) - exit code: 0
-port-clash                     [sparse]  - time:  129s (    2m:09s) - exit code: 0
+cookbook                       []        - time:    1s (        1s) - exit code: 0
+port-clash                     [sparse]  - time:  141s (    2m:21s) - exit code: 0
 # Deployed: 111 sandboxes (1143 total ports) - Changed: 0
 # ----------------------------------------------------------------
+# cookbook                  - tests:   60 - pass:   60 - fail:    0
 # defaults-change           - tests:   81 - pass:   81 - fail:    0
 # direct-paths              - tests: 3096 - pass: 3096 - fail:    0
-# docker-test               - tests: 4870 - pass: 4870 - fail:    0
-# expected_ports            - tests:    6 - pass:    6 - fail:    0
-# functional-test           - tests: 4898 - pass: 4898 - fail:    0
-# go-unit-tests             - tests:  689 - pass:  689 - fail:    0
+# docker-test               - tests: 4878 - pass: 4878 - fail:    0
+# expected_ports            - tests:   18 - pass:   18 - fail:    0
+# functional-test           - tests: 4988 - pass: 4988 - fail:    0
+# go-unit-tests             - tests: 1046 - pass: 1046 - fail:    0
 # ndb_test                  - tests:  474 - pass:  474 - fail:    0
 # port-clash                - tests:  180 - pass:  180 - fail:    0
 # pxc_test                  - tests:  148 - pass:  148 - fail:    0
@@ -179,14 +182,14 @@ port-clash                     [sparse]  - time:  129s (    2m:09s) - exit code:
 # short-versions            - tests:   42 - pass:   42 - fail:    0
 # ----------------------------------------------------------------
 # ----------------------------------------------------------------
-# Total tests: 17544
-#       pass : 17544
+# Total tests: 18071
+#       pass : 18071
 #       fail : 0
 # ----------------------------------------------------------------
 OS:  Darwin
-Started: Fri Mar 15 21:51:57 CET 2019
-Ended  : Fri Mar 15 23:00:08 CET 2019
-Elapsed: 4091 seconds (1h:8m:11s)
+Started: Mon Apr 22 20:49:39 CEST 2019
+Ended  : Mon Apr 22 22:04:16 CEST 2019
+Elapsed: 4477 seconds (1h:14m:37s)
 # Exit code: 0
 Runs concurrently: yes
 ```

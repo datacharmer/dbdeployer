@@ -1676,7 +1676,7 @@ func init() {
 	// This initialisation routine will ensure that there are no duplicates.
 	var seen = make(map[string]bool)
 	for collName, coll := range AllTemplates {
-		for name, _ := range coll {
+		for name := range coll {
 			_, ok := seen[name]
 			if ok {
 				// name already exists:

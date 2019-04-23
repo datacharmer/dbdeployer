@@ -31,8 +31,8 @@ import (
 // the testing of sandboxes without having MySQL packages.
 
 const (
-	DefaultMockDir       string = "mock_dir"
-	noOpMockTemplateName        = "no_op_mock_template"
+	DefaultMockDir       = "mock_dir"
+	noOpMockTemplateName = "no_op_mock_template"
 )
 
 var (

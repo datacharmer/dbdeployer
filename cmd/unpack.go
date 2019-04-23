@@ -109,9 +109,10 @@ func unpackTarball(cmd *cobra.Command, args []string) {
 		if overwrite {
 			isDeleted, err := deleteBinaries(Basedir, Prefix+Version, true)
 			if !isDeleted {
-				common.Exitf(1, "Directory %s could not be removed: %s", Prefix+Version, err)
+				common.Exitf(1, "directory %s could not be removed", Prefix+Version)
 			}
 			if err != nil {
+				common.Exitf(1, "error removing directory %s: %s", Prefix+Version, err)
 			}
 		} else {
 			common.Exitf(1, globals.ErrNamedDirectoryAlreadyExists, "destination directory", destination)

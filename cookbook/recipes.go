@@ -128,10 +128,7 @@ func getCookbookDirectory() string {
 
 func recipeExists(recipeName string) bool {
 	_, ok := RecipesList[recipeName]
-	if ok {
-		return true
-	}
-	return false
+	return ok
 }
 
 func createPrerequisites() string {
@@ -169,7 +166,7 @@ func ShowRecipe(recipeName string, flavor string, raw bool) {
 	if flavor == "" {
 		flavor = common.MySQLFlavor
 	}
-	recipeText, err, _ := GetRecipe(recipeName, flavor)
+	recipeText, _, err := GetRecipe(recipeName, flavor)
 	if err != nil {
 		showPrerequisites(flavor)
 	}
@@ -185,7 +182,7 @@ func CreateRecipe(recipeName, flavor string) {
 		}
 	}
 	if strings.ToLower(recipeName) == "all" {
-		for name, _ := range RecipesList {
+		for name := range RecipesList {
 			CreateRecipe(name, flavor)
 		}
 		return
@@ -201,7 +198,7 @@ func CreateRecipe(recipeName, flavor string) {
 		fmt.Printf("recipe %s not found\n", recipeName)
 		os.Exit(1)
 	}
-	recipeText, err, versionCode := GetRecipe(recipeName, flavor)
+	recipeText, versionCode, err := GetRecipe(recipeName, flavor)
 	if err != nil && !isRecursive {
 		showPrerequisites(flavor)
 		common.Exitf(1, "error getting recipe %s: %s", recipeName, err)
@@ -255,12 +252,12 @@ func GetLatestVersion(wantedVersion, flavor string) string {
 	return latestVersion
 }
 
-func GetRecipe(recipeName, flavor string) (string, error, int) {
+func GetRecipe(recipeName, flavor string) (string, int, error) {
 	var text string
 
 	recipe, ok := RecipesList[recipeName]
 	if !ok {
-		return text, fmt.Errorf("recipe %s not found", recipeName), ErrNoRecipeFound
+		return text, ErrNoRecipeFound, fmt.Errorf("recipe %s not found", recipeName)
 	}
 	latestVersions := make(map[string]string)
 	for _, version := range []string{"5.0", "5.1", "5.5", "5.6", "5.7", "8.0"} {
@@ -289,7 +286,7 @@ func GetRecipe(recipeName, flavor string) (string, error, int) {
 	}
 	text, err := common.SafeTemplateFill(recipeName, recipe.Contents, data)
 	if err != nil {
-		return globals.EmptyString, err, versionCode
+		return globals.EmptyString, versionCode, err
 	}
-	return text, nil, versionCode
+	return text, versionCode, nil
 }

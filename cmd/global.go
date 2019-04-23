@@ -58,9 +58,7 @@ func globalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 		if singleUse && executable == "use" {
 			cmdArgs = append(cmdArgs, "-e")
 		}
-		for _, arg := range args {
-			cmdArgs = append(cmdArgs, arg)
-		}
+		cmdArgs = append(cmdArgs, args...)
 		var err error
 		common.CondPrintf("# Running \"%s\" on %s\n", realExecutable, sb)
 		if len(cmdArgs) > 0 {

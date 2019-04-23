@@ -306,7 +306,7 @@ func CheckTarballOperatingSystem(basedir string) error {
 			}
 			fmt.Println(globals.DashLine)
 		}
-		return fmt.Errorf("could not find any of the expected files for %s server: %s\n%s\n", currentOs, wantedFiles, globals.DashLine)
+		return fmt.Errorf("could not find any of the expected files for %s server: %s\n%s", currentOs, wantedFiles, globals.DashLine)
 	}
 	return nil
 }
@@ -349,11 +349,8 @@ func CheckSandboxDir(sandboxHome string) error {
 // Returns true if a given string looks contains a version
 // number (major.minor.rev)
 func IsVersion(version string) bool {
-	re1 := regexp.MustCompile(`(\d+)\.(\d+)\.(\d+)$`)
-	if re1.MatchString(version) {
-		return true
-	}
-	return false
+	re := regexp.MustCompile(`(\d+)\.(\d+)\.(\d+)$`)
+	return re.MatchString(version)
 }
 
 // Returns true if a given string looks like an IPV4

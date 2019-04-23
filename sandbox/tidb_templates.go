@@ -437,7 +437,7 @@ func init() {
 	// This is an important assumption that will be used in sandbox.go
 	// to replace templates for "tidb" flavor
 	re := regexp.MustCompile(`^` + tidbPrefix)
-	for name, _ := range TidbTemplates {
+	for name := range TidbTemplates {
 		if !re.MatchString(name) {
 			fmt.Printf("found template name '%s' that does not start with '%s'\n", name, tidbPrefix)
 			os.Exit(1)

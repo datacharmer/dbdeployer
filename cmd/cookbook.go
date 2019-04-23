@@ -71,7 +71,7 @@ var showCookbookCmd = &cobra.Command{
 	Short:       "Shows the contents of a given recipe",
 	Long:        `Shows the contents of a given recipe, without actually running it`,
 	Run:         showCookbook,
-	Annotations: map[string]string{"export": ExportAnnotationToJson(CookbookNameExport)},
+	Annotations: map[string]string{"export": makeExportArgs(globals.ExportCookbookName, 1)},
 }
 
 var createCookbookCmd = &cobra.Command{
@@ -80,7 +80,7 @@ var createCookbookCmd = &cobra.Command{
 	Short:       "creates a script for a given recipe",
 	Long:        `creates a script for given recipe`,
 	Run:         createCookbook,
-	Annotations: map[string]string{"export": ExportAnnotationToJson(CookbookNameExport)},
+	Annotations: map[string]string{"export": makeExportArgs(globals.ExportCookbookName, 1)},
 }
 
 func init() {

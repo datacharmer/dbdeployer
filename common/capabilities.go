@@ -16,26 +16,29 @@ package common
 
 import "github.com/datacharmer/dbdeployer/globals"
 
-type MinimumVersion []int
+// Capability defines a feature availability
 type Capability struct {
-	Description string         `json:"description"`
-	Since       MinimumVersion `json:"since"`
-	Until       MinimumVersion `json:"until"`
+	Description string                 `json:"description"`
+	Since       globals.NumericVersion `json:"since"`
+	Until       globals.NumericVersion `json:"until"`
 }
+
+// FeatureList is the set of capabilities for a given flavor
 type FeatureList map[string]Capability
 
+// Capabilities holds the broad definition of a feature set for a flavor
 type Capabilities struct {
 	Flavor      string      `json:"flavor"`
 	Description string      `json:"description"`
 	Features    FeatureList `json:"features"`
 }
 
-type ElementPath struct {
+type elementPath struct {
 	dir      string
 	fileName string
 }
-type FlavorIndicator struct {
-	elements  []ElementPath
+type flavorIndicator struct {
+	elements  []elementPath
 	flavor    string
 	AllNeeded bool
 }
@@ -157,10 +160,10 @@ var MySQLCapabilities = Capabilities{
 // simplest ones, because we want to catch the flavors that require
 // multiple elements to be identified. If we put the simpler ones on top,
 // we would miss the complex ones.
-var FlavorCompositionList = []FlavorIndicator{
+var FlavorCompositionList = []flavorIndicator{
 	{
 		AllNeeded: true,
-		elements: []ElementPath{
+		elements: []elementPath{
 			{"bin", globals.FnGarbd},
 			{"lib", globals.FnLibGaleraSmmSo},
 			{"lib", globals.FnLibPerconaServerClientSo},
@@ -169,7 +172,7 @@ var FlavorCompositionList = []FlavorIndicator{
 	},
 	{
 		AllNeeded: true,
-		elements: []ElementPath{
+		elements: []elementPath{
 			{"bin", globals.FnGarbd},
 			{"lib", globals.FnLibGaleraSmmA},
 			{"lib", globals.FnLibPerconaServerClientA},
@@ -178,7 +181,7 @@ var FlavorCompositionList = []FlavorIndicator{
 	},
 	{
 		AllNeeded: true,
-		elements: []ElementPath{
+		elements: []elementPath{
 			{"bin", globals.FnGarbd},
 			{"lib", globals.FnLibGaleraSmmDylib},
 			{"lib", globals.FnLibPerconaServerClientDylib},
@@ -187,7 +190,7 @@ var FlavorCompositionList = []FlavorIndicator{
 	},
 	{
 		AllNeeded: true,
-		elements: []ElementPath{
+		elements: []elementPath{
 			{"bin", globals.FnNdbd},
 			{"bin", globals.FnNdbdMgm},
 			{"bin", globals.FnNdbdMgmd},
@@ -198,7 +201,7 @@ var FlavorCompositionList = []FlavorIndicator{
 	},
 	{
 		AllNeeded: false,
-		elements: []ElementPath{
+		elements: []elementPath{
 			{"bin", globals.FnAriaChk},
 			{"lib", globals.FnLibMariadbClientA},
 			{"lib", globals.FnLibMariadbClientDylib},
@@ -210,7 +213,7 @@ var FlavorCompositionList = []FlavorIndicator{
 
 	{
 		AllNeeded: false,
-		elements: []ElementPath{
+		elements: []elementPath{
 			{"lib", globals.FnLibPerconaServerClientA},
 			{"lib", globals.FnLibPerconaServerClientSo},
 			{"lib", globals.FnLibPerconaServerClientDylib},
@@ -220,14 +223,14 @@ var FlavorCompositionList = []FlavorIndicator{
 
 	{
 		AllNeeded: false,
-		elements: []ElementPath{
+		elements: []elementPath{
 			{"bin", globals.FnTiDbServer},
 		},
 		flavor: TiDbFlavor,
 	},
 	{
 		AllNeeded: false,
-		elements: []ElementPath{
+		elements: []elementPath{
 			{"bin", globals.FnMysqld},
 			{"bin", globals.FnMysqldDebug},
 			{"lib", globals.FnLibMySQLClientA},

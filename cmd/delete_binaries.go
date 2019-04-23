@@ -109,7 +109,7 @@ var deleteBinariesCmd = &cobra.Command{
 It will fail if the directory is still used by any sandbox.
 Warning: this command is irreversible!`,
 	Run:         runDeleteBinaries,
-	Annotations: map[string]string{"export": ExportAnnotationToJson(DeployExport)},
+	Annotations: map[string]string{"export": makeExportArgs(globals.ExportVersionDir, 1)},
 }
 
 func init() {

@@ -81,10 +81,10 @@ func nodesListToIntSlice(nodesList string, nodes int) (intList []int, err error)
 		}
 	}
 	if len(intList) == 0 {
-		return []int{}, fmt.Errorf("List '%s' is empty\n", nodesList)
+		return []int{}, fmt.Errorf("list '%s' is empty", nodesList)
 	}
 	if len(intList) > nodes {
-		return []int{}, fmt.Errorf("List '%s' is greater than the expected number of nodes (%d)\n", nodesList, nodes)
+		return []int{}, fmt.Errorf("list '%s' is greater than the expected number of nodes (%d)", nodesList, nodes)
 	}
 	return intList, nil
 }
@@ -150,7 +150,7 @@ func CreateAllMastersReplication(sandboxDef SandboxDef, origin string, nodes int
 	if rawSandboxDir != nil {
 		sandboxDef.SandboxDir = rawSandboxDir.(string)
 	} else {
-		return fmt.Errorf("Empty Sandbox directory received from multiple deployment")
+		return fmt.Errorf("empty Sandbox directory received from multiple deployment")
 	}
 
 	masterList := makeNodesList(nodes)
@@ -162,6 +162,9 @@ func CreateAllMastersReplication(sandboxDef SandboxDef, origin string, nodes int
 	setGlobal := "GLOBAL"
 	// persistent, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumRolesVersion)
 	persistent, err := common.HasCapability(sandboxDef.Flavor, common.SetPersist, sandboxDef.Version)
+	if err != nil {
+		return err
+	}
 	if persistent {
 		setGlobal = "PERSIST"
 	}
@@ -282,7 +285,7 @@ func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	if rawSandboxDir != nil {
 		sandboxDef.SandboxDir = rawSandboxDir.(string)
 	} else {
-		return fmt.Errorf("Empty Sandbox directory received from multiple deployment")
+		return fmt.Errorf("empty Sandbox directory received from multiple deployment")
 	}
 	masterAbbr := defaults.Defaults().MasterAbbr
 	slaveAbbr := defaults.Defaults().SlaveAbbr
@@ -292,6 +295,9 @@ func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	setGlobal := "GLOBAL"
 	// persistent, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumRolesVersion)
 	persistent, err := common.HasCapability(sandboxDef.Flavor, common.SetPersist, sandboxDef.Version)
+	if err != nil {
+		return err
+	}
 	if persistent {
 		setGlobal = "PERSIST"
 	}

@@ -69,16 +69,16 @@ func downloadFile(cmd *cobra.Command, args []string) {
 	if err != nil {
 		common.Exitf(1, "%s", err)
 	}
-	match, err := regexp.MatchString(`^(?:mysql-)?\d+\.\d+$`, version)
+	match, _ := regexp.MatchString(`^(?:mysql-)?\d+\.\d+$`, version)
 	if match {
 		common.Exitf(1, " short version detected (%s). The version should have 3 numbers (#.#.#)", version)
 	}
-	match, err = regexp.MatchString(`^(?:mysql-)?\d+\.\d+\.\d+$`, version)
+	match, _ = regexp.MatchString(`^(?:mysql-)?\d+\.\d+\.\d+$`, version)
 	if match {
 		version += globals.TarXzExt
 	}
 
-	match, err = regexp.MatchString(`\d+\.\d+\.\d+$`, absPath)
+	match, _ = regexp.MatchString(`\d+\.\d+\.\d+$`, absPath)
 	if match {
 		absPath += globals.TarXzExt
 	}

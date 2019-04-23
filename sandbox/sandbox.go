@@ -166,7 +166,7 @@ func checkDirectory(sandboxDef SandboxDef) (SandboxDef, error) {
 	if common.DirExists(sandboxDir) {
 		if sandboxDef.Force {
 			if isLocked(sandboxDir) {
-				return sandboxDef, fmt.Errorf("sandbox in %s is locked. Cannot be overwritten\nYou can unlock it with 'dbdeployer admin unlock %s'\n", sandboxDir, common.DirName(sandboxDir))
+				return sandboxDef, fmt.Errorf("sandbox in %s is locked. Cannot be overwritten\nYou can unlock it with 'dbdeployer admin unlock %s'", sandboxDir, common.DirName(sandboxDir))
 			}
 			common.CondPrintf("Overwriting directory %s\n", sandboxDir)
 			stopCommand := path.Join(sandboxDir, globals.ScriptStop)
@@ -216,7 +216,7 @@ func checkDirectory(sandboxDef SandboxDef) (SandboxDef, error) {
 			}
 			sandboxDef.InstalledPorts = newInstalledPorts
 		} else {
-			return sandboxDef, fmt.Errorf("directory %s already exists. Use --force to override.", sandboxDir)
+			return sandboxDef, fmt.Errorf("directory %s already exists. Use --force to override", sandboxDir)
 		}
 	}
 	return sandboxDef, nil
@@ -464,6 +464,9 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	// 8.0.11
 	// isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
 	isMinimumMySQLXDefault, err := common.HasCapability(sandboxDef.Flavor, common.MySQLXDefault, sandboxDef.Version)
+	if err != nil {
+		return emptyExecutionList, err
+	}
 	if isMinimumMySQLXDefault && !sandboxDef.DisableMysqlX {
 		usingPlugins = true
 	}
@@ -488,7 +491,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	if sandboxDef.CustomMysqld != "" {
 		customMysqld := path.Join(sandboxDef.Basedir, "bin", sandboxDef.CustomMysqld)
 		if !common.ExecExists(customMysqld) {
-			return emptyExecutionList, fmt.Errorf("File %s not found or not executable\n"+
+			return emptyExecutionList, fmt.Errorf("file %s not found or not executable\n"+
 				"The file \"%s\" (defined with --custom-mysqld) must be in the same directory as the regular mysqld",
 				customMysqld, sandboxDef.CustomMysqld)
 		}
@@ -522,7 +525,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		return emptyExecutionList, err
 	}
 	if isMinimumNativeAuthPlugin {
-		if sandboxDef.NativeAuthPlugin == true {
+		if sandboxDef.NativeAuthPlugin {
 			sandboxDef.InitOptions = append(sandboxDef.InitOptions, "--default_authentication_plugin=mysql_native_password")
 			sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, "default_authentication_plugin=mysql_native_password")
 			logger.Printf("Using mysql_native_password for authentication\n")
@@ -568,10 +571,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		if len(options) > 0 {
 			sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, fmt.Sprintf("# options retrieved from %s", sandboxDef.MyCnfFile))
 		}
-		for _, option := range options {
-			// common.CondPrintf("[%s]\n", option)
-			sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, option)
-		}
+		sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, options...)
 	}
 	if common.Includes(sliceToText(sandboxDef.MyCnfOptions), "plugin.load") {
 		usingPlugins = true
@@ -764,7 +764,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			}
 		} else {
 			common.CondPrintf("InitDb output: %s\n", initOutput)
-			return emptyExecutionList, fmt.Errorf("InitDb failure: %s\n", err)
+			return emptyExecutionList, fmt.Errorf("initDb failure: %s", err)
 		}
 	}
 

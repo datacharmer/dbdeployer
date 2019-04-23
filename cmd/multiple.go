@@ -53,7 +53,7 @@ Use the "unpack" command to get the tarball into the right directory.
 	Example: `
 	$ dbdeployer deploy multiple 5.7.21
 	`,
-	Annotations: map[string]string{"export": ExportAnnotationToJson(DeployExport)},
+	Annotations: map[string]string{"export": makeExportArgs(globals.ExportVersionDir, 1)},
 }
 
 func init() {

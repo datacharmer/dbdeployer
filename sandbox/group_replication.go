@@ -156,7 +156,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 
 	baseServerId := 0
 	if nodes < 3 {
-		return fmt.Errorf("Can't run group replication with less than 3 nodes")
+		return fmt.Errorf("can't run group replication with less than 3 nodes")
 	}
 	if common.DirExists(sandboxDef.SandboxDir) {
 		sandboxDef, err = checkDirectory(sandboxDef)
@@ -386,9 +386,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		if err != nil {
 			return fmt.Errorf(globals.ErrCreatingSandbox, err)
 		}
-		for _, list := range execList {
-			execLists = append(execLists, list)
-		}
+		execLists = append(execLists, execList...)
 		var dataNode = common.StringMap{
 			"Copyright":         globals.Copyright,
 			"AppVersion":        common.VersionDef,

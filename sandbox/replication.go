@@ -215,9 +215,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	if err != nil {
 		return fmt.Errorf(globals.ErrCreatingSandbox, err)
 	}
-	for _, list := range execList {
-		execLists = append(execLists, list)
-	}
+	execLists = append(execLists, execList...)
 
 	sbDesc := common.SandboxDescription{
 		Basedir: sandboxDef.Basedir,
@@ -331,9 +329,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		if err != nil {
 			return fmt.Errorf(globals.ErrCreatingSandbox, err)
 		}
-		for _, list := range execListNode {
-			execLists = append(execLists, list)
-		}
+		execLists = append(execLists, execListNode...)
 		var dataSlave = common.StringMap{
 			"Copyright":          globals.Copyright,
 			"AppVersion":         common.VersionDef,

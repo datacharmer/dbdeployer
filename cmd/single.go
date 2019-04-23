@@ -65,7 +65,10 @@ func checkTemplateChangeRequest(request string) (templateName, fileName string) 
 func processDefaults(newDefaults []string) {
 	for _, nd := range newDefaults {
 		list := strings.Split(nd, ":")
-		if list != nil && len(list) == 2 {
+		if list == nil {
+			return
+		}
+		if len(list) == 2 {
 			label := list[0]
 			value := list[1]
 			defaults.UpdateDefaults(label, value, false)
@@ -148,8 +151,7 @@ func getFlavor(userDefinedFlavor, basedir string) string {
 
 func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxDef, error) {
 	var sd sandbox.SandboxDef
-	var err error
-	err = common.CheckPrerequisites("dbdeployer needed tools", globals.NeededExecutables)
+	err := common.CheckPrerequisites("dbdeployer needed tools", globals.NeededExecutables)
 	if err != nil {
 		return sd, err
 	}
@@ -267,9 +269,7 @@ func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxD
 		return sd, err
 	}
 
-	for _, p := range defaults.Defaults().ReservedPorts {
-		sd.InstalledPorts = append(sd.InstalledPorts, p)
-	}
+	sd.InstalledPorts = append(sd.InstalledPorts, defaults.Defaults().ReservedPorts...)
 	sd.LoadGrants = true
 	sd.SkipStart, _ = flags.GetBool(globals.SkipStartLabel)
 	skipLoadGrants, _ := flags.GetBool(globals.SkipLoadGrantsLabel)
@@ -408,7 +408,7 @@ the binary files from mysql-5.7.21-$YOUR_OS-x86_64.tar.gz
 Use the "unpack" command to get the tarball into the right directory.
 `,
 	Run:         singleSandbox,
-	Annotations: map[string]string{"export": ExportAnnotationToJson(DeployExport)},
+	Annotations: map[string]string{"export": makeExportArgs(globals.ExportVersionDir, 1)},
 }
 
 func init() {

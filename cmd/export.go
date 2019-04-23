@@ -18,6 +18,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/datacharmer/dbdeployer/globals"
 	"golang.org/x/crypto/ssh/terminal"
 	"os"
 
@@ -29,84 +30,67 @@ import (
 // Describes the parameters needed after a known parameter
 // such as a command keyword or an option
 type RequiredInfo struct {
-	HowMany       int    `json:"n"`
-	Name          string `json:"name"`
-	ReferenceData string `json:"ref_data,omitempty"`
+	HowMany       int    `json:"n"`                  // How many times this item should be used
+	Name          string `json:"name"`               // Name of the item
+	ReferenceData string `json:"ref_data,omitempty"` // Data used for multiple choice (if available)
 }
 
 // Defines what is needed for a command at the end of the known keywords
 type ExportAnnotation struct {
-	Arguments []RequiredInfo `json:"arguments"`
-	Options   []RequiredInfo `json:"options"`
+	Arguments []RequiredInfo `json:"arguments,omitempty"` // Required or recommended arguments
+	Options   []RequiredInfo `json:"options,omitempty"`   // Options needed for this command
 }
 
 // Describes a command option
 type Option struct {
-	Name    string `json:"name"`
-	Type    string `json:"type"`
-	Usage   string `json:"usage"`
-	Short   string `json:"short"`
-	Default string `json:"default"`
+	Name     string `json:"name"`     // Name of the option
+	Type     string `json:"type"`     // Type
+	Usage    string `json:"usage"`    // Brief help on how to use this option
+	Shortcut string `json:"shortcut"` // Option abbreviation
+	Default  string `json:"default"`  // Default value
 }
 
 // Describes a command (or sub-command)
 type Command struct {
-	Version string   `json:"version,omitempty"`
-	Name    string   `json:"name"`
-	Use     string   `json:"use"`
-	Aliases []string `json:"aliases,omitempty"`
-	Short   string   `json:"short,omitempty"`
-	Long    string   `json:"long,omitempty"`
-	Example string   `json:"example,omitempty"`
-
-	SubCommands     []Command        `json:"commands,omitempty"`
-	Options         []Option         `json:"flags,omitempty"`
-	NeedSubCommands bool             `json:"needs_sub_commands"`
-	Annotations     ExportAnnotation `json:"annotations,omitempty"`
+	Version         string           `json:"version,omitempty"`     // dbdeployer version
+	Name            string           `json:"name"`                  // Name of the command itself
+	Use             string           `json:"use"`                   // How to use it
+	Aliases         []string         `json:"aliases,omitempty"`     // Alternative names for this command
+	Short           string           `json:"short,omitempty"`       // Short usage description
+	Long            string           `json:"long,omitempty"`        // Long usage description
+	Example         string           `json:"example,omitempty"`     // Usage examples, if any
+	Breadcrumbs     []string         `json:"ancestors"`             // sequence of commands up to this (sub)command
+	SubCommands     []Command        `json:"commands,omitempty"`    // Children of this (sub)command
+	Options         []Option         `json:"flags,omitempty"`       // List of flags valid for this command
+	NeedSubCommands bool             `json:"needs_sub_commands"`    // When the command alone cannot execute
+	Annotations     ExportAnnotation `json:"annotations,omitempty"` // Arguments and constraints for this command
 }
 
-// An annotation defining a command that requires a version directory
-// (such as 5.7.25) as an argument
-var DeployExport = ExportAnnotation{
-	Arguments: []RequiredInfo{
-		{HowMany: 1, Name: "version-dir"},
-	},
-}
-
-// An annotation for commands that require a sandbox directory
-// (such as msb_5_7_25) as an argument
-var SandboxDirExport = ExportAnnotation{
-	Arguments: []RequiredInfo{
-		{HowMany: 1, Name: "sandbox-dir"},
-	},
-}
-
-// An annotation defining two parameters of type sandbox directory
-var DoubleSandboxDirExport = ExportAnnotation{
-	Arguments: []RequiredInfo{
-		{HowMany: 2, Name: "sandbox-dir"},
-	},
-}
-
-// An annotation defining a string parameter of type sandbox cookbook-name
-var CookbookNameExport = ExportAnnotation{
-	Arguments: []RequiredInfo{
-		{HowMany: 1, Name: "cookbook-name"},
-	},
+// Creates an annotation definition for needed arguments
+// after a command
+func makeExportArgs(name string, howMany int) string {
+	return ExportAnnotationToJson(ExportAnnotation{
+		Arguments: []RequiredInfo{
+			{
+				HowMany: howMany,
+				Name:    name,
+			},
+		},
+	})
 }
 
 // An annotation defining a string parameter of type sandbox template-group
 var TemplateGroupExport = ExportAnnotation{
 	Arguments: []RequiredInfo{
-		{HowMany: 1, Name: "template-group"},
-		{HowMany: 1, Name: "string"},
+		{HowMany: 1, Name: globals.ExportTemplateGroup},
+		{HowMany: 1, Name: globals.ExportTemplateName},
 	},
 }
 
 // An annotation defining a string parameter of type sandbox template-name
 var TemplateNameExport = ExportAnnotation{
 	Arguments: []RequiredInfo{
-		{HowMany: 1, Name: "template-name"},
+		{HowMany: 1, Name: globals.ExportTemplateName},
 	},
 }
 
@@ -114,31 +98,24 @@ var TemplateNameExport = ExportAnnotation{
 // arguments for replication
 var ReplicationExport = ExportAnnotation{
 	Arguments: []RequiredInfo{
-		{HowMany: 1, Name: "version-dir"},
+		{HowMany: 1, Name: globals.ExportVersionDir},
 	},
 	Options: []RequiredInfo{
-		{HowMany: 1, Name: "topology", ReferenceData: "AllowedTopologies"},
+		{HowMany: 1, Name: globals.ExportTopology, ReferenceData: globals.ExportAllowedTopologies},
 	},
 }
 
 // An annotation defining an argument as a generic string
 var StringExport = ExportAnnotation{
 	Arguments: []RequiredInfo{
-		{HowMany: 1, Name: "string"},
+		{HowMany: 1, Name: globals.ExportString},
 	},
 }
 
 // An annotation defining two generic string arguments
 var DoubleStringExport = ExportAnnotation{
 	Arguments: []RequiredInfo{
-		{HowMany: 2, Name: "string"},
-	},
-}
-
-// An annotation defining an argument as a generic integer
-var IntegerExport = ExportAnnotation{
-	Arguments: []RequiredInfo{
-		{HowMany: 1, Name: "integer"},
+		{HowMany: 2, Name: globals.ExportString},
 	},
 }
 
@@ -151,6 +128,10 @@ func ExportAnnotationToJson(ea ExportAnnotation) string {
 	return fmt.Sprintf("%s", b)
 }
 
+// Converts cobra.Command annotations intended for export into the
+// original structure.
+// The annotation is stored as
+// map[string]string{ "export" : "string with JSON structure"}
 func jsonToExportAnnotation(annotations map[string]string) ExportAnnotation {
 	var ea ExportAnnotation
 	for k, v := range annotations {
@@ -164,7 +145,8 @@ func jsonToExportAnnotation(annotations map[string]string) ExportAnnotation {
 	return ea
 }
 
-func cobraToCommand(c *cobra.Command, recursive bool) Command {
+// Converts a cobra.Command into a cmd.Command structure
+func cobraToCommand(c *cobra.Command, ancestors []string, addVersion bool) Command {
 
 	var command Command
 	command.Name = c.Name()
@@ -176,14 +158,16 @@ func cobraToCommand(c *cobra.Command, recursive bool) Command {
 	command.Version = c.Version
 	command.Annotations = jsonToExportAnnotation(c.Annotations)
 	command.NeedSubCommands = c.Run == nil
-	if !recursive {
+	command.Breadcrumbs = append(command.Breadcrumbs, ancestors...)
+	command.Breadcrumbs = append(command.Breadcrumbs, c.Name())
+	if addVersion {
 		// If this is the top command in the request, we want to report the version
 		if command.Version == "" {
 			command.Version = common.VersionDef
 		}
 	}
 	for _, sc := range c.Commands() {
-		subCommand := cobraToCommand(sc, true)
+		subCommand := cobraToCommand(sc, command.Breadcrumbs, false)
 		command.SubCommands = append(command.SubCommands, subCommand)
 	}
 
@@ -196,7 +180,7 @@ func cobraToCommand(c *cobra.Command, recursive bool) Command {
 			op.Name = flag.Name
 			op.Usage = flag.Usage
 			op.Type = flag.Value.Type()
-			op.Short = flag.Shorthand
+			op.Shortcut = flag.Shorthand
 			op.Default = flag.DefValue
 			options = append(options, op)
 			seenFlags[op.Name] = true
@@ -237,7 +221,7 @@ func ExportJson() string {
 // This is used to create Go applications with a different
 // user interface
 func Export() Command {
-	return cobraToCommand(rootCmd, false)
+	return cobraToCommand(rootCmd, []string{}, true)
 }
 
 // Export a given sub-command as JSON
@@ -245,11 +229,11 @@ func ExportJsonNamed(name string, subCommand string) string {
 	for _, c := range rootCmd.Commands() {
 		if c.Name() == name {
 			if subCommand == "" {
-				return CommandToJson(cobraToCommand(c, false))
+				return CommandToJson(cobraToCommand(c, []string{rootCmd.Name()}, true))
 			} else {
 				for _, sc := range c.Commands() {
 					if sc.Name() == subCommand {
-						return CommandToJson(cobraToCommand(sc, false))
+						return CommandToJson(cobraToCommand(sc, []string{rootCmd.Name(), c.Name()}, true))
 					}
 				}
 				return fmt.Sprintf(`{"ERROR": "Command '%s.%s' not found"}`, name, subCommand)
@@ -262,13 +246,13 @@ func ExportJsonNamed(name string, subCommand string) string {
 func runExport(c *cobra.Command, args []string) {
 	// Detects if output goes to terminal and warns about usage
 	outputGoesToTerminal := terminal.IsTerminal(int(os.Stdout.Fd()))
-	forceOutputToTerminal, _ := c.Flags().GetBool("force-output-to-terminal")
+	forceOutputToTerminal, _ := c.Flags().GetBool(globals.ForceOutputToTermLabel)
 	if outputGoesToTerminal && !forceOutputToTerminal {
-		fmt.Printf("No pager or pipe is used.\n")
-		fmt.Printf("The output of this command can be quite large.\n")
-		fmt.Printf("Please redirect to a pipe \n")
-		fmt.Printf("(such as 'dbdeployer export | less' or 'dbdeployer export > struct.json')\n")
-		fmt.Printf("or use the option --force-output-to-terminal\n")
+		fmt.Println("No pager or pipe is used.")
+		fmt.Println("The output of this command can be quite large.")
+		fmt.Println("Please redirect to a pipe ")
+		fmt.Println("(such as 'dbdeployer export | less' or 'dbdeployer export > struct.json')")
+		fmt.Printf("or use the option --%s\n", globals.ForceOutputToTermLabel)
 		os.Exit(0)
 	}
 	if len(args) > 0 {
@@ -277,9 +261,9 @@ func runExport(c *cobra.Command, args []string) {
 		if len(args) > 1 {
 			subCmdString = args[1]
 		}
-		fmt.Printf("%s\n", ExportJsonNamed(cmdString, subCmdString))
+		fmt.Println(ExportJsonNamed(cmdString, subCmdString))
 	} else {
-		fmt.Printf("%s\n", ExportJson())
+		fmt.Println(ExportJson())
 	}
 }
 
@@ -299,5 +283,5 @@ Given the length of the output, it is recommended to pipe it to a file or to ano
 func init() {
 	rootCmd.AddCommand(exportCmd)
 
-	exportCmd.PersistentFlags().Bool("force-output-to-terminal", false, "display output to terminal regardless of pipes being used")
+	exportCmd.PersistentFlags().Bool(globals.ForceOutputToTermLabel, false, "display output to terminal regardless of pipes being used")
 }

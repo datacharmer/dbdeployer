@@ -145,6 +145,20 @@ const (
 	// Instantiated in cmd/versions.go
 	ByFlavorLabel = "by-flavor"
 
+	// Instantiated in cmd/export.go
+
+	ForceOutputToTermLabel  = "force-output-to-terminal"
+	ExportSandboxDir        = "sandbox-dir"
+	ExportVersionDir        = "version-dir"
+	ExportTemplateGroup     = "template-group"
+	ExportTemplateName      = "template-name"
+	ExportString            = "string"
+	ExportInteger           = "integer"
+	ExportBoolean           = "boolean"
+	ExportCookbookName      = "cookbook-name"
+	ExportTopology          = "topology"
+	ExportAllowedTopologies = "allowed-topologies"
+
 	// Instantiated in sandbox package
 	AutoCnfName          = "auto.cnf"
 	DataDirName          = "data"
@@ -237,6 +251,8 @@ const (
 	ErrWhileComparingVersions      = "error while comparing versions"
 )
 
+type NumericVersion []int
+
 const MaxAllowedPort int = 64000
 
 // Go doesn't allow constants to be compound types. Thus we use variables here.
@@ -261,30 +277,30 @@ const MaxAllowedPort int = 64000
 // Authentication plugin changed in 8.0.4
 // MySQLX was enabled by default starting with 8.0.11
 var (
-	MinimumMySQLInstallDb            = []int{3, 3, 23}
-	MaximumMySQLInstallDb            = []int{5, 6, 999}
-	MinimumDynVariablesVersion       = []int{5, 1, 0}
-	MinimumSemiSyncVersion           = []int{5, 5, 1}
-	MinimumCrashSafeVersion          = []int{5, 6, 2}
-	MinimumGtidVersion               = []int{5, 6, 9}
-	MinimumEnhancedGtidVersion       = []int{5, 7, 0}
-	MinimumDefaultInitializeVersion  = []int{5, 7, 0}
-	MinimumCreateUserVersion         = []int{5, 7, 6}
-	MinimumSuperReadOnly             = []int{5, 7, 8}
-	MinimumMultiSourceReplVersion    = []int{5, 7, 9}
-	MinimumMysqlxVersion             = []int{5, 7, 12}
-	MinimumGroupReplVersion          = []int{5, 7, 17}
-	MinimumPersistVersion            = []int{8, 0, 0}
-	MinimumRolesVersion              = []int{8, 0, 0}
-	MinimumDataDictionaryVersion     = []int{8, 0, 0}
-	MinimumNativeAuthPluginVersion   = []int{8, 0, 4}
-	MinimumMysqlxDefaultVersion      = []int{8, 0, 11}
-	MariaDbMinimumGtidVersion        = []int{10, 0, 0}
-	MariaDbMinimumMultiSourceVersion = []int{10, 0, 0}
-	MinimumXtradbClusterVersion      = []int{5, 7, 14}
-	MinimumNdbClusterVersion         = []int{7, 0, 0}
-	MinimumRootAuthVersion           = []int{10, 4, 3}
-	MinimumAdminAddressVersion       = []int{8, 0, 14}
+	MinimumMySQLInstallDb            = NumericVersion{3, 3, 23}
+	MaximumMySQLInstallDb            = NumericVersion{5, 6, 999}
+	MinimumDynVariablesVersion       = NumericVersion{5, 1, 0}
+	MinimumSemiSyncVersion           = NumericVersion{5, 5, 1}
+	MinimumCrashSafeVersion          = NumericVersion{5, 6, 2}
+	MinimumGtidVersion               = NumericVersion{5, 6, 9}
+	MinimumEnhancedGtidVersion       = NumericVersion{5, 7, 0}
+	MinimumDefaultInitializeVersion  = NumericVersion{5, 7, 0}
+	MinimumCreateUserVersion         = NumericVersion{5, 7, 6}
+	MinimumSuperReadOnly             = NumericVersion{5, 7, 8}
+	MinimumMultiSourceReplVersion    = NumericVersion{5, 7, 9}
+	MinimumMysqlxVersion             = NumericVersion{5, 7, 12}
+	MinimumGroupReplVersion          = NumericVersion{5, 7, 17}
+	MinimumPersistVersion            = NumericVersion{8, 0, 0}
+	MinimumRolesVersion              = NumericVersion{8, 0, 0}
+	MinimumDataDictionaryVersion     = NumericVersion{8, 0, 0}
+	MinimumNativeAuthPluginVersion   = NumericVersion{8, 0, 4}
+	MinimumMysqlxDefaultVersion      = NumericVersion{8, 0, 11}
+	MariaDbMinimumGtidVersion        = NumericVersion{10, 0, 0}
+	MariaDbMinimumMultiSourceVersion = NumericVersion{10, 0, 0}
+	MinimumXtradbClusterVersion      = NumericVersion{5, 7, 14}
+	MinimumNdbClusterVersion         = NumericVersion{7, 0, 0}
+	MinimumRootAuthVersion           = NumericVersion{10, 4, 3}
+	MinimumAdminAddressVersion       = NumericVersion{8, 0, 14}
 )
 
 const (
@@ -333,6 +349,10 @@ var AllowedTopologies = []string{
 	FanInLabel,
 	AllMastersLabel,
 	NdbLabel,
+}
+
+var ExportReferenceData = map[string]interface{}{
+	ExportAllowedTopologies: AllowedTopologies,
 }
 
 var (

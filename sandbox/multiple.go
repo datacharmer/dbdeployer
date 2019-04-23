@@ -72,6 +72,9 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 	}
 
 	vList, err := common.VersionToList(sandboxDef.Version)
+	if err != nil {
+		return emptyStringMap, err
+	}
 	rev := vList[2]
 	basePort := sandboxDef.Port + defaults.Defaults().MultipleBasePort + (rev * 100)
 	if sandboxDef.BasePort > 0 {
@@ -208,9 +211,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		if err != nil {
 			return emptyStringMap, fmt.Errorf(globals.ErrCreatingSandbox, err)
 		}
-		for _, list := range execList {
-			execLists = append(execLists, list)
-		}
+		execLists = append(execLists, execList...)
 
 		var dataNode = common.StringMap{
 			"Node":         i,

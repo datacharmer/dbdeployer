@@ -168,6 +168,9 @@ func ReadSandboxDescription(sandboxDirectory string) (SandboxDescription, error)
 		return SandboxDescription{}, errors.Wrapf(fmt.Errorf("file not found %s", filename), "Sandbox description file not found")
 	}
 	stat, err := os.Stat(filename)
+	if err != nil {
+		return SandboxDescription{}, errors.Wrapf(err, "error getting stats for file %s", filename)
+	}
 	if stat.Size() == 0 {
 		return SandboxDescription{}, errors.Wrapf(fmt.Errorf("empty description"), "empty sandbox description %s", filename)
 	}
@@ -275,10 +278,7 @@ func WriteString(line string, filename string) error {
 // returns true if a given file exists
 func FileExists(filename string) bool {
 	_, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return true
+	return !os.IsNotExist(err)
 }
 
 // returns true if a given directory exists

@@ -364,7 +364,7 @@ var (
 Note that the deletion being prevented is only the one occurring through dbdeployer. 
 Users can still delete locked sandboxes manually.`,
 		Run:         lockSandbox,
-		Annotations: map[string]string{"export": ExportAnnotationToJson(SandboxDirExport)},
+		Annotations: map[string]string{"export": makeExportArgs(globals.ExportSandboxDir, 1)},
 	}
 
 	adminUnlockCmd = &cobra.Command{
@@ -373,7 +373,7 @@ Users can still delete locked sandboxes manually.`,
 		Short:       "Unlocks a sandbox",
 		Long:        `Removes lock, allowing deletion of a given sandbox`,
 		Run:         unlockSandbox,
-		Annotations: map[string]string{"export": ExportAnnotationToJson(SandboxDirExport)},
+		Annotations: map[string]string{"export": makeExportArgs(globals.ExportSandboxDir, 1)},
 	}
 	adminUpgradeCmd = &cobra.Command{
 		Use:   "upgrade sandbox_name newer_sandbox",
@@ -384,7 +384,7 @@ The data directory of the old sandbox will be moved to the new one.`,
 		Example:     "dbdeployer admin upgrade msb_8_0_11 msb_8_0_12",
 		Run:         runUpgradeSandbox,
 		Args:        SandboxNames(2),
-		Annotations: map[string]string{"export": ExportAnnotationToJson(DoubleSandboxDirExport)},
+		Annotations: map[string]string{"export": makeExportArgs(globals.ExportSandboxDir, 2)},
 	}
 	adminCapabilitiesCmd = &cobra.Command{
 		Use:   "capabilities [flavor [version]]",

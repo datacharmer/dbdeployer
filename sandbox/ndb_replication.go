@@ -52,7 +52,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		return err
 	}
 	if readOnlyOptions != "" {
-		return fmt.Errorf("options --read-only and --super-read-only can't be used for NDB topology\n")
+		return fmt.Errorf("options --read-only and --super-read-only can't be used for NDB topology")
 	}
 
 	vList, err := common.VersionToList(sandboxDef.Version)
@@ -273,9 +273,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		if err != nil {
 			return fmt.Errorf(globals.ErrCreatingSandbox, err)
 		}
-		for _, list := range execList {
-			execLists = append(execLists, list)
-		}
+		execLists = append(execLists, execList...)
 		var dataNode = common.StringMap{
 			"Copyright":   globals.Copyright,
 			"AppVersion":  common.VersionDef,

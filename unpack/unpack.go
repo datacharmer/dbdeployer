@@ -79,7 +79,7 @@ func condPrint(s string, nl bool, level int) {
 		if nl {
 			fmt.Println(s)
 		} else {
-			fmt.Printf(s)
+			fmt.Print(s)
 		}
 	}
 }
@@ -131,7 +131,7 @@ func UnpackTar(filename string, destination string, verbosityLevel int) (err err
 		return fmt.Errorf("destination directory '%s' does not exist", destination)
 	}
 	filemode := f.Mode()
-	if filemode.IsDir() == false {
+	if !filemode.IsDir() {
 		return fmt.Errorf("destination '%s' is not a directory", destination)
 	}
 	if !validSuffix(filename) {
@@ -258,7 +258,7 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 					return fmt.Errorf("%#v\n#ERROR: %s", header, err)
 				}
 			} else {
-				return fmt.Errorf("file %s is a symlink, but no link information was provided\n", filename)
+				return fmt.Errorf("file %s is a symlink, but no link information was provided", filename)
 			}
 		}
 	}

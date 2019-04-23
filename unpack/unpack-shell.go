@@ -45,7 +45,7 @@ func MergeShell(tarball, extension, basedir, destination, bareName string, verbo
 		}
 		destPath = path.Join(destination, dir, "mysqlsh")
 		if dir != "bin" && common.DirExists(destPath) {
-			return fmt.Errorf("destination shell directory %s/mysqlsh already exists in %s\n", dir, destination)
+			return fmt.Errorf("destination shell directory %s/mysqlsh already exists in %s", dir, destination)
 		}
 	}
 
@@ -56,7 +56,7 @@ func MergeShell(tarball, extension, basedir, destination, bareName string, verbo
 	case globals.TarXzExt:
 		err = UnpackXzTar(tarball, basedir, verbosity)
 	default:
-		return fmt.Errorf("unrecognized extension %s\n", extension)
+		return fmt.Errorf("unrecognized extension %s", extension)
 	}
 	if err != nil {
 		return err
@@ -67,7 +67,7 @@ func MergeShell(tarball, extension, basedir, destination, bareName string, verbo
 	for _, dir := range dirs {
 		fullPath := path.Join(extracted, dir)
 		if !common.DirExists(fullPath) {
-			return fmt.Errorf("source shell directory %s does not exist in %s\n", dir, extracted)
+			return fmt.Errorf("source shell directory %s does not exist in %s", dir, extracted)
 		}
 	}
 	bin := path.Join(extracted, "bin")
@@ -80,7 +80,7 @@ func MergeShell(tarball, extension, basedir, destination, bareName string, verbo
 		sourceDir := path.Join(extracted, dir, "mysqlsh")
 		destDir := path.Join(destination, dir, "mysqlsh")
 		if !common.DirExists(sourceDir) {
-			return fmt.Errorf("source shell directory %s/mysqlsh does not exist in %s\n", dir, extracted)
+			return fmt.Errorf("source shell directory %s/mysqlsh does not exist in %s", dir, extracted)
 		}
 		if verbosity >= VERBOSE {
 			fmt.Printf("Move %s %s\n", sourceDir, destDir)

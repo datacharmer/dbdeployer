@@ -279,7 +279,7 @@ func importTemplates(cmd *cobra.Command, args []string) {
 		if !common.DirExists(groupDir) {
 			continue
 		}
-		for name, _ := range group {
+		for name := range group {
 			fileName := path.Join(groupDir, name)
 			if !common.FileExists(fileName) {
 				continue

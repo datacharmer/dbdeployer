@@ -49,9 +49,8 @@ wsrep_sst_receive_address=127.0.0.1:__RSYNC_PORT__
 
 func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
 	var execLists []concurrent.ExecutionList
-	var err error
 
-	err = common.CheckPrerequisites("PXC", globals.NeededPxcExecutables)
+	err := common.CheckPrerequisites("PXC", globals.NeededPxcExecutables)
 	if err != nil {
 		return err
 	}
@@ -73,7 +72,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		return err
 	}
 	if readOnlyOptions != "" {
-		return fmt.Errorf("options --read-only and --super-read-only can't be used for PXC topology\n")
+		return fmt.Errorf("options --read-only and --super-read-only can't be used for PXC topology")
 	}
 
 	vList, err := common.VersionToList(sandboxDef.Version)
@@ -88,7 +87,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 
 	baseServerId := 0
 	if nodes < 3 {
-		return fmt.Errorf("Can't run PXC replication with less than 3 nodes")
+		return fmt.Errorf("can't run PXC replication with less than 3 nodes")
 	}
 	if common.DirExists(sandboxDef.SandboxDir) {
 		sandboxDef, err = checkDirectory(sandboxDef)
@@ -341,9 +340,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		if err != nil {
 			return fmt.Errorf(globals.ErrCreatingSandbox, err)
 		}
-		for _, list := range execList {
-			execLists = append(execLists, list)
-		}
+		execLists = append(execLists, execList...)
 		var dataNode = common.StringMap{
 			"Copyright":         globals.Copyright,
 			"AppVersion":        common.VersionDef,

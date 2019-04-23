@@ -42,9 +42,7 @@ func (l *Logger) Printf(format string, args ...interface{}) {
 
 	// injects operation number and caller into the function arguments
 	newArgs = append(newArgs, opNum)
-	for _, arg := range args {
-		newArgs = append(newArgs, arg)
-	}
+	newArgs = append(newArgs, args...)
 	// Calls the logger's Printf function, with the additional prefix
 	l.logger.Printf("[%s] "+format, newArgs...)
 }

@@ -20,15 +20,14 @@ import (
 	"testing"
 )
 
+type TestCapabilities struct {
+	flavors  []string
+	feature  string
+	version  string
+	expected bool
+}
+
 func TestHasCapability(t *testing.T) {
-
-	type TestCapabilities struct {
-		flavors  []string
-		feature  string
-		version  string
-		expected bool
-	}
-
 	var capabilitiesList = []TestCapabilities{
 		{[]string{MySQLFlavor, MariaDbFlavor, PerconaServerFlavor}, InstallDb, "5.1.72", true},
 		{[]string{MariaDbFlavor}, InstallDb, "5.5.0", true},
@@ -80,7 +79,13 @@ func TestHasCapability(t *testing.T) {
 		{[]string{MySQLFlavor, PerconaServerFlavor}, NativeAuth, "8.0.12", true},
 		{[]string{MySQLFlavor, PerconaServerFlavor}, DataDict, "5.7.40", false},
 		{[]string{MySQLFlavor, PerconaServerFlavor}, DataDict, "8.0.12", true},
+		{[]string{"no-such-flavor"}, "no-such-feature", "8.0.22", false},
 	}
+	testHasCapability(capabilitiesList, t)
+}
+
+func testHasCapability(capabilitiesList []TestCapabilities, t *testing.T) {
+
 	for _, cl := range capabilitiesList {
 
 		fmt.Printf("%s %s %s [%v]\n", cl.flavors, cl.feature, cl.version, cl.expected)
@@ -93,4 +98,27 @@ func TestHasCapability(t *testing.T) {
 			compare.OkEqualBool(fmt.Sprintf("%s for %s %s", cl.feature, flavor, cl.version), matches, cl.expected, t)
 		}
 	}
+}
+
+func TestCopyCapabilities(t *testing.T) {
+
+	copiedFeatureList := copyCapabilities(MySQLFlavor, []string{InstallDb, SemiSynch})
+	dummyCapabilities := Capabilities{
+		Flavor:   "dummy",
+		Features: copiedFeatureList,
+	}
+	AllCapabilities["dummy"] = dummyCapabilities
+	var capabilitiesList = []TestCapabilities{
+		{[]string{"dummy"}, InstallDb, "5.1.72", true},
+		{[]string{"dummy"}, InstallDb, "5.7.72", false},
+		{[]string{"dummy"}, InstallDb, "8.0.22", false},
+		{[]string{"dummy"}, SemiSynch, "5.0.22", false},
+		{[]string{"dummy"}, SemiSynch, "8.0.22", true},
+	}
+	testHasCapability(capabilitiesList, t)
+	delete(AllCapabilities, "dummy")
+	for N := 0; N < len(capabilitiesList); N++ {
+		capabilitiesList[N].expected = false
+	}
+	testHasCapability(capabilitiesList, t)
 }

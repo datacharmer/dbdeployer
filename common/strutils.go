@@ -50,10 +50,7 @@ func CondPrintln(args ...interface{}) {
 
 // Checks whether a given environment variable is set
 func IsEnvSet(envVar string) bool {
-	if os.Getenv(envVar) != "" {
-		return true
-	}
-	return false
+	return os.Getenv(envVar) != ""
 }
 
 // Given a path starting at the HOME directory
@@ -108,7 +105,7 @@ func MakeCustomizedUuid(port, nodeNum int) (string, error) {
 	case nodeNum >= 100000 && nodeNum < 1000000:
 		group2 = fmt.Sprintf("%04d-%04d-%04d", int(nodeNum/10000), 0, 0)
 	case nodeNum >= 1000000:
-		return "", fmt.Errorf("Node num out of boundaries: %d\n", nodeNum)
+		return "", fmt.Errorf("node num out of boundaries: %d", nodeNum)
 	}
 	return fmt.Sprintf("%s-%s-%s", group1, group2, group3), nil
 }
@@ -212,7 +209,7 @@ func StringToIntSlice(val string) (numberList []int, err error) {
 	for _, item := range list {
 		num, err := strconv.Atoi(strings.TrimSpace(item))
 		if err != nil {
-			return []int{}, fmt.Errorf("Value '%s' (part of %s) is not a number\n", item, val)
+			return []int{}, fmt.Errorf("value '%s' (part of %s) is not a number", item, val)
 		}
 		numberList = append(numberList, num)
 	}
