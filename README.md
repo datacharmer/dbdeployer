@@ -48,7 +48,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.28.0
+    $ VERSION=1.28.1
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
