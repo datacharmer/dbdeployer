@@ -1,7 +1,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.28.0 (14-Apr-2019 14:17 UTC)
+Documentation updated for version 1.29.0 (30-Apr-2019 17:41 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -48,7 +48,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.28.0
+    $ VERSION=1.29.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -83,7 +83,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.28.0
+    dbdeployer version 1.29.0
     
 
     $ dbdeployer -h
@@ -1106,7 +1106,9 @@ dbdeployer 1.10.0 introduces upgrades:
     dbdeployer admin upgrade msb_8_0_11 msb_8_0_12
     
     Flags:
-      -h, --help   help for upgrade
+          --dry-run   Shows upgrade operations, but don't execute them
+      -h, --help      help for upgrade
+          --verbose   Shows upgrade operations
     
     
 
@@ -1123,7 +1125,7 @@ dbdeployer checks all the conditions, then
 2. renames the data directory of the newer version;
 3. moves the data directory of the older version under the newer sandbox;
 4. restarts the newer version;
-5. runs ``mysql_upgrade``.
+5. runs ``mysql_upgrade`` (except with MySQL 8.0.16+, where [https://mysqlserverteam.com/mysql-8-0-16-mysql_upgrade-is-going-away/](the server does the upgrade on its own)).
 
 The older version is, at this point, not operational anymore, and can be deleted.
 
@@ -1376,18 +1378,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 1. Make sure you have go 1.10+ installed in your system, and that the ``$GOPATH`` variable is set.
 2. Run ``go get -u github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
-4. Run ``./scripts/build.sh {linux|OSX} 1.28.0``
-5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.28.0``
+4. Run ``./scripts/build.sh {linux|OSX} 1.29.0``
+5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.29.0``
 
 # Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.28.0-docs.linux.tar.gz
-* dbdeployer-1.28.0-docs.osx.tar.gz
-* dbdeployer-1.28.0.linux.tar.gz
-* dbdeployer-1.28.0.osx.tar.gz
+* dbdeployer-1.29.0-docs.linux.tar.gz
+* dbdeployer-1.29.0-docs.osx.tar.gz
+* dbdeployer-1.29.0.linux.tar.gz
+* dbdeployer-1.29.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

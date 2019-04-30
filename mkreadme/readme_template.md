@@ -695,7 +695,7 @@ dbdeployer checks all the conditions, then
 2. renames the data directory of the newer version;
 3. moves the data directory of the older version under the newer sandbox;
 4. restarts the newer version;
-5. runs ``mysql_upgrade``.
+5. runs ``mysql_upgrade`` (except with MySQL 8.0.16+, where [https://mysqlserverteam.com/mysql-8-0-16-mysql_upgrade-is-going-away/](the server does the upgrade on its own)).
 
 The older version is, at this point, not operational anymore, and can be deleted.
 

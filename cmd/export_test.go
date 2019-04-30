@@ -18,6 +18,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/globals"
 	"testing"
 
@@ -72,15 +73,10 @@ func TestExportStructure(t *testing.T) {
 			}
 		}
 	}
-	exportCapabilities := ExportJsonNamed("admin", "capabilities")
-	var commandCapabilities Command
-	err := json.Unmarshal([]byte(exportCapabilities), &commandCapabilities)
-	compare.OkIsNil("JSON export to command", err, t)
-	compare.OkEqualString("command name", commandCapabilities.Name, "capabilities", t)
-	compare.OkEqualInt("command breadcrumbs", len(commandCapabilities.Breadcrumbs), 3, t)
-	compare.OkMatchesString("command use", commandCapabilities.Use, `capabilities.*flavor.*version`, t)
 }
 
+// This test checks the expected structure and arguments
+// for most dbdeployer commands
 func TestExportImport(t *testing.T) {
 
 	type ExportImport struct {
@@ -92,79 +88,297 @@ func TestExportImport(t *testing.T) {
 		expectedArgument    string
 	}
 	var data = []ExportImport{
-		{"admin", "", "admin",
-			2, 4, ""},
-		{"admin", "capabilities", "capabilities",
-			3, 0, ""},
-		{"admin", "lock", "lock",
-			3, 0, globals.ExportSandboxDir},
-		{"admin", "unlock", "unlock",
-			3, 0, globals.ExportSandboxDir},
-		{"admin", "upgrade", "upgrade",
-			3, 0, globals.ExportSandboxDir},
-		{"defaults", "templates", "templates",
-			3, 6, ""},
-		{"delete", "", "delete",
-			2, 0, globals.ExportSandboxDir},
-		{"delete-binaries", "", "delete-binaries",
-			2, 0, globals.ExportVersionDir},
-		{"unpack", "", "unpack",
-			2, 0, globals.ExportString},
-		{"deploy", "single", "single",
-			3, 0, globals.ExportVersionDir},
-		{"deploy", "replication", "replication",
-			3, 0, globals.ExportVersionDir},
-		{"deploy", "multiple", "multiple",
-			3, 0, globals.ExportVersionDir},
-		{"cookbook", "list", "list",
-			3, 0, ""},
-		{"cookbook", "create", "create",
-			3, 0, globals.ExportCookbookName},
-		{"cookbook", "show", "show",
-			3, 0, globals.ExportCookbookName},
-		{"global", "", "global",
-			2, 7, ""},
-		{"global", "test", "test",
-			3, 0, ""},
-		{"global", "test-replication", "test-replication",
-			3, 0, ""},
-		{"global", "status", "status",
-			3, 0, ""},
-		{"global", "start", "start",
-			3, 0, ""},
-		{"global", "restart", "restart",
-			3, 0, ""},
-		{"global", "stop", "stop",
-			3, 0, ""},
-		{"global", "use", "use",
-			3, 0, globals.ExportString},
-		{"sandboxes", "", "sandboxes",
-			2, 0, ""},
-		{"usage", "", "usage",
-			2, 0, ""},
-		{"versions", "", "versions",
-			2, 0, ""},
+		{
+			commandName:         "admin",
+			subCommandName:      "",
+			expectedName:        "admin",
+			expectedAncestors:   2,
+			expectedSubCommands: 4,
+			expectedArgument:    "",
+		},
+		{
+			commandName:         "admin",
+			subCommandName:      "capabilities",
+			expectedName:        "capabilities",
+			expectedAncestors:   3,
+			expectedSubCommands: 0,
+			expectedArgument:    "",
+		},
+		{
+			commandName:         "admin",
+			subCommandName:      "lock",
+			expectedName:        "lock",
+			expectedAncestors:   3,
+			expectedSubCommands: 0,
+			expectedArgument:    globals.ExportSandboxDir,
+		},
+		{
+			commandName:         "admin",
+			subCommandName:      "unlock",
+			expectedName:        "unlock",
+			expectedAncestors:   3,
+			expectedSubCommands: 0,
+			expectedArgument:    globals.ExportSandboxDir,
+		},
+		{
+			commandName:         "admin",
+			subCommandName:      "upgrade",
+			expectedName:        "upgrade",
+			expectedAncestors:   3,
+			expectedSubCommands: 0,
+			expectedArgument:    globals.ExportSandboxDir,
+		},
+		{
+			commandName:         "defaults",
+			subCommandName:      "templates",
+			expectedName:        "templates",
+			expectedAncestors:   3,
+			expectedSubCommands: 6,
+			expectedArgument:    "",
+		},
+		{
+			commandName:         "delete",
+			subCommandName:      "",
+			expectedName:        "delete",
+			expectedAncestors:   2,
+			expectedSubCommands: 0,
+			expectedArgument:    globals.ExportSandboxDir,
+		},
+		{
+			commandName:         "delete-binaries",
+			subCommandName:      "",
+			expectedName:        "delete-binaries",
+			expectedAncestors:   2,
+			expectedSubCommands: 0,
+			expectedArgument:    globals.ExportVersionDir,
+		},
+		{
+			commandName:         "unpack",
+			subCommandName:      "",
+			expectedName:        "unpack",
+			expectedAncestors:   2,
+			expectedSubCommands: 0,
+			expectedArgument:    globals.ExportString,
+		},
+		{
+			commandName:         "deploy",
+			subCommandName:      "",
+			expectedName:        "deploy",
+			expectedAncestors:   2,
+			expectedSubCommands: 3,
+			expectedArgument:    "",
+		},
+		{
+			commandName:         "deploy",
+			subCommandName:      "single",
+			expectedName:        "single",
+			expectedAncestors:   3,
+			expectedSubCommands: 0,
+			expectedArgument:    globals.ExportVersionDir,
+		},
+		{
+			commandName:         "deploy",
+			subCommandName:      "replication",
+			expectedName:        "replication",
+			expectedAncestors:   3,
+			expectedSubCommands: 0,
+			expectedArgument:    globals.ExportVersionDir,
+		},
+		{
+			commandName:         "deploy",
+			subCommandName:      "multiple",
+			expectedName:        "multiple",
+			expectedAncestors:   3,
+			expectedSubCommands: 0,
+			expectedArgument:    globals.ExportVersionDir,
+		},
+		{
+			commandName:         "export",
+			subCommandName:      "",
+			expectedName:        "export",
+			expectedAncestors:   2,
+			expectedSubCommands: 0,
+			expectedArgument:    "",
+		},
+		{
+			commandName:         "cookbook",
+			subCommandName:      "list",
+			expectedName:        "list",
+			expectedAncestors:   3,
+			expectedSubCommands: 0,
+			expectedArgument:    "",
+		},
+		{
+			commandName:         "cookbook",
+			subCommandName:      "create",
+			expectedName:        "create",
+			expectedAncestors:   3,
+			expectedSubCommands: 0,
+			expectedArgument:    globals.ExportCookbookName,
+		},
+		{
+			commandName:         "cookbook",
+			subCommandName:      "show",
+			expectedName:        "show",
+			expectedAncestors:   3,
+			expectedSubCommands: 0,
+			expectedArgument:    globals.ExportCookbookName,
+		},
+		{
+			commandName:         "global",
+			subCommandName:      "",
+			expectedName:        "global",
+			expectedAncestors:   2,
+			expectedSubCommands: 7,
+			expectedArgument:    "",
+		},
+		{
+			commandName:         "global",
+			subCommandName:      "test",
+			expectedName:        "test",
+			expectedAncestors:   3,
+			expectedSubCommands: 0,
+			expectedArgument:    "",
+		},
+		{
+			commandName:         "global",
+			subCommandName:      "test-replication",
+			expectedName:        "test-replication",
+			expectedAncestors:   3,
+			expectedSubCommands: 0,
+			expectedArgument:    "",
+		},
+		{
+			commandName:         "global",
+			subCommandName:      "status",
+			expectedName:        "status",
+			expectedAncestors:   3,
+			expectedSubCommands: 0,
+			expectedArgument:    "",
+		},
+		{
+			commandName:         "global",
+			subCommandName:      "start",
+			expectedName:        "start",
+			expectedAncestors:   3,
+			expectedSubCommands: 0,
+			expectedArgument:    "",
+		},
+		{
+			commandName:         "global",
+			subCommandName:      "restart",
+			expectedName:        "restart",
+			expectedAncestors:   3,
+			expectedSubCommands: 0,
+			expectedArgument:    "",
+		},
+		{
+			commandName:         "global",
+			subCommandName:      "stop",
+			expectedName:        "stop",
+			expectedAncestors:   3,
+			expectedSubCommands: 0,
+			expectedArgument:    "",
+		},
+		{
+			commandName:         "global",
+			subCommandName:      "use",
+			expectedName:        "use",
+			expectedAncestors:   3,
+			expectedSubCommands: 0,
+			expectedArgument:    globals.ExportString,
+		},
+		{
+			commandName:         "remote",
+			subCommandName:      "",
+			expectedName:        "remote",
+			expectedAncestors:   2,
+			expectedSubCommands: 2,
+			expectedArgument:    "",
+		},
+		{
+			commandName:         "remote",
+			subCommandName:      "list",
+			expectedName:        "list",
+			expectedAncestors:   3,
+			expectedSubCommands: 0,
+			expectedArgument:    "",
+		},
+		{
+			commandName:         "remote",
+			subCommandName:      "download",
+			expectedName:        "download",
+			expectedAncestors:   3,
+			expectedSubCommands: 0,
+			expectedArgument:    globals.ExportString,
+		},
+		{
+			commandName:         "sandboxes",
+			subCommandName:      "",
+			expectedName:        "sandboxes",
+			expectedAncestors:   2,
+			expectedSubCommands: 0,
+			expectedArgument:    "",
+		},
+		{
+			commandName:         "usage",
+			subCommandName:      "",
+			expectedName:        "usage",
+			expectedAncestors:   2,
+			expectedSubCommands: 0,
+			expectedArgument:    "",
+		},
+		{
+			commandName:         "versions",
+			subCommandName:      "",
+			expectedName:        "versions",
+			expectedAncestors:   2,
+			expectedSubCommands: 0,
+			expectedArgument:    "",
+		},
 	}
 
 	for _, sample := range data {
 		exportSample := ExportJsonNamed(sample.commandName, sample.subCommandName)
 		var commandSample Command
 		err := json.Unmarshal([]byte(exportSample), &commandSample)
-		compare.OkIsNil(
-			fmt.Sprintf("JSON export to command %s.%s", sample.subCommandName, sample.subCommandName), err, t)
-		compare.OkEqualInt(
-			fmt.Sprintf("command %s.%s breadcrumbs", sample.commandName, sample.subCommandName),
-			len(commandSample.Breadcrumbs), sample.expectedAncestors, t)
-		compare.OkEqualInt(
-			fmt.Sprintf("command %s.%s subcommands", sample.commandName, sample.subCommandName),
-			len(commandSample.SubCommands), sample.expectedSubCommands, t)
+		if err != nil {
+			panic(fmt.Sprintf("ERROR unmarshalling JSON structure - Can't continue: %s", err))
+		}
+		testName := ""
+		if sample.subCommandName == "" {
+			testName = sample.commandName
+		} else {
+			testName = fmt.Sprintf("%s.%s", sample.commandName, sample.subCommandName)
+		}
+
 		foundArgument := ""
 		if len(commandSample.Annotations.Arguments) > 0 {
 			foundArgument = commandSample.Annotations.Arguments[0].Name
 		}
-		compare.OkEqualString(fmt.Sprintf("command %s.%s argument", sample.commandName, sample.subCommandName),
-			foundArgument, sample.expectedArgument, t)
-		compare.OkEqualString(fmt.Sprintf("command %s.%s name", sample.commandName, sample.subCommandName),
-			commandSample.Name, sample.expectedName, t)
+		testExpectedBreadcrumbs := fmt.Sprintf("command %s breadcrumbs", testName)
+		testExpectedSubCommands := fmt.Sprintf("command %s subcommands", testName)
+		testExpectedName := fmt.Sprintf("command %s name", testName)
+		testExpectedVersion := fmt.Sprintf("command %s version", testName)
+		testArgument := fmt.Sprintf("command %s argument", testName)
+
+		compare.OkIsNil(fmt.Sprintf("JSON export string to command %s", testName), err, t)
+		compare.OkEqualInt(testExpectedBreadcrumbs, len(commandSample.Breadcrumbs), sample.expectedAncestors, t)
+		compare.OkEqualInt(testExpectedSubCommands, len(commandSample.SubCommands), sample.expectedSubCommands, t)
+		compare.OkEqualString(testArgument, foundArgument, sample.expectedArgument, t)
+
+		// The name of the exported command should be either the main command (when the sub-command is empty)
+		// or the name of the sub-command, when used
+		compare.OkEqualString(testExpectedName, commandSample.Name, sample.expectedName, t)
+
+		// Every exported structure at the top should have the current version
+		compare.OkEqualString(testExpectedVersion, commandSample.Version, common.VersionDef, t)
+
+		if len(commandSample.SubCommands) > 0 {
+			subCommand := commandSample.SubCommands[0]
+			// The version of an exported sub-command should be empty. Only the top exported command should
+			// have the version
+			compare.OkEqualString("sub-command version", subCommand.Version, "", t)
+		}
 	}
 }

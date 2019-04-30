@@ -535,7 +535,13 @@ function upgrade_db {
     (set -x
     $SANDBOX_HOME/$upgrade_from_dir/use -e "CREATE TABLE IF NOT EXISTS test.upgrade_log(id int not null auto_increment primary key, server_id int, vers varchar(50), urole varchar(20), ts timestamp)"
     $SANDBOX_HOME/$upgrade_from_dir/use -e "INSERT INTO test.upgrade_log (server_id, vers, urole) VALUES (@@server_id, @@version, 'original')"
-    dbdeployer admin upgrade $upgrade_from_dir $upgrade_to_dir
+    verbose_allowed=$(dbdeployer admin upgrade --help| grep 'verbose\|dry-run' | wc -l | tr -d ' \t')
+    upgrade_options=""
+    if [ "$verbose_allowed" == "2" ]
+    then
+        upgrade_options="--verbose"
+    fi
+    dbdeployer admin upgrade $upgrade_from_dir $upgrade_to_dir $upgrade_options
     )
     if [ ! -f $upgrade_to_dir/no_upgrade ]
     then

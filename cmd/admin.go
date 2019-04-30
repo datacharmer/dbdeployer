@@ -169,7 +169,21 @@ func unlockSandbox(cmd *cobra.Command, args []string) {
 	}
 }
 
-func upgradeSandbox(sandboxDir, oldSandbox, newSandbox string) error {
+func DryRunCmdWithArgs(cmd string, args []string, dryRun bool) (string, error) {
+	if dryRun {
+		return "", nil
+	}
+	return common.RunCmdWithArgs(cmd, args)
+}
+
+func DryRunCmd(cmd string, dryRun bool) (string, error) {
+	if dryRun {
+		return "", nil
+	}
+	return common.RunCmd(cmd)
+}
+
+func upgradeSandbox(sandboxDir, oldSandbox, newSandbox string, verbose, dryRun bool) error {
 	var possibleUpgrades = map[string]string{
 		"5.0": "5.1",
 		"5.1": "5.5",
@@ -177,6 +191,12 @@ func upgradeSandbox(sandboxDir, oldSandbox, newSandbox string) error {
 		"5.6": "5.7",
 		"5.7": "8.0",
 		"8.0": "8.0",
+	}
+	if dryRun {
+		verbose = true
+	}
+	if verbose {
+		fmt.Printf("cd %s\n", sandboxDir)
 	}
 	err := os.Chdir(sandboxDir)
 	common.ErrCheckExitf(err, 1, "can't change directory to %s", sandboxDir)
@@ -221,13 +241,19 @@ func upgradeSandbox(sandboxDir, oldSandbox, newSandbox string) error {
 	oldRev := oldVersionList[2]
 	newUpgradeVersion := fmt.Sprintf("%d.%d", newVersionList[0], newVersionList[1])
 	oldUpgradeVersion := fmt.Sprintf("%d.%d", oldVersionList[0], oldVersionList[1])
-	if oldMajor == 10 || newMajor == 10 {
+	if oldSbdesc.Flavor == common.MariaDbFlavor || newSbdesc.Flavor == common.MariaDbFlavor {
 		common.Exit(1, "upgrade from and to MariaDB is not supported")
 	}
 	greaterThanNewVersion, err := common.GreaterOrEqualVersionList(oldVersionList, newVersionList)
 	common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
 	if greaterThanNewVersion {
 		common.Exitf(1, "version %s must be greater than %s", newUpgradeVersion, oldUpgradeVersion)
+	}
+
+	// 8.0.16
+	upgradeWithServer, err := common.HasCapability(newSbdesc.Flavor, common.UpgradeWithServer, newSbdesc.Version)
+	if err != nil {
+		return errors.Wrapf(err, "error detecting upgrade capability")
 	}
 	canBeUpgraded := false
 	if oldMajor < newMajor {
@@ -242,42 +268,72 @@ func upgradeSandbox(sandboxDir, oldSandbox, newSandbox string) error {
 		}
 	}
 	if !canBeUpgraded {
-		return errors.Errorf("version '%s' can only be upgraded to '%s' or to the same version with a higher revision", oldUpgradeVersion, possibleUpgrades[oldUpgradeVersion])
+		return fmt.Errorf("version '%s' can only be upgraded to '%s' or to the same version with a higher revision", oldUpgradeVersion, possibleUpgrades[oldUpgradeVersion])
 	}
 	newSandboxOldData := path.Join(newSandbox, globals.DataDirName+"-"+newSandbox)
 	if common.DirExists(newSandboxOldData) {
-		return errors.Errorf("sandbox '%s' is already the upgrade from an older version", newSandbox)
+		return fmt.Errorf("sandbox '%s' is already the upgrade from an older version", newSandbox)
 	}
-	_, err = common.RunCmd(path.Join(oldSandbox, globals.ScriptStop))
+	oldScriptStop := path.Join(oldSandbox, globals.ScriptStop)
+	if verbose {
+		fmt.Printf("# %s\n", oldScriptStop)
+	}
+	_, err = DryRunCmd(oldScriptStop, dryRun)
 	if err != nil {
 		return errors.Wrapf(err, globals.ErrWhileStoppingSandbox, oldSandbox)
 	}
-	_, err = common.RunCmd(path.Join(newSandbox, globals.ScriptStop))
+	newScriptStop := path.Join(newSandbox, globals.ScriptStop)
+	if verbose {
+		fmt.Printf("# %s\n", newScriptStop)
+	}
+	_, err = DryRunCmd(newScriptStop, dryRun)
 	if err != nil {
 		return errors.Wrapf(err, globals.ErrWhileStoppingSandbox, newSandbox)
 	}
 	mvArgs := []string{path.Join(newSandbox, globals.DataDirName), newSandboxOldData}
-	_, err = common.RunCmdWithArgs("mv", mvArgs)
+	if verbose {
+		fmt.Printf("# mv %v\n", mvArgs)
+	}
+	_, err = DryRunCmdWithArgs("mv", mvArgs, dryRun)
 	if err != nil {
 		return errors.Wrapf(err, "error while moving data directory in sandbox %s", newSandbox)
 	}
 
 	mvArgs = []string{path.Join(oldSandbox, globals.DataDirName), path.Join(newSandbox, globals.DataDirName)}
-	_, err = common.RunCmdWithArgs("mv", mvArgs)
+	if verbose {
+		fmt.Printf("# mv %v\n", mvArgs)
+	}
+	_, err = DryRunCmdWithArgs("mv", mvArgs, dryRun)
 	if err != nil {
 		return errors.Wrapf(err, "error while moving data directory from sandbox %s to %s", oldSandbox, newSandbox)
 	}
 	common.CondPrintf("Data directory %s/data moved to %s/data \n", oldSandbox, newSandbox)
 
-	_, err = common.RunCmd(path.Join(newSandbox, globals.ScriptStart))
+	scriptStart := path.Join(newSandbox, globals.ScriptStart)
+	if upgradeWithServer {
+		if verbose {
+			fmt.Printf("# %s --upgrade=FORCE\n", scriptStart)
+		}
+		_, err = DryRunCmdWithArgs(scriptStart, []string{"--upgrade=FORCE"}, dryRun)
+	} else {
+		if verbose {
+			fmt.Printf("# %s\n", scriptStart)
+		}
+		_, err = DryRunCmd(scriptStart, dryRun)
+	}
 	if err != nil {
 		return errors.Wrapf(err, globals.ErrWhileStartingSandbox, newSandbox)
 	}
-	upgradeArgs := []string{"sql_upgrade"}
-	_, err = common.RunCmdWithArgs(path.Join(newSandbox, globals.ScriptMy), upgradeArgs)
-	if err != nil {
-
-		return errors.Wrapf(err, "error while running mysql_upgrade in %s", newSandbox)
+	if !upgradeWithServer {
+		upgradeArgs := []string{"sql_upgrade"}
+		scriptMy := path.Join(newSandbox, globals.ScriptMy)
+		if verbose {
+			fmt.Printf("# %s %v\n", scriptMy, upgradeArgs)
+		}
+		_, err = DryRunCmdWithArgs(scriptMy, upgradeArgs, dryRun)
+		if err != nil {
+			return errors.Wrapf(err, "error while running mysql_upgrade in %s", newSandbox)
+		}
 	}
 	fmt.Println("")
 	common.CondPrintf("The data directory from %s/data is preserved in %s\n", newSandbox, newSandboxOldData)
@@ -295,10 +351,12 @@ func runUpgradeSandbox(cmd *cobra.Command, args []string) {
 	oldSandbox := args[0]
 	newSandbox := args[1]
 	sandboxDir, err := getAbsolutePathFromFlag(cmd, "sandbox-home")
+	verbose, _ := cmd.Flags().GetBool(globals.VerboseLabel)
+	dryRun, _ := cmd.Flags().GetBool(globals.DryRunLabel)
 	if err != nil {
 		common.Exitf(1, "%+v", err)
 	}
-	err = upgradeSandbox(sandboxDir, oldSandbox, newSandbox)
+	err = upgradeSandbox(sandboxDir, oldSandbox, newSandbox, verbose, dryRun)
 	if err != nil {
 		common.Exitf(1, "%+v", err)
 	}
@@ -427,4 +485,6 @@ func init() {
 	adminCmd.AddCommand(adminUnlockCmd)
 	adminCmd.AddCommand(adminUpgradeCmd)
 	adminCmd.AddCommand(adminCapabilitiesCmd)
+	adminUpgradeCmd.Flags().BoolP(globals.VerboseLabel, "", false, "Shows upgrade operations")
+	adminUpgradeCmd.Flags().BoolP(globals.DryRunLabel, "", false, "Shows upgrade operations, but don't execute them")
 }

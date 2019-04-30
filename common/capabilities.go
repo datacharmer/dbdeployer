@@ -53,27 +53,29 @@ const (
 	TiDbFlavor          = "tidb"
 
 	// Feature names
-	InstallDb        = "installdb"
-	DynVariables     = "dynVars"
-	SemiSynch        = "semiSync"
-	CrashSafe        = "crashSafe"
-	GTID             = "GTID"
-	EnhancedGTID     = "enhancedGTID"
-	Initialize       = "initialize"
-	CreateUser       = "createUser"
-	SuperReadOnly    = "superReadOnly"
-	MySQLX           = "mysqlx"
-	MySQLXDefault    = "mysqlxDefault"
-	MultiSource      = "multiSource"
-	GroupReplication = "groupReplication"
-	SetPersist       = "setPersist"
-	Roles            = "roles"
-	NativeAuth       = "nativeAuth"
-	DataDict         = "datadict"
-	XtradbCluster    = "xtradbCluster"
-	NdbCluster       = "ndbCluster"
-	RootAuth         = "rootAuth"
-	AdminAddress     = "adminAddress"
+	InstallDb         = "installdb"
+	DynVariables      = "dynVars"
+	SemiSynch         = "semiSync"
+	CrashSafe         = "crashSafe"
+	GTID              = "GTID"
+	EnhancedGTID      = "enhancedGTID"
+	Initialize        = "initialize"
+	CreateUser        = "createUser"
+	SuperReadOnly     = "superReadOnly"
+	MySQLX            = "mysqlx"
+	MySQLXDefault     = "mysqlxDefault"
+	MultiSource       = "multiSource"
+	GroupReplication  = "groupReplication"
+	SetPersist        = "setPersist"
+	Roles             = "roles"
+	NativeAuth        = "nativeAuth"
+	DataDict          = "datadict"
+	UpgradeWithTool   = "upgrade_with_tool"
+	UpgradeWithServer = "upgrade_with_server"
+	XtradbCluster     = "xtradbCluster"
+	NdbCluster        = "ndbCluster"
+	RootAuth          = "rootAuth"
+	AdminAddress      = "adminAddress"
 )
 
 var MySQLCapabilities = Capabilities{
@@ -152,6 +154,15 @@ var MySQLCapabilities = Capabilities{
 		AdminAddress: {
 			Description: "Connection through admin address",
 			Since:       globals.MinimumAdminAddressVersion,
+		},
+		UpgradeWithTool: {
+			Description: "upgrade using mysql_upgrade tool",
+			Since:       globals.MinimumMySQLUpgradeTool,
+			Until:       globals.MaximumMySQLUpgradeTool,
+		},
+		UpgradeWithServer: {
+			Description: "upgrade using mysqld server",
+			Since:       globals.MinimumMySQLUpgradeServer,
 		},
 	},
 }

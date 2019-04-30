@@ -1,3 +1,11 @@
+1.29.0	30-Apr-2019
+	ADJUSTMENTS
+	- Change upgrade procedure for MySQL 8.0.16+
+	- Adjust cookbook upgrade recipe to use verbose output
+	NEW FEATURES
+	- Add options --dry-run and --verbose to upgrade command
+	TESTING
+	- Enhance export tests
 1.28.2	22-Apr-2019
 	BUGS FIXED
 	- Add missing error checks

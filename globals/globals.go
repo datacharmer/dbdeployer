@@ -86,6 +86,9 @@ const (
 	// Instantiated in cmd/single.go
 	MasterLabel = "master"
 
+	// Instantiated in cmd/admin.go
+	VerboseLabel = "verbose"
+	DryRunLabel  = "dry-run"
 	// Instantiated in cmd/replication.go
 	AllMastersLabel     = "all-masters"
 	FanInLabel          = "fan-in"
@@ -277,6 +280,9 @@ const MaxAllowedPort int = 64000
 // Authentication plugin changed in 8.0.4
 // MySQLX was enabled by default starting with 8.0.11
 var (
+	MinimumMySQLUpgradeTool          = NumericVersion{5, 0, 0}
+	MaximumMySQLUpgradeTool          = NumericVersion{8, 0, 15}
+	MinimumMySQLUpgradeServer        = NumericVersion{8, 0, 16}
 	MinimumMySQLInstallDb            = NumericVersion{3, 3, 23}
 	MaximumMySQLInstallDb            = NumericVersion{5, 6, 999}
 	MinimumDynVariablesVersion       = NumericVersion{5, 1, 0}
