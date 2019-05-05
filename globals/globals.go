@@ -150,17 +150,19 @@ const (
 
 	// Instantiated in cmd/export.go
 
-	ForceOutputToTermLabel  = "force-output-to-terminal"
-	ExportSandboxDir        = "sandbox-dir"
-	ExportVersionDir        = "version-dir"
-	ExportTemplateGroup     = "template-group"
-	ExportTemplateName      = "template-name"
-	ExportString            = "string"
-	ExportInteger           = "integer"
-	ExportBoolean           = "boolean"
-	ExportCookbookName      = "cookbook-name"
-	ExportTopology          = "topology"
-	ExportAllowedTopologies = "allowed-topologies"
+	ForceOutputToTermLabel       = "force-output-to-terminal"
+	ExportSandboxDir             = "sandbox-dir"
+	ExportVersionDir             = "version-dir"
+	ExportTemplateGroup          = "template-group"
+	ExportTemplateName           = "template-name"
+	ExportString                 = "string"
+	ExportInteger                = "integer"
+	ExportBoolean                = "boolean"
+	ExportCookbookName           = "cookbook-name"
+	ExportTopology               = "topology"
+	ExportAllowedTopologies      = "allowed-topologies"
+	ExportSupportedAllVersions   = "supported-all-versions"
+	ExportSupportedMysqlVersions = "supported-mysql-versions"
 
 	// Instantiated in sandbox package
 	AutoCnfName          = "auto.cnf"
@@ -357,8 +359,13 @@ var AllowedTopologies = []string{
 	NdbLabel,
 }
 
+// This structure is not used directly by dbdeployer.
+// It is here to be used by third party applications that
+// use metadata exported using cmd.Export()
 var ExportReferenceData = map[string]interface{}{
-	ExportAllowedTopologies: AllowedTopologies,
+	ExportAllowedTopologies:      AllowedTopologies,
+	ExportSupportedAllVersions:   SupportedAllVersions,
+	ExportSupportedMysqlVersions: SupportedMySQLVersions,
 }
 
 var (
@@ -374,6 +381,14 @@ var (
 		"awk", "bash", "cat", "date", "echo", "grep", "hostname",
 		"kill", "ls", "mkdir", "mv", "printf", "rm", "seq", "sh",
 		"sleep", "stat", "tail", "test", "[", "touch", "tr", "wc"}
+
+	SupportedMySQLVersions = []string{
+		"4.1", "5.0", "5.1", "5.5", "5.6", "5.7", "8.0",
+	}
+	SupportedAllVersions = []string{
+		"4.1", "5.0", "5.1", "5.5", "5.6", "5.7", "8.0",
+		"10.0", "10.1", "10.2", "10.3", "10.4",
+	}
 
 	// Extra executables needed for PXC
 	NeededPxcExecutables = []string{"rsync", "lsof"}

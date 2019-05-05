@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/compare"
+	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/sandbox"
 	"testing"
 )
@@ -48,6 +49,14 @@ func TestGetLatestVersion(t *testing.T) {
 		recipe, _, _ = GetRecipe("single", common.MySQLFlavor)
 		compare.OkMatchesString("recipe single", recipe, version, t)
 	}
+	dummyRecipe := RecipeTemplate{
+		Contents: `sandbox prefix ="{{.SandboxPrefix}}" - replication prefix = "{{.MasterSlavePrefix}}" <{{.PxcBasePort}}>`,
+	}
+	RecipesList["dummy"] = dummyRecipe
+
+	recipeText, _, _ := GetRecipe("dummy", common.MySQLFlavor)
+	compare.OkMatchesString("dummy recipe", recipeText, defaults.Defaults().SandboxPrefix, t)
+	compare.OkMatchesString("dummy recipe", recipeText, defaults.Defaults().MasterSlavePrefix, t)
 
 	err = sandbox.RemoveMockEnvironment(sandbox.DefaultMockDir)
 	compare.OkIsNil("removing mock environment", err, t)

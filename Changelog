@@ -1,3 +1,17 @@
+1.30.0	05-May-2019
+	BUGS FIXED
+	- Fix Issue #72 Catalog operations can clash with multiple dbdeployer runs
+	- Fix wrong description for "defaults update"
+	- Fix wrong description for "cookbook create"
+	- Fix option --sort-by incorrectly assigned to command "cookbook" instead 
+	  of subcommand "cookbook list"
+	NEW FEATURES
+	- Add command "dbdeployer info" to improve dbdeployer usage in scripts
+	TESTING
+	- Add test for parallel usage
+	- Reinstate parallel deployment in functional test
+	- Improve replication between sandboxes test, by checking
+	  for existing versions better.
 1.29.0	30-Apr-2019
 	ADJUSTMENTS
 	- Change upgrade procedure for MySQL 8.0.16+

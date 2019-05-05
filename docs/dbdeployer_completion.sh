@@ -392,7 +392,6 @@ _dbdeployer_cookbook_create()
     flags+=("--flavor=")
     flags+=("--sandbox-binary=")
     flags+=("--sandbox-home=")
-    flags+=("--sort-by=")
 
     must_have_one_flag=()
     must_have_one_noun=()
@@ -413,11 +412,11 @@ _dbdeployer_cookbook_list()
     flags_with_completion=()
     flags_completion=()
 
+    flags+=("--sort-by=")
     flags+=("--config=")
     flags+=("--flavor=")
     flags+=("--sandbox-binary=")
     flags+=("--sandbox-home=")
-    flags+=("--sort-by=")
 
     must_have_one_flag=()
     must_have_one_noun=()
@@ -444,7 +443,6 @@ _dbdeployer_cookbook_show()
     flags+=("--flavor=")
     flags+=("--sandbox-binary=")
     flags+=("--sandbox-home=")
-    flags+=("--sort-by=")
 
     must_have_one_flag=()
     must_have_one_noun=()
@@ -473,7 +471,6 @@ _dbdeployer_cookbook()
     flags_completion=()
 
     flags+=("--flavor=")
-    flags+=("--sort-by=")
     flags+=("--config=")
     flags+=("--sandbox-binary=")
     flags+=("--sandbox-home=")
@@ -1438,6 +1435,80 @@ _dbdeployer_global()
     noun_aliases=()
 }
 
+_dbdeployer_info_defaults()
+{
+    last_command="dbdeployer_info_defaults"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--config=")
+    flags+=("--flavor=")
+    flags+=("--sandbox-binary=")
+    flags+=("--sandbox-home=")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_dbdeployer_info_version()
+{
+    last_command="dbdeployer_info_version"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--config=")
+    flags+=("--flavor=")
+    flags+=("--sandbox-binary=")
+    flags+=("--sandbox-home=")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_dbdeployer_info()
+{
+    last_command="dbdeployer_info"
+
+    command_aliases=()
+
+    commands=()
+    commands+=("defaults")
+    commands+=("version")
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--flavor=")
+    flags+=("--config=")
+    flags+=("--sandbox-binary=")
+    flags+=("--sandbox-home=")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _dbdeployer_remote_download()
 {
     last_command="dbdeployer_remote_download"
@@ -1668,6 +1739,7 @@ _dbdeployer_root_command()
         aliashash["dump"]="export"
     fi
     commands+=("global")
+    commands+=("info")
     commands+=("remote")
     commands+=("sandboxes")
     if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then

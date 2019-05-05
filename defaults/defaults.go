@@ -27,47 +27,43 @@ import (
 )
 
 type DbdeployerDefaults struct {
-	Version           string `json:"version"`
-	SandboxHome       string `json:"sandbox-home"`
-	SandboxBinary     string `json:"sandbox-binary"`
-	UseSandboxCatalog bool   `json:"use-sandbox-catalog"`
-	LogSBOperations   bool   `json:"log-sb-operations"`
-	LogDirectory      string `json:"log-directory"`
-	CookbookDirectory string `json:"cookbook-directory"`
-
-	//UseConcurrency    			   bool   `json:"use-concurrency"`
-	MasterSlaveBasePort           int `json:"master-slave-base-port"`
-	GroupReplicationBasePort      int `json:"group-replication-base-port"`
-	GroupReplicationSpBasePort    int `json:"group-replication-sp-base-port"`
-	FanInReplicationBasePort      int `json:"fan-in-replication-base-port"`
-	AllMastersReplicationBasePort int `json:"all-masters-replication-base-port"`
-	MultipleBasePort              int `json:"multiple-base-port"`
-	// GaleraBasePort                 int    `json:"galera-base-port"`
-	PxcBasePort       int    `json:"pxc-base-port"`
-	NdbBasePort       int    `json:"ndb-base-port"`
-	NdbClusterPort    int    `json:"ndb-cluster-port"`
-	GroupPortDelta    int    `json:"group-port-delta"`
-	MysqlXPortDelta   int    `json:"mysqlx-port-delta"`
-	AdminPortDelta    int    `json:"admin-port-delta"`
-	MasterName        string `json:"master-name"`
-	MasterAbbr        string `json:"master-abbr"`
-	NodePrefix        string `json:"node-prefix"`
-	SlavePrefix       string `json:"slave-prefix"`
-	SlaveAbbr         string `json:"slave-abbr"`
-	SandboxPrefix     string `json:"sandbox-prefix"`
-	MasterSlavePrefix string `json:"master-slave-prefix"`
-	GroupPrefix       string `json:"group-prefix"`
-	GroupSpPrefix     string `json:"group-sp-prefix"`
-	MultiplePrefix    string `json:"multiple-prefix"`
-	FanInPrefix       string `json:"fan-in-prefix"`
-	AllMastersPrefix  string `json:"all-masters-prefix"`
-	ReservedPorts     []int  `json:"reserved-ports"`
-	RemoteRepository  string `json:"remote-repository"`
-	RemoteIndexFile   string `json:"remote-index-file"`
-	// GaleraPrefix                   string `json:"galera-prefix"`
-	PxcPrefix string `json:"pxc-prefix"`
-	NdbPrefix string `json:"ndb-prefix"`
-	Timestamp string `json:"timestamp"`
+	Version                       string `json:"version"`
+	SandboxHome                   string `json:"sandbox-home"`
+	SandboxBinary                 string `json:"sandbox-binary"`
+	UseSandboxCatalog             bool   `json:"use-sandbox-catalog"`
+	LogSBOperations               bool   `json:"log-sb-operations"`
+	LogDirectory                  string `json:"log-directory"`
+	CookbookDirectory             string `json:"cookbook-directory"`
+	MasterSlaveBasePort           int    `json:"master-slave-base-port"`
+	GroupReplicationBasePort      int    `json:"group-replication-base-port"`
+	GroupReplicationSpBasePort    int    `json:"group-replication-sp-base-port"`
+	FanInReplicationBasePort      int    `json:"fan-in-replication-base-port"`
+	AllMastersReplicationBasePort int    `json:"all-masters-replication-base-port"`
+	MultipleBasePort              int    `json:"multiple-base-port"`
+	PxcBasePort                   int    `json:"pxc-base-port"`
+	NdbBasePort                   int    `json:"ndb-base-port"`
+	NdbClusterPort                int    `json:"ndb-cluster-port"`
+	GroupPortDelta                int    `json:"group-port-delta"`
+	MysqlXPortDelta               int    `json:"mysqlx-port-delta"`
+	AdminPortDelta                int    `json:"admin-port-delta"`
+	MasterName                    string `json:"master-name"`
+	MasterAbbr                    string `json:"master-abbr"`
+	NodePrefix                    string `json:"node-prefix"`
+	SlavePrefix                   string `json:"slave-prefix"`
+	SlaveAbbr                     string `json:"slave-abbr"`
+	SandboxPrefix                 string `json:"sandbox-prefix"`
+	MasterSlavePrefix             string `json:"master-slave-prefix"`
+	GroupPrefix                   string `json:"group-prefix"`
+	GroupSpPrefix                 string `json:"group-sp-prefix"`
+	MultiplePrefix                string `json:"multiple-prefix"`
+	FanInPrefix                   string `json:"fan-in-prefix"`
+	AllMastersPrefix              string `json:"all-masters-prefix"`
+	ReservedPorts                 []int  `json:"reserved-ports"`
+	RemoteRepository              string `json:"remote-repository"`
+	RemoteIndexFile               string `json:"remote-index-file"`
+	PxcPrefix                     string `json:"pxc-prefix"`
+	NdbPrefix                     string `json:"ndb-prefix"`
+	Timestamp                     string `json:"timestamp"`
 }
 
 const (
@@ -85,19 +81,17 @@ var (
 	ConfigurationFile       string = path.Join(ConfigurationDir, ConfigurationFileName)
 	CustomConfigurationFile string = ""
 	SandboxRegistry         string = path.Join(ConfigurationDir, SandboxRegistryName)
-	SandboxRegistryLock     string = path.Join(ConfigurationDir, SandboxRegistryLockName)
+	SandboxRegistryLock     string = path.Join(common.GlobalTempDir(), SandboxRegistryLockName)
 	LogSBOperations         bool   = common.IsEnvSet("DBDEPLOYER_LOGGING")
 
 	factoryDefaults = DbdeployerDefaults{
-		Version:       common.CompatibleVersion,
-		SandboxHome:   path.Join(homeDir, "sandboxes"),
-		SandboxBinary: path.Join(homeDir, "opt", "mysql"),
-
-		UseSandboxCatalog: true,
-		LogSBOperations:   false,
-		LogDirectory:      path.Join(homeDir, "sandboxes", "logs"),
-		CookbookDirectory: "recipes",
-		//UseConcurrency :			   true,
+		Version:                       common.CompatibleVersion,
+		SandboxHome:                   path.Join(homeDir, "sandboxes"),
+		SandboxBinary:                 path.Join(homeDir, "opt", "mysql"),
+		UseSandboxCatalog:             true,
+		LogSBOperations:               false,
+		LogDirectory:                  path.Join(homeDir, "sandboxes", "logs"),
+		CookbookDirectory:             "recipes",
 		MasterSlaveBasePort:           11000,
 		GroupReplicationBasePort:      12000,
 		GroupReplicationSpBasePort:    13000,
@@ -105,24 +99,23 @@ var (
 		AllMastersReplicationBasePort: 15000,
 		MultipleBasePort:              16000,
 		PxcBasePort:                   18000,
-		// GaleraBasePort:                17000,
-		NdbBasePort:       19000,
-		NdbClusterPort:    20000,
-		GroupPortDelta:    125,
-		MysqlXPortDelta:   10000,
-		AdminPortDelta:    11000,
-		MasterName:        "master",
-		MasterAbbr:        "m",
-		NodePrefix:        "node",
-		SlavePrefix:       "slave",
-		SlaveAbbr:         "s",
-		SandboxPrefix:     "msb_",
-		MasterSlavePrefix: "rsandbox_",
-		GroupPrefix:       "group_msb_",
-		GroupSpPrefix:     "group_sp_msb_",
-		MultiplePrefix:    "multi_msb_",
-		FanInPrefix:       "fan_in_msb_",
-		AllMastersPrefix:  "all_masters_msb_",
+		NdbBasePort:                   19000,
+		NdbClusterPort:                20000,
+		GroupPortDelta:                125,
+		MysqlXPortDelta:               10000,
+		AdminPortDelta:                11000,
+		MasterName:                    "master",
+		MasterAbbr:                    "m",
+		NodePrefix:                    "node",
+		SlavePrefix:                   "slave",
+		SlaveAbbr:                     "s",
+		SandboxPrefix:                 "msb_",
+		MasterSlavePrefix:             "rsandbox_",
+		GroupPrefix:                   "group_msb_",
+		GroupSpPrefix:                 "group_sp_msb_",
+		MultiplePrefix:                "multi_msb_",
+		FanInPrefix:                   "fan_in_msb_",
+		AllMastersPrefix:              "all_masters_msb_",
 		ReservedPorts: []int{
 			1186,  // MySQL Cluster
 			3306,  // MySQL Server regular port
@@ -131,10 +124,9 @@ var (
 		},
 		RemoteRepository: "https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata",
 		RemoteIndexFile:  "available.json",
-		// GaleraPrefix:                  "galera_msb_",
-		NdbPrefix: "ndb_msb_",
-		PxcPrefix: "pxc_msb_",
-		Timestamp: time.Now().Format(time.UnixDate),
+		NdbPrefix:        "ndb_msb_",
+		PxcPrefix:        "pxc_msb_",
+		Timestamp:        time.Now().Format(time.UnixDate),
 	}
 	currentDefaults DbdeployerDefaults
 )
@@ -219,7 +211,6 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		checkInt("multiple-base-port", nd.MultipleBasePort, minPortValue, maxPortValue) &&
 		checkInt("fan-in-base-port", nd.FanInReplicationBasePort, minPortValue, maxPortValue) &&
 		checkInt("all-masters-base-port", nd.AllMastersReplicationBasePort, minPortValue, maxPortValue) &&
-		// checkInt("galera-base-port", nd.GaleraBasePort, minPortValue, maxPortValue) &&
 		checkInt("pxc-base-port", nd.PxcBasePort, minPortValue, maxPortValue) &&
 		checkInt("ndb-base-port", nd.NdbBasePort, minPortValue, maxPortValue) &&
 		checkInt("ndb-cluster-port", nd.NdbClusterPort, minPortValue, maxPortValue) &&
@@ -236,7 +227,6 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		nd.MultipleBasePort != nd.AllMastersReplicationBasePort &&
 		nd.MultipleBasePort != nd.NdbBasePort &&
 		nd.MultipleBasePort != nd.NdbClusterPort &&
-		// nd.MultipleBasePort != nd.GaleraBasePort &&
 		nd.MultipleBasePort != nd.PxcBasePort &&
 		nd.MultiplePrefix != nd.GroupSpPrefix &&
 		nd.MultiplePrefix != nd.GroupPrefix &&
@@ -246,7 +236,6 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		nd.MultiplePrefix != nd.AllMastersPrefix &&
 		nd.MasterAbbr != nd.SlaveAbbr &&
 		nd.MultiplePrefix != nd.NdbPrefix &&
-		// nd.MultiplePrefix != nd.GaleraPrefix &&
 		nd.MultiplePrefix != nd.PxcPrefix &&
 		nd.SandboxHome != nd.SandboxBinary
 	if !noConflicts {
@@ -265,7 +254,6 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		nd.GroupSpPrefix != "" &&
 		nd.MultiplePrefix != "" &&
 		nd.PxcPrefix != "" &&
-		// nd.GaleraPrefix != "" &&
 		nd.NdbPrefix != "" &&
 		nd.SandboxHome != "" &&
 		nd.SandboxBinary != "" &&
@@ -328,8 +316,6 @@ func UpdateDefaults(label, value string, storeDefaults bool) {
 		newDefaults.LogDirectory = value
 	case "cookbook-directory":
 		newDefaults.CookbookDirectory = value
-	//case "use-concurrency":
-	//	new_defaults.UseConcurrency = common.TextToBool(value)
 	case "master-slave-base-port":
 		newDefaults.MasterSlaveBasePort = common.Atoi(value)
 	case "group-replication-base-port":
@@ -346,8 +332,6 @@ func UpdateDefaults(label, value string, storeDefaults bool) {
 		newDefaults.NdbBasePort = common.Atoi(value)
 	case "ndb-cluster-port":
 		newDefaults.NdbClusterPort = common.Atoi(value)
-	// case "galera-base-port":
-	//	 new_defaults.GaleraBasePort = common.Atoi(value)
 	case "pxc-base-port":
 		newDefaults.PxcBasePort = common.Atoi(value)
 	case "group-port-delta":
@@ -386,8 +370,6 @@ func UpdateDefaults(label, value string, storeDefaults bool) {
 		newDefaults.RemoteIndexFile = value
 	case "reserved-ports":
 		newDefaults.ReservedPorts = strToSlice("reserved-ports", value)
-	// case "galera-prefix":
-	// 	new_defaults.GaleraPrefix = value
 	case "pxc-prefix":
 		newDefaults.PxcPrefix = value
 	case "ndb-prefix":
@@ -421,5 +403,87 @@ func LoadConfiguration() {
 		common.CondPrintln(globals.StarLine)
 		common.CondPrintln("")
 		time.Sleep(1000 * time.Millisecond)
+	}
+}
+
+// Converts the defaults to a string map,
+// useful to access single values from other operations
+func DefaultsToMap() common.StringMap {
+	currentDefaults = Defaults()
+	return common.StringMap{
+		"Version":                           currentDefaults.Version,
+		"version":                           currentDefaults.Version,
+		"SandboxHome":                       currentDefaults.SandboxHome,
+		"sandbox-home":                      currentDefaults.SandboxHome,
+		"SandboxBinary":                     currentDefaults.SandboxBinary,
+		"sandbox-binary":                    currentDefaults.SandboxBinary,
+		"UseSandboxCatalog":                 currentDefaults.UseSandboxCatalog,
+		"use-sandbox-catalog":               currentDefaults.UseSandboxCatalog,
+		"LogSBOperations":                   currentDefaults.LogSBOperations,
+		"log-sb-operations":                 currentDefaults.LogSBOperations,
+		"LogDirectory":                      currentDefaults.LogDirectory,
+		"log-directory":                     currentDefaults.LogDirectory,
+		"CookbookDirectory":                 currentDefaults.CookbookDirectory,
+		"cookbook-directory":                currentDefaults.CookbookDirectory,
+		"MasterSlaveBasePort":               currentDefaults.MasterSlaveBasePort,
+		"master-slave-basePort":             currentDefaults.MasterSlaveBasePort,
+		"GroupReplicationBasePort":          currentDefaults.GroupReplicationBasePort,
+		"group-replication-base-port":       currentDefaults.GroupReplicationBasePort,
+		"GroupReplicationSpBasePort":        currentDefaults.GroupReplicationSpBasePort,
+		"group-replication-sp-base-port":    currentDefaults.GroupReplicationSpBasePort,
+		"FanInReplicationBasePort":          currentDefaults.FanInReplicationBasePort,
+		"fanin-replication-base-port":       currentDefaults.FanInReplicationBasePort,
+		"AllMastersReplicationBasePort":     currentDefaults.AllMastersReplicationBasePort,
+		"all-masters-replication-base-port": currentDefaults.AllMastersReplicationBasePort,
+		"MultipleBasePort":                  currentDefaults.MultipleBasePort,
+		"multiple-base-port":                currentDefaults.MultipleBasePort,
+		"PxcBasePort":                       currentDefaults.PxcBasePort,
+		"pxc-base-port":                     currentDefaults.PxcBasePort,
+		"NdbBasePort":                       currentDefaults.NdbBasePort,
+		"ndb-base-port":                     currentDefaults.NdbBasePort,
+		"NdbClusterPort":                    currentDefaults.NdbClusterPort,
+		"ndb-cluster-port":                  currentDefaults.NdbClusterPort,
+		"GroupPortDelta":                    currentDefaults.GroupPortDelta,
+		"group-port-delta":                  currentDefaults.GroupPortDelta,
+		"MysqlXPortDelta":                   currentDefaults.MysqlXPortDelta,
+		"mysqlx-port-delta":                 currentDefaults.MysqlXPortDelta,
+		"AdminPortDelta":                    currentDefaults.AdminPortDelta,
+		"admin-port-delta":                  currentDefaults.AdminPortDelta,
+		"MasterName":                        currentDefaults.MasterName,
+		"master-name":                       currentDefaults.MasterName,
+		"MasterAbbr":                        currentDefaults.MasterAbbr,
+		"master-abbr":                       currentDefaults.MasterAbbr,
+		"NodePrefix":                        currentDefaults.NodePrefix,
+		"node-prefix":                       currentDefaults.NodePrefix,
+		"SlavePrefix":                       currentDefaults.SlavePrefix,
+		"slave-prefix":                      currentDefaults.SlavePrefix,
+		"SlaveAbbr":                         currentDefaults.SlaveAbbr,
+		"slave-abbr":                        currentDefaults.SlaveAbbr,
+		"SandboxPrefix":                     currentDefaults.SandboxPrefix,
+		"sandbox-prefix":                    currentDefaults.SandboxPrefix,
+		"MasterSlavePrefix":                 currentDefaults.MasterSlavePrefix,
+		"master-slave-prefix":               currentDefaults.MasterSlavePrefix,
+		"GroupPrefix":                       currentDefaults.GroupPrefix,
+		"group-prefix":                      currentDefaults.GroupPrefix,
+		"GroupSpPrefix":                     currentDefaults.GroupSpPrefix,
+		"group-sp-prefix":                   currentDefaults.GroupSpPrefix,
+		"MultiplePrefix":                    currentDefaults.MultiplePrefix,
+		"multiple-prefix":                   currentDefaults.MultiplePrefix,
+		"FanInPrefix":                       currentDefaults.FanInPrefix,
+		"fan-in-prefix":                     currentDefaults.FanInPrefix,
+		"AllMastersPrefix":                  currentDefaults.AllMastersPrefix,
+		"all-masters-prefix":                currentDefaults.AllMastersPrefix,
+		"ReservedPorts":                     currentDefaults.ReservedPorts,
+		"reserved-ports":                    currentDefaults.ReservedPorts,
+		"RemoteRepository":                  currentDefaults.RemoteRepository,
+		"remote-repository":                 currentDefaults.RemoteRepository,
+		"RemoteIndexFile":                   currentDefaults.RemoteIndexFile,
+		"remote-index-file":                 currentDefaults.RemoteIndexFile,
+		"PxcPrefix":                         currentDefaults.PxcPrefix,
+		"pxc-prefix":                        currentDefaults.PxcPrefix,
+		"NdbPrefix":                         currentDefaults.NdbPrefix,
+		"ndb-prefix":                        currentDefaults.NdbPrefix,
+		"Timestamp":                         currentDefaults.Timestamp,
+		"timestamp":                         currentDefaults.Timestamp,
 	}
 }

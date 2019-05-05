@@ -20,15 +20,18 @@ import (
 	"path"
 
 	"github.com/alexeyco/simpletable"
+	"github.com/dustin/go-humanize/english"
+	"github.com/spf13/cobra"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
-	"github.com/dustin/go-humanize/english"
-	"github.com/spf13/cobra"
 )
 
 func showSandboxesFromCatalog(currentSandboxHome string, useFlavor, useHeader, useTable bool) {
-	sandboxList, err := defaults.ReadCatalog()
+	var sandboxList defaults.SandboxCatalog
+	var err error
+	sandboxList, err = defaults.ReadCatalog()
 
 	common.ErrCheckExitf(err, 1, "error getting sandboxes from catalog: %s", err)
 	if len(sandboxList) == 0 {

@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/alexeyco/simpletable"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
@@ -260,7 +261,7 @@ func GetRecipe(recipeName, flavor string) (string, int, error) {
 		return text, ErrNoRecipeFound, fmt.Errorf("recipe %s not found", recipeName)
 	}
 	latestVersions := make(map[string]string)
-	for _, version := range []string{"5.0", "5.1", "5.5", "5.6", "5.7", "8.0"} {
+	for _, version := range globals.SupportedMySQLVersions {
 		latest := GetLatestVersion(version, common.MySQLFlavor)
 		if latest != "" {
 			latestVersions[version] = latest
@@ -273,11 +274,10 @@ func GetRecipe(recipeName, flavor string) (string, int, error) {
 	if latestVersion == VersionNotFound {
 		versionCode = ErrNoVersionFound
 	}
-	var data = common.StringMap{
-		"Copyright":     globals.Copyright,
-		"TemplateName":  recipeName,
-		"LatestVersion": latestVersion,
-	}
+	var data = defaults.DefaultsToMap()
+	data["Copyright"] = globals.Copyright
+	data["TemplateName"] = recipeName
+	data["LatestVersion"] = latestVersion
 	for version, latest := range latestVersions {
 		reDot := regexp.MustCompile(`\.`)
 		versionName := reDot.ReplaceAllString(version, "_")

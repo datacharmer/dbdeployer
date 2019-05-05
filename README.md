@@ -1,7 +1,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.29.0 (30-Apr-2019 17:41 UTC)
+Documentation updated for version 1.30.0 (05-May-2019 07:21 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -11,7 +11,7 @@ Documentation updated for version 1.29.0 (30-Apr-2019 17:41 UTC)
 - [Main operations](#Main-operations)
 - [Database server flavors](#Database-server-flavors)
 - [Getting remote tarballs](#Getting-remote-tarballs)
-- [Practical examples](#Practical-examples)
+- [Practical examples (cookbook)](#Practical-examples)
 - [Standard and non-standard basedir names](#Standard-and-non-standard-basedir-names)
 - [Using short version numbers](#Using-short-version-numbers)
 - [Multiple sandboxes, same version and type](#Multiple-sandboxes-same-version-and-type)
@@ -31,6 +31,7 @@ Documentation updated for version 1.29.0 (30-Apr-2019 17:41 UTC)
 - [Dedicated admin address](#Dedicated-admin-address)
 - [Obtaining sandbox metadata](#Obtaining-sandbox-metadata)
 - [Replication between sandboxes](#Replication-between-sandboxes)
+- [Using dbdeployer in scripts](#Using-dbdeployer-in-scripts)
 - [Compiling dbdeployer](#Compiling-dbdeployer)
 - [Generating additional documentation](#Generating-additional-documentation)
 - [Command line completion](#Command-line-completion)
@@ -48,7 +49,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.29.0
+    $ VERSION=1.30.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -83,7 +84,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.29.0
+    dbdeployer version 1.30.0
     
 
     $ dbdeployer -h
@@ -103,6 +104,7 @@ The program doesn't have any dependencies. Everything is included in the binary.
       export          Exports the command structure in JSON format
       global          Runs a given command in every sandbox
       help            Help about any command
+      info            Shows information about dbdeployer environment samples
       remote          Manages remote tarballs
       sandboxes       List installed sandboxes
       unpack          unpack a tarball into the binary directory
@@ -497,9 +499,8 @@ dbdeployer will detect the latest versions available in you system. If you don't
       show        Shows the contents of a given recipe
     
     Flags:
-          --flavor string    For which flavor this recipe is
-      -h, --help             help for cookbook
-          --sort-by string   Sort order for the list (name, flavor, script) (default "name")
+          --flavor string   For which flavor this recipe is
+      -h, --help            help for cookbook
     
     
 
@@ -1371,6 +1372,102 @@ Examples:
 ~/sandboxes/group_8_0_15_2/replicate_from ms_8_0_15_1
 ```
 
+# Using dbdeployer in scripts
+
+dbdeployer has been designed to simplify automated operations. Using it in scripts is easy, as shown in the [cookbook examples](#Practical-examples).
+In addition to run operations on sandboxes, dbdeployer can also provide information about the environment in a way that is suitable for scripting.
+
+For example, if you want to deploy a sandbox using the most recent 5.7 binaries, you may run `dbdeployer versions`, look which versions are available, and pick the most recent one. But dbdeployer 1.30.0 can aytomate this procedure using `dbdeployer info version 5.7`. This command will print the latest 5.7 binaries to the standard output, allowing us to create dynamic scripts such as:
+
+```bash
+# the absolute latest version
+latest=$(dbdeployer info version)
+latest57=$(dbdeployer info version 5.7)
+latest80=$(dbdeployer info version 8.0)
+
+if [ -z "$latest" ]
+then
+    echo "No versions found"
+    exit 1
+fi
+
+echo "The latest version is $latest"
+
+if [ -n "$latest57" ]
+then
+    echo "# latest for 5.7 : $latest57"
+    dbdeployer deploy single $latest57
+fi
+
+if [ -n "$latest80" ]
+then
+    echo "# latest for 8.0 : $latest80"
+    dbdeployer deploy single $latest80
+fi
+```
+
+    $ dbdeployer info version -h
+    Displays the latest version available for deployment.
+    If a short version is indicated (such as 5.7, or 8.0), only the versions belonging to that short
+    version are searched.
+    If "all" is indicated after the short version, displays all versions belonging to that short version.
+    
+    Usage:
+      dbdeployer info version [short-version|all] [all] [flags]
+    
+    Examples:
+    
+        # Shows the latest version available
+        $ dbdeployer info version
+        8.0.16
+    
+        # shows the latest version belonging to 5.7
+        $ dbdeployer info version 5.7
+        5.7.26
+    
+        # shows the latest version for every short version
+        $ dbdeployer info version all
+        5.0.96 5.1.73 5.5.53 5.6.41 5.7.26 8.0.16
+    
+        # shows all the versions for a given short version
+        $ dbdeployer info version 8.0 all
+        8.0.11 8.0.12 8.0.13 8.0.14 8.0.15 8.0.16
+    
+    
+    Flags:
+      -h, --help   help for version
+    
+    
+
+Similarly to `versions`, the `defaults` subcommand allows us to get dbdeployer metadata in a way that can be used in scripts
+
+    $ dbdeployer info defaults -h
+    Displays one field of the defaults.
+    
+    Usage:
+      dbdeployer info defaults field-name [flags]
+    
+    Examples:
+    
+    	$ dbdeployer info defaults master-slave-base-port 
+    
+    
+    Flags:
+      -h, --help   help for defaults
+    
+    
+
+For example
+
+```
+$ dbdeployer info defaults sandbox-prefix
+msb_
+
+$ dbdeployer info defaults master-slave-ptrefix
+rsandbox_
+```
+You can ask for any fields from the defaults (see `dbdeployer defaults list` for the field names).
+
 # Compiling dbdeployer
 
 Should you need to compile your own binaries for dbdeployer, follow these steps:
@@ -1378,18 +1475,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 1. Make sure you have go 1.10+ installed in your system, and that the ``$GOPATH`` variable is set.
 2. Run ``go get -u github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
-4. Run ``./scripts/build.sh {linux|OSX} 1.29.0``
-5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.29.0``
+4. Run ``./scripts/build.sh {linux|OSX} 1.30.0``
+5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.30.0``
 
 # Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.29.0-docs.linux.tar.gz
-* dbdeployer-1.29.0-docs.osx.tar.gz
-* dbdeployer-1.29.0.linux.tar.gz
-* dbdeployer-1.29.0.osx.tar.gz
+* dbdeployer-1.30.0-docs.linux.tar.gz
+* dbdeployer-1.30.0-docs.osx.tar.gz
+* dbdeployer-1.30.0.linux.tar.gz
+* dbdeployer-1.30.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

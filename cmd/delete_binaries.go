@@ -29,8 +29,9 @@ import (
 
 func sandboxesUsingBinariesDir(basedir, binariesDir string) []string {
 	var sandboxes []string
-
-	sandboxList, err := defaults.ReadCatalog()
+	var sandboxList defaults.SandboxCatalog
+	var err error
+	sandboxList, err = defaults.ReadCatalog()
 	common.ErrCheckExitf(err, 1, "error getting sandboxes from catalog: %s", err)
 	fullPath := path.Join(basedir, binariesDir)
 	for _, sb := range sandboxList {
