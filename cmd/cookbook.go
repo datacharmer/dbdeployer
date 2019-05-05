@@ -47,7 +47,7 @@ func showCookbook(cmd *cobra.Command, args []string) {
 }
 
 func createCookbook(cmd *cobra.Command, args []string) {
-	checkArgs("run", "run recipe_name", args, 1)
+	checkArgs("create", "create recipe_name", args, 1)
 	flavor, _ := cmd.Flags().GetString(globals.FlavorLabel)
 	cookbook.CreateRecipe(args[0], flavor)
 }
@@ -78,7 +78,7 @@ var createCookbookCmd = &cobra.Command{
 	Use:         "create recipe_name or ALL",
 	Aliases:     []string{"make"},
 	Short:       "creates a script for a given recipe",
-	Long:        `creates a script for given recipe`,
+	Long:        `creates a script for a given recipe`,
 	Run:         createCookbook,
 	Annotations: map[string]string{"export": makeExportArgs(globals.ExportCookbookName, 1)},
 }
@@ -90,5 +90,5 @@ func init() {
 	cookbookCmd.AddCommand(showCookbookCmd)
 	showCookbookCmd.Flags().BoolP(globals.RawLabel, "", false, "Shows the recipe without variable substitution")
 	setPflag(cookbookCmd, globals.FlavorLabel, "", "", "", "For which flavor this recipe is", false)
-	setPflag(cookbookCmd, globals.SortByLabel, "", "", "name", "Sort order for the list (name, flavor, script)", false)
+	setPflag(listCookbookCmd, globals.SortByLabel, "", "", "name", "Sort order for the list (name, flavor, script)", false)
 }

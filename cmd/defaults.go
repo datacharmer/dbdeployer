@@ -102,7 +102,7 @@ such as showing the defaults and saving new ones.`,
 
 	defaultsUpdateCmd = &cobra.Command{
 		Use:   "update label value",
-		Short: "Load defaults from file",
+		Short: "Change defaults value",
 		Example: `
 	$ dbdeployer defaults update master-slave-base-port 17500		
 `,
