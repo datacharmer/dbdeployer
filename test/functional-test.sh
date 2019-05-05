@@ -786,11 +786,21 @@ function main_deployment_methods {
     for V in ${all_versions[*]}
     do
         # We test the main deployment methods
+        running_parallel=$(exists_in_path parallel)
+
         echo $dotted_line
-        for stype in single multiple replication
-        do
-            run dbdeployer deploy $stype $CUSTOM_OPTIONS $V 
-        done
+        deployment_methods="single multiple replication"
+        if [ -n "$running_parallel" ]
+        then
+            echo "# Running parallel deployments"
+            parallel --shellquote dbdeployer deploy {} $CUSTOM_OPTIONS $V ::: $deployment_methods
+            run parallel dbdeployer deploy {} $CUSTOM_OPTIONS $V ::: $deployment_methods
+        else
+            for stype in $deployment_methods
+            do
+                run dbdeployer deploy $stype $CUSTOM_OPTIONS $V 
+            done
+        fi
         echo $dotted_line
         # Runs the post installation check.
         for stype in single multiple replication
@@ -1148,40 +1158,56 @@ function custom_replication_methods {
     test_header custom_replication_methods "" double
     latest_5_7=$(ls "$BINARY_DIR" | grep "^5.7" | ./sort_versions | tail -n 1)
     latest_8_0=$(ls "$BINARY_DIR" | grep "^8.0" | ./sort_versions | tail -n 1)
+    if [ -n "$latest_5_7" -a -n "$latest_8_0" ]
+    then
+        both_versions=1
+    fi
     if [ -z "$latest_5_7" -a -z "$latest_8_0" ]
     then
         echo "Skipping custom replication test. No suitable version found for 5.7 and 8.0"
         return
     fi
 
-    v_path_5_7=$(echo msb_$latest_5_7| tr '.' '_')
-    v_path_8_0=$(echo msb_$latest_8_0| tr '.' '_')
-    run dbdeployer deploy single $latest_5_7 --master
-    run dbdeployer deploy single $latest_8_0 --master
-    capture_test replicate_between_sandboxes $v_path_5_7 $v_path_8_0
+    if [ -n "$both_versions" ]
+    then
+        v_path_5_7=$(echo msb_$latest_5_7| tr '.' '_')
+        v_path_8_0=$(echo msb_$latest_8_0| tr '.' '_')
+        run dbdeployer deploy single $latest_5_7 --master
+        run dbdeployer deploy single $latest_8_0 --master
+        capture_test replicate_between_sandboxes $v_path_5_7 $v_path_8_0
+    fi
 
-    run dbdeployer deploy single $latest_5_7 --master --sandbox-directory=master57 --port-as-server-id
-    run dbdeployer deploy single $latest_5_7 --master --sandbox-directory=slave57 --port-as-server-id
-    capture_test replicate_between_sandboxes master57 slave57
+    if [ -n "$latest_5_7" ]
+    then
+        run dbdeployer deploy single $latest_5_7 --master --sandbox-directory=master57 --port-as-server-id
+        run dbdeployer deploy single $latest_5_7 --master --sandbox-directory=slave57 --port-as-server-id
+        capture_test replicate_between_sandboxes master57 slave57
+    fi
 
-    run dbdeployer deploy single $latest_8_0 --master --sandbox-directory=master80 --port-as-server-id
-    run dbdeployer deploy single $latest_8_0 --master --sandbox-directory=slave80 --port-as-server-id
-    capture_test replicate_between_sandboxes master80 slave80
+    if [ -n "$latest_8_0" ]
+    then
+        run dbdeployer deploy single $latest_8_0 --master --sandbox-directory=master80 --port-as-server-id
+        run dbdeployer deploy single $latest_8_0 --master --sandbox-directory=slave80 --port-as-server-id
+        capture_test replicate_between_sandboxes master80 slave80
+    fi
 
     dbdeployer delete ALL --skip-confirm
     results "custom replication single - after deletion"
 
-    run dbdeployer deploy replication $latest_5_7 \
-        --sandbox-directory=rsandbox_master57 --port-as-server-id \
-        -c log-slave-updates
+    if [ -n "$latest_5_7" ]
+    then
+        run dbdeployer deploy replication $latest_5_7 \
+            --sandbox-directory=rsandbox_master57 --port-as-server-id \
+            -c log-slave-updates
 
-    run dbdeployer deploy replication $latest_5_7 \
-        --sandbox-directory=rsandbox_slave57 --port-as-server-id \
-        -c log-slave-updates
+        run dbdeployer deploy replication $latest_5_7 \
+            --sandbox-directory=rsandbox_slave57 --port-as-server-id \
+            -c log-slave-updates
 
-    capture_test replicate_between_sandboxes rsandbox_master57 rsandbox_slave57
+        capture_test replicate_between_sandboxes rsandbox_master57 rsandbox_slave57
+        dbdeployer delete ALL --skip-confirm
+    fi
 
-    dbdeployer delete ALL --skip-confirm
     results "custom replication multi - after deletion"
 }
 

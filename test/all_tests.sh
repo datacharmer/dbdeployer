@@ -123,6 +123,7 @@ function all_tests {
     run_test ./test/mock/ndb_test.sh
     run_test ./test/mock/pxc_test.sh
     run_test ./test/mock/cookbook.sh
+    run_test ./test/mock/parallel.sh
     if [ -n "$COMPLETE_PORT_TEST" ]
     then
         run_test ./test/mock/port-clash.sh

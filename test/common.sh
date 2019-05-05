@@ -41,6 +41,19 @@ fi
 
 [ -z "$results_log" ] && export results_log=results-$(uname).txt
 
+function exists_in_path {
+    what=$1
+    for dir in $(echo $PATH | tr ':' ' ')
+    do
+        wanted=$dir/$what
+        if [ -x $wanted ]
+        then
+            echo $wanted
+            return
+        fi
+    done
+}
+
 function test_header {
     func_name=$1
     arg="$2"

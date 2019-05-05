@@ -29,8 +29,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/pkg/errors"
+
+	"github.com/datacharmer/dbdeployer/globals"
 )
 
 type SandboxUser struct {
@@ -289,6 +290,14 @@ func DirExists(filename string) bool {
 	}
 	filemode := f.Mode()
 	return filemode.IsDir()
+}
+
+func GlobalTempDir() string {
+	globalTmpDir := os.Getenv("TMPDIR")
+	if globalTmpDir == "" {
+		globalTmpDir = "/tmp"
+	}
+	return globalTmpDir
 }
 
 // Returns the full path of an executable, or an empty string if the executable is not found

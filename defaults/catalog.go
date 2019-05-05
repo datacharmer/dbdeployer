@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,8 +20,9 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"sync"
 	"time"
+
+	"github.com/nightlyone/lockfile"
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/globals"
@@ -29,7 +30,7 @@ import (
 
 type SandboxItem struct {
 	Origin            string   `json:"origin"`
-	SBType            string   `json:"type"` // single multi master-slave group all-masters fan-in
+	SBType            string   `json:"type"` // single multi master-slave group all-masters fan-in ndb pxc
 	Version           string   `json:"version"`
 	Flavor            string   `json:"flavor,omitempty"`
 	Port              []int    `json:"port"`
@@ -43,64 +44,14 @@ type SandboxItem struct {
 
 type SandboxCatalog map[string]SandboxItem
 
-const (
-	timeout = 5
-)
-
 var enableCatalogManagement bool = true
-var catalogMutex sync.Mutex
 
-func isLocked() bool {
-	return common.FileExists(SandboxRegistryLock)
-}
+// Timeout for waiting on concurrent requests
+const lockTimeout = 1000 * time.Millisecond
 
-func setLock(label string) error {
-	if !enableCatalogManagement {
-		return nil
-	}
-	if !common.DirExists(ConfigurationDir) {
-		err := os.Mkdir(ConfigurationDir, globals.PublicDirectoryAttr)
-		if err != nil {
-			return fmt.Errorf("error making lock directory")
-		}
-	}
-	if !common.FileExists(SandboxRegistry) {
-		err := common.WriteString("{}", SandboxRegistry)
-		if err != nil {
-			return err
-		}
-	}
-	elapsed := 0
-	for isLocked() {
-		elapsed += 1
-		time.Sleep(1000 * time.Millisecond)
-		if elapsed > timeout {
-			return fmt.Errorf("timeout error for setLock")
-		}
-	}
-	err := common.WriteString(label, SandboxRegistryLock)
-	if err != nil {
-		return err
-	}
-	catalogMutex.Lock()
-	return nil
-}
-
-func releaseLock() error {
-	if !enableCatalogManagement {
-		return nil
-	}
-	if isLocked() {
-		err := os.Remove(SandboxRegistryLock)
-		if err != nil {
-			return err
-		}
-	}
-	catalogMutex.Unlock()
-	return nil
-}
-
-func WriteCatalog(sc SandboxCatalog) error {
+// Writes the catalog on file
+// This is an unsafe operation, which must be kept under a lock
+func writeCatalog(sc SandboxCatalog) error {
 	if !enableCatalogManagement {
 		return nil
 	}
@@ -111,7 +62,19 @@ func WriteCatalog(sc SandboxCatalog) error {
 	return common.WriteString(jsonString, filename)
 }
 
+// Reads the catalog, making sure that there are no concurrent operations
 func ReadCatalog() (sc SandboxCatalog, err error) {
+	lock, err := setLock("reading")
+	if err != nil {
+		return
+	}
+	sc, err = unsafeReadCatalog()
+	_ = lock.Unlock()
+	return
+}
+
+// Reads the catalog, without waiting for a lock
+func unsafeReadCatalog() (sc SandboxCatalog, err error) {
 	if !enableCatalogManagement {
 		return
 	}
@@ -142,6 +105,31 @@ func ReadCatalog() (sc SandboxCatalog, err error) {
 	return
 }
 
+// Sets the catalog lock, waiting up to lockTimeout milliseconds
+// if a concurrent operation is under way.
+// This approach guarantees thread and inter-process safety
+func setLock(label string) (lockfile.Lockfile, error) {
+	lock, err := lockfile.New(SandboxRegistryLock)
+	if err != nil {
+		return lockfile.Lockfile(""), fmt.Errorf("could not establish lock file for %s: %s", label, err)
+	}
+	err = lock.TryLock()
+	var elapsed time.Duration
+	for err == lockfile.ErrBusy || err == lockfile.ErrNotExist {
+		time.Sleep(3 * time.Millisecond)
+		elapsed += 3
+		if elapsed > lockTimeout {
+			break
+		}
+		err = lock.TryLock()
+	}
+	if err != nil {
+		return lockfile.Lockfile(""), fmt.Errorf("could not set lock for %s: %s", label, err)
+	}
+	return lock, nil
+}
+
+// Safe update of the catalog, protected by a lock
 func UpdateCatalog(sbName string, details SandboxItem) error {
 	details.DbDeployerVersion = common.VersionDef
 	details.Timestamp = time.Now().Format(time.UnixDate)
@@ -149,68 +137,69 @@ func UpdateCatalog(sbName string, details SandboxItem) error {
 	if !enableCatalogManagement {
 		return nil
 	}
-	err := setLock(sbName)
-	if err == nil {
-		current, err := ReadCatalog()
-		if err != nil {
-			err1 := releaseLock()
-			if err1 != nil {
-				panic(fmt.Sprintf("%s", err))
-			}
-			return err
-		}
-		if current == nil {
-			current = make(SandboxCatalog)
-		}
-		current[sbName] = details
-		err = WriteCatalog(current)
-		err1 := releaseLock()
-		if err1 != nil {
-			panic(fmt.Sprintf("%s", err))
-		}
+	lock, err := setLock(sbName)
+	if err != nil {
 		return err
-	} else {
-		common.CondPrintf("%s\n", globals.HashLine)
-		common.CondPrintf("# UpdateCatalog Could not get lock on %s\n", SandboxRegistryLock)
-		common.CondPrintf("%s\n", globals.HashLine)
-		return fmt.Errorf("could not get lock on %s : %s", SandboxRegistryLock, err)
 	}
+	defer lock.Unlock()
+	err = checkCatalog()
+	if err != nil {
+		return err
+	}
+	current, err := unsafeReadCatalog()
+	if err != nil {
+		return err
+	}
+	if current == nil {
+		current = make(SandboxCatalog)
+	}
+	current[sbName] = details
+	err = writeCatalog(current)
+	return err
 }
 
+// Safe deletion of a catalog entry
 func DeleteFromCatalog(sbName string) error {
 	if !enableCatalogManagement {
 		return nil
 	}
-	err := setLock(sbName)
-	if err == nil {
-		current, err := ReadCatalog()
+	lock, err := setLock(sbName)
+	if err != nil {
+		return err
+	}
+	defer lock.Unlock()
+	err = checkCatalog()
+	if err != nil {
+		return err
+	}
+	current, err := unsafeReadCatalog()
+	if err != nil {
+		return err
+	}
+	if current == nil {
+		return nil
+	}
+	delete(current, sbName)
+	err = writeCatalog(current)
+	return err
+}
+
+// Check that the configuration directory exists and creates it if needed
+// If no catalog exists, creates an empty one.
+func checkCatalog() error {
+	if !common.DirExists(ConfigurationDir) {
+		err := os.Mkdir(ConfigurationDir, globals.PublicDirectoryAttr)
 		if err != nil {
-			err1 := releaseLock()
-			if err1 != nil {
-				panic(fmt.Sprintf("%s", err))
-			}
+			return fmt.Errorf("error making lock directory %s", ConfigurationDir)
+		}
+	}
+	if !common.FileExists(SandboxRegistry) {
+		err := common.WriteString("{}", SandboxRegistry)
+		if err != nil {
 			return err
 		}
-		if current == nil {
-			err1 := releaseLock()
-			if err1 != nil {
-				panic(fmt.Sprintf("%s", err))
-			}
-			return nil
-		}
-		delete(current, sbName)
-		err = WriteCatalog(current)
-		err1 := releaseLock()
-		if err1 != nil {
-			panic(fmt.Sprintf("%s", err))
-		}
-		return err
-	} else {
-		common.CondPrintf("%s\n", globals.HashLine)
-		common.CondPrintf("# DeleteFromCatalog Could not get lock on %s\n", SandboxRegistryLock)
-		common.CondPrintf("%s\n", globals.HashLine)
-		return fmt.Errorf("could not get lock on %s: %s", SandboxRegistryLock, err)
 	}
+	return nil
 }
 
 func init() {

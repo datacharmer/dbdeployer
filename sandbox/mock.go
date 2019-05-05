@@ -73,7 +73,6 @@ func SetMockEnvironment(mockUpperDir string) error {
 	defaults.ConfigurationDir = path.Join(home, defaults.ConfigurationDirName)
 	defaults.ConfigurationFile = path.Join(home, defaults.ConfigurationDirName, defaults.ConfigurationFileName)
 	defaults.SandboxRegistry = path.Join(home, defaults.ConfigurationDirName, defaults.SandboxRegistryName)
-	defaults.SandboxRegistryLock = path.Join(home, defaults.ConfigurationDirName, defaults.SandboxRegistryLockName)
 	return nil
 }
 

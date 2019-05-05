@@ -23,11 +23,12 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
-	"github.com/pkg/errors"
 )
 
 type SandboxDef struct {
@@ -406,10 +407,8 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	dataDir := path.Join(sandboxDir, globals.DataDirName)
 	tmpDir := path.Join(sandboxDir, "tmp")
 
-	globalTmpDir := os.Getenv("TMPDIR")
-	if globalTmpDir == "" {
-		globalTmpDir = "/tmp"
-	}
+	globalTmpDir := common.GlobalTempDir()
+
 	if !common.DirExists(globalTmpDir) {
 		return emptyExecutionList, fmt.Errorf("TMP directory %s does not exist", globalTmpDir)
 	}

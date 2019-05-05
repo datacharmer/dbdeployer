@@ -32,6 +32,12 @@
 			"revision": ""
 		},
 		{
+			"checksumSHA1": "W7TFJ3aRSUenZvYVnzrOZPoIOjs=",
+			"path": "github.com/nightlyone/lockfile",
+			"revision": "0ad87eef1443f64d3d8c50da647e2b1552851124",
+			"revisionTime": "2018-06-18T18:06:23Z"
+		},
+		{
 			"checksumSHA1": "18YrywDvb67HU8xYF5vqKMgelx0=",
 			"path": "github.com/pkg/errors",
 			"revision": "c059e472caf75dbe73903f6521a20abac245b17f",
