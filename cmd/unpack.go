@@ -22,10 +22,11 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/unpack"
-	"github.com/spf13/cobra"
 )
 
 // Tries to detect the database flavor from tarball name
@@ -40,7 +41,19 @@ func detectTarballFlavor(tarballName string) string {
 		common.MySQLFlavor:         `mysql`,
 	}
 
-	for key, value := range flavorsRegexps {
+	// Flavors must be evaluated in order, or else
+	// "mysql-cluster" may be detected as "mysql"
+	flavorDetectionList := []string{
+		common.PerconaServerFlavor,
+		common.MariaDbFlavor,
+		common.NdbFlavor,
+		common.TiDbFlavor,
+		common.PxcFlavor,
+		common.MySQLFlavor,
+	}
+
+	for _, key := range flavorDetectionList {
+		value := flavorsRegexps[key]
 		re := regexp.MustCompile(value)
 		if re.MatchString(tarballName) {
 			return key
