@@ -86,6 +86,19 @@ const (
 	// Instantiated in cmd/single.go
 	MasterLabel = "master"
 
+	// Instantiated in cmd/remote.go
+	ProgressLabel     = "progress"
+	ProgressStepLabel = "progress-step"
+	ProgressStepValue = 1024 * 1024 * 10
+
+	// Instantiated in cmd/downloads.go
+	OSLabel           = "OS"
+	ShowUrlLabel      = "show-url"
+	QuietLabel        = "quiet"
+	MinimalLabel      = "minimal"
+	NewestLabel       = "newest"
+	AddEmptyItemLabel = "add-empty-item"
+
 	// Instantiated in cmd/admin.go
 	VerboseLabel = "verbose"
 	DryRunLabel  = "dry-run"

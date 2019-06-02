@@ -16,12 +16,15 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
+
+	"github.com/spf13/cobra"
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/downloads"
 	"github.com/datacharmer/dbdeployer/globals"
-	"github.com/spf13/cobra"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -77,6 +80,13 @@ func checkDefaultsFile() {
 	}
 	defaults.LoadConfiguration()
 	loadTemplates()
+	if downloads.TarballRegistryFileExist() {
+		err := downloads.LoadTarballFileInfo()
+		if err != nil {
+			fmt.Printf("tarball load from %s failed: %s", downloads.TarballFileRegistry, err)
+			fmt.Println("Tarball list not loaded. Using defaults. Correct the issues listed above before using again.")
+		}
+	}
 }
 
 func init() {

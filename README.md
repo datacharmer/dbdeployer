@@ -1,7 +1,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.30.1 (31-May-2019 17:17 UTC)
+Documentation updated for version 1.31.0 (02-Jun-2019 19:53 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -11,6 +11,10 @@ Documentation updated for version 1.30.1 (31-May-2019 17:17 UTC)
 - [Main operations](#Main-operations)
 - [Database server flavors](#Database-server-flavors)
 - [Getting remote tarballs](#Getting-remote-tarballs)
+  - [Looking at the available tarballs](#Looking-at-the-available-tarballs)
+  - [Getting a tarball ](#Getting-a-tarball)
+  - [Customizing the tarball list](#Customizing-the-tarball-list)
+  - [Changing the tarball list permanently](#Changing-the-tarball-list-permanently)
 - [Practical examples (cookbook)](#Practical-examples)
 - [Standard and non-standard basedir names](#Standard-and-non-standard-basedir-names)
 - [Using short version numbers](#Using-short-version-numbers)
@@ -49,7 +53,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.30.1
+    $ VERSION=1.31.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -84,7 +88,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.30.1
+    dbdeployer version 1.31.0
     
 
     $ dbdeployer -h
@@ -101,11 +105,11 @@ The program doesn't have any dependencies. Everything is included in the binary.
       delete          delete an installed sandbox
       delete-binaries delete an expanded tarball
       deploy          deploy sandboxes
+      downloads       Manages remote tarballs
       export          Exports the command structure in JSON format
       global          Runs a given command in every sandbox
       help            Help about any command
       info            Shows information about dbdeployer environment samples
-      remote          Manages remote tarballs
       sandboxes       List installed sandboxes
       unpack          unpack a tarball into the binary directory
       usage           Shows usage of installed sandboxes
@@ -353,52 +357,209 @@ $ dbdeployer admin capabilities mysql 5.7.13
 
 # Getting remote tarballs
 
-As of version 1.16.0, dbdeployer can download remote MySQL tarballs from a Github repository. The tarball are reduced ones, created inside [Mysql-Docker-Minimal](https://github.com/datacharmer/mysql-docker-minimal).
+**NOTE:** As of version 1.31.0, `dbdeployer remote` is **DEPRECATED** and its functionality is replaced by `dbdeployer downloads`.
 
-The tarballs are only available for Linux. However, since the URL for the files is customizable, you can use your own repository to download files for other operating systems.
+As of version 1.31.0, dbdeployer can download remote tarballs of various flavors from several locations. Tarballs are listed for Linux and MacOS.
 
-Example:
+## Looking at the available tarballs
 
 ```
-$ dbdeployer defaults show | grep remote
- 	"remote-repository": "https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata",
- 	"remote-index-file": "available.json",
+$ dbdeployer downloads list
+Available tarballs
+                          name                              OS     version   flavor     size   minimal
+-------------------------------------------------------- -------- --------- -------- -------- ---------
+ tidb-master-darwin-amd64.tar.gz                          Darwin     3.0.0   tidb      26 MB
+ tidb-master-linux-amd64.tar.gz                           Linux      3.0.0   tidb      26 MB
+ mysql-5.7.26-macos10.14-x86_64.tar.gz                    Darwin    5.7.26   mysql    337 MB
+ mysql-8.0.16-macos10.14-x86_64.tar.gz                    Darwin    8.0.16   mysql    153 MB
+ mysql-8.0.15-macos10.14-x86_64.tar.gz                    Darwin    8.0.15   mysql    139 MB
+ mysql-5.7.25-macos10.14-x86_64.tar.gz                    Darwin    5.7.25   mysql    337 MB
+ mysql-5.6.41-macos10.13-x86_64.tar.gz                    Darwin    5.6.41   mysql    176 MB
+ mysql-5.5.53-osx10.9-x86_64.tar.gz                       Darwin    5.5.53   mysql    114 MB
+ mysql-5.1.73-osx10.6-x86_64.tar.gz                       Darwin    5.1.73   mysql     82 MB
+ mysql-5.0.96-osx10.5-x86_64.tar.gz                       Darwin    5.0.96   mysql     61 MB
+ mysql-8.0.16-linux-glibc2.12-x86_64.tar.xz               Linux     8.0.16   mysql    461 MB
+ mysql-8.0.16-linux-x86_64-minimal.tar.xz                 Linux     8.0.16   mysql     44 MB   Y
+[...]
+```
+The list is kept internally by dbdeployer, but it can be exported, edited, and reloaded (more on that later).
 
-$ dbdeployer remote list
-Files available in https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata/available.json
-4.1 -> [mysql-4.1.22]
-5.0 -> [mysql-5.0.15 mysql-5.0.96]
-5.1 -> [mysql-5.1.72]
-5.5 -> [mysql-5.5.60 mysql-5.5.61]
-5.6 -> [mysql-5.6.40 mysql-5.6.41]
-5.7 -> [mysql-5.7.23 mysql-5.7.24]
-8.0 -> [mysql-8.0.12 mysql-8.0.13]
 
-msandbox@testdb:~$ dbdeployer remote download mysql-8.0.13
-File /home/msandbox/mysql-8.0.13.tar.xz downloaded
+## Getting a tarball
 
-msandbox@testdb:~$ dbdeployer unpack mysql-8.0.13.tar.xz
-Unpacking tarball mysql-8.0.13.tar.xz to $HOME/opt/mysql/8.0.13
-.......79
+We can download one of the listed tarballs in two ways:
+
+* using `dbdeployer downloads get file_name`, where we copy and paste the file name from the list above. For example: `dbdeployer downloads get mysql-8.0.16-linux-glibc2.12-x86_64.tar.xz`.
+* using `dbdeployer downloads get-by-version VERSION [options]` where we use several criteria to identify the file we want.
+
+For example:
+
+```
+$ dbdeployer downloads get-by-version 5.7 --newest --dry-run
+Would download:
+
+Name:          mysql-5.7.26-macos10.14-x86_64.tar.gz
+Short version: 5.7
+Version:       5.7.26
+Flavor:        mysql
+OS:            Darwin
+URL:           https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.26-macos10.14-x86_64.tar.gz
+Checksum:      SHA512:ae84b0cfe3cf274fc79adb3db03b764d47033aea970cc26edcdd4adbe5b2e3d28bf4f98f2ee321f16e788d69cbe3a08bf39fa5329d8d7a67bee928d964891ed8
+Size:          337 MB
+
+$ dbdeployer downloads get-by-version 8.0 --newest --dry-run
+Would download:
+
+Name:          mysql-8.0.16-macos10.14-x86_64.tar.gz
+Short version: 8.0
+Version:       8.0.16
+Flavor:        mysql
+OS:            Darwin
+URL:           https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.16-macos10.14-x86_64.tar.gz
+Checksum:      SHA512:30fb86c929ad1f384622277dbc3d686f5530953a8f7e2c7adeb183768db69464e93a46b4a0ec212d006e069f1b93db0bd0a51918eaa7e3697ea227d86082d892
+Size:          153 MB
+```
+The above commands, executed on MacOS, look for tarballs for the current operating system, and gets the one with the highest version. Notice the option `--dry-run`, which shows what would be downloaded, but without actually doing it.
+
+If there are multiple files that match the search criteria, dbdeployer returns an error.
+```
+$ dbdeployer downloads get-by-version 8.0 --newest --OS=linux --dry-run
+tarballs mysql-8.0.16-linux-x86_64-minimal.tar.xz and mysql-8.0.16-linux-glibc2.12-x86_64.tar.xz have the same version - Get the one you want by name
 ```
 
-    $ dbdeployer remote
+In this case, we can fix the error by adding another parameter:
+
+```
+$ dbdeployer downloads get-by-version 8.0 --newest --OS=linux  --minimal --dry-run
+Would download:
+
+Name:          mysql-8.0.16-linux-x86_64-minimal.tar.xz
+Short version: 8.0
+Version:       8.0.16
+Flavor:        mysql
+OS:            Linux
+URL:           https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.16-linux-x86_64-minimal.tar.xz
+Checksum:      MD5: 7bac88f47e648bf9a38e7886e12d1ec5
+Size:          44 MB
+
+# On Linux
+
+$ dbdeployer downloads get-by-version 8.0 --newest --OS=linux  --minimal
+....  44 MB
+File /home/gmax/tmp/mysql-8.0.16-linux-x86_64-minimal.tar.xz downloaded
+Checksum matches
+```
+
+If we download a tarball that is not intended for the current operating system, we will get a warning:
+
+```
+# On MacOS
+$ dbdeployer downloads get-by-version 8.0 --newest --OS=linux  --minimal
+....  44 MB
+File /Users/gmax/go/src/github.com/datacharmer/dbd-ui/mysql-8.0.16-linux-x86_64-minimal.tar.xz downloaded
+Checksum matches
+################################################################################
+WARNING: Current OS is darwin, but the tarball's OS is linux
+################################################################################
+```
+
+We can also add the tarball flavor to get yet a different result from the above criteria:
+
+```
+$ dbdeployer downloads get-by-version 8.0 --newest   --flavor=ndb --dry-run
+Would download:
+
+Name:          mysql-cluster-8.0.16-dmr-linux-glibc2.12-x86_64.tar.gz
+Short version: 8.0
+Version:       8.0.16
+Flavor:        ndb
+OS:            Linux
+URL:           https://dev.mysql.com/get/Downloads/MySQL-Cluster-8.0/mysql-cluster-8.0.16-dmr-linux-glibc2.12-x86_64.tar.gz
+Checksum:      SHA512:a587a774cc7a8f6cbe295272f0e67869c5077b8fb56917e0dc2fa0ea1c91548c44bd406fcf900cc0e498f31bb7188197a3392aa0d7df8a08fa5e43901683e98a
+Size:          1.1 GB
+```
+
+    $ dbdeployer downloads get --help
+    Downloads a remote tarball
+    
+    Usage:
+      dbdeployer downloads get tarball_name [options] [flags]
+    
+    Flags:
+          --dry-run             Show what would be downloaded, but don't run it
+      -h, --help                help for get
+          --progress-step int   Progress interval (default 10485760)
+          --quiet               Do not show download progress
+    
+    
+    $ dbdeployer downloads get-by-flavor --help
     Manages remote tarballs
     
     Usage:
-      dbdeployer remote [command]
+      dbdeployer downloads [command]
     
     Available Commands:
-      download    download a remote tarball into a local file
-      list        list remote tarballs
+      export         Exports the list of tarballs to a file
+      get            Downloads a remote tarball
+      get-by-version Downloads a remote tarball
+      import         Imports the list of tarballs from a file
+      list           list remote tarballs
+      reset          Reset the custom list of tarballs and resume the defaults
+      show           Downloads a remote tarball
     
     Flags:
-      -h, --help   help for remote
+      -h, --help   help for downloads
     
     
 
-See [Issue#18 on GitHub](https://github.com/datacharmer/dbdeployer/issues/18#issuecomment-452003162) for more insight on how this feature is implemented.
 
+## Customizing the tarball list
+
+The tarball list is embedded in dbdeployer, but it can be modified with a few steps:
+
+1. Run `dbdeployer downloads export mylist.json --add-empty-item`
+2. Edit `mylist.json`, by filling the fields left empty:
+
+```
+        {
+            "name": "mysql-cluster-8.0.16-dmr-linux-glibc2.12-x86_64.tar.gz",
+            "checksum": "SHA512:a587a774cc7a8f6cbe295272f0e67869c5077b8fb56917e0dc2fa0ea1c91548c44bd406fcf900cc0e498f31bb7188197a3392aa0d7df8a08fa5e43901683e98a",
+            "OS": "Linux",
+            "url": "https://dev.mysql.com/get/Downloads/MySQL-Cluster-8.0/mysql-cluster-8.0.16-dmr-linux-glibc2.12-x86_64.tar.gz",
+            "flavor": "ndb",
+            "minimal": false,
+            "size": 1100516061,
+            "short_version": "8.0",
+            "version": "8.0.16"
+        },
+        {
+            "name": "FillIt",
+            "OS": "",
+            "url": "",
+            "flavor": "",
+            "minimal": false,
+            "size": 0,
+            "short_version": "",
+            "version": "",
+            "updated_by": "Fill it",
+            "notes": "Fill it"
+        }
+```
+
+3. Run `dbdeployer downloads import mylist.json`
+
+The file will be saved into dbdeployer custom directory (`$HOME/.dbdeployer`), but only if the file validates , but only if the file validates 
+If not, an error message will show what changes are needed.
+
+If you don't need the customized list any longer, you can remove it using `dbdeployer downloads reset`: the custom file will be removed from dbdeployer directory and the embedded one will be used again.
+
+## Changing the tarball list permanently
+
+Adding tarballs to a personal list could be time consuming, if you need to do it often. A better way is to clone this repository, then modify the [original list](https://github.com/datacharmer/dbdeployer/blob/master/downloads/tarball_list.json), and then open a pull request with the changes. The list is used when building dbdeployer, as the contents of the JSON file are converted into an internal list.
+
+When entering a new tarball, it is important to fill all the details needed to identify the download. The checksum field is very important. as it is what makes sure that the file downloaded is really the original one.
+
+dbdeployer can calculate checksums for `MD5` (currently used in MySQL downloads pages), `SHA512` (used in most of the downloads listed in version 1.31.0), as well as `SHA1` and `SHA256`. To communicate which checksum is being used, the checksum string must be prefixed by the algorithm, such as `MD5:7bac88f47e648bf9a38e7886e12d1ec5`. An optional space before and after the colon (`:`) is accepted.
 
 # Practical examples
 
@@ -637,7 +798,7 @@ or, if you want to preserve the ones that are reserved by default:
 
 # Concurrent deployment and deletion
 
-Starting with version 0.3.0, dbdeployer can deploy groups of sandboxes (``deploy replication``, ``deploy multiple``) with the flag ``--concurrent``. When this flag is used, dbdeployed will run operations concurrently.
+Starting with version 0.3.0, dbdeployer can deploy groups of sandboxes (``deploy replication``, ``deploy multiple``) with the flag ``--concurrent``. When this flag is used, dbdeployer will run operations concurrently.
 The same flag can be used with the ``delete`` command. It is useful when there are several sandboxes to be deleted at once.
 Concurrent operations run from 2 to 5 times faster than sequential ones, depending on the version of the server and the number of nodes.
 
@@ -1475,18 +1636,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 1. Make sure you have go 1.10+ installed in your system, and that the ``$GOPATH`` variable is set.
 2. Run ``go get -u github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
-4. Run ``./scripts/build.sh {linux|OSX} 1.30.1``
-5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.30.1``
+4. Run ``./scripts/build.sh {linux|OSX} 1.31.0``
+5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.31.0``
 
 # Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.30.1-docs.linux.tar.gz
-* dbdeployer-1.30.1-docs.osx.tar.gz
-* dbdeployer-1.30.1.linux.tar.gz
-* dbdeployer-1.30.1.osx.tar.gz
+* dbdeployer-1.31.0-docs.linux.tar.gz
+* dbdeployer-1.31.0-docs.osx.tar.gz
+* dbdeployer-1.31.0.linux.tar.gz
+* dbdeployer-1.31.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

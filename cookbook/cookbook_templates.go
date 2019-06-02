@@ -629,15 +629,7 @@ var remoteOperations string = `#!/bin/bash
 cd $(dirname $0)
 source cookbook_include.sh
 
-run dbdeployer remote list
-
-os=$(uname -s | tr 'A-Z' 'a-z')
-if [ "$os" != "linux" ]
-then
-    echo ""
-	echo "remote tarballs are only available for Linux"
-	exit 1
-fi
+run dbdeployer downloads list
 
 version=$1
 if [ -z "$version" ] 
@@ -647,14 +639,15 @@ then
 	exit 1
 fi
 
-run dbdeployer remote get mysql-$version
-if [ ! -f mysql-${version}.tar.xz ]
+newest=$(dbdeployer downloads get-by-version $version --newest --dry-run | grep 'Name:' | awk '{print $2}')
+run dbdeployer downloads get-by-version $version --newest
+if [ ! -f $newest ]
 then
-	echo "error downloading mysql-${version}.tar.xz"
+	echo "error downloading $newest"
 	exit 1
 fi
 
-dbdeployer unpack ./mysql-${version}.tar.xz
+dbdeployer unpack ./$newest
 `
 
 var ndbDeployment string = `#!/bin/bash
@@ -730,9 +723,9 @@ function get_prerequisites_linux {
     echo "# FOR REGULAR MYSQL"
     echo "# run the commands: "
     echo ""
-    echo "1. dbdeployer remote list"
-    echo "2. dbdeployer remote get mysql-5.7.25"
-    echo "3. dbdeployer unpack mysql-5.7.25.tar.xz"
+    echo "1. dbdeployer downloads list"
+    echo "2. dbdeployer downloads get-by-version 5.7 --newest --minimal
+    echo "3. dbdeployer unpack mysql-5.7.26.tar.xz"
     echo ""
     echo "4. dbdeployer versions"
     echo ""
@@ -746,12 +739,15 @@ function get_prerequisites_linux {
 
 function get_prerequisites_darwin {
     echo "# 1a. Get the binaries from https://dev.mysql.com/downloads"
+	echo "  dbdeployer downloads get mysql-5.7.26-macos10.14-x86_64.tar.gz "
+	echo "  dbdeployer downloads get mysql-8.0.16-macos10.14-x86_64.tar.gz "
+	echo "  dbdeployer downloads get-by-version 8.0 --newest
     echo "# or"
     echo "# 1b. Get the binaries from the MySQL fork download pages"
     echo "# run the commands:"
-    echo "2a. dbdeployer unpack mysql-5.7.25-macos10.14-x86_64.tar.gz [--prefix=FlavorName]"
+    echo "2a. dbdeployer unpack mysql-5.7.26-macos10.14-x86_64.tar.gz [--prefix=FlavorName]"
 	echo "# or"
-    echo "2b. dbdeployer unpack mysql-8.0.15-macos10.14-x86-64bit.tar.gz [--prefix=FlavorName]"
+    echo "2b. dbdeployer unpack mysql-8.0.16-macos10.14-x86-64bit.tar.gz [--prefix=FlavorName]"
 	echo "# or"
     echo "2c. dbdeployer unpack FlavorName-X.X.XX-OS.tar.gz  --prefix=FlavorName"
     echo "3. dbdeployer versions"

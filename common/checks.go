@@ -593,3 +593,24 @@ func FindFreePort(basePort int, installedPorts []int, howMany int) (int, error) 
 	}
 	return findFreePortRange(basePort, usedPorts, howMany)
 }
+
+// Checks whether a version string is equal or greater than the current compatible version
+func IsCompatibleVersion(versionStr string) bool {
+	if !IsVersion(versionStr) {
+		return false
+	}
+
+	compVersionList, err := VersionToList(CompatibleVersion)
+	if err != nil {
+		return false
+	}
+	versionList, err := VersionToList(versionStr)
+	if err != nil {
+		return false
+	}
+	isGreater, err := GreaterOrEqualVersionList(versionList, compVersionList)
+	if err != nil {
+		return false
+	}
+	return isGreater
+}

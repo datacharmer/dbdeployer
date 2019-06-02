@@ -16,12 +16,15 @@
 package main
 
 import (
-	//"bufio"
+	"encoding/json"
 	"fmt"
-	"github.com/datacharmer/dbdeployer/common"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/downloads"
+	"github.com/datacharmer/dbdeployer/globals"
 )
 
 func getFileDate(filename string) string {
@@ -33,7 +36,7 @@ func getFileDate(filename string) string {
 	return modifiedTime.Format("2006-01-02")
 }
 
-func main() {
+func createVersionFile() {
 	templatesDir := ".build"
 	if !common.DirExists(templatesDir) {
 		err := os.Chdir("..")
@@ -76,4 +79,83 @@ func main() {
 
 	err = common.WriteString(versionCode, versionDestFile)
 	common.ErrCheckExitf(err, 1, "error writing version code file %s", versionDestFile)
+}
+
+func createTarballRegistry() {
+
+	var tarballList downloads.TarballCollection
+	sourceTarballList := "./downloads/tarball_list.json"
+	tarballRegistryTemplate := "./.build/tarball_registry_template.txt"
+	if !common.FileExists(tarballRegistryTemplate) {
+		common.Exitf(1, globals.ErrFileNotFound, tarballRegistryTemplate)
+	}
+	if !common.FileExists(sourceTarballList) {
+		common.Exitf(1, globals.ErrFileNotFound, sourceTarballList)
+	}
+
+	jsonText, err := common.SlurpAsBytes(sourceTarballList)
+	if err != nil {
+		common.Exitf(1, "error reading file %s: %s", sourceTarballList, err)
+	}
+	err = json.Unmarshal(jsonText, &tarballList)
+	if err != nil {
+		common.Exitf(1, "error decoding JSON file %s: %s", sourceTarballList, err)
+	}
+	registryTemplate, err := common.SlurpAsString(tarballRegistryTemplate)
+	if err != nil {
+		common.Exitf(1, "error reading file %s: %s", tarballRegistryTemplate, err)
+	}
+	if len(registryTemplate) < 10 {
+		common.Exitf(1, "error reading file %s: 0 byte retrieved", tarballRegistryTemplate)
+	}
+
+	data := make(common.StringMap)
+	data["Version"] = common.VersionDef
+	data["Items"] = []common.StringMap{}
+	// data["Timestamp"] = time.Now().Format("2006-01-02 15:04")
+	for _, tb := range tarballList.Tarballs {
+		tempItem := common.StringMap{
+			"Name":            tb.Name,
+			"Checksum":        tb.Checksum,
+			"OperatingSystem": tb.OperatingSystem,
+			"Url":             tb.Url,
+			"Flavor":          tb.Flavor,
+			"Minimal":         tb.Minimal,
+			"Size":            tb.Size,
+			"ShortVersion":    tb.ShortVersion,
+			"Version":         tb.Version,
+			"Notes":           "",
+			"UpdatedBy":       "",
+		}
+		if tb.Notes != "" {
+			tempItem["Notes"] = fmt.Sprintf(`Notes: "%s",`, tb.Notes)
+		}
+		if tb.UpdatedBy != "" {
+			tempItem["UpdatedBy"] = fmt.Sprintf(`UpdatedBy: "%s",`, tb.UpdatedBy)
+		}
+		data["Items"] = append(data["Items"].([]common.StringMap), tempItem)
+	}
+
+	out, err := common.SafeTemplateFill("tarball", registryTemplate, data)
+	if err != nil {
+		common.Exitf(1, "error filling template: %s", err)
+	}
+	fmt.Printf("%s\n", out)
+}
+
+func main() {
+
+	if len(os.Args) < 2 {
+		fmt.Printf("Syntax: code_generation {version|tarball} \n")
+	}
+	option := os.Args[1]
+	switch option {
+	case "version":
+		createVersionFile()
+	case "tarball":
+		createTarballRegistry()
+	default:
+		fmt.Printf("Option %s not recognized. Use one of [version tarball]\n", option)
+		os.Exit(1)
+	}
 }

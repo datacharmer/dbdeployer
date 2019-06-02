@@ -21,10 +21,11 @@ import (
 	"regexp"
 	"runtime"
 
+	"github.com/spf13/cobra"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/rest"
-	"github.com/spf13/cobra"
 )
 
 func listRemoteFiles(cmd *cobra.Command, args []string) {
@@ -42,6 +43,8 @@ func downloadFile(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
 		common.Exit(1, "command 'download' requires a version [and optionally a file-name]")
 	}
+	progress, _ := cmd.Flags().GetBool(globals.ProgressLabel)
+	progressStep, _ := cmd.Flags().GetInt64(globals.ProgressStepLabel)
 	currentOs := runtime.GOOS
 	skipOsCheckVar := "DBDEPLOYER_FORCE_REMOTE_GET"
 	skipOsCheck := os.Getenv(skipOsCheckVar) != ""
@@ -86,7 +89,7 @@ func downloadFile(cmd *cobra.Command, args []string) {
 	if common.FileExists(absPath) {
 		common.Exitf(1, globals.ErrFileAlreadyExists, absPath)
 	}
-	err = rest.DownloadFile(absPath, rest.FileUrl(version))
+	err = rest.DownloadFile(absPath, rest.FileUrl(version), progress, progressStep)
 	common.ErrCheckExitf(err, 1, "error getting remote file %s - %s", version, err)
 	fmt.Printf("File %s downloaded\n", absPath)
 }
@@ -109,13 +112,16 @@ var remoteListCmd = &cobra.Command{
 }
 
 var remoteCmd = &cobra.Command{
-	Use:   "remote",
-	Short: "Manages remote tarballs",
-	Long:  ``,
+	Deprecated: "Use 'downloads' instead",
+	Use:        "remote",
+	Short:      "Manages remote tarballs",
+	Long:       ``,
 }
 
 func init() {
 	rootCmd.AddCommand(remoteCmd)
 	remoteCmd.AddCommand(remoteDownloadCmd)
 	remoteCmd.AddCommand(remoteListCmd)
+	remoteDownloadCmd.Flags().BoolP(globals.ProgressLabel, "", false, "Show download progress")
+	remoteDownloadCmd.Flags().Int64P(globals.ProgressStepLabel, "", globals.ProgressStepValue, "Progress interval")
 }

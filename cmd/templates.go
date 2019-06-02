@@ -254,22 +254,8 @@ func importTemplates(cmd *cobra.Command, args []string) {
 		common.Exitf(1, "error reading version file")
 	}
 	templateVersion := strings.TrimSpace(versionFileContents)
-	_, err = common.VersionToList(templateVersion)
-	if err != nil {
-		common.Exitf(1, "error converting version %s\n", templateVersion)
-	}
-	// fmt.Printf("%v\n",version_list)
-	compatibleVersionList, err := common.VersionToList(common.CompatibleVersion)
-	if err != nil {
-		common.Exitf(1, "error converting compatible version %s from file %s\n", common.CompatibleVersion, versionFile)
-	}
-	templateVersionList, err := common.VersionToList(templateVersion)
-	if err != nil {
-		common.Exitf(1, "error converting version %s from file %s\n", templateVersion, versionFile)
-	}
-	compatibleTemplate, err := common.GreaterOrEqualVersionList(templateVersionList, compatibleVersionList)
-	common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
-	if !compatibleTemplate {
+
+	if !common.IsCompatibleVersion(templateVersion) {
 		common.Exitf(1, "templates are for version %s. The minimum compatible version is %s", templateVersion, common.CompatibleVersion)
 	}
 	foundGroup := false

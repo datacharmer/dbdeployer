@@ -15,17 +15,18 @@
 package rest
 
 import (
-	"github.com/datacharmer/dbdeployer/compare"
 	"os"
 	"testing"
+
+	"github.com/datacharmer/dbdeployer/compare"
 )
 
 func TestDownloadFile(t *testing.T) {
 	compare.SkipOnDemand("SKIP_REST_TEST", t)
 
-	fileName := "mysql-4.1.22.tar.xz"
+	fileName := "mysql-5.1.72.tar.xz"
 	url := FileUrl(fileName)
-	err := DownloadFile(fileName, url)
+	err := DownloadFile(fileName, url, true, 1024*1024)
 	if err == nil {
 		t.Logf("OK\n")
 		_ = os.Remove(fileName)
@@ -33,7 +34,6 @@ func TestDownloadFile(t *testing.T) {
 		t.Logf("### ERR %s\n", err)
 		t.Fail()
 	}
-
 }
 
 func TestGetRemoteIndex(t *testing.T) {

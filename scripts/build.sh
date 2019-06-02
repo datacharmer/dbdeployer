@@ -119,10 +119,12 @@ then
     version=$(cat .build/VERSION)
 fi
 
-version_builder=.build/create-version-source-file.go
-if [ ! -f $version_builder ]
+code_generation=.build/code-generation.go
+version_builder=version
+tarball_builder=tarball
+if [ ! -f $code_generation ]
 then
-    echo "File $version_builder not found - aborting"
+    echo "File $code_generation not found - aborting"
     exit 1
 fi
 
@@ -152,9 +154,30 @@ is_comp_version=$(grep "CompatibleVersion.*$current_compatible_version" common/v
 # if either version is missing from the build file, the source file is created again
 if [ -z "$is_version" -o -z "$is_comp_version" ]
 then
-    go run $version_builder
+    go run $code_generation $version_builder
+fi
+temp_file=.build/tmp$$.txt
+go run $code_generation $tarball_builder | gofmt > $temp_file
+if [ "$?" != "0" ]
+then
+    echo "Error while building tarball registry source file"
+    exit 1
 fi
 
+if [ ! -f $temp_file ]
+then
+    echo "tarball registry file generation error (no temp file created)"
+    exit 1
+fi
+
+file_not_empty=$(head $temp_file)
+if [ -z "$file_not_empty" ]
+then
+    echo "tarball registry file generation failed"
+    exit 1
+fi
+
+mv $temp_file downloads/tarball_registry.go
 
 function shrink {
     executable=$1

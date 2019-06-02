@@ -114,7 +114,7 @@
  		},
  		{
  			"name": "mysql-8.0.16-linux-glibc2.12-x86_64.tar.xz",
- 			"checksum": "SHA512:a3bc091483013609d3aad844a38eea12477f499e478af0e0a4399024f5ff8bf961580fe2c358c01d064a182a6ff52378904a5980efac371225bd8b678eb4d0b6",
+ 			"checksum": "MD5: 60d18d1b324104c83da33dcd7a989816",
  			"OS": "Linux",
  			"url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.16-linux-glibc2.12-x86_64.tar.xz",
  			"flavor": "mysql",
@@ -125,7 +125,7 @@
  		},
  		{
  			"name": "mysql-8.0.16-linux-x86_64-minimal.tar.xz",
- 			"checksum": "SHA512:69e0707b5b8cd36241002739219fdcd7aaa218e807aa8eb7b9ea5bb19079b5a50e6ecd3fc118fc21fb41f3e69d8b3c5c30615e39b78f8d00e741a5df02ce2e57",
+ 			"checksum": "MD5: 7bac88f47e648bf9a38e7886e12d1ec5",
  			"OS": "Linux",
  			"url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.16-linux-x86_64-minimal.tar.xz",
  			"flavor": "mysql",

@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2018 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,14 +13,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package common
+package downloads
 
 // This file was generated during build. Do not edit.
-// Build time: 2019-06-01 20:16
+// Build time: {{.DateTime}}
 
-var VersionDef string = "1.31.0" // 2019-06-01
+var DefaultTarballRegistry = TarballCollection{
+    DbdeployerVersion: "{{.Version}}",
+    Tarballs: []TarballDescription{
 
-// Compatible version is the version used to mark compatible archives (templates, configuration).
-// It is usually major.minor.0, except when we are at version 0.x, when
-// every revision may bring incompatibility
-var CompatibleVersion string = "1.31.0" // 2019-06-01
+{{ range .Items }}
+	{
+    Name:            "{{.Name}}",
+    Checksum:        "{{.Checksum}}",
+    OperatingSystem: "{{.OperatingSystem}}",
+    Url:             "{{.Url}}",
+    Flavor:          "{{.Flavor}}",
+    Minimal:         {{.Minimal}},
+    Size:            {{.Size}},
+    ShortVersion:    "{{.ShortVersion}}",
+    Version:         "{{.Version}}",
+    {{.Notes}}
+    {{.UpdatedBy}}
+  }, {{end}}
+},
+}

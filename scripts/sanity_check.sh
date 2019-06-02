@@ -32,7 +32,7 @@ function exists_in_path {
     done
 }
 
-local_items=(.build cmd defaults common globals compare cookbook unpack abbreviations concurrent sandbox compare rest)
+local_items=(.build cmd defaults downloads common globals compare cookbook unpack abbreviations concurrent sandbox compare rest)
 exit_code=0
 spaces="        "
 function run {
