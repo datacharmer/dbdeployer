@@ -86,6 +86,8 @@ func createTarballRegistry() {
 	var tarballList downloads.TarballCollection
 	sourceTarballList := "./downloads/tarball_list.json"
 	tarballRegistryTemplate := "./.build/tarball_registry_template.txt"
+	destination := "./downloads/tarball_registry.go"
+	intermediateFile := "./.build/tarball_registry.go"
 	if !common.FileExists(tarballRegistryTemplate) {
 		common.Exitf(1, globals.ErrFileNotFound, tarballRegistryTemplate)
 	}
@@ -110,9 +112,8 @@ func createTarballRegistry() {
 	}
 
 	data := make(common.StringMap)
-	data["Version"] = common.VersionDef
+	data["DbDeployerVersion"] = common.VersionDef
 	data["Items"] = []common.StringMap{}
-	// data["Timestamp"] = time.Now().Format("2006-01-02 15:04")
 	for _, tb := range tarballList.Tarballs {
 		tempItem := common.StringMap{
 			"Name":            tb.Name,
@@ -140,13 +141,27 @@ func createTarballRegistry() {
 	if err != nil {
 		common.Exitf(1, "error filling template: %s", err)
 	}
-	fmt.Printf("%s\n", out)
+	err = common.WriteString(out, intermediateFile)
+	if err != nil {
+		common.Exitf(1, "error writing to intermediate file: %s", err)
+	}
+
+	_, err = common.RunCmdWithArgs("go", []string{"fmt", intermediateFile})
+	if err != nil {
+		common.Exitf(1, "error formatting intermediate file: %s", err)
+	}
+	_, err = common.RunCmdWithArgs("mv", []string{intermediateFile, destination})
+	if err != nil {
+		common.Exitf(1, "error moving intermediate file to destination: %s", err)
+	}
+	// fmt.Printf("%s\n", out)
 }
 
 func main() {
 
 	if len(os.Args) < 2 {
 		fmt.Printf("Syntax: code_generation {version|tarball} \n")
+		os.Exit(1)
 	}
 	option := os.Args[1]
 	switch option {

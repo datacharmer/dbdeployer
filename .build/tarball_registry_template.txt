@@ -19,7 +19,7 @@ package downloads
 // Build time: {{.DateTime}}
 
 var DefaultTarballRegistry = TarballCollection{
-    DbdeployerVersion: "{{.Version}}",
+    DbdeployerVersion: "{{.DbDeployerVersion}}",
     Tarballs: []TarballDescription{
 
 {{ range .Items }}

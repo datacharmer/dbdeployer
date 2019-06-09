@@ -156,28 +156,12 @@ if [ -z "$is_version" -o -z "$is_comp_version" ]
 then
     go run $code_generation $version_builder
 fi
-temp_file=.build/tmp$$.txt
-go run $code_generation $tarball_builder | gofmt > $temp_file
+go run $code_generation $tarball_builder
 if [ "$?" != "0" ]
 then
     echo "Error while building tarball registry source file"
     exit 1
 fi
-
-if [ ! -f $temp_file ]
-then
-    echo "tarball registry file generation error (no temp file created)"
-    exit 1
-fi
-
-file_not_empty=$(head $temp_file)
-if [ -z "$file_not_empty" ]
-then
-    echo "tarball registry file generation failed"
-    exit 1
-fi
-
-mv $temp_file downloads/tarball_registry.go
 
 function shrink {
     executable=$1
