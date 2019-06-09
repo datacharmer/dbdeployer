@@ -84,12 +84,16 @@ const (
 	PortAsServerIdLabel     = "port-as-server-id"
 
 	// Instantiated in cmd/single.go
-	MasterLabel = "master"
+	MasterLabel    = "master"
+	ShellPathLabel = "shell-path"
+	ShellPathValue = "/bin/bash"
 
 	// Instantiated in cmd/remote.go
+	MB                = 1024 * 1024
+	TenMB             = MB * 10
 	ProgressLabel     = "progress"
 	ProgressStepLabel = "progress-step"
-	ProgressStepValue = 1024 * 1024 * 10
+	ProgressStepValue = TenMB
 
 	// Instantiated in cmd/downloads.go
 	OSLabel           = "OS"
@@ -423,3 +427,4 @@ var Copyright string = `
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 `
+var MockTemplatesFilled = false

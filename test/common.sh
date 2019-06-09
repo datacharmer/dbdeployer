@@ -564,6 +564,11 @@ function test_completeness {
     running_version=$1
     dir_name=$2
     mode=$3
+    new_bash=$4
+    if [ -z "$new_bash" ]
+    then
+        new_bash=/bin/bash
+    fi
     test_header test_completeness "$running_version $mode"
     version_path=$(echo $running_version| tr '.' '_')
     if [ -d $SANDBOX_HOME/$dir_name ]
@@ -628,6 +633,8 @@ function test_completeness {
         fi
         fname=$f$script_postfix
         ok_executable_exists $sbdir/$fname
+        has_bash_file=$(grep "$new_bash" $sbdir/$fname)
+        ok "file $fname has right bash '$new_bash'" "$has_bash_file"
         ok_template $sbdir/$fname
         if [ "$mode" != "single" ]
         then

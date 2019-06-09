@@ -245,6 +245,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		stopNodeList += fmt.Sprintf(" %d", i)
 	}
 	var data = common.StringMap{
+		"ShellPath":         sandboxDef.ShellPath,
 		"Copyright":         globals.Copyright,
 		"AppVersion":        common.VersionDef,
 		"DateTime":          timestamp.Format(time.UnixDate),
@@ -310,6 +311,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		groupPort := baseGroupPort + i
 		sandboxDef.Port = basePort + i
 		data["Nodes"] = append(data["Nodes"].([]common.StringMap), common.StringMap{
+			"ShellPath":         sandboxDef.ShellPath,
 			"Copyright":         globals.Copyright,
 			"AppVersion":        common.VersionDef,
 			"DateTime":          timestamp.Format(time.UnixDate),
@@ -388,6 +390,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		}
 		execLists = append(execLists, execList...)
 		var dataNode = common.StringMap{
+			"ShellPath":         sandboxDef.ShellPath,
 			"Copyright":         globals.Copyright,
 			"AppVersion":        common.VersionDef,
 			"DateTime":          timestamp.Format(time.UnixDate),

@@ -338,10 +338,6 @@ func FindInPath(filename string) string {
 // Runs a command with arguments
 func RunCmdWithArgs(c string, args []string) (string, error) {
 	cmd := exec.Command(c, args...)
-	//var out bytes.Buffer
-	//var stderr bytes.Buffer
-	//cmd.Stdout = &out
-	//cmd.Stderr = &stderr
 	var out []byte
 	var err error
 	out, err = cmd.Output()
@@ -351,6 +347,24 @@ func RunCmdWithArgs(c string, args []string) (string, error) {
 		CondPrintf("stdout: %s\n", out)
 	} else {
 		CondPrintf("%s", out)
+	}
+	return string(out), err
+}
+
+// Runs a command with arguments and output suppression
+func RunCmdCtrlWithArgs(c string, args []string, silent bool) (string, error) {
+	cmd := exec.Command(c, args...)
+	var out []byte
+	var err error
+	out, err = cmd.Output()
+	if err != nil {
+		CondPrintf("err: %s\n", err)
+		CondPrintf("cmd: %s %s\n", c, args)
+		CondPrintf("stdout: %s\n", out)
+	} else {
+		if !silent {
+			fmt.Printf("%s", out)
+		}
 	}
 	return string(out), err
 }

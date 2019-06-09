@@ -226,3 +226,118 @@ func TestIncludes(t *testing.T) {
 		compare.OkEqualBool(fmt.Sprintf("'%s' includes '%s'", d.mainStr, d.searchStr), result, d.expected, t)
 	}
 }
+
+func describeBlank(s string) string {
+	result := ""
+	for _, c := range s {
+		if result != "" {
+			result += "-"
+		}
+		switch {
+		case c == ' ':
+			result += "space"
+		case c == '\t':
+			result += "tab"
+		case c == '\n':
+			result += "newline"
+		case c >= '0' && c <= '9':
+			result += "number"
+		case c == '\r':
+			result += "CR"
+		case c >= 'a' && c <= 'z':
+			result += "alpha"
+		case c >= 0 && c < ' ':
+			result += "nonprintable"
+		default:
+			result += fmt.Sprintf("'%c'", c)
+		}
+	}
+	if result == "" {
+		result = "empty"
+	}
+	return result
+}
+
+func TestIsEmptyOrBlank(t *testing.T) {
+	type includeData struct {
+		mainStr  string
+		expected bool
+	}
+	var data = []includeData{
+		{"", true},
+		{" ", true},
+		{"  ", true},
+		{"   ", true},
+		{"\t", true},
+		{"\t\t", true},
+		{"\t\t\t", true},
+		{"\t \t", true},
+		{" \t", true},
+		{" \r", true},
+		{" \r\n", true},
+		{"\t\r\n", true},
+		{"\r\n", true},
+		{" \t\n", true},
+		{"\n", true},
+		{"\n ", true},
+		{"\n\t ", true},
+		{"\t\n", true},
+		{"\t\t\n", true},
+		{"\t \n", true},
+		{"\t.\n", false},
+		{"\tA\n", false},
+		{"hello", false},
+		{"0123", false},
+		{"0a23", false},
+		{",a!3", false},
+		{",!", false},
+	}
+	for _, d := range data {
+		result := IsEmptyOrBlank(d.mainStr)
+		compare.OkEqualBool(fmt.Sprintf("<%s> is empty or blank", describeBlank(d.mainStr)), result, d.expected, t)
+	}
+}
+
+func TestCoalesceString(t *testing.T) {
+	type includeData struct {
+		items    []string
+		expected string
+	}
+	var data = []includeData{
+		{[]string{"hello", "world"}, "hello"},
+		{[]string{"", "hello", "world"}, "hello"},
+		{[]string{"", "", "hello", "world"}, "hello"},
+		{[]string{"", "", "", ""}, ""},
+	}
+	for _, d := range data {
+		result := CoalesceString(d.items...)
+		compare.OkEqualString(fmt.Sprintf("one of '%#v'", d.items), result, d.expected, t)
+	}
+}
+
+func TestCoalesce(t *testing.T) {
+	type includeData struct {
+		items    []interface{}
+		expected interface{}
+	}
+	var data = []includeData{
+		{[]interface{}{"hello", "world"}, "hello"},
+		{[]interface{}{nil, "hello", "world"}, "hello"},
+		{[]interface{}{nil, nil, "hello", "world"}, "hello"},
+		{[]interface{}{nil, nil, "", "world"}, ""},
+		{[]interface{}{"", nil, 1, ""}, ""},
+		{[]interface{}{nil, 1, ""}, 1},
+		{[]interface{}{1, ""}, 1},
+		{[]interface{}{"", 1, ""}, ""},
+		{[]interface{}{nil, nil}, nil},
+	}
+	for _, d := range data {
+		result := Coalesce(d.items...)
+		if d.expected == nil {
+			compare.OkIsNil(fmt.Sprintf("one of '%#v' (%#v)", d.items, result), result, t)
+		} else {
+			compare.OkIsNotNil(fmt.Sprintf("one of '%#v' (%#v)", d.items, result), result, t)
+			compare.OkEqualInterface(fmt.Sprintf("one of '%#v' (%#v)", d.items, result), result, d.expected, t)
+		}
+	}
+}

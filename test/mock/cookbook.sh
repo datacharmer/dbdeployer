@@ -41,6 +41,10 @@ start_timer
 mkdir -p $mock_dir/home/.dbdeployer
 touch $mock_dir/home/.dbdeployer/sandboxes.json
 
+cd $mock_dir
+NEW_BASH=$PWD/bash
+ln -s /bin/bash $NEW_BASH
+
 versions=(5.0 5.1 5.5 5.6 5.7 8.0)
 ndb_versions=(ndb7.6 ndb8.0)
 pxc_versions=(pxc5.7)
@@ -73,7 +77,7 @@ done
 
 run dbdeployer available
 
-dbdeployer cookbook create all
+dbdeployer --shell-path=$NEW_BASH cookbook create all
 
 # We exclude from the search the prerequisites file, because there
 # is no version replacement in there, and the include file,
@@ -103,9 +107,18 @@ do
         ok_empty "File $F has a version" "$missed_version"
         missed_value=$(grep 'no value' $F)
         ok_empty "File $F has all the required values" "$missed_value"
+        has_new_bash=$(grep "$NEW_BASH" $F)
+        ok  "File $F has the new bash" "$has_new_bash"
     fi
 done
-# grep NOTFOUND recipes/*
+
+# Add test for custom bash interpreter
+
+dbdeployer --shell-path=$NEW_BASH deploy single 5.0 --sandbox-directory=newbash
+
+test_completeness 5.0.21 newbash single $NEW_BASH
+
+dbdeployer delete all --concurrent --skip-confirm
 
 results "After deletion"
 cd $test_dir || (echo "error changing directory to $mock_dir" ; exit 1)

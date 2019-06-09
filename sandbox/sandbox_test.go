@@ -325,7 +325,7 @@ func testCreateTidbMockSandbox(t *testing.T) {
 		_, err = RemoveSandbox(mockSandboxHome, sandboxDef.DirName, false)
 		// _, err = RemoveSandbox(defaults.Defaults().SandboxHome, sandboxDef.DirName, false)
 		if err != nil {
-			t.Fatal(fmt.Sprint(globals.ErrWhileRemoving, sandboxDir, err))
+			t.Fatal(fmt.Sprintf(globals.ErrWhileRemoving, sandboxDir, err))
 		}
 		err = defaults.DeleteFromCatalog(sandboxDir)
 		if err != nil {

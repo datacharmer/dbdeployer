@@ -70,7 +70,7 @@ func CompareTarballChecksum(tarball TarballDescription, fileName string) error {
 	reCRC := regexp.MustCompile(`(MD5|SHA1|SHA256|SHA512)\s*:\s*(\S+)`)
 	crcList := reCRC.FindAllStringSubmatch(tarball.Checksum, -1)
 
-	if len(crcList) < 1 || len(crcList[0]) < 1 {
+	if len(crcList) < 1 || len(crcList[0]) < 2 {
 		return fmt.Errorf("not a valid CRC pattern found. Expected: (MD5|SHA1|SHA256|SHA512):CHECKSUM_STRING")
 	}
 

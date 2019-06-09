@@ -116,6 +116,43 @@ func Includes(mainString, contained string) bool {
 	return re.MatchString(mainString)
 }
 
+// IsEmptyOrBlank returns true if the given string is empty
+// or contains only spaces
+// It also returns true for a string that contains spaces AND A NEWLINE
+// empty:              ""
+// empty with newline: "\n"
+// only spaces:        "  "
+// spaces and tabs:    "  \t"
+// spaces and newline: " \n"
+func IsEmptyOrBlank(s string) bool {
+	if s == "" {
+		return true
+	}
+	reEmpty := regexp.MustCompile(`^\s*$`)
+	return reEmpty.MatchString(s)
+}
+
+// CoalesceString returns the first string that it is not empty
+// or an empty string if all items are empty
+func CoalesceString(items ...string) string {
+	for _, item := range items {
+		if !IsEmptyOrBlank(item) {
+			return item
+		}
+	}
+	return items[0]
+}
+
+// Coalesce returns the first object that is not empty
+func Coalesce(items ...interface{}) interface{} {
+	for _, item := range items {
+		if item != nil {
+			return item
+		}
+	}
+	return nil
+}
+
 // Given a list of version strings (in the format x.x.x)
 // this function returns an ordered list, taking into account the
 // components of the versions, so that 5.6.2 sorts lower than 5.6.11

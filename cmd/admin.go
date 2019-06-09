@@ -96,6 +96,7 @@ func preserveSandbox(sandboxDir, sandboxName string) {
 	common.ErrCheckExitf(err, 1, globals.ErrWhileRenamingScript, err)
 	template := sandbox.SingleTemplates["sb_locked_template"].Contents
 	var data = common.StringMap{
+		"ShellPath":    defaults.Defaults().ShellPath,
 		"TemplateName": "sb_locked_template",
 		"SandboxDir":   sandboxName,
 		"AppVersion":   common.VersionDef,

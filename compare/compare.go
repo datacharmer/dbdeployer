@@ -47,6 +47,16 @@ func OkIsNotNil(label string, val interface{}, t *testing.T) {
 	}
 }
 
+// Compares two empty interfaces
+func OkEqualInterface(label string, a, b interface{}, t *testing.T) {
+	if a == b {
+		t.Logf("ok - %s: expected: '%v'\n", label, a)
+	} else {
+		t.Logf("not ok - %s: Numbers are not equal - expected %v, but got %v", label, b, a)
+		t.Fail()
+	}
+}
+
 // Compares two integers
 func OkEqualInt(label string, a, b int, t *testing.T) {
 	if a == b {

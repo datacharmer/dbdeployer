@@ -34,13 +34,14 @@ import (
 type SandboxDef struct {
 	DirName              string           // Name of the directory containing the sandbox
 	SBType               string           // Type of sandbox (single, multiple, replication-node, group-node)
-	Multi                bool             // Either single or part of a multiple sandbox
+	Multi                bool             // CoalesceString single or part of a multiple sandbox
 	NodeNum              int              // In multiple sandboxes, which node is this
 	Version              string           // MySQL version
 	Basedir              string           // Where to get binaries from (e.g. $HOME/opt/mysql/8.0.11)
 	ClientBasedir        string           // Where to get client binaries from (e.g. $HOME/opt/mysql/8.0.15)
 	BasedirName          string           // The bare name of the directory containing the binaries (e.g. 8.0.11)
 	SandboxDir           string           // Target directory for sandboxes
+	ShellPath            string           // The Bash interpreter to use for generated scripts
 	LoadGrants           bool             // Should we load grants?
 	SkipReportHost       bool             // Do not add report-host to my.sandbox.cnf
 	SkipReportPort       bool             // Do not add report-port to my.sandbox.cnf
@@ -482,7 +483,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		sandboxDef.PostGrantsSql = append(sandboxDef.PostGrantsSql, SingleTemplates["expose_dd_tables"].Contents)
 		if sandboxDef.CustomMysqld != "" && sandboxDef.CustomMysqld != "mysqld-debug" {
 			return emptyExecutionList, fmt.Errorf("--expose-dd-tables requires mysqld-debug. A different file was indicated (--custom-mysqld=%s)\n%s",
-				sandboxDef.CustomMysqld, "Either use \"mysqld-debug\" or remove --custom-mysqld")
+				sandboxDef.CustomMysqld, "CoalesceString use \"mysqld-debug\" or remove --custom-mysqld")
 		}
 		sandboxDef.CustomMysqld = "mysqld-debug"
 		logger.Printf("Using mysqld-debug for this sandbox\n")
@@ -595,6 +596,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	}
 
 	var data = common.StringMap{
+		"ShellPath":            sandboxDef.ShellPath,
 		"Basedir":              sandboxDef.Basedir,
 		"ClientBasedir":        sandboxDef.ClientBasedir,
 		"Copyright":            SingleTemplates["Copyright"].Contents,

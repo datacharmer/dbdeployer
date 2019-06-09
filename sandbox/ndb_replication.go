@@ -139,6 +139,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		sandboxDef.ClientBasedir = sandboxDef.Basedir
 	}
 	var data = common.StringMap{
+		"ShellPath":     sandboxDef.ShellPath,
 		"Basedir":       sandboxDef.Basedir,
 		"EngineClause":  "engine=ndbcluster",
 		"ClientBasedir": sandboxDef.ClientBasedir,
@@ -203,6 +204,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		sandboxDef.Port = basePort + i
 		nodeStringMap :=
 			common.StringMap{
+				"ShellPath":    sandboxDef.ShellPath,
 				"Copyright":    globals.Copyright,
 				"AppVersion":   common.VersionDef,
 				"DateTime":     timestamp.Format(time.UnixDate),
@@ -275,6 +277,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		}
 		execLists = append(execLists, execList...)
 		var dataNode = common.StringMap{
+			"ShellPath":   sandboxDef.ShellPath,
 			"Copyright":   globals.Copyright,
 			"AppVersion":  common.VersionDef,
 			"ClusterPort": ndbClusterPort,
@@ -307,6 +310,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 	for i := 2; i <= ndbNodes; i++ {
 		data["NdbNodes"] = append(data["NdbNodes"].([]common.StringMap),
 			common.StringMap{
+				"ShellPath":  sandboxDef.ShellPath,
 				"Node":       i,
 				"NodeLabel":  data["NodeLabel"],
 				"SandboxDir": data["SandboxDir"],

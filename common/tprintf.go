@@ -18,6 +18,7 @@ package common
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"reflect"
 	"regexp"
 	"text/template"
@@ -42,6 +43,32 @@ func TrimmedLines(s string) string {
 	return s
 }
 
+func GetBashPath(wantedValue string) (string, error) {
+
+	var shellPath string
+	defaultValue := globals.ShellPathValue
+
+	if wantedValue != "" {
+		shellPath = wantedValue
+	} else {
+		shellPath = os.Getenv("SHELL_PATH")
+		if shellPath == "" {
+			shellPath = defaultValue
+		}
+	}
+	if !ExecExists(shellPath) {
+		return "", fmt.Errorf("executable %s does not exist", shellPath)
+	}
+	out, err := RunCmdCtrlWithArgs(shellPath, []string{"-c", "echo $BASH_VERSION"}, true)
+	if err != nil {
+		return "", fmt.Errorf("error checking BASH_VERSION for %s: %s", shellPath, err)
+	}
+	if IsEmptyOrBlank(out) {
+		return "", fmt.Errorf("executable '%s' does not appear to be a Bash interpreter", shellPath)
+	}
+	return shellPath, nil
+}
+
 // TemplateFill passed template string is formatted using its operands and returns the resulting string.
 // Spaces are added between operands when neither is a string.
 // Based on code from https://play.golang.org/p/COHKlB2RML
@@ -50,6 +77,7 @@ func TemplateFill(tmpl string, data StringMap) string {
 
 	// Adds timestamp and version info
 	timestamp := time.Now()
+	shellPath, shellPathExists := data["ShellPath"]
 	_, timeStampExists := data["DateTime"]
 	_, versionExists := data["AppVersion"]
 	if !timeStampExists {
@@ -57,6 +85,14 @@ func TemplateFill(tmpl string, data StringMap) string {
 	}
 	if !versionExists {
 		data["AppVersion"] = VersionDef
+	}
+	if shellPathExists {
+		if shellPath == "" {
+			shellPathExists = false
+		}
+	}
+	if !shellPathExists {
+		data["ShellPath"] = globals.ShellPathValue
 	}
 	// Creates a template
 	processTemplate := template.Must(template.New("tmp").Parse(tmpl))
@@ -112,8 +148,9 @@ func GetVarsFromTemplate(tmpl string) []string {
 // It checks that the data was safely initialized
 func SafeTemplateFill(template_name, tmpl string, data StringMap) (string, error) {
 
-	// Adds timestamp, version info, and empty engine clause if one was not provided
+	// Adds shell path, timestamp, version info, and empty engine clause if one was not provided
 	timestamp := time.Now()
+	shellPath, shellPathExists := data["ShellPath"]
 	_, engineClauseExists := data["EngineClause"]
 	_, timeStampExists := data["DateTime"]
 	_, versionExists := data["AppVersion"]
@@ -125,6 +162,14 @@ func SafeTemplateFill(template_name, tmpl string, data StringMap) (string, error
 	}
 	if !engineClauseExists {
 		data["EngineClause"] = ""
+	}
+	if shellPathExists {
+		if shellPath == "" {
+			shellPathExists = false
+		}
+	}
+	if !shellPathExists {
+		data["ShellPath"] = globals.ShellPathValue
 	}
 
 	// Checks that all data was initialized

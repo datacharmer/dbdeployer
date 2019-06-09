@@ -16,10 +16,10 @@
 package downloads
 
 // This file was generated during build. Do not edit.
-// Build time: Sun Jun  2 19:33:05 CEST 2019
+// Build time: Sun Jun  9 18:11:10 CEST 2019
 
 var DefaultTarballRegistry = TarballCollection{
-	DbdeployerVersion: "1.31.0",
+	DbdeployerVersion: "1.32.0",
 	Tarballs: []TarballDescription{
 
 		{
@@ -149,7 +149,7 @@ var DefaultTarballRegistry = TarballCollection{
 		},
 		{
 			Name:            "mysql-8.0.16-linux-x86_64-minimal.tar.xz",
-			Checksum:        "MD5 : 7bac88f47e648bf9a38e7886e12d1ec5",
+			Checksum:        "MD5: 7bac88f47e648bf9a38e7886e12d1ec5",
 			OperatingSystem: "Linux",
 			Url:             "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.16-linux-x86_64-minimal.tar.xz",
 			Flavor:          "mysql",

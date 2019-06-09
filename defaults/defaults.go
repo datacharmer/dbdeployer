@@ -34,6 +34,7 @@ type DbdeployerDefaults struct {
 	LogSBOperations               bool   `json:"log-sb-operations"`
 	LogDirectory                  string `json:"log-directory"`
 	CookbookDirectory             string `json:"cookbook-directory"`
+	ShellPath                     string `json:"shell-path"`
 	MasterSlaveBasePort           int    `json:"master-slave-base-port"`
 	GroupReplicationBasePort      int    `json:"group-replication-base-port"`
 	GroupReplicationSpBasePort    int    `json:"group-replication-sp-base-port"`
@@ -92,6 +93,7 @@ var (
 		LogSBOperations:               false,
 		LogDirectory:                  path.Join(homeDir, "sandboxes", "logs"),
 		CookbookDirectory:             "recipes",
+		ShellPath:                     globals.ShellPathValue,
 		MasterSlaveBasePort:           11000,
 		GroupReplicationBasePort:      12000,
 		GroupReplicationSpBasePort:    13000,
@@ -245,6 +247,7 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 	}
 	allStrings := nd.SandboxPrefix != "" &&
 		nd.MasterSlavePrefix != "" &&
+		nd.ShellPath != "" &&
 		nd.MasterName != "" &&
 		nd.MasterAbbr != "" &&
 		nd.NodePrefix != "" &&
@@ -316,6 +319,8 @@ func UpdateDefaults(label, value string, storeDefaults bool) {
 		newDefaults.LogDirectory = value
 	case "cookbook-directory":
 		newDefaults.CookbookDirectory = value
+	case "shell-path":
+		newDefaults.ShellPath = value
 	case "master-slave-base-port":
 		newDefaults.MasterSlaveBasePort = common.Atoi(value)
 	case "group-replication-base-port":
@@ -410,6 +415,14 @@ func LoadConfiguration() {
 // useful to access single values from other operations
 func DefaultsToMap() common.StringMap {
 	currentDefaults = Defaults()
+	if currentDefaults.ShellPath == "" {
+		tempPath, err := common.GetBashPath("")
+		if err == nil {
+			currentDefaults.ShellPath = tempPath
+		} else {
+			currentDefaults.ShellPath = globals.ShellPathValue
+		}
+	}
 	return common.StringMap{
 		"Version":                           currentDefaults.Version,
 		"version":                           currentDefaults.Version,
@@ -423,6 +436,8 @@ func DefaultsToMap() common.StringMap {
 		"log-sb-operations":                 currentDefaults.LogSBOperations,
 		"LogDirectory":                      currentDefaults.LogDirectory,
 		"log-directory":                     currentDefaults.LogDirectory,
+		"ShellPath":                         currentDefaults.ShellPath,
+		"shell-path":                        currentDefaults.ShellPath,
 		"CookbookDirectory":                 currentDefaults.CookbookDirectory,
 		"cookbook-directory":                currentDefaults.CookbookDirectory,
 		"MasterSlaveBasePort":               currentDefaults.MasterSlaveBasePort,

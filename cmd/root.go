@@ -25,6 +25,7 @@ import (
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/downloads"
 	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/datacharmer/dbdeployer/sandbox"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -79,9 +80,22 @@ func checkDefaultsFile() {
 		}
 	}
 	defaults.LoadConfiguration()
+
+	shellPath, _ := flags.GetString(globals.ShellPathLabel)
+
+	shellPath, err := common.GetBashPath(shellPath)
+	if err != nil {
+		common.Exitf(1, "error validating shell '%s'", err)
+	}
+	defaults.UpdateDefaults(globals.ShellPathLabel, shellPath, false)
+	err = sandbox.FillMockTemplates()
+	if err != nil {
+		common.Exitf(1, "error filling mock templates: %s", err)
+	}
+	globals.MockTemplatesFilled = true
 	loadTemplates()
 	if downloads.TarballRegistryFileExist() {
-		err := downloads.LoadTarballFileInfo()
+		err = downloads.LoadTarballFileInfo()
 		if err != nil {
 			fmt.Printf("tarball load from %s failed: %s", downloads.TarballFileRegistry, err)
 			fmt.Println("Tarball list not loaded. Using defaults. Correct the issues listed above before using again.")
@@ -95,6 +109,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&defaults.CustomConfigurationFile, globals.ConfigLabel, defaults.ConfigurationFile, "configuration file")
 	setPflag(rootCmd, globals.SandboxHomeLabel, "", "SANDBOX_HOME", defaults.Defaults().SandboxHome, "Sandbox deployment directory", false)
 	setPflag(rootCmd, globals.SandboxBinaryLabel, "", "SANDBOX_BINARY", defaults.Defaults().SandboxBinary, "Binary repository", false)
+	setPflag(rootCmd, globals.ShellPathLabel, "", "SHELL_PATH", globals.ShellPathValue, "Which shell to use for generated scripts", false)
 
 	rootCmd.InitDefaultVersionFlag()
 

@@ -104,8 +104,15 @@ func CreateCustomMockVersion(version string, fileSet []MockFileSet) error {
 	if err != nil {
 		return err
 	}
+	if !globals.MockTemplatesFilled {
+		err = FillMockTemplates()
+		if err != nil {
+			return fmt.Errorf("error filling mock templates: %s", err)
+		}
+		globals.MockTemplatesFilled = true
+	}
 
-	var emptyData = common.StringMap{}
+	var emptyData = make(common.StringMap)
 	versionDir := path.Join(mockSandboxBinary, version)
 	err = os.Mkdir(versionDir, globals.PublicDirectoryAttr)
 	if err != nil {

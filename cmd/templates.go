@@ -51,6 +51,13 @@ func findTemplate(requested string) (group, templateName, contents string) {
 }
 
 func showTemplate(cmd *cobra.Command, args []string) {
+	if !globals.MockTemplatesFilled {
+		err := sandbox.FillMockTemplates()
+		if err != nil {
+			common.Exitf(1, "error filling mock templates: %s", err)
+		}
+		globals.MockTemplatesFilled = true
+	}
 	if len(args) < 1 {
 		common.Exitf(1, globals.ErrArgumentRequired, "template name")
 	}

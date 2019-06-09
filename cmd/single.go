@@ -316,6 +316,7 @@ func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxD
 	sd.ExposeDdTables, _ = flags.GetBool(globals.ExposeDdTablesLabel)
 	sd.InitGeneralLog, _ = flags.GetBool(globals.InitGeneralLogLabel)
 	sd.EnableGeneralLog, _ = flags.GetBool(globals.EnableGeneralLogLabel)
+	sd.ShellPath = defaults.Defaults().ShellPath
 
 	if sd.DisableMysqlX && sd.EnableMysqlX {
 		common.Exit(1, "flags --enable-mysqlx and --disable-mysqlx cannot be used together")

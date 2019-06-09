@@ -1,3 +1,9 @@
+1.32.0	09-Jun-2019
+	NEW FEATURE
+	- Add option --shell-path to choose alternative Bash interpreter
+	  used in all scripts, including cookbook recipes and mock scripts
+	TESTING
+	- Add test for alternative Bash intepreter
 1.31.0	22-May-2019
 	NEW FEATURES
 	- Add command 'downloads'
