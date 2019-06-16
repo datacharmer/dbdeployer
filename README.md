@@ -1,7 +1,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.32.0 (09-Jun-2019 15:54 UTC)
+Documentation updated for version 1.33.0 (16-Jun-2019 13:05 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -15,6 +15,7 @@ Documentation updated for version 1.32.0 (09-Jun-2019 15:54 UTC)
   - [Getting a tarball ](#Getting-a-tarball)
   - [Customizing the tarball list](#Customizing-the-tarball-list)
   - [Changing the tarball list permanently](#Changing-the-tarball-list-permanently)
+  - [From remote tarball to ready to use in one step](#From-remote-tarball-to-ready-to-use-in-one-step)
 - [Practical examples (cookbook)](#Practical-examples)
 - [Standard and non-standard basedir names](#Standard-and-non-standard-basedir-names)
 - [Using short version numbers](#Using-short-version-numbers)
@@ -53,7 +54,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.32.0
+    $ VERSION=1.33.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -88,7 +89,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.32.0
+    dbdeployer version 1.33.0
     
 
     $ dbdeployer -h
@@ -503,6 +504,7 @@ Size:          1.1 GB
       export         Exports the list of tarballs to a file
       get            Downloads a remote tarball
       get-by-version Downloads a remote tarball
+      get-unpack     Downloads and unpacks a remote tarball
       import         Imports the list of tarballs from a file
       list           list remote tarballs
       reset          Reset the custom list of tarballs and resume the defaults
@@ -561,6 +563,39 @@ Adding tarballs to a personal list could be time consuming, if you need to do it
 When entering a new tarball, it is important to fill all the details needed to identify the download. The checksum field is very important. as it is what makes sure that the file downloaded is really the original one.
 
 dbdeployer can calculate checksums for `MD5` (currently used in MySQL downloads pages), `SHA512` (used in most of the downloads listed in version 1.31.0), as well as `SHA1` and `SHA256`. To communicate which checksum is being used, the checksum string must be prefixed by the algorithm, such as `MD5:7bac88f47e648bf9a38e7886e12d1ec5`. An optional space before and after the colon (`:`) is accepted.
+
+## From remote tarball to ready to use in one step
+
+dbdeployer 1.33.0 adds a command `dbdeployer downloads get-unpack tarball_name` which combines the effects of `dbdeployer get tarball_name` followed by `dbdeployer unpack tarball_name`. This command accepts all options defined for `unpack`, so that you can optionally indicate the tarball flavor and version, whether to overwrite it, and if you want to delete the tarball after the operation.
+
+```
+$ dbdeployer downloads get-unpack \
+   mysql-8.0.16-linux-x86_64-minimal.tar.xz \
+   --overwrite \
+   --delete-after-unpack
+Downloading mysql-8.0.16-linux-x86_64-minimal.tar.xz
+....  44 MB
+File mysql-8.0.16-linux-x86_64-minimal.tar.xz downloaded
+Checksum matches
+Unpacking tarball mysql-8.0.16-linux-x86_64-minimal.tar.xz to $HOME/opt/mysql/8.0.16
+.........100.........200.219
+Renaming directory $HOME/opt/mysql/mysql-8.0.16-linux-x86_64-minimal to $HOME/opt/mysql/8.0.16
+
+$ dbdeployer downloads get-unpack \
+  mysql-cluster-8.0.16-dmr-linux-glibc2.12-x86_64.tar.gz \
+  --flavor=ndb \
+  --prefix=ndb \
+  --overwrite \
+  --delete-after-unpack
+Downloading mysql-cluster-8.0.16-dmr-linux-glibc2.12-x86_64.tar.gz
+.........105 MB.........210 MB.........315 MB.........419 MB.........524 MB
+.........629 MB.........734 MB.........839 MB.........944 MB.........1.0 GB....  1.1 GB
+File mysql-cluster-8.0.16-dmr-linux-glibc2.12-x86_64.tar.gz downloaded
+Checksum matches
+Unpacking tarball mysql-cluster-8.0.16-dmr-linux-glibc2.12-x86_64.tar.gz to $HOME/opt/mysql/ndb8.0.16
+[...]
+Renaming directory $HOME/opt/mysql/mysql-cluster-8.0.16-dmr-linux-glibc2.12-x86_64 to $HOME/opt/mysql/ndb8.0.16
+```
 
 # Practical examples
 
@@ -1637,18 +1672,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 1. Make sure you have go 1.10+ installed in your system, and that the ``$GOPATH`` variable is set.
 2. Run ``go get -u github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
-4. Run ``./scripts/build.sh {linux|OSX} 1.32.0``
-5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.32.0``
+4. Run ``./scripts/build.sh {linux|OSX} 1.33.0``
+5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.33.0``
 
 # Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.32.0-docs.linux.tar.gz
-* dbdeployer-1.32.0-docs.osx.tar.gz
-* dbdeployer-1.32.0.linux.tar.gz
-* dbdeployer-1.32.0.osx.tar.gz
+* dbdeployer-1.33.0-docs.linux.tar.gz
+* dbdeployer-1.33.0-docs.osx.tar.gz
+* dbdeployer-1.33.0.linux.tar.gz
+* dbdeployer-1.33.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

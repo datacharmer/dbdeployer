@@ -15,6 +15,7 @@ Documentation updated for version {{.Version}} ({{.Date}})
   - [Getting a tarball ](#Getting-a-tarball)
   - [Customizing the tarball list](#Customizing-the-tarball-list)
   - [Changing the tarball list permanently](#Changing-the-tarball-list-permanently)
+  - [From remote tarball to ready to use in one step](#From-remote-tarball-to-ready-to-use-in-one-step)
 - [Practical examples (cookbook)](#Practical-examples)
 - [Standard and non-standard basedir names](#Standard-and-non-standard-basedir-names)
 - [Using short version numbers](#Using-short-version-numbers)
@@ -317,6 +318,39 @@ Adding tarballs to a personal list could be time consuming, if you need to do it
 When entering a new tarball, it is important to fill all the details needed to identify the download. The checksum field is very important. as it is what makes sure that the file downloaded is really the original one.
 
 dbdeployer can calculate checksums for `MD5` (currently used in MySQL downloads pages), `SHA512` (used in most of the downloads listed in version 1.31.0), as well as `SHA1` and `SHA256`. To communicate which checksum is being used, the checksum string must be prefixed by the algorithm, such as `MD5:7bac88f47e648bf9a38e7886e12d1ec5`. An optional space before and after the colon (`:`) is accepted.
+
+## From remote tarball to ready to use in one step
+
+dbdeployer 1.33.0 adds a command `dbdeployer downloads get-unpack tarball_name` which combines the effects of `dbdeployer get tarball_name` followed by `dbdeployer unpack tarball_name`. This command accepts all options defined for `unpack`, so that you can optionally indicate the tarball flavor and version, whether to overwrite it, and if you want to delete the tarball after the operation.
+
+```
+$ dbdeployer downloads get-unpack \
+   mysql-8.0.16-linux-x86_64-minimal.tar.xz \
+   --overwrite \
+   --delete-after-unpack
+Downloading mysql-8.0.16-linux-x86_64-minimal.tar.xz
+....  44 MB
+File mysql-8.0.16-linux-x86_64-minimal.tar.xz downloaded
+Checksum matches
+Unpacking tarball mysql-8.0.16-linux-x86_64-minimal.tar.xz to $HOME/opt/mysql/8.0.16
+.........100.........200.219
+Renaming directory $HOME/opt/mysql/mysql-8.0.16-linux-x86_64-minimal to $HOME/opt/mysql/8.0.16
+
+$ dbdeployer downloads get-unpack \
+  mysql-cluster-8.0.16-dmr-linux-glibc2.12-x86_64.tar.gz \
+  --flavor=ndb \
+  --prefix=ndb \
+  --overwrite \
+  --delete-after-unpack
+Downloading mysql-cluster-8.0.16-dmr-linux-glibc2.12-x86_64.tar.gz
+.........105 MB.........210 MB.........315 MB.........419 MB.........524 MB
+.........629 MB.........734 MB.........839 MB.........944 MB.........1.0 GB....  1.1 GB
+File mysql-cluster-8.0.16-dmr-linux-glibc2.12-x86_64.tar.gz downloaded
+Checksum matches
+Unpacking tarball mysql-cluster-8.0.16-dmr-linux-glibc2.12-x86_64.tar.gz to $HOME/opt/mysql/ndb8.0.16
+[...]
+Renaming directory $HOME/opt/mysql/mysql-cluster-8.0.16-dmr-linux-glibc2.12-x86_64 to $HOME/opt/mysql/ndb8.0.16
+```
 
 # Practical examples
 

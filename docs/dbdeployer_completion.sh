@@ -1333,6 +1333,41 @@ _dbdeployer_downloads_get-by-version()
     noun_aliases=()
 }
 
+_dbdeployer_downloads_get-unpack()
+{
+    last_command="dbdeployer_downloads_get-unpack"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--delete-after-unpack")
+    local_nonpersistent_flags+=("--delete-after-unpack")
+    flags+=("--flavor=")
+    flags+=("--overwrite")
+    flags+=("--prefix=")
+    flags+=("--progress-step=")
+    local_nonpersistent_flags+=("--progress-step=")
+    flags+=("--shell")
+    flags+=("--target-server=")
+    flags+=("--unpack-version=")
+    flags+=("--verbosity=")
+    flags+=("--config=")
+    flags+=("--sandbox-binary=")
+    flags+=("--sandbox-home=")
+    flags+=("--shell-path=")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _dbdeployer_downloads_import()
 {
     last_command="dbdeployer_downloads_import"
@@ -1445,6 +1480,7 @@ _dbdeployer_downloads()
     commands+=("export")
     commands+=("get")
     commands+=("get-by-version")
+    commands+=("get-unpack")
     commands+=("import")
     commands+=("list")
     if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
