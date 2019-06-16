@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
@@ -111,8 +112,14 @@ func createTarballRegistry() {
 		common.Exitf(1, "error reading file %s: 0 byte retrieved", tarballRegistryTemplate)
 	}
 
+	// If the tarball JSON file uses current compatible version
+	// and the contents have not changed, there is nothing more to do.
+	if tarballList.DbdeployerVersion == common.CompatibleVersion &&
+		reflect.DeepEqual(downloads.DefaultTarballRegistry.Tarballs, tarballList.Tarballs) {
+		return
+	}
 	data := make(common.StringMap)
-	data["DbDeployerVersion"] = common.VersionDef
+	data["DbDeployerVersion"] = common.CompatibleVersion
 	data["Items"] = []common.StringMap{}
 	for _, tb := range tarballList.Tarballs {
 		tempItem := common.StringMap{

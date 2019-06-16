@@ -37,6 +37,13 @@ fi
 function set_version {
     file_name=$1
     version=$2
+    existing_version=$(cat $file_name | tr -d '\n')
+    if [[ $existing_version > $version ]]
+    then
+        echo "ERROR: existing version '$existing_version' from file '$file_name' is greater than version '$version'"
+        exit 1
+    fi
+    echo "Setting version from '$existing_version' to '$version'"
     echo $version > $file_name
 }
 
