@@ -230,6 +230,57 @@ mysqlsh_exists 5.7.66 does_not ""
 mysqlsh_exists 5.7.66 exists "--enable-mysqlx"
 mysqlsh_exists 8.0.66 exists ""
 
+temp_tarball_list=$(cat <<EOF_TARBALL
+{
+ 	"DbdeployerVersion": "1.32.0",
+ 	"Tarballs": [
+ 		{
+ 			"name": "fake-tarball1.tar.gz",
+ 			"OS": "Darwin",
+ 			"url": "https://fake.address.org/fake-tarball1.tar.gz",
+ 			"checksum": "MD5: 7bac88f47e648bf9a38e7886e12d1ec5",
+ 			"flavor": "mysql",
+ 			"minimal": false,
+ 			"size": 26485675,
+ 			"short_version": "5.0",
+ 			"version": "5.0.0"
+ 		},
+ 		{
+ 			"name": "fake-tarball2.tar.gz",
+ 			"OS": "Linux",
+ 			"checksum": "MD5: 7bac88f47e648bf9a38e7886e12d1ec5",
+ 			"url": "https://fake.address.org/fake-tarball2.tar.gz",
+ 			"flavor": "mysql",
+ 			"minimal": false,
+ 			"size": 26485675,
+ 			"short_version": "5.0",
+ 			"version": "5.0.0"
+ 		}
+   ]
+} 
+
+EOF_TARBALL
+)
+
+got_mysql_5_0=$( dbdeployer downloads list | grep "mysql-5.0.96.tar.xz")
+ok "mysql 5.0 found" "$got_mysql_5_0"
+
+temp_tarball=/tmp/temp$$.json
+touch $temp_tarball
+if [ -f $temp_tarball ]
+then
+
+    echo "$temp_tarball_list" > $temp_tarball
+
+    dbdeployer downloads import $temp_tarball
+    got_fake_tb1=$(dbdeployer downloads list | grep fake-tarball1)
+    ok "fake-tarball1 found" "$got_fake_tb1"
+    got_fake_tb2=$(dbdeployer downloads list | grep fake-tarball2)
+    ok "fake-tarball2 found" "$got_fake_tb2"
+    got_mysql_5_0=$( dbdeployer downloads list | grep "mysql-5.0.96.tar.xz")
+    ok_empty "mysql 5.0 empty" "$got_mysql_5_0"
+fi
+
 cd $test_dir || (echo "error changing directory to $test_dir" ; exit 1)
 
 run du -sh $mock_dir
