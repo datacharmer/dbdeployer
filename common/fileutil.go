@@ -431,6 +431,8 @@ func DirName(filename string) string {
 
 // Returns the absolute path of a file
 func AbsolutePath(value string) (string, error) {
+	reTilde := regexp.MustCompile(`^~`)
+	value = reTilde.ReplaceAllString(value, os.Getenv("HOME"))
 	filename, err := filepath.Abs(value)
 	if err != nil {
 		return "", errors.Wrapf(err, "error getting absolute path for %s", value)
