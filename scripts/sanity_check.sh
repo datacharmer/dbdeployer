@@ -19,6 +19,25 @@ exec_dir=$(dirname $0)
 cd $exec_dir
 cd ..
 
+function check_latest_version {
+    echo "## version"
+    git_version=$(git tag | tail -n 1 | tr -d 'v')
+    dbdeployer_version=$(cat .build/VERSION | tr -d '\n')
+    if [ -z "$git_version" ]
+    then
+        echo "# --------------------------------------- #"
+        echo "# WARNING: could not find git tag version #"
+        echo "# --------------------------------------- #"
+        return
+    fi
+    if [[ $git_version > $dbdeployer_version ]]
+    then
+        echo "Git tag version '$git_version' is bigger than dbdeployer version '$dbdeployer_version'"
+        exit 1
+    fi
+    echo "Current version '$dbdeployer_version' is compatible with git tag version '$git_version'"
+}
+
 function exists_in_path {
     what=$1
     for dir in $(echo $PATH | tr ':' ' ')
@@ -31,6 +50,7 @@ function exists_in_path {
         fi
     done
 }
+
 
 local_items=(.build cmd defaults downloads common globals compare cookbook unpack abbreviations concurrent sandbox compare rest)
 exit_code=0
@@ -45,69 +65,114 @@ function run {
     fi
 }
 
-echo "## gofmt"
-for dir in ${local_items[*]} docs/coding
-do
-    cd $dir
-    echo "# $dir/"
-    run "gofmt -l *.go"
-    cd -    > /dev/null
-done
-
-echo ""
-echo "## go vet"
-for dir in ${local_items[*]}
-do
-    cd $dir
-    echo "# $dir/"
-    run "go vet"
-    cd -    > /dev/null
-done
-echo "# docs/coding/"
-for gf in docs/coding/*.go
-do
-    run "go vet $gf"
-done
-
-echo "# copyright"
-for dir in ${local_items[*]}
-do
-    cd $dir
-    for F in *.go
+function check_fmt {
+    echo ""
+    echo "## gofmt"
+    for dir in ${local_items[*]} docs/coding
     do
-        has_copyright1=$(head -n 1 $F | grep DBDeployer )
-        has_copyright2=$(head -n 2 $F | tail -n 1 | grep Copyright )
+        cd $dir
+        echo "# $dir/"
+        run "gofmt -l *.go"
+        cd -    > /dev/null
+    done
+}
+
+function check_vet {
+    echo ""
+    echo "## go vet"
+    for dir in ${local_items[*]}
+    do
+        cd $dir
+        echo "# $dir/"
+        run "go vet"
+        cd -    > /dev/null
+    done
+    echo "# docs/coding/"
+    for gf in docs/coding/*.go
+    do
+        run "go vet $gf"
+    done
+}
+
+function check_copyright {
+    echo ""
+    echo "## copyright"
+    for dir in ${local_items[*]}
+    do
+        cd $dir
+        for F in *.go
+        do
+            has_copyright1=$(head -n 1 $F | grep DBDeployer )
+            has_copyright2=$(head -n 2 $F | tail -n 1 | grep Copyright )
+            if [ -z "$has_copyright1" -o -z "$has_copyright2" ]
+            then
+                exit_code=1
+                echo "File $dir/$F has no copyright"
+            fi
+        done
+        cd - > /dev/null
+    done
+    for SF in $(git ls-tree -r HEAD --name-only | grep '\.sh' | grep -v dbdeployer_completion | grep -v vendor)
+    do
+        has_copyright1=$(head -n 2 $SF | tail -n 1 | grep DBDeployer )
+        has_copyright2=$(head -n 3 $SF | tail -n 1 | grep Copyright )
         if [ -z "$has_copyright1" -o -z "$has_copyright2" ]
         then
             exit_code=1
-            echo "File $dir/$F has no copyright"
+            echo "File $SF has no copyright"
         fi
     done
-    cd - > /dev/null
-done
-for SF in $(git ls-tree -r HEAD --name-only | grep '\.sh' | grep -v dbdeployer_completion | grep -v vendor)
-do
-    has_copyright1=$(head -n 2 $SF | tail -n 1 | grep DBDeployer )
-    has_copyright2=$(head -n 3 $SF | tail -n 1 | grep Copyright )
-    if [ -z "$has_copyright1" -o -z "$has_copyright2" ]
+}
+
+function check_static {
+    STATIC_CHECK=$(exists_in_path staticcheck)
+
+    if [ -n "$STATIC_CHECK" ]
     then
-        exit_code=1
-        echo "File $SF has no copyright"
+        echo ""
+        echo "## staticcheck"
+        for dir in ${local_items[*]}
+        do
+            echo "# $dir"
+            run staticcheck github.com/datacharmer/dbdeployer/$dir
+        done
     fi
-done
 
-STATIC_CHECK=$(exists_in_path staticcheck)
+}
 
-if [ -n "$STATIC_CHECK" ]
+req=$1
+if [ -n "$req" ]
 then
-    echo ""
-    echo "## staticcheck"
-    for dir in ${local_items[*]}
-    do
-        echo "# $dir"
-        run staticcheck github.com/datacharmer/dbdeployer/$dir
-    done
+    case $req in
+        version)
+            check_latest_version
+            ;;
+        fmt)
+            check_fmt
+            ;;
+        vet)
+            check_vet
+            ;;
+        copyright)
+            check_copyright
+            ;;
+        static)
+            check_static
+            ;;
+        *)
+            echo "Syntax $(basename $0) [check_name]"
+            echo "Allowed checks: version | fmt | vet | copyright | static "
+            exit 0
+            ;;
+    esac
+else
+    check_latest_version
+    check_fmt
+    check_vet
+    check_copyright
+    check_static
 fi
+
 
 if [ "$exit_code" == "0" ]
 then
@@ -115,4 +180,5 @@ then
 else
     echo "### SANITY CHECK ($0) FAILED ###"
 fi
+
 exit $exit_code
