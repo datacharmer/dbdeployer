@@ -18,6 +18,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"path"
 	"runtime"
 	"strings"
@@ -101,6 +102,8 @@ func listRemoteTarballs(cmd *cobra.Command, args []string) {
 
 }
 
+var downloadedTarball string
+
 func getRemoteTarball(cmd *cobra.Command, args []string) {
 
 	if len(args) < 1 {
@@ -131,18 +134,13 @@ func getRemoteTarball(cmd *cobra.Command, args []string) {
 	if common.FileExists(absPath) {
 		common.Exitf(1, globals.ErrFileAlreadyExists, absPath)
 	}
+	if !quiet {
+		fmt.Printf("Downloading %s\n", tarball.Name)
+	}
 	err = rest.DownloadFile(absPath, tarball.Url, !quiet, progressStep)
 	common.ErrCheckExitf(err, 1, "error getting remote file %s - %s", fileName, err)
-	fmt.Printf("File %s downloaded\n", absPath)
-	err = downloads.CompareTarballChecksum(tarball, absPath)
-	common.ErrCheckExitf(err, 1, "error comparing checksum for tarball %s - %s", fileName, err)
-	fmt.Println("Checksum matches")
-	warning := getOSWarning(tarball)
-	if warning != "" {
-		fmt.Println(globals.HashLine)
-		fmt.Println(warning)
-		fmt.Println(globals.HashLine)
-	}
+	postDownloadOps(tarball, fileName, absPath)
+	downloadedTarball = absPath
 }
 
 func displayTarball(tarball downloads.TarballDescription) {
@@ -215,17 +213,42 @@ func getRemoteTarballByVersion(cmd *cobra.Command, args []string) {
 	if common.FileExists(absPath) {
 		common.Exitf(1, globals.ErrFileAlreadyExists, absPath)
 	}
+	if !quiet {
+		fmt.Printf("Downloading %s\n", tarball.Name)
+	}
 	err = rest.DownloadFile(absPath, tarball.Url, !quiet, progressStep)
 	common.ErrCheckExitf(err, 1, "error getting remote file %s - %s", fileName, err)
+	postDownloadOps(tarball, fileName, absPath)
+}
+
+func getUnpackRemoteTarball(cmd *cobra.Command, args []string) {
+	deleteAfterUnpack, _ := cmd.Flags().GetBool(globals.DeleteAfterUnpackLabel)
+	getRemoteTarball(cmd, args)
+
+	unpackTarball(cmd, args)
+	if deleteAfterUnpack {
+		if downloadedTarball == "" {
+			common.Exitf(1, "unhandled error. After unpack, the tarball to be deleted was not found")
+		}
+		err := os.Remove(downloadedTarball)
+		common.ErrCheckExitf(err, 1, "error removing downloaded file %s - %s", downloadedTarball, err)
+	}
+}
+
+func postDownloadOps(tarball downloads.TarballDescription, fileName, absPath string) {
 	fmt.Printf("File %s downloaded\n", absPath)
 
-	err = downloads.CompareTarballChecksum(tarball, absPath)
-	common.ErrCheckExitf(err, 1, "error comparing checksum for tarball %s - %s", fileName, err)
-	fmt.Println("Checksum matches")
-	warning := getOSWarning(tarball)
-	if warning != "" {
+	if tarball.Checksum == "" {
+		fmt.Println("No checksum to compare")
+	} else {
+		err := downloads.CompareTarballChecksum(tarball, absPath)
+		common.ErrCheckExitf(err, 1, "error comparing checksum for tarball %s - %s", fileName, err)
+		fmt.Println("Checksum matches")
+	}
+	warningMsg := getOSWarning(tarball)
+	if warningMsg != "" {
 		fmt.Println(globals.HashLine)
-		fmt.Println(warning)
+		fmt.Println(warningMsg)
 		fmt.Println(globals.HashLine)
 	}
 }
@@ -322,6 +345,14 @@ var downloadsGetCmd = &cobra.Command{
 	Run:   getRemoteTarball,
 }
 
+var downloadsGetUnpackCmd = &cobra.Command{
+	Use:   "get-unpack tarball_name [options]",
+	Short: "Downloads and unpacks a remote tarball",
+	Long: `get-unpack downloads a tarball and then unpacks it, using the same
+options available for "dbdeployer unpack".`,
+	Run: getUnpackRemoteTarball,
+}
+
 var downloadsShowCmd = &cobra.Command{
 	Use:     "show tarball_name",
 	Aliases: []string{"display"},
@@ -392,6 +423,7 @@ func init() {
 	downloadsCmd.AddCommand(downloadsImportCmd)
 	downloadsCmd.AddCommand(downloadsResetCmd)
 	downloadsCmd.AddCommand(downloadsGetByVersionCmd)
+	downloadsCmd.AddCommand(downloadsGetUnpackCmd)
 
 	downloadsListCmd.Flags().BoolP(globals.ShowUrlLabel, "", false, "Show the URL")
 	downloadsListCmd.Flags().String(globals.FlavorLabel, "", "Which flavor will be listed")
@@ -408,6 +440,18 @@ func init() {
 	downloadsGetCmd.Flags().BoolP(globals.QuietLabel, "", false, "Do not show download progress")
 	downloadsGetCmd.Flags().Int64P(globals.ProgressStepLabel, "", globals.ProgressStepValue, "Progress interval")
 	downloadsGetCmd.Flags().BoolP(globals.DryRunLabel, "", false, "Show what would be downloaded, but don't run it")
+
+	downloadsGetUnpackCmd.Flags().BoolP(globals.DeleteAfterUnpackLabel, "", false, "Delete the tarball after successful unpack")
+
+	// downloadsGetUnpack needs the same flags that cmdUnpack has
+	downloadsGetUnpackCmd.Flags().Int64P(globals.ProgressStepLabel, "", globals.ProgressStepValue, "Progress interval")
+	downloadsGetUnpackCmd.PersistentFlags().Int(globals.VerbosityLabel, 1, "Level of verbosity during unpack (0=none, 2=maximum)")
+	downloadsGetUnpackCmd.PersistentFlags().String(globals.UnpackVersionLabel, "", "which version is contained in the tarball")
+	downloadsGetUnpackCmd.PersistentFlags().String(globals.PrefixLabel, "", "Prefix for the final expanded directory")
+	downloadsGetUnpackCmd.PersistentFlags().Bool(globals.ShellLabel, false, "Unpack a shell tarball into the corresponding server directory")
+	downloadsGetUnpackCmd.PersistentFlags().Bool(globals.OverwriteLabel, false, "Overwrite the destination directory if already exists")
+	downloadsGetUnpackCmd.PersistentFlags().String(globals.TargetServerLabel, "", "Uses a different server to unpack a shell tarball")
+	downloadsGetUnpackCmd.PersistentFlags().String(globals.FlavorLabel, "", "Defines the tarball flavor (MySQL, NDB, Percona Server, etc)")
 
 	downloadsExportCmd.Flags().BoolP(globals.AddEmptyItemLabel, "", false, "Add an empty item to the tarballs list")
 }

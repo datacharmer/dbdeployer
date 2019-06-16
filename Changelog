@@ -1,3 +1,11 @@
+1.33.0	16-Jun-2019
+	NEW FEATURES
+	- Add command "downloads get-unpack" to combine the effects of
+	  "dbdeployer downloads get" and "dbdeployer unpack" into a
+	  single command (Issue #81)
+	BUGS FIXED
+	- Issue #83 'unpack --overwrite' should not ask for confirmation
+	- Issue #84 '--sandbox-binary' does not expand '~' to $HOME
 1.32.0	09-Jun-2019
 	NEW FEATURE
 	- Add option --shell-path to choose alternative Bash interpreter

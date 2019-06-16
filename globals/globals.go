@@ -96,12 +96,13 @@ const (
 	ProgressStepValue = TenMB
 
 	// Instantiated in cmd/downloads.go
-	OSLabel           = "OS"
-	ShowUrlLabel      = "show-url"
-	QuietLabel        = "quiet"
-	MinimalLabel      = "minimal"
-	NewestLabel       = "newest"
-	AddEmptyItemLabel = "add-empty-item"
+	OSLabel                = "OS"
+	ShowUrlLabel           = "show-url"
+	QuietLabel             = "quiet"
+	MinimalLabel           = "minimal"
+	NewestLabel            = "newest"
+	AddEmptyItemLabel      = "add-empty-item"
+	DeleteAfterUnpackLabel = "delete-after-unpack"
 
 	// Instantiated in cmd/admin.go
 	VerboseLabel = "verbose"

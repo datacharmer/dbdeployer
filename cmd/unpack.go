@@ -120,7 +120,7 @@ func unpackTarball(cmd *cobra.Command, args []string) {
 	}
 	if common.DirExists(destination) && !isShell {
 		if overwrite {
-			isDeleted, err := deleteBinaries(Basedir, Prefix+Version, true)
+			isDeleted, err := deleteBinaries(Basedir, Prefix+Version, false)
 			if !isDeleted {
 				common.Exitf(1, "directory %s could not be removed", Prefix+Version)
 			}
