@@ -282,6 +282,5 @@ Given the length of the output, it is recommended to pipe it to a file or to ano
 
 func init() {
 	rootCmd.AddCommand(exportCmd)
-
 	exportCmd.PersistentFlags().Bool(globals.ForceOutputToTermLabel, false, "display output to terminal regardless of pipes being used")
 }
