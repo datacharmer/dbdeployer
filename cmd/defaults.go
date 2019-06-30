@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,9 +18,18 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/alexeyco/simpletable"
+
+	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/datacharmer/dbdeployer/rest"
+
+	"os"
+	"path"
+
+	"github.com/spf13/cobra"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
-	"github.com/spf13/cobra"
 )
 
 func showDefaults(cmd *cobra.Command, args []string) {
@@ -72,6 +81,132 @@ func updateDefaults(cmd *cobra.Command, args []string) {
 	value := args[1]
 	defaults.UpdateDefaults(label, value, true)
 	defaults.ShowDefaults(defaults.Defaults())
+}
+
+func enableBashCompletion(cmd *cobra.Command, args []string) {
+
+	flags := cmd.Flags()
+	useRemote, _ := flags.GetBool(globals.RemoteLabel)
+	runIt, _ := flags.GetBool(globals.RunItLabel)
+	remoteUrl, _ := flags.GetString(globals.RemoteUrlLabel)
+	completionFile, _ := flags.GetString(globals.CompletionFileLabel)
+	useLocal := completionFile != ""
+
+	bashCompletionScript := path.Join("/etc", "bash_completion")
+	alternateBashCompletionScript := path.Join("/usr", "local", "etc", "bash_completion")
+	destinationDir := path.Join("/etc", "bash_completion.d")
+	alternateDestinationDir := path.Join("/usr", "local", "etc", "bash_completion.d")
+	if !common.DirExists(destinationDir) {
+		destinationDir = alternateDestinationDir
+	}
+	if !common.DirExists(destinationDir) {
+		common.Exitf(1, "neither %s or %s found", destinationDir, alternateDestinationDir)
+	}
+	if !common.FileExists(bashCompletionScript) {
+		bashCompletionScript = alternateBashCompletionScript
+	}
+	if !common.FileExists(bashCompletionScript) {
+		common.Exitf(1, "neither %s or %s found", bashCompletionScript, alternateBashCompletionScript)
+	}
+
+	if completionFile == "" {
+		completionFile = globals.CompletionFileValue
+	}
+	if useLocal && useRemote {
+		common.Exitf(1, "Only one of '--%s' or '--%s' should be used", globals.CompletionFileValue, globals.RemoteLabel)
+	}
+	if !useRemote {
+		useLocal = true
+	}
+	if useLocal {
+		defaultCompletionFile := path.Join(os.Getenv("PWD"), globals.CompletionFileValue)
+		defaultSecondCompletionFile := path.Join(os.Getenv("PWD"), "docs", globals.CompletionFileValue)
+		completionFile, _ = common.AbsolutePath(completionFile)
+		if completionFile == defaultCompletionFile {
+			if !common.FileExists(completionFile) {
+				if common.FileExists(defaultSecondCompletionFile) {
+					completionFile = defaultSecondCompletionFile
+				}
+			}
+		}
+	}
+	if useRemote {
+		if remoteUrl == "" {
+			common.Exitf(1, "Remote URL at '--%s' cannot be empty", globals.RemoteUrlLabel)
+		}
+		if common.FileExists(completionFile) {
+			common.Exitf(1, globals.ErrFileAlreadyExists, completionFile)
+		}
+		err := rest.DownloadFile(completionFile, remoteUrl, true, globals.MB)
+		if err != nil {
+			common.Exitf(1, "error downloading %s: %s", completionFile, err)
+		}
+		fmt.Printf("Download of file %s was successful\n", completionFile)
+	}
+
+	if !common.FileExists(completionFile) {
+		common.Exitf(1, globals.ErrFileNotFound, completionFile)
+	}
+
+	fmt.Printf("# completion file: %s\n", completionFile)
+	bareCompletionFileName := common.BaseName(completionFile)
+	destinationFile := path.Join(destinationDir, bareCompletionFileName)
+	if common.FileExists(destinationFile) {
+		// Get the checksum of both files, so we can skip the copy if they are already the same
+		sourceChecksum, err := common.GetFileSha256(completionFile)
+		if err != nil {
+			common.Exitf(1, "error getting checksum from file %s", completionFile)
+		}
+		destChecksum, err := common.GetFileSha256(destinationFile)
+		if err != nil {
+			common.Exitf(1, "error getting checksum from file %s", destinationFile)
+		}
+		if sourceChecksum == destChecksum {
+			fmt.Printf("Files '%s' and '%s' have the same checksum - Copy is not needed\n", completionFile, destinationFile)
+			return
+		}
+	}
+
+	if runIt {
+		fmt.Printf("# Running: sudo cp %s %s\n", completionFile, destinationDir)
+
+		output, err := common.RunCmdWithArgs("sudo", []string{"cp", completionFile, destinationDir})
+		if err != nil {
+			fmt.Printf("%s\n", output)
+			common.Exitf(1, "error copying bash completion file into %s: %s", destinationDir, err)
+		}
+		if !common.FileExists(destinationFile) {
+			common.Exitf(1, "error after copying bash completion file: "+globals.ErrFileNotFound, destinationFile)
+		}
+		fmt.Printf("# File copied to %s\n", destinationFile)
+	} else {
+
+		fmt.Printf("# Run the command: sudo cp %s %s\n", completionFile, destinationDir)
+	}
+	fmt.Printf("# Run the command 'source %s'\n", bashCompletionScript)
+}
+
+func showFlagAliases(cmd *cobra.Command, args []string) {
+	table := simpletable.New()
+
+	table.Header = &simpletable.Header{
+		Cells: []*simpletable.Cell{
+			{Align: simpletable.AlignCenter, Text: "command"},
+			{Align: simpletable.AlignCenter, Text: "flag"},
+			{Align: simpletable.AlignCenter, Text: "alias"},
+		},
+	}
+
+	for _, alias := range globals.FlagAliases {
+		var cells []*simpletable.Cell
+		cells = append(cells, &simpletable.Cell{Text: alias.Command})
+		cells = append(cells, &simpletable.Cell{Text: "--" + alias.FlagName})
+		cells = append(cells, &simpletable.Cell{Text: "--" + alias.Alias})
+		table.Body.Cells = append(table.Body.Cells, cells)
+	}
+
+	table.SetStyle(simpletable.StyleDefault)
+	table.Println()
 }
 
 var (
@@ -136,6 +271,20 @@ Afterwards, dbdeployer will use the internally stored defaults.
 `,
 		Run: removeDefaults,
 	}
+
+	defaultsEnableCompletionCmd = &cobra.Command{
+		Use:   "enable-bash-completion",
+		Short: "Enables bash-completion for dbdeployer",
+		Long:  `Enables bash completion using either a local copy of dbdeployer_completion.sh or a remote one`,
+		Run:   enableBashCompletion,
+	}
+	defaultsFlagAliasesCmd = &cobra.Command{
+		Use:     "flag-aliases",
+		Aliases: []string{"option-aliases", "aliases"},
+		Short:   "Shows flag aliases",
+		Long:    `Shows the aliases available for some flags`,
+		Run:     showFlagAliases,
+	}
 )
 
 func init() {
@@ -146,4 +295,15 @@ func init() {
 	defaultsCmd.AddCommand(defaultsLoadCmd)
 	defaultsCmd.AddCommand(defaultsUpdateCmd)
 	defaultsCmd.AddCommand(defaultsExportCmd)
+	defaultsCmd.AddCommand(defaultsFlagAliasesCmd)
+	defaultsCmd.AddCommand(defaultsEnableCompletionCmd)
+
+	setPflag(defaultsEnableCompletionCmd,
+		globals.RemoteUrlLabel, "", "", defaults.Defaults().RemoteCompletionUrl,
+		fmt.Sprintf("Where to downloads %s from", globals.CompletionFileValue), false)
+	defaultsEnableCompletionCmd.PersistentFlags().Bool(globals.RemoteLabel, false,
+		fmt.Sprintf("Download %s from GitHub", globals.CompletionFileValue))
+	setPflag(defaultsEnableCompletionCmd, globals.CompletionFileLabel, "", "", "",
+		"Use this file as completion", false)
+	defaultsEnableCompletionCmd.PersistentFlags().Bool(globals.RunItLabel, false, "Run the command instead of just showing it")
 }

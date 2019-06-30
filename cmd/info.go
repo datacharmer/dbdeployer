@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -79,6 +79,7 @@ func displayVersion(cmd *cobra.Command, args []string) {
 		allVersions = args[1]
 	}
 	flavor, _ := cmd.Flags().GetString(globals.FlavorLabel)
+	showEarliest, _ := cmd.Flags().GetBool(globals.EarliestLabel)
 	if flavor == "" {
 		flavor = common.MySQLFlavor
 	}
@@ -102,9 +103,14 @@ func displayVersion(cmd *cobra.Command, args []string) {
 				fmt.Println(result)
 			}
 		} else {
-			latest := cookbook.GetLatestVersion(wantedVersion, flavor)
-			if !reNotFound.MatchString(latest) {
-				fmt.Println(latest)
+			var result string
+			if showEarliest {
+				result = cookbook.GetEarliestVersion(wantedVersion, flavor)
+			} else {
+				result = cookbook.GetLatestVersion(wantedVersion, flavor)
+			}
+			if !reNotFound.MatchString(result) {
+				fmt.Println(result)
 
 			}
 		}
@@ -164,4 +170,5 @@ func init() {
 	infoCmd.AddCommand(infoDefaultsCmd)
 	infoCmd.AddCommand(infoVersionCmd)
 	setPflag(infoCmd, globals.FlavorLabel, "", "", "", "For which flavor this info is", false)
+	infoCmd.PersistentFlags().Bool(globals.EarliestLabel, false, "return the earliest version")
 }

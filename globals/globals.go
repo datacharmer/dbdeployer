@@ -28,6 +28,13 @@ const (
 	SandboxBinaryLabel = "sandbox-binary"
 	SandboxHomeLabel   = "sandbox-home"
 
+	// Instantiated in cmd/admin.go
+	RemoteLabel         = "remote"
+	RemoteUrlLabel      = "remote-url"
+	CompletionFileLabel = "completion-file"
+	CompletionFileValue = "dbdeployer_completion.sh"
+	RunItLabel          = "run-it"
+
 	// Instantiated in cmd/deploy.go
 	BasePortLabel           = "base-port"
 	BinaryVersionLabel      = "binary-version"
@@ -88,6 +95,9 @@ const (
 	ShellPathLabel = "shell-path"
 	ShellPathValue = "/bin/bash"
 
+	// Instantiated in cmd/info.go
+	EarliestLabel = "earliest"
+
 	// Instantiated in cmd/remote.go
 	MB                = 1024 * 1024
 	TenMB             = MB * 10
@@ -107,6 +117,7 @@ const (
 	// Instantiated in cmd/admin.go
 	VerboseLabel = "verbose"
 	DryRunLabel  = "dry-run"
+
 	// Instantiated in cmd/replication.go
 	AllMastersLabel     = "all-masters"
 	FanInLabel          = "fan-in"
@@ -412,7 +423,7 @@ var (
 	NeededPxcExecutables = []string{"rsync", "lsof"}
 )
 
-var Copyright string = `
+var ShellScriptCopyright string = `
 #    DBDeployer - The MySQL Sandbox
 #    Copyright (C) 2006-2019 Giuseppe Maxia
 #
@@ -429,3 +440,35 @@ var Copyright string = `
 #    limitations under the License.
 `
 var MockTemplatesFilled = false
+
+type FlagAlias struct {
+	Command  string
+	FlagName string
+	Alias    string
+}
+
+var FlagAliases = []FlagAlias{
+	{"ANY", ByFlavorLabel, "by-flavour"},
+	{"ANY", FlavorLabel, "flavour"},
+	{"cookbook.list", SortByLabel, "order-by"},
+	{"cookbook.show", RawLabel, "original"},
+	{"delete", ConcurrentLabel, "parallel"},
+	{"deploy.multiple", ConcurrentLabel, "parallel"},
+	{"deploy.multiple", DbPasswordLabel, "sandbox-password"},
+	{"deploy.multiple", DbUserLabel, "sandbox-user"},
+	{"deploy.replication", ConcurrentLabel, "parallel"},
+	{"deploy.replication", DbPasswordLabel, "sandbox-password"},
+	{"deploy.replication", DbUserLabel, "sandbox-user"},
+	{"deploy.replication", MasterIpLabel, "primary-ip"},
+	{"deploy.replication", MasterListLabel, "primary-list"},
+	{"deploy.replication", ReadOnlyLabel, "read-only-replicas"},
+	{"deploy.replication", SlaveListLabel, "replica-list"},
+	{"deploy.replication", SuperReadOnlyLabel, "super-read-only-replicas"},
+	{"deploy.single", DbPasswordLabel, "sandbox-password"},
+	{"deploy.single", DbUserLabel, "sandbox-user"},
+	{"deploy.single", MasterLabel, "primary"},
+	{"deploy.single", MasterLabel, "replication-ready"},
+	{"deploy.single", PortLabel, "sandbox-port"},
+	{"downloads.get-by-version", NewestLabel, "latest"},
+	{"info", EarliestLabel, "oldest"},
+}

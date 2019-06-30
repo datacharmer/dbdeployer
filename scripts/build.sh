@@ -128,16 +128,6 @@ then
     exit 1
 fi
 
-function build_sort {
-    OS=$1
-    target_os=$(echo $OS | tr 'A-Z' 'a-z')
-    cd test
-    (set -x
-    env GOOS=$target_os GOARCH=amd64 go build -o sort_versions.$OS sort_versions.go
-    )
-    cd -
-}
-
 if [ -z "$target" ]
 then
     echo "Syntax: target [version]"
@@ -194,7 +184,6 @@ case $target in
         fi
         tar -c $executable | gzip -c > ${executable}.tar.gz
         shrink $executable
-        build_sort Darwin
     ;;
     linux)
         executable=dbdeployer-${version}${docs_tag}.linux
@@ -203,7 +192,6 @@ case $target in
         )
         tar -c $executable | gzip -c > ${executable}.tar.gz
         shrink $executable
-        build_sort linux
     ;;
     *)
         echo unrecognized target.

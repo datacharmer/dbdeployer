@@ -62,6 +62,7 @@ type DbdeployerDefaults struct {
 	ReservedPorts                 []int  `json:"reserved-ports"`
 	RemoteRepository              string `json:"remote-repository"`
 	RemoteIndexFile               string `json:"remote-index-file"`
+	RemoteCompletionUrl           string `json:"remote-completion-url"`
 	PxcPrefix                     string `json:"pxc-prefix"`
 	NdbPrefix                     string `json:"ndb-prefix"`
 	Timestamp                     string `json:"timestamp"`
@@ -124,11 +125,12 @@ var (
 			33060, // MySQLX
 			33062, // MySQL Server admin port
 		},
-		RemoteRepository: "https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata",
-		RemoteIndexFile:  "available.json",
-		NdbPrefix:        "ndb_msb_",
-		PxcPrefix:        "pxc_msb_",
-		Timestamp:        time.Now().Format(time.UnixDate),
+		RemoteRepository:    "https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata",
+		RemoteIndexFile:     "available.json",
+		RemoteCompletionUrl: "https://raw.githubusercontent.com/datacharmer/dbdeployer/master/docs/dbdeployer_completion.sh",
+		NdbPrefix:           "ndb_msb_",
+		PxcPrefix:           "pxc_msb_",
+		Timestamp:           time.Now().Format(time.UnixDate),
 	}
 	currentDefaults DbdeployerDefaults
 )
@@ -261,6 +263,7 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		nd.SandboxHome != "" &&
 		nd.SandboxBinary != "" &&
 		nd.RemoteIndexFile != "" &&
+		nd.RemoteCompletionUrl != "" &&
 		nd.RemoteRepository != ""
 	if !allStrings {
 		common.CondPrintf("One or more empty values found in defaults\n")
@@ -373,6 +376,8 @@ func UpdateDefaults(label, value string, storeDefaults bool) {
 		newDefaults.RemoteRepository = value
 	case "remote-index-file":
 		newDefaults.RemoteIndexFile = value
+	case "remote-completion-url":
+		newDefaults.RemoteCompletionUrl = value
 	case "reserved-ports":
 		newDefaults.ReservedPorts = strToSlice("reserved-ports", value)
 	case "pxc-prefix":
@@ -494,6 +499,8 @@ func DefaultsToMap() common.StringMap {
 		"remote-repository":                 currentDefaults.RemoteRepository,
 		"RemoteIndexFile":                   currentDefaults.RemoteIndexFile,
 		"remote-index-file":                 currentDefaults.RemoteIndexFile,
+		"RemoteCompletionUrl":               currentDefaults.RemoteCompletionUrl,
+		"remote-completion-url":             currentDefaults.RemoteCompletionUrl,
 		"PxcPrefix":                         currentDefaults.PxcPrefix,
 		"pxc-prefix":                        currentDefaults.PxcPrefix,
 		"NdbPrefix":                         currentDefaults.NdbPrefix,

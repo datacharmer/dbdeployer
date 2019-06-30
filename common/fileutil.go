@@ -17,8 +17,14 @@ package common
 
 import (
 	"bufio"
+	"crypto/md5"
+	"crypto/sha1"
+	"crypto/sha256"
+	"crypto/sha512"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"hash"
 	"io"
 	"io/ioutil"
 	"os"
@@ -247,6 +253,53 @@ func WriteStrings(lines []string, filename string, termination string) error {
 		}
 	}
 	return w.Flush()
+}
+
+// Get a file checksum, choosing among MD5, SH1, SHA256, and SHA512
+func GetFileChecksum(fileName, crcType string) (string, error) {
+	var hasher hash.Hash
+	switch strings.ToLower(crcType) {
+	case "md5":
+		hasher = md5.New()
+	case "sha1":
+		hasher = sha1.New()
+	case "sha256":
+		hasher = sha256.New()
+	case "sha512":
+		hasher = sha512.New()
+	default:
+		return globals.EmptyString, fmt.Errorf("unsupported checksum type %s", crcType)
+	}
+
+	if hasher == nil {
+		return globals.EmptyString, fmt.Errorf("unhandled checksum error")
+	}
+	f, err := os.Open(fileName)
+	if err != nil {
+		return globals.EmptyString, err
+	}
+	defer f.Close()
+	_, err = io.Copy(hasher, f)
+	if err != nil {
+		return globals.EmptyString, err
+	}
+	return hex.EncodeToString(hasher.Sum(nil)), nil
+}
+
+func GetFileSha1(fileName string) (string, error) {
+	return GetFileChecksum(fileName, "sha1")
+}
+
+func GetFileSha256(fileName string) (string, error) {
+	return GetFileChecksum(fileName, "sha256")
+}
+
+func GetFileSha512(fileName string) (string, error) {
+	return GetFileChecksum(fileName, "sha512")
+}
+
+func GetFileMd5(fileName string) (string, error) {
+	return GetFileChecksum(fileName, "md5")
 }
 
 // append a string slice into an existing file

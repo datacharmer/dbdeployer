@@ -648,33 +648,10 @@ dd_versions=()
 pxc_versions=()
 ndb_versions=()
 
-OS=$(uname | tr '[:upper:]' '[:lower:]')
-if [ -x "sort_versions.$OS" ]
-then
-    cp "sort_versions.$OS" sort_versions
-fi
-
-if [ ! -x ./sort_versions ]
-then
-    #if [ -f ./sort_versions.go ]
-    #then
-    #    env GOOS=linux GOARCH=386 go build -o sort_versions.linux sort_versions.go
-    #    env GOOS=darwin GOARCH=386 go build -o sort_versions.Darwin sort_versions.go
-    #    ls -l sort_versions*
-    #    cp "sort_versions.$OS" sort_versions
-    #fi
-    #if [ ! -x ./sort_versions ]
-    #then
-        echo "./sort_versions not found"
-        exit 1
-    #fi
-fi
-
 for v in ${short_versions[*]}
 do
-    #ls $BINARY_DIR | grep "^$v" | ./sort_versions | tail -n 1
-    latest=$(ls "$BINARY_DIR" | grep "^$v" | ./sort_versions | tail -n 1)
-    oldest=$(ls "$BINARY_DIR" | grep "^$v" | ./sort_versions | head -n 1)
+    latest=$(dbdeployer info version $v)
+    oldest=$(dbdeployer info version $v --earliest)
     if [ -n "$latest" ]
     then
         all_versions[$count]=$latest
@@ -695,7 +672,7 @@ done
 count=0
 for v in ${group_short_versions[*]}
 do
-    latest=$(ls $BINARY_DIR | grep "^$v" | ./sort_versions | tail -n 1)
+    latest=$(dbdeployer info version $v)
     if [ -n "$latest" ]
     then
         group_versions[$count]=$latest
@@ -706,7 +683,7 @@ done
 count=0
 for v in ${semisync_short_versions[*]}
 do
-    latest=$(ls $BINARY_DIR | grep "^$v" | ./sort_versions | tail -n 1)
+    latest=$(dbdeployer info version $v)
     if [ -n "$latest" ]
     then
         semisync_versions[$count]=$latest
@@ -717,7 +694,7 @@ done
 count=0
 for v in ${dd_short_versions[*]}
 do
-    latest=$(ls $BINARY_DIR | grep "^$v" | ./sort_versions | tail -n 1)
+    latest=$(dbdeployer info version $v)
     if [ -n "$latest" ]
     then
         dd_versions[$count]=$latest
@@ -728,7 +705,7 @@ done
 count=0
 for v in ${pxc_short_versions[*]}
 do
-    latest=$(ls $BINARY_DIR | grep "^$v" | ./sort_versions | tail -n 1)
+    latest=$(dbdeployer info version $v --flavor=pxc)
     if [ -n "$latest" ]
     then
         pxc_versions[$count]=$latest
@@ -738,7 +715,7 @@ done
 count=0
 for v in ${ndb_short_versions[*]}
 do
-    latest=$(ls $BINARY_DIR | grep "^$v" | ./sort_versions | tail -n 1)
+    latest=$(dbdeployer info version $v --flavor=ndb)
     if [ -n "$latest" ]
     then
         ndb_versions[$count]=$latest
@@ -857,7 +834,7 @@ function tidb_deployment_methods {
         echo "no versions found for tidb"
         return
     fi
-    latest_5_7=$(ls "$BINARY_DIR" | grep "^5.7" | ./sort_versions | tail -n 1)
+    latest_5_7=$(dbdeployer info version 5.7)
     if [ -z "$latest_5_7" ]
     then
         echo "TiDb tests invoked, but no 5.7 client binaries found - aborting"
@@ -1156,8 +1133,8 @@ function replicate_between_sandboxes {
 function custom_replication_methods {
     current_test=custom_replication_methods
     test_header custom_replication_methods "" double
-    latest_5_7=$(ls "$BINARY_DIR" | grep "^5.7" | ./sort_versions | tail -n 1)
-    latest_8_0=$(ls "$BINARY_DIR" | grep "^8.0" | ./sort_versions | tail -n 1)
+    latest_5_7=$(dbdeployer info version 5.7)
+    latest_8_0=$(dbdeployer info version 8.0)
     if [ -n "$latest_5_7" -a -n "$latest_8_0" ]
     then
         both_versions=1
@@ -1215,9 +1192,9 @@ function custom_replication_methods {
 function upgrade_operations {
     current_test=upgrade_operations
     test_header upgrade_operations "" double
-    latest_5_6=$(ls "$BINARY_DIR" | grep "^5.6" | ./sort_versions | tail -n 1)
-    latest_5_7=$(ls "$BINARY_DIR" | grep "^5.7" | ./sort_versions | tail -n 1)
-    latest_8_0=$(ls "$BINARY_DIR" | grep "^8.0" | ./sort_versions | tail -n 1)
+    latest_5_6=$(dbdeployer info version 5.6)
+    latest_5_7=$(dbdeployer info version 5.7)
+    latest_8_0=$(dbdeployer info version 8.0)
     if [ -z "$latest_5_7" -o -z "$latest_8_0" ]
     then
         echo "Skipping upgrade test. No suitable version found for 5.7 or 8.0"

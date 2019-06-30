@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,8 +18,10 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
@@ -46,8 +48,19 @@ func Execute() {
 	// If the command line was not set in the abbreviations module,
 	// we save it here, before it is processed by Cobra
 	if len(common.CommandLineArgs) == 0 {
-
 		common.CommandLineArgs = append(common.CommandLineArgs, os.Args...)
+	}
+
+	// Sets flags normalization (allows --double-word and --double_word)
+	// and aliases
+	for _, c := range rootCmd.Commands() {
+		for _, c1 := range c.Commands() {
+			for _, c2 := range c1.Commands() {
+				customizeFlags(c2, strings.Join([]string{c.Name(), c1.Name(), c2.Name()}, "."))
+			}
+			customizeFlags(c1, strings.Join([]string{c.Name(), c1.Name()}, "."))
+		}
+		customizeFlags(c, c.Name())
 	}
 	if err := rootCmd.Execute(); err != nil {
 		common.Exitf(1, "%s", err)
@@ -103,9 +116,25 @@ func checkDefaultsFile() {
 	}
 }
 
+func customizeFlags(cmd *cobra.Command, cmdName string) {
+	normalizeFlags := func(f *pflag.FlagSet, name string) pflag.NormalizedName {
+		from := []string{".", "_"}
+		to := "-"
+		for _, sep := range from {
+			name = strings.Replace(name, sep, to, -1)
+		}
+		for _, alias := range globals.FlagAliases {
+			if name == alias.Alias && (cmdName == alias.Command || alias.Command == "ANY") {
+				name = alias.FlagName
+			}
+		}
+		return pflag.NormalizedName(name)
+	}
+	cmd.Flags().SetNormalizeFunc(normalizeFlags)
+}
+
 func init() {
 	cobra.OnInitialize(checkDefaultsFile)
-	// spew.Dump(rootCmd)
 	rootCmd.PersistentFlags().StringVar(&defaults.CustomConfigurationFile, globals.ConfigLabel, defaults.ConfigurationFile, "configuration file")
 	setPflag(rootCmd, globals.SandboxHomeLabel, "", "SANDBOX_HOME", defaults.Defaults().SandboxHome, "Sandbox deployment directory", false)
 	setPflag(rootCmd, globals.SandboxBinaryLabel, "", "SANDBOX_BINARY", defaults.Defaults().SandboxBinary, "Binary repository", false)
@@ -116,4 +145,5 @@ func init() {
 	// Indicates that we're using dbdeployer command line interface
 	// rather than calling its sandbox creation functions from other apps.
 	globals.UsingDbDeployer = true
+
 }

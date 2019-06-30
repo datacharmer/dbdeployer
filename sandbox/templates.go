@@ -1459,7 +1459,7 @@ esac
 		"Copyright": TemplateDesc{
 			Description: "Copyright for every sandbox script",
 			Notes:       "",
-			Contents:    globals.Copyright,
+			Contents:    globals.ShellScriptCopyright,
 		},
 		"replication_options": TemplateDesc{
 			Description: "Replication options for my.cnf",

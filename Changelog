@@ -1,3 +1,19 @@
+1.34.0	30-Jun-2019
+	NEW FEATURES
+	- Add command "defaults enable-bash-completion" to help install bash
+	  completion
+	- Add command "defaults flag-aliases" to show aliases for some flags
+	- Add flag "--earliest" to command "info version"
+
+	BUGS FIXED
+	- Downloads list should show files for current OS only
+	- Fix tarball list generation to be rebuilt only when
+	  contents change
+	- Fix OS user detection to rely on operating system library calls
+	  instead of environment variables.
+	
+	TESTING
+	- Replace sort_versions with calls to "dbdeployer info version"
 1.33.0	16-Jun-2019
 	NEW FEATURES
 	- Add command "downloads get-unpack" to combine the effects of

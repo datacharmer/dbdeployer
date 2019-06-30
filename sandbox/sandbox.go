@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/user"
 	"path"
 	"regexp"
 	"time"
@@ -595,6 +596,12 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		sandboxDef.ClientBasedir = sandboxDef.Basedir
 	}
 
+	user, err := user.Current()
+
+	if err != nil {
+		return emptyExecutionList, fmt.Errorf("could not get information about current OS user")
+	}
+
 	var data = common.StringMap{
 		"ShellPath":            sandboxDef.ShellPath,
 		"Basedir":              sandboxDef.Basedir,
@@ -626,7 +633,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		"RplPassword":          sandboxDef.RplPassword,
 		"RemoteAccess":         sandboxDef.RemoteAccess,
 		"BindAddress":          sandboxDef.BindAddress,
-		"OsUser":               os.Getenv("USER"),
+		"OsUser":               user.Username,
 		"ReplOptions":          sandboxDef.ReplOptions,
 		"GtidOptions":          sandboxDef.GtidOptions,
 		"ReplCrashSafeOptions": sandboxDef.ReplCrashSafeOptions,

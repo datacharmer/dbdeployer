@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -126,7 +126,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 	nodeLabel := defaults.Defaults().NodePrefix
 	var data = common.StringMap{
 		"ShellPath":    sandboxDef.ShellPath,
-		"Copyright":    globals.Copyright,
+		"Copyright":    globals.ShellScriptCopyright,
 		"AppVersion":   common.VersionDef,
 		"DateTime":     timestamp.Format(time.UnixDate),
 		"SandboxDir":   sandboxDef.SandboxDir,
@@ -165,7 +165,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		sandboxDef.Port = basePort + i
 		data["Nodes"] = append(data["Nodes"].([]common.StringMap), common.StringMap{
 			"ShellPath":    sandboxDef.ShellPath,
-			"Copyright":    globals.Copyright,
+			"Copyright":    globals.ShellScriptCopyright,
 			"AppVersion":   common.VersionDef,
 			"DateTime":     timestamp.Format(time.UnixDate),
 			"Node":         i,
@@ -221,7 +221,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 			"NodePort":     sandboxDef.Port,
 			"NodeLabel":    nodeLabel,
 			"SandboxDir":   sandboxDef.SandboxDir,
-			"Copyright":    globals.Copyright,
+			"Copyright":    globals.ShellScriptCopyright,
 			"StopNodeList": stopNodeList,
 		}
 		logger.Printf("Creating node script for node %d\n", i)

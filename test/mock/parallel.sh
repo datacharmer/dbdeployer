@@ -63,7 +63,7 @@ run dbdeployer available
 for vers in ${versions[*]}
 do
     # run parallel dbdeployer deploy {1} $vers.{2} ::: single multiple ::: $rev_list
-    # parallel --shellquote dbdeployer deploy {1} $vers.{2} ::: single multiple ::: $rev_list
+    parallel --shellquote dbdeployer deploy {1} $vers.{2} ::: single multiple ::: $rev_list
     run parallel  dbdeployer deploy {1} $vers.{2} ::: single multiple ::: $rev_list
 
     how_many=$(dbdeployer sandboxes | wc -l | tr -d ' \t')

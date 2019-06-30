@@ -262,7 +262,7 @@ temp_tarball_list=$(cat <<EOF_TARBALL
 EOF_TARBALL
 )
 
-got_mysql_5_0=$( dbdeployer downloads list | grep "mysql-5.0.96.tar.xz")
+got_mysql_5_0=$( dbdeployer downloads list --OS=all | grep "mysql-5.0.96.tar.xz")
 ok "mysql 5.0 found" "$got_mysql_5_0"
 
 temp_tarball=/tmp/temp$$.json
@@ -273,11 +273,11 @@ then
     echo "$temp_tarball_list" > $temp_tarball
 
     dbdeployer downloads import $temp_tarball
-    got_fake_tb1=$(dbdeployer downloads list | grep fake-tarball1)
+    got_fake_tb1=$(dbdeployer downloads list --OS=all | grep fake-tarball1)
     ok "fake-tarball1 found" "$got_fake_tb1"
-    got_fake_tb2=$(dbdeployer downloads list | grep fake-tarball2)
+    got_fake_tb2=$(dbdeployer downloads list --OS=all | grep fake-tarball2)
     ok "fake-tarball2 found" "$got_fake_tb2"
-    got_mysql_5_0=$( dbdeployer downloads list | grep "mysql-5.0.96.tar.xz")
+    got_mysql_5_0=$( dbdeployer downloads list --OS=all | grep "mysql-5.0.96.tar.xz")
     ok_empty "mysql 5.0 empty" "$got_mysql_5_0"
 fi
 

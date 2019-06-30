@@ -50,6 +50,9 @@ func listRemoteTarballs(cmd *cobra.Command, args []string) {
 	OS = strings.ToLower(OS)
 	flavor = strings.ToLower(flavor)
 	showUrl, _ := cmd.Flags().GetBool(globals.ShowUrlLabel)
+	if OS == "" {
+		OS = strings.ToLower(runtime.GOOS)
+	}
 	if OS == "macos" || OS == "osx" {
 		OS = "darwin"
 	}
@@ -334,8 +337,11 @@ var downloadsListCmd = &cobra.Command{
 	Use:     "list [options]",
 	Aliases: []string{"index"},
 	Short:   "list remote tarballs",
-	Long:    ``,
-	Run:     listRemoteTarballs,
+	Long: `List remote tarballs.
+By default it includes tarballs for current operating system.
+Use '--OS=os_name' or '--OS=all' to change.
+`,
+	Run: listRemoteTarballs,
 }
 
 var downloadsGetCmd = &cobra.Command{
@@ -360,9 +366,6 @@ var downloadsShowCmd = &cobra.Command{
 	Long:    ``,
 	Run:     showRemoteTarball,
 }
-
-// TODO
-// reset
 
 var downloadsGetByVersionCmd = &cobra.Command{
 	Use:   "get-by-version version [options]",

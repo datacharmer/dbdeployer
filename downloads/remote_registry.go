@@ -15,16 +15,8 @@
 package downloads
 
 import (
-	"crypto/md5"
-	"crypto/sha1"
-	"crypto/sha256"
-	"crypto/sha512"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"hash"
-	"io"
-	"os"
 	"path"
 	"regexp"
 	"strings"
@@ -83,31 +75,10 @@ func CompareTarballChecksum(tarball TarballDescription, fileName string) error {
 	if crcText == "" {
 		return fmt.Errorf("no CRC detected in checksum field for %s", tarball.Name)
 	}
-	var hasher hash.Hash
-	switch crcType {
-	case "MD5":
-		hasher = md5.New()
-	case "SHA1":
-		hasher = sha1.New()
-	case "SHA256":
-		hasher = sha256.New()
-	case "SHA512":
-		hasher = sha512.New()
-	}
-
-	if hasher == nil {
-		return fmt.Errorf("can't establish a hash function for %s", crcType)
-	}
-	f, err := os.Open(fileName)
+	localChecksum, err := common.GetFileChecksum(fileName, crcType)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
-	_, err = io.Copy(hasher, f)
-	if err != nil {
-		return err
-	}
-	localChecksum := hex.EncodeToString(hasher.Sum(nil))
 	if localChecksum != crcText {
 		return fmt.Errorf("unmatched checksum: expected '%s' but found '%s'", crcText, localChecksum)
 	}
@@ -238,12 +209,6 @@ func TarballFileInfoValidation(collection TarballCollection) error {
 
 	if collection.DbdeployerVersion == "" {
 		tarballErrorList = append(tarballErrorList, tarballError{"collection version", "dbdeployer version not set"})
-	}
-	if !common.IsCompatibleVersion(collection.DbdeployerVersion) {
-		tarballErrorList = append(tarballErrorList, tarballError{
-			"collection version",
-			fmt.Sprintf("dbdeployer version '%s' not compatible with current '%s'",
-				collection.DbdeployerVersion, common.CompatibleVersion)})
 	}
 	for _, tb := range collection.Tarballs {
 		if tb.Name == "" {

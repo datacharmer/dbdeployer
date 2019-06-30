@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -112,10 +112,8 @@ func createTarballRegistry() {
 		common.Exitf(1, "error reading file %s: 0 byte retrieved", tarballRegistryTemplate)
 	}
 
-	// If the tarball JSON file uses current compatible version
-	// and the contents have not changed, there is nothing more to do.
-	if tarballList.DbdeployerVersion == common.CompatibleVersion &&
-		reflect.DeepEqual(downloads.DefaultTarballRegistry.Tarballs, tarballList.Tarballs) {
+	// If the contents have not changed, there is nothing more to do.
+	if reflect.DeepEqual(downloads.DefaultTarballRegistry.Tarballs, tarballList.Tarballs) {
 		return
 	}
 	data := make(common.StringMap)
@@ -144,24 +142,43 @@ func createTarballRegistry() {
 		data["Items"] = append(data["Items"].([]common.StringMap), tempItem)
 	}
 
+	// Generate source code
 	out, err := common.SafeTemplateFill("tarball", registryTemplate, data)
 	if err != nil {
 		common.Exitf(1, "error filling template: %s", err)
 	}
+
+	// Write raw file
 	err = common.WriteString(out, intermediateFile)
 	if err != nil {
 		common.Exitf(1, "error writing to intermediate file: %s", err)
 	}
 
+	// Apply Go formatting to intermediate file
 	_, err = common.RunCmdWithArgs("go", []string{"fmt", intermediateFile})
 	if err != nil {
 		common.Exitf(1, "error formatting intermediate file: %s", err)
 	}
+
+	// Move intermediate file to the ultimate code place
 	_, err = common.RunCmdWithArgs("mv", []string{intermediateFile, destination})
 	if err != nil {
 		common.Exitf(1, "error moving intermediate file to destination: %s", err)
 	}
-	// fmt.Printf("%s\n", out)
+
+	// After generating the source code, we check whether the JSON tarball list has the
+	// latest compatible version. If it doesn't, we re-create it.
+	if tarballList.DbdeployerVersion != common.CompatibleVersion {
+		tarballList.DbdeployerVersion = common.CompatibleVersion
+		text, err := json.MarshalIndent(tarballList, " ", "  ")
+		if err != nil {
+			common.Exitf(1, "error encoding tarball list into JSON")
+		}
+		err = common.WriteString(string(text), sourceTarballList)
+		if err != nil {
+			common.Exitf(1, "error updating tarball list")
+		}
+	}
 }
 
 func main() {

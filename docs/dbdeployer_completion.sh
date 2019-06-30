@@ -489,9 +489,61 @@ _dbdeployer_cookbook()
     noun_aliases=()
 }
 
+_dbdeployer_defaults_enable-bash-completion()
+{
+    last_command="dbdeployer_defaults_enable-bash-completion"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--completion-file=")
+    flags+=("--remote")
+    flags+=("--remote-url=")
+    flags+=("--run-it")
+    flags+=("--config=")
+    flags+=("--sandbox-binary=")
+    flags+=("--sandbox-home=")
+    flags+=("--shell-path=")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _dbdeployer_defaults_export()
 {
     last_command="dbdeployer_defaults_export"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--config=")
+    flags+=("--sandbox-binary=")
+    flags+=("--sandbox-home=")
+    flags+=("--shell-path=")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_dbdeployer_defaults_flag-aliases()
+{
+    last_command="dbdeployer_defaults_flag-aliases"
 
     command_aliases=()
 
@@ -831,7 +883,15 @@ _dbdeployer_defaults()
     command_aliases=()
 
     commands=()
+    commands+=("enable-bash-completion")
     commands+=("export")
+    commands+=("flag-aliases")
+    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+        command_aliases+=("aliases")
+        aliashash["aliases"]="flag-aliases"
+        command_aliases+=("option-aliases")
+        aliashash["option-aliases"]="flag-aliases"
+    fi
     commands+=("load")
     if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
         command_aliases+=("import")
@@ -1759,6 +1819,7 @@ _dbdeployer_info_defaults()
     flags_completion=()
 
     flags+=("--config=")
+    flags+=("--earliest")
     flags+=("--flavor=")
     flags+=("--sandbox-binary=")
     flags+=("--sandbox-home=")
@@ -1784,6 +1845,7 @@ _dbdeployer_info_version()
     flags_completion=()
 
     flags+=("--config=")
+    flags+=("--earliest")
     flags+=("--flavor=")
     flags+=("--sandbox-binary=")
     flags+=("--sandbox-home=")
@@ -1810,6 +1872,7 @@ _dbdeployer_info()
     flags_with_completion=()
     flags_completion=()
 
+    flags+=("--earliest")
     flags+=("--flavor=")
     flags+=("--config=")
     flags+=("--sandbox-binary=")

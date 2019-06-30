@@ -179,7 +179,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 
 	var data = common.StringMap{
 		"ShellPath":          sandboxDef.ShellPath,
-		"Copyright":          globals.Copyright,
+		"Copyright":          globals.ShellScriptCopyright,
 		"AppVersion":         common.VersionDef,
 		"DateTime":           timestamp.Format(time.UnixDate),
 		"SandboxDir":         sandboxDef.SandboxDir,
@@ -271,7 +271,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		sandboxDef.Port = basePort + i + 1
 		data["Slaves"] = append(data["Slaves"].([]common.StringMap), common.StringMap{
 			"ShellPath":          sandboxDef.ShellPath,
-			"Copyright":          globals.Copyright,
+			"Copyright":          globals.ShellScriptCopyright,
 			"AppVersion":         common.VersionDef,
 			"DateTime":           timestamp.Format(time.UnixDate),
 			"Node":               i,
@@ -334,7 +334,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		execLists = append(execLists, execListNode...)
 		var dataSlave = common.StringMap{
 			"ShellPath":          sandboxDef.ShellPath,
-			"Copyright":          globals.Copyright,
+			"Copyright":          globals.ShellScriptCopyright,
 			"AppVersion":         common.VersionDef,
 			"DateTime":           timestamp.Format(time.UnixDate),
 			"Node":               i,

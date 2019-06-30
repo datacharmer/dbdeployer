@@ -233,6 +233,14 @@ func CreateRecipe(recipeName, flavor string) {
 }
 
 func GetLatestVersion(wantedVersion, flavor string) string {
+	return getSortedVersion(wantedVersion, flavor, -1)
+}
+
+func GetEarliestVersion(wantedVersion, flavor string) string {
+	return getSortedVersion(wantedVersion, flavor, 0)
+}
+
+func getSortedVersion(wantedVersion, flavor string, position int) string {
 	if wantedVersion == "" {
 		wantedVersion = os.Getenv("WANTED_VERSION")
 	}
@@ -249,7 +257,10 @@ func GetLatestVersion(wantedVersion, flavor string) string {
 	if len(sortedVersions) < 1 {
 		return VersionNotFound + "_" + flavor
 	}
-	latestVersion := sortedVersions[len(sortedVersions)-1]
+	if position == -1 {
+		position = len(sortedVersions) - 1
+	}
+	latestVersion := sortedVersions[position]
 	return latestVersion
 }
 
@@ -275,7 +286,7 @@ func GetRecipe(recipeName, flavor string) (string, int, error) {
 		versionCode = ErrNoVersionFound
 	}
 	var data = defaults.DefaultsToMap()
-	data["Copyright"] = globals.Copyright
+	data["Copyright"] = globals.ShellScriptCopyright
 	data["TemplateName"] = recipeName
 	data["LatestVersion"] = latestVersion
 	for version, latest := range latestVersions {

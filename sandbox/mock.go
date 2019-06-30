@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2019 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,7 +39,6 @@ var (
 	saveHome          string
 	saveSandboxHome   string
 	saveSandboxBinary string
-	saveSleepTime     string
 	mockSandboxBinary string
 	mockSandboxHome   string
 )
@@ -192,5 +191,4 @@ func init() {
 	saveSandboxBinary = os.Getenv("SANDBOX_BINARY")
 	saveSandboxHome = os.Getenv("SANDBOX_HOME")
 	saveHome = os.Getenv("HOME")
-	saveSleepTime = os.Getenv("SLEEP_TIME")
 }
