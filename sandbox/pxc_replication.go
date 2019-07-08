@@ -29,6 +29,7 @@ import (
 )
 
 var pxcReplicationOptions string = `
+log_slave_updates
 innodb_file_per_table
 innodb_autoinc_lock_mode=2
 wsrep-provider=__BASEDIR__/lib/libgalera_smm.so
