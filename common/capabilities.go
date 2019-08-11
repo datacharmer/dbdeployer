@@ -46,6 +46,7 @@ type flavorIndicator struct {
 const (
 	// Tarball flavors
 	MySQLFlavor         = "mysql"
+	MySQLShellFlavor    = "mysql-shell"
 	PerconaServerFlavor = "percona"
 	MariaDbFlavor       = "mariadb"
 	NdbFlavor           = "ndb"
@@ -76,6 +77,7 @@ const (
 	NdbCluster        = "ndbCluster"
 	RootAuth          = "rootAuth"
 	AdminAddress      = "adminAddress"
+	EmbedMySQLShell   = "embed-mysql-shell"
 )
 
 var MySQLCapabilities = Capabilities{
@@ -221,7 +223,6 @@ var FlavorCompositionList = []flavorIndicator{
 		},
 		flavor: MariaDbFlavor,
 	},
-
 	{
 		AllNeeded: false,
 		elements: []elementPath{
@@ -231,7 +232,6 @@ var FlavorCompositionList = []flavorIndicator{
 		},
 		flavor: PerconaServerFlavor,
 	},
-
 	{
 		AllNeeded: false,
 		elements: []elementPath{
@@ -247,6 +247,14 @@ var FlavorCompositionList = []flavorIndicator{
 			{"lib", globals.FnLibMySQLClientA},
 		},
 		flavor: MySQLFlavor,
+	},
+	{
+		AllNeeded: true,
+		elements: []elementPath{
+			{"bin", globals.FnMysqlsh},
+			{"share/mysqlsh", globals.FnMysqlProvisionZip},
+		},
+		flavor: MySQLShellFlavor,
 	},
 }
 
@@ -312,6 +320,17 @@ var MariadbCapabilities = Capabilities{
 	},
 }
 
+var MySQLShellCapabilities = Capabilities{
+	Flavor: MySQLShellFlavor,
+	Features: FeatureList{
+		EmbedMySQLShell: {
+			Description: "Can embed mysql-shell into server tree",
+			Since:       globals.MinimumMySQLShellEmbed,
+			Until:       nil,
+		},
+	},
+}
+
 var AllCapabilities = map[string]Capabilities{
 	MySQLFlavor:         MySQLCapabilities,
 	PerconaServerFlavor: PerconaCapabilities,
@@ -319,6 +338,7 @@ var AllCapabilities = map[string]Capabilities{
 	TiDbFlavor:          TiDBCapabilities,
 	NdbFlavor:           NdbCapabilities,
 	PxcFlavor:           PxcCapabilities,
+	MySQLShellFlavor:    MySQLShellCapabilities,
 }
 
 // Returns a set of existing capabilities with custom ones

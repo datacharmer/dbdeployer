@@ -42,6 +42,7 @@ type TarballDescription struct {
 
 type TarballCollection struct {
 	DbdeployerVersion string
+	UpdatedOn         string `json:"updated_on,omitempty"`
 	Tarballs          []TarballDescription
 }
 

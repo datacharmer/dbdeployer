@@ -18,6 +18,7 @@ package common
 import (
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -351,6 +352,27 @@ func CheckSandboxDir(sandboxHome string) error {
 func IsVersion(version string) bool {
 	re := regexp.MustCompile(`(\d+)\.(\d+)\.(\d+)$`)
 	return re.MatchString(version)
+}
+
+// Return true if a given string is a valid URL
+func IsUrl(s string) bool {
+	_, err := url.ParseRequestURI(s)
+	validUrl := err == nil
+
+	// We only consider HTTP addresses
+	reHttp := regexp.MustCompile(`^(http|https)://`)
+	if !reHttp.MatchString(s) {
+		validUrl = false
+	}
+
+	// If the file is the only part of the address,
+	// without a path, we consider it invalid.
+	stripped := reHttp.ReplaceAllString(s, "")
+	base := BaseName(stripped)
+	if stripped == base {
+		validUrl = false
+	}
+	return validUrl
 }
 
 // Returns true if a given string looks like an IPV4

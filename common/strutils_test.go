@@ -71,11 +71,7 @@ func TestReplaceLiteralHome(t *testing.T) {
 }
 
 func TestTextToBool(t *testing.T) {
-	type textBoolData struct {
-		input    string
-		expected bool
-	}
-	var data = []textBoolData{
+	var data = []testStringBool{
 		{"yes", true},
 		{"no", false},
 		{"true", true},
@@ -259,11 +255,7 @@ func describeBlank(s string) string {
 }
 
 func TestIsEmptyOrBlank(t *testing.T) {
-	type includeData struct {
-		mainStr  string
-		expected bool
-	}
-	var data = []includeData{
+	var data = []testStringBool{
 		{"", true},
 		{" ", true},
 		{"  ", true},
@@ -293,8 +285,8 @@ func TestIsEmptyOrBlank(t *testing.T) {
 		{",!", false},
 	}
 	for _, d := range data {
-		result := IsEmptyOrBlank(d.mainStr)
-		compare.OkEqualBool(fmt.Sprintf("<%s> is empty or blank", describeBlank(d.mainStr)), result, d.expected, t)
+		result := IsEmptyOrBlank(d.input)
+		compare.OkEqualBool(fmt.Sprintf("<%s> is empty or blank", describeBlank(d.input)), result, d.expected, t)
 	}
 }
 

@@ -1,5 +1,6 @@
 {
- 	"DbdeployerVersion": "1.32.0",
+ 	"DbdeployerVersion": "1.34.0",
+	"UpdatedOn": "2019-08-10",
  	"Tarballs": [
  		{
  			"name": "tidb-master-darwin-amd64.tar.gz",
@@ -133,6 +134,39 @@
  			"size": 44246564,
  			"short_version": "8.0",
  			"version": "8.0.16"
+ 		},
+ 		{
+ 			"name": "mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz",
+ 			"checksum": "MD5: 020b17fcbe79df8d59811f638d89df0e ",
+ 			"OS": "Linux",
+ 			"url": "https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz",
+ 			"flavor": "mysql",
+ 			"minimal": false,
+ 			"size": 644916075,
+ 			"short_version": "5.7",
+ 			"version": "5.7.27"
+ 		},
+		{
+ 			"name": "mysql-8.0.17-linux-glibc2.12-x86_64.tar.xz",
+ 			"checksum": "MD5: 298e8d4c052b97704840e2b3349a9218",
+ 			"OS": "Linux",
+ 			"url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.17-linux-glibc2.12-x86_64.tar.xz",
+ 			"flavor": "mysql",
+ 			"minimal": false,
+ 			"size": 480209016,
+ 			"short_version": "8.0",
+ 			"version": "8.0.17"
+ 		},
+ 		{
+ 			"name": "mysql-8.0.17-linux-x86_64-minimal.tar.xz",
+ 			"checksum": "MD5: 26e807f0140472fcc40166a67a775c7d",
+ 			"OS": "Linux",
+ 			"url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.17-linux-x86_64-minimal.tar.xz",
+ 			"flavor": "mysql",
+ 			"minimal": true,
+ 			"size": 44627040,
+ 			"short_version": "8.0",
+ 			"version": "8.0.17"
  		},
  		{
  			"name": "mysql-5.7.26-linux-glibc2.12-x86_64.tar.gz",
@@ -355,6 +389,28 @@
  			"version": "8.0.16"
  		},
  		{
+ 			"name": "mysql-8.0.17-macos10.14-x86_64.tar.gz",
+ 			"checksum": "MD5: f7c52377e149bdece0ede8c37381ea5e",
+ 			"OS": "Darwin",
+ 			"url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.17-macos10.14-x86_64.tar.gz",
+ 			"flavor": "mysql",
+ 			"minimal": false,
+ 			"size": 155365544,
+ 			"short_version": "8.0",
+ 			"version": "8.0.17"
+ 		},
+ 		{
+ 			"name": "mysql-5.7.27-macos10.14-x86_64.tar.gz",
+ 			"checksum": "MD5: 83593e67fce3a26cc154a1295f9575ae",
+ 			"OS": "Darwin",
+ 			"url": "https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.27-macos10.14-x86_64.tar.gz",
+ 			"flavor": "mysql",
+ 			"minimal": false,
+ 			"size": 337185061,
+ 			"short_version": "5.7",
+ 			"version": "5.7.27"
+ 		},
+ 		{
  			"name": "mysql-cluster-gpl-7.6.10-macos10.14-x86_64.tar.gz",
  			"checksum": "SHA512:62a1ac68a3884c3157dd63a25167f28e2eac120a3cad398797396d54e85c74a389d1c6bfd37d5de5b3d2653e0d557682b263e76ca333c0f12583968e4512b19d",
  			"OS": "Darwin",
@@ -386,6 +442,72 @@
  			"size": 1100516061,
  			"short_version": "8.0",
  			"version": "8.0.16"
+ 		},
+ 		{
+ 			"name": "mysql-cluster-gpl-7.6.11-linux-glibc2.12-x86_64.tar.gz",
+ 			"OS": "Linux",
+ 			"url": "https://dev.mysql.com/get/Downloads/MySQL-Cluster-7.6/mysql-cluster-gpl-7.6.11-linux-glibc2.12-x86_64.tar.gz",
+            "checksum": "MD5: 59445afa17d684596c4848d44a84bbdd",
+ 			"flavor": "ndb",
+ 			"minimal": false,
+ 			"size": 915792308,
+ 			"short_version": "7.6",
+ 			"version": "7.6.11"
+ 		},
+ 		{
+ 			"name": "mysql-cluster-8.0.17-rc-linux-glibc2.12-x86_64.tar.gz",
+ 			"OS": "Linux",
+ 			"url": "https://dev.mysql.com/get/Downloads/MySQL-Cluster-8.0/mysql-cluster-8.0.17-rc-linux-glibc2.12-x86_64.tar.gz",
+            "checksum": "MD5: ed610068e0dc75c6150dc30e518e27c5",
+ 			"flavor": "ndb",
+ 			"minimal": false,
+ 			"size": 1132656290,
+ 			"short_version": "8.0",
+ 			"version": "8.0.17"
+ 		},
+ 		{
+ 			"name": "mysql-cluster-8.0.17-rc-macos10.14-x86_64.tar.gz",
+ 			"OS": "Darwin",
+ 			"url": "https://dev.mysql.com/get/Downloads/MySQL-Cluster-8.0/mysql-cluster-8.0.17-rc-macos10.14-x86_64.tar.gz",
+            "checksum": "MD5: 783f088de74dd7b4e3c91c0c4e6ea6c9",
+ 			"flavor": "ndb",
+ 			"minimal": false,
+ 			"size": 254888396,
+ 			"short_version": "8.0",
+ 			"version": "8.0.17"
+ 		},
+ 		{
+ 			"name": "mysql-cluster-gpl-7.6.11-macos10.14-x86_64.tar.gz",
+ 			"OS": "Darwin",
+ 			"url": "https://dev.mysql.com/get/Downloads/MySQL-Cluster-7.6/mysql-cluster-gpl-7.6.11-macos10.14-x86_64.tar.gz",
+            "checksum": "MD5: 2ff5778ec86d1adbde1acdc9912e86a0",
+ 			"flavor": "ndb",
+ 			"minimal": false,
+ 			"size": 482381467,
+ 			"short_version": "7.6",
+ 			"version": "7.6.11"
+ 		},
+		{
+ 			"name": "mysql-shell-8.0.17-macos10.14-x86-64bit.tar.gz",
+ 			"OS": "Darwin",
+ 			"url": "https://dev.mysql.com/get/Downloads/MySQL-Shell/mysql-shell-8.0.17-macos10.14-x86-64bit.tar.gz",
+            "checksum": "MD5: 0205d6847961404b78cc205fbd24fac4",
+ 			"flavor": "mysql-shell",
+ 			"minimal": false,
+ 			"size": 16681924,
+ 			"short_version": "8.0",
+ 			"version": "8.0.17"
+ 		},
+		{
+ 			"name": "mysql-shell-8.0.17-linux-glibc2.12-x86-64bit.tar.gz",
+ 			"OS": "Linux",
+ 			"url": "https://dev.mysql.com/get/Downloads/MySQL-Shell/mysql-shell-8.0.17-linux-glibc2.12-x86-64bit.tar.gz",
+            "checksum": "MD5: a365a05fd3a6652c226d0eb85d93a887",
+ 			"flavor": "mysql-shell",
+ 			"minimal": false,
+ 			"size": 30002082,
+ 			"short_version": "8.0",
+ 			"version": "8.0.17"
  		}
  	]
  }

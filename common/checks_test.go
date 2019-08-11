@@ -21,12 +21,13 @@ import (
 	"testing"
 )
 
+type testStringBool struct {
+	input    string
+	expected bool
+}
+
 func TestIsVersion(t *testing.T) {
-	type testVersion struct {
-		candidate string
-		expected  bool
-	}
-	var data = []testVersion{
+	var data = []testStringBool{
 		{"1.2.3", true},
 		{"abc1.2.3", true},
 		{"1.2", false},
@@ -35,17 +36,13 @@ func TestIsVersion(t *testing.T) {
 		{"11.22.30", true},
 	}
 	for _, tv := range data {
-		result := IsVersion(tv.candidate)
-		compare.OkEqualBool(fmt.Sprintf("is version: %s", tv.candidate), tv.expected, result, t)
+		result := IsVersion(tv.input)
+		compare.OkEqualBool(fmt.Sprintf("is version: %s", tv.input), tv.expected, result, t)
 	}
 }
 
 func TestIsATarball(t *testing.T) {
-	type testTarball struct {
-		candidate string
-		expected  bool
-	}
-	var data = []testTarball{
+	var data = []testStringBool{
 		{"dummy.tar.gz", true},
 		{"dummy.tar.xz", true},
 		{"dummy.targz", false},
@@ -54,8 +51,25 @@ func TestIsATarball(t *testing.T) {
 		{"dummy.xz", false},
 	}
 	for _, tv := range data {
-		result := IsATarball(tv.candidate)
-		compare.OkEqualBool(fmt.Sprintf("is a tarball: %s", tv.candidate), tv.expected, result, t)
+		result := IsATarball(tv.input)
+		compare.OkEqualBool(fmt.Sprintf("is a tarball: %s", tv.input), tv.expected, result, t)
+	}
+}
+
+func TestIsAUrl(t *testing.T) {
+	var data = []testStringBool{
+		{"dummy.tar.gz", false},
+		{"dummy.tar.xz", false},
+		{"http://dummy.tar.xz", false},
+		{"ftp://dummy.tar.xz", false},
+		{"http://example.com/dummy.tar.xz", true},
+		{"ssh://example.com/dummy.tar.xz", false},
+		{"https://example.com/dummy.tar.xz", true},
+		{"https://example.com/some/path/dummy.tar.xz", true},
+	}
+	for _, dataItem := range data {
+		result := IsUrl(dataItem.input)
+		compare.OkEqualBool(fmt.Sprintf("is a url: %s", dataItem.input), dataItem.expected, result, t)
 	}
 }
 

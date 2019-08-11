@@ -16,11 +16,11 @@
 package common
 
 // This file was generated during build. Do not edit.
-// Build time: 2019-06-23 12:13
+// Build time: 2019-08-11 18:32
 
-var VersionDef string = "1.34.0" // 2019-06-22
+var VersionDef string = "1.35.0" // 2019-07-22
 
 // Compatible version is the version used to mark compatible archives (templates, configuration).
 // It is usually major.minor.0, except when we are at version 0.x, when
 // every revision may bring incompatibility
-var CompatibleVersion string = "1.34.0" // 2019-06-23
+var CompatibleVersion string = "1.35.0" // 2019-08-11

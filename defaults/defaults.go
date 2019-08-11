@@ -63,6 +63,7 @@ type DbdeployerDefaults struct {
 	RemoteRepository              string `json:"remote-repository"`
 	RemoteIndexFile               string `json:"remote-index-file"`
 	RemoteCompletionUrl           string `json:"remote-completion-url"`
+	RemoteTarballUrl              string `json:"remote-tarball-url"`
 	PxcPrefix                     string `json:"pxc-prefix"`
 	NdbPrefix                     string `json:"ndb-prefix"`
 	Timestamp                     string `json:"timestamp"`
@@ -128,6 +129,7 @@ var (
 		RemoteRepository:    "https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata",
 		RemoteIndexFile:     "available.json",
 		RemoteCompletionUrl: "https://raw.githubusercontent.com/datacharmer/dbdeployer/master/docs/dbdeployer_completion.sh",
+		RemoteTarballUrl:    "https://raw.githubusercontent.com/datacharmer/dbdeployer/master/downloads/tarball_list.json",
 		NdbPrefix:           "ndb_msb_",
 		PxcPrefix:           "pxc_msb_",
 		Timestamp:           time.Now().Format(time.UnixDate),
@@ -264,6 +266,7 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		nd.SandboxBinary != "" &&
 		nd.RemoteIndexFile != "" &&
 		nd.RemoteCompletionUrl != "" &&
+		nd.RemoteTarballUrl != "" &&
 		nd.RemoteRepository != ""
 	if !allStrings {
 		common.CondPrintf("One or more empty values found in defaults\n")
@@ -378,6 +381,8 @@ func UpdateDefaults(label, value string, storeDefaults bool) {
 		newDefaults.RemoteIndexFile = value
 	case "remote-completion-url":
 		newDefaults.RemoteCompletionUrl = value
+	case "remote-tarball-url":
+		newDefaults.RemoteTarballUrl = value
 	case "reserved-ports":
 		newDefaults.ReservedPorts = strToSlice("reserved-ports", value)
 	case "pxc-prefix":
@@ -501,6 +506,10 @@ func DefaultsToMap() common.StringMap {
 		"remote-index-file":                 currentDefaults.RemoteIndexFile,
 		"RemoteCompletionUrl":               currentDefaults.RemoteCompletionUrl,
 		"remote-completion-url":             currentDefaults.RemoteCompletionUrl,
+		"RemoteTarballUrl":                  currentDefaults.RemoteTarballUrl,
+		"remote-tarball-url":                currentDefaults.RemoteTarballUrl,
+		"remote-tarballs":                   currentDefaults.RemoteTarballUrl,
+		"remote-github":                     currentDefaults.RemoteTarballUrl,
 		"PxcPrefix":                         currentDefaults.PxcPrefix,
 		"pxc-prefix":                        currentDefaults.PxcPrefix,
 		"NdbPrefix":                         currentDefaults.NdbPrefix,

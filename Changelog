@@ -1,3 +1,11 @@
+1.35.0	11-Aug-2019
+	NEW FEATURES
+	- Improve command "dbdeployer downloads import": it can also import from a URL
+	- Add downloads binaries for 8.0.17 and 5.7.27
+	- Add mysql-shell binaries in downloads
+
+	TESTING
+	- More tests for common/*
 1.34.0	30-Jun-2019
 	NEW FEATURES
 	- Add command "defaults enable-bash-completion" to help install bash

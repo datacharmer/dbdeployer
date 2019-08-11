@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"regexp"
 	"runtime"
 	"strings"
 
@@ -77,7 +78,7 @@ func listRemoteTarballs(cmd *cobra.Command, args []string) {
 	if downloads.TarballRegistryFileExist() {
 		notes = fmt.Sprintf("[loaded from %s]", downloads.TarballFileRegistry)
 	}
-	fmt.Printf("Available tarballs %s\n", notes)
+	fmt.Printf("Available tarballs %s (%s)\n", notes, downloads.DefaultTarballRegistry.UpdatedOn)
 	for _, tb := range downloads.DefaultTarballRegistry.Tarballs {
 		var cells []*simpletable.Cell
 		minimalTag := ""
@@ -274,6 +275,7 @@ func exportTarballList(cmd *cobra.Command, args []string) {
 	if addEmpty {
 		tarballCollection.Tarballs = append(tarballCollection.Tarballs, downloads.TarballDescription{
 			Name:      "FillIt",
+			Checksum:  "Fill it",
 			Notes:     "Fill it",
 			UpdatedBy: "Fill it",
 		})
@@ -310,6 +312,26 @@ func importTarballCollection(cmd *cobra.Command, args []string) {
 	}
 	fileName := args[0]
 
+	if fileName == "remote-github" || fileName == "remote-tarballs" {
+		fileName = defaults.Defaults().RemoteTarballUrl
+	}
+
+	if common.IsUrl(fileName) {
+		fileUrl := fileName
+		re := regexp.MustCompile(`^(http|https)://`)
+		fileName = common.BaseName(re.ReplaceAllString(fileUrl, ""))
+		if common.FileExists(fileName) {
+			common.Exitf(1, "file %s already exists", fileName)
+		}
+		fmt.Printf("Downloading tarball list from %s\n", fileUrl)
+		err := rest.DownloadFile(fileName, fileUrl, true, globals.ProgressStepValue)
+		if err != nil {
+			common.Exitf(1, "error downloading tarball list to JSON file")
+		}
+	}
+	if !common.FileExists(fileName) {
+		common.Exitf(1, globals.ErrFileNotFound, fileName)
+	}
 	var tarballCollection downloads.TarballCollection
 
 	jsonText, err := common.SlurpAsBytes(fileName)
@@ -397,9 +419,14 @@ var downloadsExportCmd = &cobra.Command{
 }
 
 var downloadsImportCmd = &cobra.Command{
-	Use:   "import file-name [options]",
-	Short: "Imports the list of tarballs from a file",
-	Long:  ``,
+	Use:   "import {file-name | URL}",
+	Short: "Imports the list of tarballs from a file or URL",
+	Long: `
+Imports the list of tarballs from a file or a URL.
+If the argument is "remote-github" or "remote-tarballs", dbdeployer will get the file from
+its Github repository.
+(See: dbdeployer info defaults remote-tarball-url)
+`,
 
 	Run: importTarballCollection,
 }

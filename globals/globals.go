@@ -338,6 +338,7 @@ var (
 	MinimumNdbClusterVersion         = NumericVersion{7, 0, 0}
 	MinimumRootAuthVersion           = NumericVersion{10, 4, 3}
 	MinimumAdminAddressVersion       = NumericVersion{8, 0, 14}
+	MinimumMySQLShellEmbed           = NumericVersion{8, 0, 4}
 )
 
 const (
@@ -365,6 +366,7 @@ const (
 	FnLibPerconaServerClientDylib = "libperconaserverclient.dylib"
 	FnLibPerconaServerClientSo    = "libperconaserverclient.so"
 	FnMysql                       = "mysql"
+	FnMysqlsh                     = "mysqlsh"
 	FnMysqlInstallDb              = "mysql_install_db"
 	FnMysqlProvisionZip           = "mysqlprovision.zip"
 	FnMysqld                      = "mysqld"

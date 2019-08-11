@@ -38,6 +38,7 @@ func detectTarballFlavor(tarballName string) string {
 		common.NdbFlavor:           `mysql-cluster`,
 		common.TiDbFlavor:          `tidb`,
 		common.PxcFlavor:           `Percona-XtraDB-Cluster`,
+		common.MySQLShellFlavor:    `mysql-shell`,
 		common.MySQLFlavor:         `mysql`,
 	}
 
@@ -49,6 +50,7 @@ func detectTarballFlavor(tarballName string) string {
 		common.NdbFlavor,
 		common.TiDbFlavor,
 		common.PxcFlavor,
+		common.MySQLShellFlavor,
 		common.MySQLFlavor,
 	}
 
@@ -113,6 +115,17 @@ func unpackTarball(cmd *cobra.Command, args []string) {
 		common.Exitf(1, "version %s not in the required format", Version)
 	}
 	Prefix, _ := flags.GetString(globals.PrefixLabel)
+	if isShell {
+		fmt.Printf("%s\n", Version)
+		var canBeEmbedded bool
+		canBeEmbedded, err = common.HasCapability(common.MySQLShellFlavor, common.EmbedMySQLShell, Version)
+		if err != nil {
+			common.Exitf(1, "error detecting shell capability: %s", err)
+		}
+		if !canBeEmbedded {
+			common.Exitf(1, "MySQL shell version %s insufficient for embedding", Version)
+		}
+	}
 
 	destination := path.Join(Basedir, Prefix+Version)
 	if target != "" {
