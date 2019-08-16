@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/alexeyco/simpletable"
 
@@ -33,7 +34,23 @@ import (
 )
 
 func showDefaults(cmd *cobra.Command, args []string) {
-	defaults.ShowDefaults(defaults.Defaults())
+	camelCase, _ := cmd.Flags().GetBool(globals.CamelCase)
+	if camelCase {
+		results := defaults.DefaultsToMap()
+		reDash := regexp.MustCompile(`-`)
+		reCapital := regexp.MustCompile(`^[A-Z]`)
+		for k, v := range results {
+			if reDash.MatchString(k) {
+				continue
+			}
+			if !reCapital.MatchString(k) {
+				continue
+			}
+			fmt.Printf("%s %v\n", k, v)
+		}
+	} else {
+		defaults.ShowDefaults(defaults.Defaults())
+	}
 }
 
 func writeDefaults(cmd *cobra.Command, args []string) {
@@ -306,4 +323,5 @@ func init() {
 	setPflag(defaultsEnableCompletionCmd, globals.CompletionFileLabel, "", "", "",
 		"Use this file as completion", false)
 	defaultsEnableCompletionCmd.PersistentFlags().Bool(globals.RunItLabel, false, "Run the command instead of just showing it")
+	defaultsShowCmd.PersistentFlags().Bool(globals.CamelCase, false, "Show defaults in CamelCase format")
 }

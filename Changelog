@@ -1,3 +1,9 @@
+1.35.1	16-Aug-2019
+	BUG FIXES
+	- Fix 'dbdeployer info defaults': some values were not reported
+
+	TESTING
+	- Add test for defaults info
 1.35.0	11-Aug-2019
 	NEW FEATURES
 	- Improve command "dbdeployer downloads import": it can also import from a URL
