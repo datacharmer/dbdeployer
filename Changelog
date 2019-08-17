@@ -1,4 +1,8 @@
-1.35.1	16-Aug-2019
+1.36.0	17-Aug-2019
+	NEW FEATURES
+	- Add command "dbdeployer update"
+	- Add command "dbdeployer info releases"
+
 	BUG FIXES
 	- Fix 'dbdeployer info defaults': some values were not reported
 
