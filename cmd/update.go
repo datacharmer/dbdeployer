@@ -153,11 +153,11 @@ func updateDbDeployer(cmd *cobra.Command, args []string) {
 		common.Exitf(1, globals.ErrFileNotFound, fileName)
 	}
 	if verbose {
-		fmt.Printf("File %s extracted from %s\n",fileName, tarballName)
+		fmt.Printf("File %s extracted from %s\n", fileName, tarballName)
 	}
 	_ = os.Remove(tarballName)
 	if verbose {
-		fmt.Printf("File %s removed\n",tarballName)
+		fmt.Printf("File %s removed\n", tarballName)
 	}
 	err = os.Chmod(fileName, globals.ExecutableFileAttr)
 	common.ErrCheckExitf(err, 1, "error changing attributes of %s", fileName)
