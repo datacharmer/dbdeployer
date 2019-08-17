@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -27,7 +28,39 @@ import (
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
 )
+
+type ReleaseUser struct {
+	Login string `json:"login"`
+	Type  string `json:"type"`
+	URL   string `json:"url"`
+}
+type DbdeployerRelease struct {
+	Assets []struct {
+		BrowserDownloadURL string      `json:"browser_download_url"`
+		ContentType        string      `json:"content_type"`
+		CreatedAt          string      `json:"created_at"`
+		DownloadCount      int64       `json:"download_count"`
+		Name               string      `json:"name"`
+		Size               int64       `json:"size"`
+		State              string      `json:"state"`
+		Uploader           ReleaseUser `json:"uploader"`
+		URL                string      `json:"url"`
+	} `json:"assets"`
+	Author          ReleaseUser `json:"author"`
+	Body            string      `json:"body"`
+	CreatedAt       string      `json:"created_at"`
+	Draft           bool        `json:"draft"`
+	HTMLURL         string      `json:"html_url"`
+	Name            string      `json:"name"`
+	Prerelease      bool        `json:"prerelease"`
+	PublishedAt     string      `json:"published_at"`
+	TagName         string      `json:"tag_name"`
+	TarballURL      string      `json:"tarball_url"`
+	TargetCommitish string      `json:"target_commitish"`
+	ZipballURL      string      `json:"zipball_url"`
+}
 
 type RemoteFilesMap = map[string][]string
 
@@ -155,4 +188,60 @@ func GetRemoteIndex() (index RemoteFilesMap, err error) {
 	err = json.Unmarshal(availableText, &index)
 	return
 
+}
+
+func getReleaseText(tag string) ([]byte, error) {
+	endUrl := "/"
+
+	if tag == "" {
+		endUrl = ""
+	}
+	if tag != "" && tag != "latest" {
+		tag = "tags/" + tag
+	}
+	releaseUrl := fmt.Sprintf("https://api.github.com/repos/datacharmer/dbdeployer/releases%s%s", endUrl, tag)
+	resp, err := http.Get(releaseUrl)
+	if err != nil {
+		return globals.EmptyBytes, fmt.Errorf("[GetReleaseText] error getting %s: %s", releaseUrl, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return globals.EmptyBytes, fmt.Errorf("[GetReleaseText] received code %d ", resp.StatusCode)
+	}
+
+	htmlData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return globals.EmptyBytes, err
+	}
+	return htmlData, nil
+}
+
+func GetLatestRelease(tag string) (DbdeployerRelease, error) {
+	var release DbdeployerRelease
+	if tag == "" {
+		tag = "latest"
+	}
+	htmlData, err := getReleaseText(tag)
+	if err != nil {
+		return DbdeployerRelease{}, err
+	}
+	err = json.Unmarshal(htmlData, &release)
+	if err != nil {
+		return DbdeployerRelease{}, err
+	}
+	return release, nil
+}
+
+func GetReleases() ([]DbdeployerRelease, error) {
+	var releases []DbdeployerRelease
+	htmlData, err := getReleaseText("")
+	if err != nil {
+		return []DbdeployerRelease{}, err
+	}
+	err = json.Unmarshal(htmlData, &releases)
+	if err != nil {
+		return []DbdeployerRelease{}, err
+	}
+	return releases, nil
 }

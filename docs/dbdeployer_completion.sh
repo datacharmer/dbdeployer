@@ -1830,6 +1830,33 @@ _dbdeployer_info_defaults()
     noun_aliases=()
 }
 
+_dbdeployer_info_releases()
+{
+    last_command="dbdeployer_info_releases"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--limit=")
+    flags+=("--config=")
+    flags+=("--earliest")
+    flags+=("--flavor=")
+    flags+=("--sandbox-binary=")
+    flags+=("--sandbox-home=")
+    flags+=("--shell-path=")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _dbdeployer_info_version()
 {
     last_command="dbdeployer_info_version"
@@ -1864,6 +1891,7 @@ _dbdeployer_info()
 
     commands=()
     commands+=("defaults")
+    commands+=("releases")
     commands+=("version")
 
     flags=()
@@ -1939,6 +1967,40 @@ _dbdeployer_unpack()
     flags+=("--target-server=")
     flags+=("--unpack-version=")
     flags+=("--verbosity=")
+    flags+=("--config=")
+    flags+=("--sandbox-binary=")
+    flags+=("--sandbox-home=")
+    flags+=("--shell-path=")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_dbdeployer_update()
+{
+    last_command="dbdeployer_update"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--OS=")
+    flags+=("--docs")
+    local_nonpersistent_flags+=("--docs")
+    flags+=("--dry-run")
+    local_nonpersistent_flags+=("--dry-run")
+    flags+=("--force-old-version")
+    local_nonpersistent_flags+=("--force-old-version")
+    flags+=("--new-path=")
+    flags+=("--verbose")
+    local_nonpersistent_flags+=("--verbose")
     flags+=("--config=")
     flags+=("--sandbox-binary=")
     flags+=("--sandbox-home=")
@@ -2061,6 +2123,7 @@ _dbdeployer_root_command()
         command_aliases+=("unzip")
         aliashash["unzip"]="unpack"
     fi
+    commands+=("update")
     commands+=("usage")
     commands+=("versions")
     if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then

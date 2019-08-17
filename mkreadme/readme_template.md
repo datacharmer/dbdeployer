@@ -8,6 +8,7 @@ Documentation updated for version {{.Version}} ({{.Date}})
 # Table of contents
 
 - [Installation](#Installation)
+- [Updating dbdeployer](#Updating dbdeployer)
 - [Main operations](#Main-operations)
 - [Database server flavors](#Database-server-flavors)
 - [Getting remote tarballs](#Getting-remote-tarballs)
@@ -63,6 +64,25 @@ For example:
     $ sudo mv dbdeployer-$VERSION.$OS /usr/local/bin/dbdeployer
 
 Of course, there are **prerequisites**: your machine must be able to run the MySQL server. Be aware that version 5.6+ and higher require some libraries that are not installed by default in all flavors of Linux (libnuma, libaio.)
+
+# Updating dbdeployer
+
+Starting with version 1.36.0, dbdeployer is able to update itself by getting the newest release from GitHub.
+
+The quickest way of doing it is by running 
+```
+$ dbdeployer update
+```
+
+This command will download the latest release of dbdeployer from GitHub, and, if the version of the release is higher than the local one, will overwrite the dbdeployer executable.
+
+You can get more information during the operation by using the `--verbose` option. Other options are available for advanced users.
+
+    {{dbdeployer update -h}}
+
+
+You can also see the details of a release using `dbdeployer info releases latest`.
+
 
 # Main operations
 

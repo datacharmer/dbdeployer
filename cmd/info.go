@@ -20,12 +20,14 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/cookbook"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/datacharmer/dbdeployer/rest"
 )
 
 func displayDefaults(cmd *cobra.Command, args []string) {
@@ -117,6 +119,52 @@ func displayVersion(cmd *cobra.Command, args []string) {
 	}
 }
 
+func displayRelease(release rest.DbdeployerRelease) {
+	fmt.Printf("%s\n", globals.DashLine)
+	fmt.Printf("Remote version: %s\n", release.TagName)
+	fmt.Printf("Release:        %s\n", release.Name)
+	fmt.Printf("Date:           %s\n", release.PublishedAt)
+	fmt.Printf("%s\n", release.Body)
+	fmt.Printf("%s\n", globals.DashLine)
+	for _, asset := range release.Assets {
+		fmt.Printf("\t%s (%s)\n", asset.Name, humanize.Bytes(uint64(asset.Size)))
+	}
+}
+
+func displayReleases(cmd *cobra.Command, args []string) {
+	limit, _ := cmd.Flags().GetInt(globals.LimitLabel)
+	tag := ""
+	var releases []rest.DbdeployerRelease
+	var err error
+	if len(args) > 0 {
+		tag = args[0]
+	}
+
+	if tag == "" {
+		releases, err = rest.GetReleases()
+		if err != nil {
+			common.Exitf(1, "error retrieving releases: %s", err)
+		}
+	} else {
+		release, err := rest.GetLatestRelease(tag)
+		if err != nil {
+			common.Exitf(1, "error retrieving release %s: %s", tag, err)
+		}
+		releases = append(releases, release)
+	}
+	count := 0
+	for _, r := range releases {
+		displayRelease(r)
+		fmt.Println()
+		count++
+		if limit > 0 {
+			if count > limit {
+				return
+			}
+		}
+	}
+}
+
 var infoCmd = &cobra.Command{
 	Use:   "info",
 	Short: "Shows information about dbdeployer environment samples",
@@ -133,6 +181,19 @@ var infoDefaultsCmd = &cobra.Command{
 	Long:        `Displays one field of the defaults.`,
 	Run:         displayDefaults,
 	Annotations: map[string]string{"export": ExportAnnotationToJson(StringExport)},
+}
+
+var infoReleaseCmd = &cobra.Command{
+	Use: "releases [tag]",
+
+	Short: "displays info on releases, or a given release",
+	Example: `
+	$ dbdeployer info releases
+	$ dbdeployer info releases v1.35.0
+	$ dbdeployer info releases latest
+`,
+	Long: `Displays info on all the available releases, or a specific one`,
+	Run:  displayReleases,
 }
 
 var infoVersionCmd = &cobra.Command{
@@ -169,6 +230,8 @@ func init() {
 	rootCmd.AddCommand(infoCmd)
 	infoCmd.AddCommand(infoDefaultsCmd)
 	infoCmd.AddCommand(infoVersionCmd)
+	infoCmd.AddCommand(infoReleaseCmd)
 	setPflag(infoCmd, globals.FlavorLabel, "", "", "", "For which flavor this info is", false)
-	infoCmd.PersistentFlags().Bool(globals.EarliestLabel, false, "return the earliest version")
+	infoCmd.PersistentFlags().Bool(globals.EarliestLabel, false, "Return the earliest version")
+	infoReleaseCmd.PersistentFlags().Int(globals.LimitLabel, 3, "Limit number of releases to show (0 = unlimited)")
 }

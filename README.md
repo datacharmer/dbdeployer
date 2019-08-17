@@ -1,13 +1,14 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.33.0 (16-Jun-2019 13:05 UTC)
+Documentation updated for version 1.36.0 (17-Aug-2019 14:23 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
 # Table of contents
 
 - [Installation](#Installation)
+- [Updating dbdeployer](#Updating dbdeployer)
 - [Main operations](#Main-operations)
 - [Database server flavors](#Database-server-flavors)
 - [Getting remote tarballs](#Getting-remote-tarballs)
@@ -54,7 +55,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.33.0
+    $ VERSION=1.36.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -63,6 +64,56 @@ For example:
     $ sudo mv dbdeployer-$VERSION.$OS /usr/local/bin/dbdeployer
 
 Of course, there are **prerequisites**: your machine must be able to run the MySQL server. Be aware that version 5.6+ and higher require some libraries that are not installed by default in all flavors of Linux (libnuma, libaio.)
+
+# Updating dbdeployer
+
+Starting with version 1.36.0, dbdeployer is able to update itself by getting the newest release from GitHub.
+
+The quickest way of doing it is by running 
+```
+$ dbdeployer update
+```
+
+This command will download the latest release of dbdeployer from GitHub, and, if the version of the release is higher than the local one, will overwrite the dbdeployer executable.
+
+You can get more information during the operation by using the `--verbose` option. Other options are available for advanced users.
+
+    $ dbdeployer update -h
+    Updates dbdeployer in place using the latest version (or one of your choice)
+    
+    Usage:
+      dbdeployer update [version] [flags]
+    
+    Examples:
+    
+    $ dbdeployer update
+    # gets the latest release, overwrites current dbdeployer binaries 
+    
+    $ dbdeployer update --dry-run
+    # shows what it will do, but does not do it
+    
+    $ dbdeployer update --new-path=$PWD
+    # downloads the latest executable into the current directory
+    
+    $ dbdeployer update v1.34.0 --force-old-version
+    # downloads dbdeployer 1.34.0 and replace the current one
+    # (WARNING: a version older than 1.36.0 won't support updating)
+    
+    
+    Flags:
+          --OS string           Gets the executable for this Operating system
+          --docs                Gets the docs version of the executable
+          --dry-run             Show what would happen, but don't execute it
+          --force-old-version   Force download of older version
+      -h, --help                help for update
+          --new-path string     Download updated dbdeployer into a different path
+          --verbose             Gives more info
+    
+    
+
+
+You can also see the details of a release using `dbdeployer info releases latest`.
+
 
 # Main operations
 
@@ -89,7 +140,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.33.0
+    dbdeployer version 1.36.0
     
 
     $ dbdeployer -h
@@ -113,6 +164,7 @@ The program doesn't have any dependencies. Everything is included in the binary.
       info            Shows information about dbdeployer environment samples
       sandboxes       List installed sandboxes
       unpack          unpack a tarball into the binary directory
+      update          Gets dbdeployer newest version
       usage           Shows usage of installed sandboxes
       versions        List available versions
     
@@ -505,7 +557,7 @@ Size:          1.1 GB
       get            Downloads a remote tarball
       get-by-version Downloads a remote tarball
       get-unpack     Downloads and unpacks a remote tarball
-      import         Imports the list of tarballs from a file
+      import         Imports the list of tarballs from a file or URL
       list           list remote tarballs
       reset          Reset the custom list of tarballs and resume the defaults
       show           Downloads a remote tarball
@@ -1672,18 +1724,18 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 1. Make sure you have go 1.10+ installed in your system, and that the ``$GOPATH`` variable is set.
 2. Run ``go get -u github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
 3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
-4. Run ``./scripts/build.sh {linux|OSX} 1.33.0``
-5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.33.0``
+4. Run ``./scripts/build.sh {linux|OSX} 1.36.0``
+5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.36.0``
 
 # Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.33.0-docs.linux.tar.gz
-* dbdeployer-1.33.0-docs.osx.tar.gz
-* dbdeployer-1.33.0.linux.tar.gz
-* dbdeployer-1.33.0.osx.tar.gz
+* dbdeployer-1.36.0-docs.linux.tar.gz
+* dbdeployer-1.36.0-docs.osx.tar.gz
+* dbdeployer-1.36.0.linux.tar.gz
+* dbdeployer-1.36.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

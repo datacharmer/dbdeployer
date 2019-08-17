@@ -97,6 +97,7 @@ const (
 
 	// Instantiated in cmd/info.go
 	EarliestLabel = "earliest"
+	LimitLabel    = "limit"
 
 	// Instantiated in cmd/remote.go
 	MB                = 1024 * 1024
@@ -173,6 +174,11 @@ const (
 
 	// Instantiated in cmd/cookbook.go
 	SortByLabel = "sort-by"
+
+	// Instantiated in cmd/update.go
+	NewPathLabel         = "new-path"
+	DocsLabel            = "docs"
+	ForceOldVersionLabel = "force-old-version"
 
 	// Instantiated in cmd/versions.go
 	ByFlavorLabel = "by-flavor"
