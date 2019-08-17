@@ -34,6 +34,7 @@ const (
 	CompletionFileLabel = "completion-file"
 	CompletionFileValue = "dbdeployer_completion.sh"
 	RunItLabel          = "run-it"
+	CamelCase           = "camel-case"
 
 	// Instantiated in cmd/deploy.go
 	BasePortLabel           = "base-port"
