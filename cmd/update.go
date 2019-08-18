@@ -78,7 +78,6 @@ func updateDbDeployer(cmd *cobra.Command, args []string) {
 	tag = reV.ReplaceAllString(tag, "")
 	tagList, err := common.VersionToList(tag)
 	common.ErrCheckExitf(err, 1, "error converting tag %s to version list", tag)
-	common.ErrCheckExitf(err, 1, "error comparing remote tag %s to dbdeployer version %s", tag, common.VersionDef)
 	if tag == common.VersionDef && !forceOldVersion {
 		common.Exit(0,
 			fmt.Sprintf("download version (%s) is the same as the current version ", tag),
@@ -87,6 +86,7 @@ func updateDbDeployer(cmd *cobra.Command, args []string) {
 		)
 	}
 	foundOldVersion, err := common.GreaterOrEqualVersion(common.VersionDef, tagList)
+	common.ErrCheckExitf(err, 1, "error comparing remote tag %s to dbdeployer version %s", tag, common.VersionDef)
 	if foundOldVersion && !forceOldVersion {
 		common.Exit(0,
 			fmt.Sprintf("download version (%s) is older than current version (%s) ", tag, common.VersionDef),
@@ -180,9 +180,9 @@ func updateDbDeployer(cmd *cobra.Command, args []string) {
 	if verbose {
 		fmt.Printf("File %s moved to %s\n", programName, targetDirectory)
 	}
-	out, err = common.RunCmdCtrlWithArgs(path.Join(targetDirectory, programName), []string{"--version"}, false)
+	_, err = common.RunCmdCtrlWithArgs(path.Join(targetDirectory, programName), []string{"--version"}, false)
 	if err != nil {
-		common.Exitf(1, "error running  %s/%s", fileName, targetDirectory, programName)
+		common.Exitf(1, "error running  %s/%s :%s", targetDirectory, programName, err)
 	}
 }
 
