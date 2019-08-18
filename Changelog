@@ -1,3 +1,8 @@
+1.36.1	18-Aug-2019
+	BUG FIXES
+	- Fix a bug in 'dbdeployer update': it only worked with --verbose enabled
+	- Fix output of 'dbdeployer update': it now confirms that the update has
+	  happened
 1.36.0	17-Aug-2019
 	NEW FEATURES
 	- Add command "dbdeployer update"

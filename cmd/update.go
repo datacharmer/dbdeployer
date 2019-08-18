@@ -78,8 +78,15 @@ func updateDbDeployer(cmd *cobra.Command, args []string) {
 	tag = reV.ReplaceAllString(tag, "")
 	tagList, err := common.VersionToList(tag)
 	common.ErrCheckExitf(err, 1, "error converting tag %s to version list", tag)
-	foundOldVersion, err := common.GreaterOrEqualVersion(common.VersionDef, tagList)
 	common.ErrCheckExitf(err, 1, "error comparing remote tag %s to dbdeployer version %s", tag, common.VersionDef)
+	if tag == common.VersionDef && !forceOldVersion {
+		common.Exit(0,
+			fmt.Sprintf("download version (%s) is the same as the current version ", tag),
+			fmt.Sprintf("Option --%s was not used\n", globals.ForceOldVersionLabel),
+			"Download canceled",
+		)
+	}
+	foundOldVersion, err := common.GreaterOrEqualVersion(common.VersionDef, tagList)
 	if foundOldVersion && !forceOldVersion {
 		common.Exit(0,
 			fmt.Sprintf("download version (%s) is older than current version (%s) ", tag, common.VersionDef),
@@ -87,13 +94,7 @@ func updateDbDeployer(cmd *cobra.Command, args []string) {
 			"Download canceled",
 		)
 	}
-	if tag == common.VersionDef && !forceOldVersion {
-		common.Exit(0,
-			fmt.Sprintf("download version (%s) is the same as current version ", tag),
-			fmt.Sprintf("Option --%s was not used\n", globals.ForceOldVersionLabel),
-			"Download canceled",
-		)
-	}
+
 	docsLabel := ""
 	if getDocs {
 		docsLabel = "-docs"
@@ -115,17 +116,21 @@ func updateDbDeployer(cmd *cobra.Command, args []string) {
 		fmt.Printf("Date    : %s\n", release.PublishedAt)
 		fmt.Printf("%s\n", release.Body)
 		fmt.Printf("%s\n", globals.DashLine)
-		for _, asset := range release.Assets {
-			chosenLabel := ""
-			if tarballName == asset.Name {
-				fileUrl = asset.BrowserDownloadURL
-				chosenLabel = " [CHOSEN]"
-			}
+	}
+
+	for _, asset := range release.Assets {
+		chosenLabel := ""
+		if tarballName == asset.Name {
+			fileUrl = asset.BrowserDownloadURL
+			chosenLabel = " [CHOSEN]"
+		}
+		if verbose {
 			fmt.Printf("\t%s (%s)%s\n", asset.Name, humanize.Bytes(uint64(asset.Size)), chosenLabel)
 		}
 	}
+
 	if fileUrl == "" {
-		common.Exitf(1, "file %s not found", tarballName)
+		common.Exitf(1, "file %s not found in release", tarballName)
 	}
 	if dryRun {
 		fmt.Printf("Download %s\n", fileUrl)
@@ -170,10 +175,14 @@ func updateDbDeployer(cmd *cobra.Command, args []string) {
 	out, err := common.RunCmdCtrlWithArgs("mv", []string{fileName, path.Join(targetDirectory, programName)}, false)
 	if err != nil {
 		fmt.Printf("%s\n", out)
-		common.Exitf(1, "error moving %s to %s/dbdeployer", fileName, targetDirectory)
+		common.Exitf(1, "error moving %s to %s/%s", fileName, targetDirectory, programName)
 	}
 	if verbose {
 		fmt.Printf("File %s moved to %s\n", programName, targetDirectory)
+	}
+	out, err = common.RunCmdCtrlWithArgs(path.Join(targetDirectory, programName), []string{"--version"}, false)
+	if err != nil {
+		common.Exitf(1, "error running  %s/%s", fileName, targetDirectory, programName)
 	}
 }
 
