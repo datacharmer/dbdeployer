@@ -8,7 +8,7 @@ Documentation updated for version {{.Version}} ({{.Date}})
 # Table of contents
 
 - [Installation](#Installation)
-- [Updating dbdeployer](#Updating dbdeployer)
+- [Updating dbdeployer](#Updating-dbdeployer)
 - [Main operations](#Main-operations)
 - [Database server flavors](#Database-server-flavors)
 - [Getting remote tarballs](#Getting-remote-tarballs)

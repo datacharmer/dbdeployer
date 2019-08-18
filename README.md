@@ -8,7 +8,7 @@ Documentation updated for version 1.36.0 (17-Aug-2019 14:23 UTC)
 # Table of contents
 
 - [Installation](#Installation)
-- [Updating dbdeployer](#Updating dbdeployer)
+- [Updating dbdeployer](#Updating-dbdeployer)
 - [Main operations](#Main-operations)
 - [Database server flavors](#Database-server-flavors)
 - [Getting remote tarballs](#Getting-remote-tarballs)
