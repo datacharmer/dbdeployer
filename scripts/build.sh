@@ -77,34 +77,6 @@ function find_in_path {
 }
 
 dash_line="--------------------------------------------------------------------------------"
-all_ok=yes
-for dep in ${dependencies[*]}
-do
-    if [ ! -d ./vendor/$dep ]
-    then
-        echo $dash_line
-        echo "Needed package $dep not installed"
-        echo "run 'go get $dep'"
-        echo $dash_line
-        all_ok=no
-    fi
-done
-
-for item in ${local_items[*]}
-do
-    if [ ! -e ./$item ]
-    then
-        echo "item $item not found"
-        all_ok=no
-    fi
-done
-
-if [ "$all_ok" == "no" ]
-then
-    echo "Missing dependencies or essential code"
-    echo "Use the above 'go get' commands to gather the needed dependencies"
-    exit 1
-fi
 
 docs_flags=""
 docs_tag=""
