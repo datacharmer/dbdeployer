@@ -168,7 +168,7 @@ func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxD
 		defaults.UpdateDefaults(globals.LogLogDirectoryLabel, logDir, false)
 	}
 
-	templateRequests, _ := flags.GetStringSlice(globals.UseTemplateLabel)
+	templateRequests, _ := flags.GetStringArray(globals.UseTemplateLabel)
 	for _, request := range templateRequests {
 		tname, fname := checkTemplateChangeRequest(request)
 		replaceTemplate(tname, fname)
@@ -303,11 +303,11 @@ func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxD
 	sd.RemoteAccess, _ = flags.GetString(globals.RemoteAccessLabel)
 	sd.BindAddress, _ = flags.GetString(globals.BindAddressLabel)
 	sd.CustomMysqld, _ = flags.GetString(globals.CustomMysqldLabel)
-	sd.InitOptions, _ = flags.GetStringSlice(globals.InitOptionsLabel)
-	sd.MyCnfOptions, _ = flags.GetStringSlice(globals.MyCnfOptionsLabel)
+	sd.InitOptions, _ = flags.GetStringArray(globals.InitOptionsLabel)
+	sd.MyCnfOptions, _ = flags.GetStringArray(globals.MyCnfOptionsLabel)
 	sd.PreGrantsSqlFile, _ = flags.GetString(globals.PreGrantsSqlFileLabel)
-	sd.PreGrantsSql, _ = flags.GetStringSlice(globals.PreGrantsSqlLabel)
-	sd.PostGrantsSql, _ = flags.GetStringSlice(globals.PostGrantsSqlLabel)
+	sd.PreGrantsSql, _ = flags.GetStringArray(globals.PreGrantsSqlLabel)
+	sd.PostGrantsSql, _ = flags.GetStringArray(globals.PostGrantsSqlLabel)
 	sd.PostGrantsSqlFile, _ = flags.GetString(globals.PostGrantsSqlFileLabel)
 	sd.MyCnfFile, _ = flags.GetString(globals.MyCnfFileLabel)
 	sd.NativeAuthPlugin, _ = flags.GetBool(globals.NativeAuthPluginLabel)
@@ -326,7 +326,7 @@ func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxD
 		sd.RunConcurrently = true
 	}
 
-	newDefaults, _ := flags.GetStringSlice(globals.DefaultsLabel)
+	newDefaults, _ := flags.GetStringArray(globals.DefaultsLabel)
 	processDefaults(newDefaults)
 
 	var gtid bool
