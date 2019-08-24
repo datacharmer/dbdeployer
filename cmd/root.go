@@ -67,7 +67,7 @@ func Execute() {
 	}
 }
 
-func setPflag(cmd *cobra.Command, key string, abbr string, envVar string, defaultVar string, helpStr string, isSlice bool) {
+func setPflag(cmd *cobra.Command, key string, abbr string, envVar string, defaultVar string, helpStr string, isArray bool) {
 	var defaultValue string
 	if envVar != "" {
 		defaultValue = os.Getenv(envVar)
@@ -75,9 +75,8 @@ func setPflag(cmd *cobra.Command, key string, abbr string, envVar string, defaul
 	if defaultValue == "" {
 		defaultValue = defaultVar
 	}
-	if isSlice {
-		//cmd.PersistentFlags().StringSliceP(key, abbr, []string{defaultValue}, helpStr)
-		cmd.PersistentFlags().StringArray(key, []string{defaultValue}, helpStr)
+	if isArray {
+		cmd.PersistentFlags().StringArrayP(key, abbr, []string{defaultValue}, helpStr)
 	} else {
 		cmd.PersistentFlags().StringP(key, abbr, defaultValue, helpStr)
 	}
