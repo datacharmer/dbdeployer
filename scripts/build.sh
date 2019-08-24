@@ -23,42 +23,22 @@ executable=$PWD/$executable
 cd ..
 build_dir=$PWD
 
-
-if [ -z "$GOPATH" ]
-then
-    GOPATH=$HOME/go
-fi
-if [ ! -d "$GOPATH" ]
-then
-    echo "\$GOPATH directory ($GOPATH) not found"
-    exit 1
-fi
-
-in_go_path=$(echo $PWD | grep "^$GOPATH")
-if [ -z "$in_go_path" ]
-then
-    echo "This directory ($PWD) is not in \$GOPATH ($GOPATH)"
-    exit 1
-fi
-dependencies=(github.com/spf13/cobra github.com/spf13/pflag)
-if [ -n "$MKDOCS" ]
-then
-    dependencies=(github.com/spf13/cobra github.com/spf13/pflag github.com/spf13/cobra/doc)
-fi
-
 goversion=$(go version)
 go_major=$(echo $goversion | awk '{print $3}' | sed -e 's/^go//' | tr '.' ' ' | awk '{print $1}')
 go_minor=$(echo $goversion | awk '{print $3}' | sed -e 's/^go//' | tr '.' ' ' | awk '{print $2}')
+go_rev=$(echo $goversion | awk '{print $3}' | sed -e 's/^go//' | tr '.' ' ' | awk '{print $3}')
+
+echo "# Detected go version: $go_major.$go_minor.$go_rev"
 
 if [[ $go_major -gt 1 ]]
 then
-    echo "This application has only been tested with go 1.10+ - Detected ${go_major}.${go_minor}"
+    echo "This application needs go 1.11+ - Detected ${go_major}.${go_minor}"
     exit 1
 fi
 
-if [[ $go_major -eq 1 && $go_minor -lt 10 ]]
+if [[ $go_major -eq 1 && $go_minor -lt 11 ]]
 then
-    echo "Minimum Go version should be 1.10 - Detected ${go_major}.${go_minor}"
+    echo "Minimum Go version should be 1.11 - Detected ${go_major}.${go_minor}"
     exit 1
 fi
 

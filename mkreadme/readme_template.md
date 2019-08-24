@@ -1195,11 +1195,11 @@ You can ask for any fields from the defaults (see `dbdeployer defaults list` for
 
 Should you need to compile your own binaries for dbdeployer, follow these steps:
 
-1. Make sure you have go 1.10+ installed in your system, and that the ``$GOPATH`` variable is set.
-2. Run ``go get -u github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
-3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
-4. Run ``./scripts/build.sh {linux|OSX} {{.Version}}``
-5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} {{.Version}}``
+1. Make sure you have go 1.11+ installed in your system.
+2. Run `git clone https://github.com/datacharmer/dbdeployer.git`.  This will import all the code that is needed to build dbdeployer.
+3. Change directory to `./dbdeployer`.
+4. Run ./scripts/build.sh {linux|OSX}`
+5. If you need the docs enabled binaries (see the section "Generating additional documentation") run `MKDOCS=1 ./scripts/build.sh {linux|OSX}`
 
 # Generating additional documentation
 

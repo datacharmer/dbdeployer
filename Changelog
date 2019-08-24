@@ -1,3 +1,10 @@
+1.37.0	24-Aug-2019 (not released)
+	NEW FEATURES
+	- Enable Go modules
+	- Remove vendor directory
+	- Change calls to StringSliceP with StringArrayP
+	- (No changes in behavior. Some flags help items will display "stringArray" 
+	  instead of "strings")
 1.36.1	18-Aug-2019
 	BUG FIXES
 	- Fix a bug in 'dbdeployer update': it only worked with --verbose enabled

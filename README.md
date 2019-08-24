@@ -1,7 +1,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.36.0 (17-Aug-2019 14:23 UTC)
+Documentation updated for version 1.37.0 (24-Aug-2019 20:04 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -55,7 +55,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.36.0
+    $ VERSION=1.37.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -140,7 +140,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.36.0
+    dbdeployer version 1.37.0
     
 
     $ dbdeployer -h
@@ -244,7 +244,7 @@ The easiest command is ``deploy single``, which installs a single sandbox.
           --custom-mysqld string          Uses an alternative mysqld (must be in the same directory as regular mysqld)
       -p, --db-password string            database password (default "msandbox")
       -u, --db-user string                database user (default "msandbox")
-          --defaults strings              Change defaults on-the-fly (--defaults=label:value)
+          --defaults stringArray          Change defaults on-the-fly (--defaults=label:value)
           --disable-mysqlx                Disable MySQLX plugin (8.0.11+)
           --enable-admin-address          Enables admin address (8.0.14+)
           --enable-general-log            Enables general log for the sandbox (MySQL 5.1+)
@@ -257,18 +257,18 @@ The easiest command is ``deploy single``, which installs a single sandbox.
       -h, --help                          help for deploy
           --history-dir string            Where to store mysql client history (default: in sandbox directory)
           --init-general-log              uses general log during initialization (MySQL 5.1+)
-      -i, --init-options strings          mysqld options to run during initialization
+      -i, --init-options stringArray      mysqld options to run during initialization
           --keep-server-uuid              Does not change the server UUID
           --log-directory string          Where to store dbdeployer logs (default "$HOME/sandboxes/logs")
           --log-sb-operations             Logs sandbox operations to a file
           --my-cnf-file string            Alternative source file for my.sandbox.cnf
-      -c, --my-cnf-options strings        mysqld options to add to my.sandbox.cnf
+      -c, --my-cnf-options stringArray    mysqld options to add to my.sandbox.cnf
           --native-auth-plugin            in 8.0.4+, uses the native password auth plugin
           --port int                      Overrides default port
           --port-as-server-id             Use the port number as server ID
-          --post-grants-sql strings       SQL queries to run after loading grants
+          --post-grants-sql stringArray   SQL queries to run after loading grants
           --post-grants-sql-file string   SQL file to run after loading grants
-          --pre-grants-sql strings        SQL queries to run before loading grants
+          --pre-grants-sql stringArray    SQL queries to run before loading grants
           --pre-grants-sql-file string    SQL file to run before loading grants
           --remote-access string          defines the database access  (default "127.%")
           --repl-crash-safe               enables Replication crash safe
@@ -280,7 +280,7 @@ The easiest command is ``deploy single``, which installs a single sandbox.
           --skip-report-port              Does not include report port in my.sandbox.cnf
           --skip-start                    Does not start the database server
           --socket-in-datadir             Create socket in datadir instead of $TMPDIR
-          --use-template strings          [template_name:file_name] Replace existing template with one from file
+          --use-template stringArray      [template_name:file_name] Replace existing template with one from file
     
     
 
@@ -1721,21 +1721,21 @@ You can ask for any fields from the defaults (see `dbdeployer defaults list` for
 
 Should you need to compile your own binaries for dbdeployer, follow these steps:
 
-1. Make sure you have go 1.10+ installed in your system, and that the ``$GOPATH`` variable is set.
-2. Run ``go get -u github.com/datacharmer/dbdeployer``.  This will import all the code that is needed to build dbdeployer.
-3. Change directory to ``$GOPATH/src/github.com/datacharmer/dbdeployer``.
-4. Run ``./scripts/build.sh {linux|OSX} 1.36.0``
-5. If you need the docs enabled binaries (see the section "Generating additional documentation") run ``MKDOCS=1 ./scripts/build.sh {linux|OSX} 1.36.0``
+1. Make sure you have go 1.11+ installed in your system.
+2. Run `git clone https://github.com/datacharmer/dbdeployer.git`.  This will import all the code that is needed to build dbdeployer.
+3. Change directory to `./dbdeployer`.
+4. Run ./scripts/build.sh {linux|OSX}`
+5. If you need the docs enabled binaries (see the section "Generating additional documentation") run `MKDOCS=1 ./scripts/build.sh {linux|OSX}`
 
 # Generating additional documentation
 
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.36.0-docs.linux.tar.gz
-* dbdeployer-1.36.0-docs.osx.tar.gz
-* dbdeployer-1.36.0.linux.tar.gz
-* dbdeployer-1.36.0.osx.tar.gz
+* dbdeployer-1.37.0-docs.linux.tar.gz
+* dbdeployer-1.37.0-docs.osx.tar.gz
+* dbdeployer-1.37.0.linux.tar.gz
+* dbdeployer-1.37.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 
