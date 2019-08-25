@@ -26,7 +26,7 @@ func replicationSandbox(cmd *cobra.Command, args []string) {
 	var sd sandbox.SandboxDef
 	var semisync bool
 	common.CheckOrigin(args)
-	sd, err := fillSandboxDdefinition(cmd, args)
+	sd, err := fillSandboxDefinition(cmd, args, false)
 	common.ErrCheckExitf(err, 1, "error filling sandbox definition : %s", err)
 	if sd.Flavor == common.TiDbFlavor {
 		common.Exitf(1, "flavor '%s' is not suitable to create replication sandboxes", common.TiDbFlavor)

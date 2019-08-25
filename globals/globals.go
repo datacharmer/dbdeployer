@@ -23,6 +23,11 @@ import "strings"
 var UsingDbDeployer = false
 
 const (
+	// Sandbox types
+	SbTypeSingle         = "single"
+	SbTypeMultiple       = "multiple"
+	SbTypeSingleImported = "single-imported"
+
 	// Instantiated in cmd/root.go
 	ConfigLabel        = "config"
 	SandboxBinaryLabel = "sandbox-binary"

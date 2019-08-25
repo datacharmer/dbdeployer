@@ -39,6 +39,8 @@ type SandboxDef struct {
 	NodeNum              int              // In multiple sandboxes, which node is this
 	Version              string           // MySQL version
 	Basedir              string           // Where to get binaries from (e.g. $HOME/opt/mysql/8.0.11)
+	SbHost               string           // The host for this sandbox (default 127.0.0.1)
+	Imported             bool             // The server is being imported
 	ClientBasedir        string           // Where to get client binaries from (e.g. $HOME/opt/mysql/8.0.15)
 	BasedirName          string           // The bare name of the directory containing the binaries (e.g. 8.0.11)
 	SandboxDir           string           // Target directory for sandboxes
@@ -211,13 +213,15 @@ func checkDirectory(sandboxDef SandboxDef) (SandboxDef, error) {
 			if err != nil {
 				return SandboxDef{}, err
 			}
-			var newInstalledPorts []int
-			for _, port := range sandboxDef.InstalledPorts {
-				if !myUsedPorts[port] {
-					newInstalledPorts = append(newInstalledPorts, port)
+			if !sandboxDef.Imported {
+				var newInstalledPorts []int
+				for _, port := range sandboxDef.InstalledPorts {
+					if !myUsedPorts[port] {
+						newInstalledPorts = append(newInstalledPorts, port)
+					}
 				}
+				sandboxDef.InstalledPorts = newInstalledPorts
 			}
-			sandboxDef.InstalledPorts = newInstalledPorts
 		} else {
 			return sandboxDef, fmt.Errorf("directory %s already exists. Use --force to override", sandboxDir)
 		}
@@ -226,6 +230,9 @@ func checkDirectory(sandboxDef SandboxDef) (SandboxDef, error) {
 }
 
 func checkPortAvailability(caller string, sandboxType string, installedPorts []int, port int) error {
+	if sandboxType == globals.SbTypeSingleImported {
+		return nil
+	}
 	conflict := 0
 	for _, p := range installedPorts {
 		if p == port {
@@ -271,6 +278,9 @@ func sliceToText(stringSlice []string) string {
 }
 
 func setMysqlxProperties(sandboxDef SandboxDef, socketDir string) (SandboxDef, error) {
+	if sandboxDef.Imported {
+		return sandboxDef, nil
+	}
 	mysqlxPort := sandboxDef.MysqlXPort
 	if mysqlxPort == 0 {
 		var err error
@@ -287,6 +297,9 @@ func setMysqlxProperties(sandboxDef SandboxDef, socketDir string) (SandboxDef, e
 }
 
 func setAdminPortProperties(sandboxDef SandboxDef) (SandboxDef, error) {
+	if sandboxDef.Imported {
+		return sandboxDef, nil
+	}
 	if !sandboxDef.EnableAdminAddress {
 		return sandboxDef, nil
 	}
@@ -307,7 +320,7 @@ func setAdminPortProperties(sandboxDef SandboxDef) (SandboxDef, error) {
 		}
 	}
 	sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, fmt.Sprintf("admin-port=%d", adminPort))
-	sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, fmt.Sprintf("admin-address=127.0.0.1"))
+	sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, fmt.Sprintf("admin-address=%s", sandboxDef.SbHost))
 	sandboxDef.MorePorts = append(sandboxDef.MorePorts, adminPort)
 	sandboxDef.AdminPort = adminPort
 	return sandboxDef, nil
@@ -329,7 +342,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 
 	var sandboxDir string
 	if sandboxDef.SBType == "" {
-		sandboxDef.SBType = "single"
+		sandboxDef.SBType = globals.SbTypeSingle
 	}
 	// Assuming a default flavor for backward compatibility
 	if sandboxDef.Flavor == "" {
@@ -361,6 +374,19 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			SingleTemplates[singleName] = templateDesc
 		}
 	}
+	if sandboxDef.Imported {
+		if sandboxDef.ClientBasedir == "" {
+			return emptyExecutionList,
+				fmt.Errorf("imported sandbox requires option --%s", globals.ClientFromLabel)
+		}
+		// Replaces main templates with the ones needed for imported
+		for name, templateDesc := range ImportTemplates {
+			re := regexp.MustCompile(`^` + importPrefix)
+			singleName := re.ReplaceAllString(name, "")
+			SingleTemplates[singleName] = templateDesc
+		}
+	}
+
 	logName := sandboxDef.SBType
 	if sandboxDef.NodeNum > 0 {
 		logName = fmt.Sprintf("%s-%d", logName, sandboxDef.NodeNum)
@@ -378,7 +404,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		sandboxDef.Logger = logger
 	}
 	logger.Printf("Single Sandbox Definition: %s\n", sandboxDefToJson(sandboxDef))
-	if !common.DirExists(sandboxDef.Basedir) {
+	if !common.DirExists(sandboxDef.Basedir) && !sandboxDef.Imported {
 		return emptyExecutionList, fmt.Errorf(globals.ErrBaseDirectoryNotFound, sandboxDef.Basedir)
 	}
 
@@ -394,10 +420,14 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		sandboxDef.Prompt = sandboxDef.Flavor + "-" + sandboxDef.Prompt
 	}
 	if sandboxDef.DirName == "" {
+		prefix := defaults.Defaults().SandboxPrefix
+		if sandboxDef.Imported {
+			prefix = defaults.Defaults().ImportedSandboxPrefix
+		}
 		if sandboxDef.Version != sandboxDef.BasedirName {
-			sandboxDef.DirName = defaults.Defaults().SandboxPrefix + sandboxDef.BasedirName
+			sandboxDef.DirName = prefix + sandboxDef.BasedirName
 		} else {
-			sandboxDef.DirName = defaults.Defaults().SandboxPrefix + versionFname
+			sandboxDef.DirName = prefix + versionFname
 		}
 	}
 	if sandboxDef.DirName == globals.ForbiddenDirName {
@@ -418,7 +448,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	if sandboxDef.SocketInDatadir {
 		socketDir = dataDir
 	}
-	if sandboxDef.NodeNum == 0 && !sandboxDef.Force {
+	if sandboxDef.NodeNum == 0 && !sandboxDef.Force && !sandboxDef.Imported {
 		sandboxDef.Port, err = common.FindFreePort(sandboxDef.Port, sandboxDef.InstalledPorts, 1)
 		if err != nil {
 			return emptyExecutionList, errors.Wrapf(err, "error detecting free port for single sandbox")
@@ -434,7 +464,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		return emptyExecutionList, err
 	}
 
-	if sandboxDef.EnableMysqlX {
+	if sandboxDef.EnableMysqlX && !sandboxDef.Imported {
 		// 5.7.12
 		// isMinimumMySQLX, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxVersion)
 		isMinimumMySQLX, err := common.HasCapability(sandboxDef.Flavor, common.MySQLX, sandboxDef.Version)
@@ -471,7 +501,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	if isMinimumMySQLXDefault && !sandboxDef.DisableMysqlX {
 		usingPlugins = true
 	}
-	if sandboxDef.ExposeDdTables {
+	if sandboxDef.ExposeDdTables && !sandboxDef.Imported {
 		// 8.0.0
 		// isMinimumDataDictionary, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumDataDictionaryVersion)
 		isMinimumDataDictionary, err := common.HasCapability(sandboxDef.Flavor, common.DataDict, sandboxDef.Version)
@@ -602,8 +632,12 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		return emptyExecutionList, fmt.Errorf("could not get information about current OS user")
 	}
 
+	if sandboxDef.SbHost == "" {
+		sandboxDef.SbHost = "127.0.0.1"
+	}
 	var data = common.StringMap{
 		"ShellPath":            sandboxDef.ShellPath,
+		"SbHost":               sandboxDef.SbHost,
 		"Basedir":              sandboxDef.Basedir,
 		"ClientBasedir":        sandboxDef.ClientBasedir,
 		"Copyright":            SingleTemplates["Copyright"].Contents,
@@ -709,7 +743,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	if err != nil {
 		return emptyExecutionList, err
 	}
-	if usesMysqlInstallDb {
+	if usesMysqlInstallDb && !sandboxDef.Imported {
 		script = path.Join(sandboxDef.Basedir, "scripts", globals.FnMysqlInstallDb)
 	}
 	if script != "" && !common.ExecExists(script) {
@@ -811,7 +845,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	if err != nil {
 		return emptyExecutionList, errors.Wrapf(err, "unable to write sandbox description")
 	}
-	if sandboxDef.SBType == "single" {
+	if sandboxDef.SBType == globals.SbTypeSingle || sandboxDef.SBType == globals.SbTypeSingleImported {
 		err = defaults.UpdateCatalog(sandboxDir, sbItem)
 		if err != nil {
 			return emptyExecutionList, errors.Wrapf(err, "error updating catalog")

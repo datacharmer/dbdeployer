@@ -53,6 +53,7 @@ type DbdeployerDefaults struct {
 	SlavePrefix                   string `json:"slave-prefix"`
 	SlaveAbbr                     string `json:"slave-abbr"`
 	SandboxPrefix                 string `json:"sandbox-prefix"`
+	ImportedSandboxPrefix         string `json:"imported-sandbox-prefix"`
 	MasterSlavePrefix             string `json:"master-slave-prefix"`
 	GroupPrefix                   string `json:"group-prefix"`
 	GroupSpPrefix                 string `json:"group-sp-prefix"`
@@ -114,6 +115,7 @@ var (
 		SlavePrefix:                   "slave",
 		SlaveAbbr:                     "s",
 		SandboxPrefix:                 "msb_",
+		ImportedSandboxPrefix:         "imp_msb_",
 		MasterSlavePrefix:             "rsandbox_",
 		GroupPrefix:                   "group_msb_",
 		GroupSpPrefix:                 "group_sp_msb_",
@@ -238,6 +240,7 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		nd.MultiplePrefix != nd.GroupPrefix &&
 		nd.MultiplePrefix != nd.MasterSlavePrefix &&
 		nd.MultiplePrefix != nd.SandboxPrefix &&
+		nd.MultiplePrefix != nd.ImportedSandboxPrefix &&
 		nd.MultiplePrefix != nd.FanInPrefix &&
 		nd.MultiplePrefix != nd.AllMastersPrefix &&
 		nd.MasterAbbr != nd.SlaveAbbr &&
@@ -250,6 +253,7 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		return false
 	}
 	allStrings := nd.SandboxPrefix != "" &&
+		nd.ImportedSandboxPrefix != "" &&
 		nd.MasterSlavePrefix != "" &&
 		nd.ShellPath != "" &&
 		nd.MasterName != "" &&
@@ -363,6 +367,8 @@ func UpdateDefaults(label, value string, storeDefaults bool) {
 		newDefaults.SlaveAbbr = value
 	case "sandbox-prefix":
 		newDefaults.SandboxPrefix = value
+	case "imported-sandbox-prefix":
+		newDefaults.ImportedSandboxPrefix = value
 	case "master-slave-prefix":
 		newDefaults.MasterSlavePrefix = value
 	case "group-prefix":
@@ -486,6 +492,8 @@ func DefaultsToMap() common.StringMap {
 		"slave-abbr":                        currentDefaults.SlaveAbbr,
 		"SandboxPrefix":                     currentDefaults.SandboxPrefix,
 		"sandbox-prefix":                    currentDefaults.SandboxPrefix,
+		"ImportedSandboxPrefix":             currentDefaults.ImportedSandboxPrefix,
+		"imported-sandbox-prefix":           currentDefaults.ImportedSandboxPrefix,
 		"MasterSlavePrefix":                 currentDefaults.MasterSlavePrefix,
 		"master-slave-prefix":               currentDefaults.MasterSlavePrefix,
 		"GroupPrefix":                       currentDefaults.GroupPrefix,

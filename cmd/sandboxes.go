@@ -100,7 +100,7 @@ func getFullSandboxInfo(sandboxHome string) []common.SandboxInfo {
 		slavePlural := english.PluralWord(2, slaveLabel, "")
 		initializeSlaves := "initialize_" + slavePlural
 		if tempSandboxDesc.SBType == "" {
-			tempSandboxDesc.SBType = "single"
+			tempSandboxDesc.SBType = globals.SbTypeSingle
 			initSlaves := path.Join(sb.SandboxName, initializeSlaves)
 			initNodes := path.Join(sb.SandboxName, globals.ScriptInitializeNodes)
 			startAll := path.Join(sb.SandboxName, globals.ScriptStartAll)

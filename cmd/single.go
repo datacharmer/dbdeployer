@@ -149,25 +149,29 @@ func getFlavor(userDefinedFlavor, basedir string) string {
 	return flavor
 }
 
-func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxDef, error) {
+func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) (sandbox.SandboxDef, error) {
 	var sd sandbox.SandboxDef
-	err := common.CheckPrerequisites("dbdeployer needed tools", globals.NeededExecutables)
+	var err error
+	sd.Imported = usingImport
+	err = common.CheckPrerequisites("dbdeployer needed tools", globals.NeededExecutables)
 	if err != nil {
 		return sd, err
 	}
 	flags := cmd.Flags()
 
+	sd.SbHost = "127.0.0.1"
 	logSbOperations, _ := flags.GetBool(globals.LogSBOperationsLabel)
 	defaults.LogSBOperations = logSbOperations
 
-	logDir, err := getAbsolutePathFromFlag(cmd, globals.LogLogDirectoryLabel)
-	if err != nil {
-		return sd, err
+	if !sd.Imported {
+		logDir, err := getAbsolutePathFromFlag(cmd, globals.LogLogDirectoryLabel)
+		if err != nil {
+			return sd, err
+		}
+		if logDir != "" {
+			defaults.UpdateDefaults(globals.LogLogDirectoryLabel, logDir, false)
+		}
 	}
-	if logDir != "" {
-		defaults.UpdateDefaults(globals.LogLogDirectoryLabel, logDir, false)
-	}
-
 	templateRequests, _ := flags.GetStringArray(globals.UseTemplateLabel)
 	for _, request := range templateRequests {
 		tname, fname := checkTemplateChangeRequest(request)
@@ -240,7 +244,7 @@ func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxD
 
 	sd.Basedir = path.Join(basedir, sd.BasedirName)
 	// sd.Basedir = path.Join(basedir, args[0])
-	if !common.DirExists(sd.Basedir) {
+	if !common.DirExists(sd.Basedir) && !sd.Imported {
 		common.Exitf(1, "basedir '%s' not found", sd.Basedir)
 	}
 
@@ -252,9 +256,10 @@ func fillSandboxDdefinition(cmd *cobra.Command, args []string) (sandbox.SandboxD
 		}
 		sd.ClientBasedir = clientBasedir
 	}
-	err = common.CheckTarballOperatingSystem(sd.Basedir)
-	common.ErrCheckExitf(err, 1, "incorrect tarball detected")
-
+	if !sd.Imported {
+		err = common.CheckTarballOperatingSystem(sd.Basedir)
+		common.ErrCheckExitf(err, 1, "incorrect tarball detected")
+	}
 	sd.SandboxDir, err = getAbsolutePathFromFlag(cmd, globals.SandboxHomeLabel)
 	if err != nil {
 		return sd, err
@@ -380,7 +385,7 @@ func singleSandbox(cmd *cobra.Command, args []string) {
 	var sd sandbox.SandboxDef
 	var err error
 	common.CheckOrigin(args)
-	sd, err = fillSandboxDdefinition(cmd, args)
+	sd, err = fillSandboxDefinition(cmd, args, false)
 	if err != nil {
 		common.Exitf(1, "error while filling the sandbox definition: %+v", err)
 	}

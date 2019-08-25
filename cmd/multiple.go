@@ -26,7 +26,7 @@ func multipleSandbox(cmd *cobra.Command, args []string) {
 	var sd sandbox.SandboxDef
 	common.CheckOrigin(args)
 	flags := cmd.Flags()
-	sd, err := fillSandboxDdefinition(cmd, args)
+	sd, err := fillSandboxDefinition(cmd, args, false)
 	common.ErrCheckExitf(err, 1, "error filling sandbox definition")
 	nodes, _ := flags.GetInt(globals.NodesLabel)
 	sd.SBType = "multiple"
