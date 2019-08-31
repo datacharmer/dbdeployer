@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"fmt"
+	"path"
 	"regexp"
 
 	"github.com/spf13/cobra"
@@ -73,6 +74,14 @@ func importSingleSandbox(cmd *cobra.Command, args []string) {
 	sd.SBType = globals.SbTypeSingleImported
 	sd.Imported = true
 
+	if sd.ClientBasedir == "" {
+		clientVersion, err := common.GetCompatibleClientVersion(defaults.Defaults().SandboxBinary, versionString)
+		if err != nil {
+			common.Exitf(1,
+				"no suitable client version found - use --'%s' to designate one : %s ", globals.ClientFromLabel, err)
+		}
+		sd.ClientBasedir = path.Join(defaults.Defaults().SandboxBinary, clientVersion)
+	}
 	// Removes imported server port from list of installed ones
 	var newPortList []int
 	for _, uPort := range defaults.Defaults().ReservedPorts {
@@ -99,10 +108,12 @@ var importCmd = &cobra.Command{
 }
 
 // TODO:
+// Detect which client to use from remote version
 // add host to `sandboxes` output
 // add host and import type to catalog and sandbox description
 // check that we are not importing from a sandbox already in this host
 // Make the whole import procedure a library function
+// Add more sandbox creation options
 
 var importSingleCmd = &cobra.Command{
 	Use:   "single host port user password",

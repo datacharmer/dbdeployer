@@ -89,6 +89,36 @@ func GetVersionInfoFromDir(basedir string) []VersionInfo {
 	return versionInfos
 }
 
+func GetCompatibleClientVersion(basedir, serverVersion string) (string, error) {
+	var versionInfos []VersionInfo
+	var versionList []string
+	versionInfos = GetVersionInfoFromDir(basedir)
+
+	serverVersionList, err := VersionToList(serverVersion)
+	if err != nil {
+		return globals.EmptyString, err
+	}
+	for _, v := range versionInfos {
+		versionList = append(versionList, v.Version)
+	}
+	sortedVersionList := SortVersions(versionList)
+
+	for _, v := range sortedVersionList {
+		if v == serverVersion {
+			return v, nil
+		}
+		isCompatible, err := GreaterOrEqualVersion(v, serverVersionList)
+		if err != nil {
+			return globals.EmptyString, err
+		}
+		if isCompatible {
+			return v, nil
+		}
+	}
+
+	return globals.EmptyString, fmt.Errorf("no suitable client version found for version %s", serverVersion)
+}
+
 // Returns the list of versions available for deployment
 func GetVersionsFromDir(basedir string) ([]string, error) {
 	var dirs []string
