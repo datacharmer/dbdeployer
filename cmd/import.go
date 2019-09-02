@@ -82,13 +82,26 @@ func importSingleSandbox(cmd *cobra.Command, args []string) {
 		}
 		sd.ClientBasedir = path.Join(defaults.Defaults().SandboxBinary, clientVersion)
 	}
-	// Removes imported server port from list of installed ones
-	var newPortList []int
-	for _, uPort := range defaults.Defaults().ReservedPorts {
-		if uPort != port {
-			newPortList = append(newPortList, uPort)
+
+	// Make sure the host+port being imported is not a sandbox already
+	usedPorts, err := common.GetInstalledPorts(defaults.Defaults().SandboxHome)
+	if err != nil {
+		common.Exitf(1, "error getting installed ports: %s", err)
+	}
+	for _, usedPort := range usedPorts {
+		if usedPort == port && host == globals.LocalHostIP {
+			common.Exitf(1, "server %s:%d is already a local sandbox", host, usedPort)
 		}
 	}
+
+	// Remove the port from reserved ports, to avoid rejections later on
+	var newPortList []int
+	for _, reservedPort := range defaults.Defaults().ReservedPorts {
+		if reservedPort != port {
+			newPortList = append(newPortList, reservedPort)
+		}
+	}
+
 	sd.InstalledPorts = newPortList
 	sd.LoadGrants = false
 	sd.SkipStart = true
@@ -108,10 +121,10 @@ var importCmd = &cobra.Command{
 }
 
 // TODO:
-// Detect which client to use from remote version
-// add host to `sandboxes` output
-// add host and import type to catalog and sandbox description
-// check that we are not importing from a sandbox already in this host
+// [DONE] Detect which client to use from remote version
+// [DONE] add host to `sandboxes` output
+// [DONE] add host and import type to catalog and sandbox description
+// [DONE] check that we are not importing from a sandbox already in this host
 // Make the whole import procedure a library function
 // Add more sandbox creation options
 

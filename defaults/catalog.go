@@ -33,6 +33,7 @@ type SandboxItem struct {
 	SBType            string   `json:"type"` // single multi master-slave group all-masters fan-in ndb pxc
 	Version           string   `json:"version"`
 	Flavor            string   `json:"flavor,omitempty"`
+	Host              string   `json:"host,omitempty"`
 	Port              []int    `json:"port"`
 	Nodes             []string `json:"nodes"`
 	Destination       string   `json:"destination"`

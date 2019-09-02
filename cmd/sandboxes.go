@@ -134,11 +134,14 @@ func showSandboxes(cmd *cobra.Command, args []string) {
 	useHeader, _ := flags.GetBool(globals.HeaderLabel)
 	useFlavor, _ := flags.GetBool(globals.FlavorLabel)
 	useTable, _ := flags.GetBool(globals.TableLabel)
+	useHost := false
+
 	useFullInfo, _ := flags.GetBool(globals.FullInfoLabel)
 	if useFullInfo {
 		useHeader = true
 		useFlavor = true
 		useTable = true
+		useHost = true
 	}
 	if readCatalog {
 		showSandboxesFromCatalog(SandboxHome, useFlavor, useHeader, useTable)
@@ -148,6 +151,11 @@ func showSandboxes(cmd *cobra.Command, args []string) {
 	// If the sandbox directory hasn't been created yet, we start with an empty list
 	if common.DirExists(SandboxHome) {
 		sandboxList = getFullSandboxInfo(SandboxHome)
+	}
+	for _, sb := range sandboxList {
+		if sb.SandboxDesc.Host != "" && sb.SandboxDesc.Host != globals.LocalHostIP {
+			useHost = true
+		}
 	}
 	if len(sandboxList) == 0 {
 		return
@@ -160,9 +168,16 @@ func showSandboxes(cmd *cobra.Command, args []string) {
 				{Align: simpletable.AlignCenter, Text: "name"},
 				{Align: simpletable.AlignCenter, Text: "type"},
 				{Align: simpletable.AlignCenter, Text: "version"},
-				{Align: simpletable.AlignCenter, Text: "ports"},
 			},
 		}
+		if useHost {
+			table.Header.Cells = append(table.Header.Cells,
+				&simpletable.Cell{Align: simpletable.AlignCenter, Text: "host"},
+			)
+		}
+		table.Header.Cells = append(table.Header.Cells,
+			&simpletable.Cell{Align: simpletable.AlignCenter, Text: "port"},
+		)
 		if useFlavor {
 			table.Header.Cells = append(table.Header.Cells,
 				&simpletable.Cell{Align: simpletable.AlignCenter, Text: "flavor"},
@@ -196,6 +211,10 @@ func showSandboxes(cmd *cobra.Command, args []string) {
 		if sb.Locked {
 			isLocked = "(LOCKED)"
 		}
+		host := sb.SandboxDesc.Host
+		if host == "" {
+			host = globals.LocalHostIP
+		}
 		ports := "["
 		for _, p := range sb.SandboxDesc.Port {
 			ports += fmt.Sprintf("%d ", p)
@@ -203,6 +222,9 @@ func showSandboxes(cmd *cobra.Command, args []string) {
 		ports += "]"
 		if sb.Locked && !useTable {
 			ports += " " + isLocked
+		}
+		if useHost {
+			cells = append(cells, &simpletable.Cell{Text: host})
 		}
 		cells = append(cells, &simpletable.Cell{Text: ports})
 		if useFlavor {

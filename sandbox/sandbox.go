@@ -626,7 +626,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		sandboxDef.ClientBasedir = sandboxDef.Basedir
 	}
 
-	user, err := user.Current()
+	userDef, err := user.Current()
 
 	if err != nil {
 		return emptyExecutionList, fmt.Errorf("could not get information about current OS user")
@@ -667,7 +667,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		"RplPassword":          sandboxDef.RplPassword,
 		"RemoteAccess":         sandboxDef.RemoteAccess,
 		"BindAddress":          sandboxDef.BindAddress,
-		"OsUser":               user.Username,
+		"OsUser":               userDef.Username,
 		"ReplOptions":          sandboxDef.ReplOptions,
 		"GtidOptions":          sandboxDef.GtidOptions,
 		"ReplCrashSafeOptions": sandboxDef.ReplCrashSafeOptions,
@@ -815,6 +815,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		SBType:      sandboxDef.SBType,
 		Version:     sandboxDef.Version,
 		Flavor:      sandboxDef.Flavor,
+		Host:        sandboxDef.SbHost,
 		Port:        []int{sandboxDef.Port},
 		Nodes:       []string{},
 		Destination: sandboxDir,
@@ -829,6 +830,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		SBType:        sandboxDef.SBType,
 		Version:       sandboxDef.Version,
 		Flavor:        sandboxDef.Flavor,
+		Host:          sandboxDef.SbHost,
 		Port:          []int{sandboxDef.Port},
 		Nodes:         0,
 		NodeNum:       sandboxDef.NodeNum,

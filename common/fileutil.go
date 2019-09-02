@@ -53,6 +53,7 @@ type SandboxDescription struct {
 	SBType            string `json:"type"` // single multi master-slave group
 	Version           string `json:"version"`
 	Flavor            string `json:"flavor,omitempty"`
+	Host              string `json:"host,omitempty"`
 	Port              []int  `json:"port"`
 	Nodes             int    `json:"nodes"`
 	NodeNum           int    `json:"node_num"`

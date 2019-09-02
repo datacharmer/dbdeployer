@@ -45,7 +45,7 @@ const (
 	BasePortLabel           = "base-port"
 	BinaryVersionLabel      = "binary-version"
 	BindAddressLabel        = "bind-address"
-	BindAddressValue        = "127.0.0.1"
+	BindAddressValue        = LocalHostIP
 	ConcurrentLabel         = "concurrent"
 	CustomMysqldLabel       = "custom-mysqld"
 	DbPasswordLabel         = "db-password"
@@ -130,7 +130,7 @@ const (
 	FanInLabel          = "fan-in"
 	GroupLabel          = "group"
 	MasterIpLabel       = "master-ip"
-	MasterIpValue       = "127.0.0.1"
+	MasterIpValue       = LocalHostIP
 	MasterListLabel     = "master-list"
 	MasterListValue     = "1,2"
 	MasterSlaveLabel    = "master-slave"
@@ -173,6 +173,7 @@ const (
 	HeaderLabel   = "header"
 	TableLabel    = "table"
 	FullInfoLabel = "full-info"
+	LocalHostIP   = "127.0.0.1"
 
 	// Instantiated in cmd/templates.go
 	SimpleLabel       = "simple"
