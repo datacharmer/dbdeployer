@@ -24,7 +24,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/cookbook"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/rest"
@@ -76,7 +75,7 @@ func displayVersion(cmd *cobra.Command, args []string) {
 		wantedVersion = args[0]
 	}
 
-	reNotFound := regexp.MustCompile(cookbook.VersionNotFound)
+	reNotFound := regexp.MustCompile(globals.VersionNotFound)
 	if len(args) > 1 {
 		allVersions = args[1]
 	}
@@ -93,7 +92,7 @@ func displayVersion(cmd *cobra.Command, args []string) {
 		if strings.ToLower(wantedVersion) == "all" {
 			result := ""
 			for _, v := range globals.SupportedAllVersions {
-				latest := cookbook.GetLatestVersion(v, flavor)
+				latest := common.GetLatestVersion(defaults.Defaults().SandboxBinary, v, flavor)
 				if !reNotFound.MatchString(latest) {
 					if result != "" {
 						result += " "
@@ -107,9 +106,9 @@ func displayVersion(cmd *cobra.Command, args []string) {
 		} else {
 			var result string
 			if showEarliest {
-				result = cookbook.GetEarliestVersion(wantedVersion, flavor)
+				result = common.GetEarliestVersion(defaults.Defaults().SandboxBinary, wantedVersion, flavor)
 			} else {
-				result = cookbook.GetLatestVersion(wantedVersion, flavor)
+				result = common.GetLatestVersion(defaults.Defaults().SandboxBinary, wantedVersion, flavor)
 			}
 			if !reNotFound.MatchString(result) {
 				fmt.Println(result)

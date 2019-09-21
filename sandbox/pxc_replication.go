@@ -85,7 +85,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		basePort = sandboxDef.BasePort
 	}
 
-	baseServerId := 0
+	//baseServerId := sandboxDef.BaseServerId
 	if nodes < 3 {
 		return fmt.Errorf("can't run PXC replication with less than 3 nodes")
 	}
@@ -261,7 +261,8 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 			groupPort,
 			groupPort + 1, // IST port
 			rsyncPort}
-		sandboxDef.ServerId = (baseServerId + i) * 100
+		// sandboxDef.ServerId = (baseServerId + i) * 100
+		sandboxDef.ServerId = setServerId(sandboxDef, i)
 		sbItem.Nodes = append(sbItem.Nodes, sandboxDef.DirName)
 
 		sbItem.Port = append(sbItem.Port, sandboxDef.Port)

@@ -542,6 +542,16 @@ function ok_template {
     tests=$((tests+1))
 }
 
+function check_exit_code {
+    exit_code=$?
+    echo $exit_code
+    if [ "$exit_code" != "0" ]
+    then
+        echo "ERROR running $@"
+        exit $exit_code
+    fi
+}
+
 function run {
     temp_stop_sec=$(date +%s)
     temp_elapsed=$(($temp_stop_sec-$start_sec))
@@ -551,13 +561,7 @@ function run {
     (set -x
     $@
     )
-    exit_code=$?
-    echo $exit_code
-    if [ "$exit_code" != "0" ]
-    then
-        echo "ERROR running $@"
-        exit $exit_code
-    fi
+    check_exit_code
 }
 
 function test_completeness {
@@ -646,5 +650,29 @@ function test_completeness {
         fi
     done
     check_for_exit test_completeness
+}
+
+# Runs dbdeployer commands in a separate environment
+function alt_dbdeployer {
+    save_binary=$SANDBOX_BINARY
+    save_home=$HOME
+    save_sandbox_home=$SANDBOX_HOME
+
+    export SANDBOX_BINARY=$HOME/opt/mysql
+
+    if [  ! -d ./tmp_sandboxes ]
+    then
+        mkdir tmp_sandboxes
+    fi
+
+    export HOME=$PWD/tmp_sandboxes
+    export SANDBOX_HOME=$HOME/sandboxes
+
+    (set -x
+    dbdeployer "$@"
+    )
+    export SANDBOX_HOME=$save_sandbox_home
+    export SANDBOX_BINARY=$save_binary
+    export HOME=$save_home
 }
 

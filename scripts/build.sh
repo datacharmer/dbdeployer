@@ -23,6 +23,7 @@ executable=$PWD/$executable
 cd ..
 build_dir=$PWD
 
+export GO111MODULE=on
 goversion=$(go version)
 go_major=$(echo $goversion | awk '{print $3}' | sed -e 's/^go//' | tr '.' ' ' | awk '{print $1}')
 go_minor=$(echo $goversion | awk '{print $3}' | sed -e 's/^go//' | tr '.' ' ' | awk '{print $2}')

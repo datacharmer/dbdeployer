@@ -16,11 +16,12 @@ package cookbook
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/compare"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/sandbox"
-	"testing"
 )
 
 func TestGetLatestVersion(t *testing.T) {
@@ -37,14 +38,16 @@ func TestGetLatestVersion(t *testing.T) {
 		"5.7.22",
 		"8.0.11",
 	}
-	latest := GetLatestVersion("", common.MySQLFlavor)
+
+	latest := common.GetLatestVersion(defaults.Defaults().SandboxBinary, "", common.MySQLFlavor)
 	compare.OkMatchesString("latest version", latest, `NOTFOUND`, t)
 	recipe, _, _ := GetRecipe("single", common.MySQLFlavor)
 	compare.OkMatchesString("recipe single", recipe, "NOTFOUND", t)
 	for _, version := range versions {
+		fmt.Printf("%s\n", version)
 		err = sandbox.CreateMockVersion(version)
 		compare.OkIsNil(fmt.Sprintf("creating mock version %s", version), err, t)
-		latest := GetLatestVersion("", common.MySQLFlavor)
+		latest = common.GetLatestVersion(defaults.Defaults().SandboxBinary, "", common.MySQLFlavor)
 		compare.OkEqualString("latest version", latest, version, t)
 		recipe, _, _ = GetRecipe("single", common.MySQLFlavor)
 		compare.OkMatchesString("recipe single", recipe, version, t)

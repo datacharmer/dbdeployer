@@ -1,3 +1,15 @@
+1.39.0	21-Sep-2019 
+	- Add script clone_from to clone from another 8.0.17+ server
+	- Add option "clone" to script replicate_from
+	- Add ability of detecting and using GTID to script replicate_from
+	- Add ability of finding a suitable client for imported sandboxes
+	- Add option --server-id to "deploy single" command
+	- Add option --base-server-id to deploy command
+	- Add option --sandbox-directory to import command
+1.38.0	25-Aug-2019 
+	NEW FEATURES
+	- add command dbdeployer import single 
+
 1.37.0	24-Aug-2019 (not released)
 	NEW FEATURES
 	- Enable Go modules
@@ -132,7 +144,7 @@
 
 1.26.0	26-Mar-2019
 	NEW FEATURES
-	- Add custom replication_from script to each sandbox.
+	- Add custom replicate_from script to each sandbox.
 	- Add metadata script to each sandbox
 	- Add option -port-as-server-id
 	- Add more info in sb_include script

@@ -29,12 +29,6 @@ import (
 	"github.com/datacharmer/dbdeployer/globals"
 )
 
-const (
-	ErrNoVersionFound = 1
-	ErrNoRecipeFound  = 2
-	VersionNotFound   = "NOTFOUND"
-)
-
 var (
 	AuxiliaryRecipes        = []string{"prerequisites", "include"}
 	PrerequisitesShown bool = false
@@ -204,7 +198,7 @@ func CreateRecipe(recipeName, flavor string) {
 		showPrerequisites(flavor)
 		common.Exitf(1, "error getting recipe %s: %s", recipeName, err)
 	}
-	if versionCode == ErrNoVersionFound && !isRecursive {
+	if versionCode == globals.ErrNoVersionFound && !isRecursive {
 		showPrerequisites(flavor)
 	}
 	cookbookDir := getCookbookDirectory()
@@ -232,58 +226,26 @@ func CreateRecipe(recipeName, flavor string) {
 	fmt.Printf("%s created\n", targetScript)
 }
 
-func GetLatestVersion(wantedVersion, flavor string) string {
-	return getSortedVersion(wantedVersion, flavor, -1)
-}
-
-func GetEarliestVersion(wantedVersion, flavor string) string {
-	return getSortedVersion(wantedVersion, flavor, 0)
-}
-
-func getSortedVersion(wantedVersion, flavor string, position int) string {
-	if wantedVersion == "" {
-		wantedVersion = os.Getenv("WANTED_VERSION")
-	}
-	sandboxBinary := os.Getenv("SANDBOX_BINARY")
-	if sandboxBinary == "" {
-		sandboxBinary = defaults.Defaults().SandboxBinary
-	}
-	versions := common.GetFlavoredVersionsFromDir(sandboxBinary, flavor)
-	if len(versions) == 0 {
-		return VersionNotFound + "_" + flavor
-	}
-
-	sortedVersions := common.SortVersionsSubset(versions, wantedVersion)
-	if len(sortedVersions) < 1 {
-		return VersionNotFound + "_" + flavor
-	}
-	if position == -1 {
-		position = len(sortedVersions) - 1
-	}
-	latestVersion := sortedVersions[position]
-	return latestVersion
-}
-
 func GetRecipe(recipeName, flavor string) (string, int, error) {
 	var text string
 
 	recipe, ok := RecipesList[recipeName]
 	if !ok {
-		return text, ErrNoRecipeFound, fmt.Errorf("recipe %s not found", recipeName)
+		return text, globals.ErrNoRecipeFound, fmt.Errorf("recipe %s not found", recipeName)
 	}
 	latestVersions := make(map[string]string)
 	for _, version := range globals.SupportedMySQLVersions {
-		latest := GetLatestVersion(version, common.MySQLFlavor)
+		latest := common.GetLatestVersion(defaults.Defaults().SandboxBinary, version, common.MySQLFlavor)
 		if latest != "" {
 			latestVersions[version] = latest
 		} else {
-			latestVersions[version] = fmt.Sprintf("%s_%s", VersionNotFound, version)
+			latestVersions[version] = fmt.Sprintf("%s_%s", globals.VersionNotFound, version)
 		}
 	}
-	latestVersion := GetLatestVersion("", flavor)
+	latestVersion := common.GetLatestVersion(defaults.Defaults().SandboxBinary, "", flavor)
 	versionCode := 0
-	if latestVersion == VersionNotFound {
-		versionCode = ErrNoVersionFound
+	if latestVersion == globals.VersionNotFound {
+		versionCode = globals.ErrNoVersionFound
 	}
 	var data = defaults.DefaultsToMap()
 	data["Copyright"] = globals.ShellScriptCopyright

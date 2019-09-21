@@ -80,6 +80,7 @@ func importSingleSandbox(cmd *cobra.Command, args []string) {
 			common.Exitf(1,
 				"no suitable client version found - use --'%s' to designate one : %s ", globals.ClientFromLabel, err)
 		}
+		fmt.Printf("# Using client version %s\n", clientVersion)
 		sd.ClientBasedir = path.Join(defaults.Defaults().SandboxBinary, clientVersion)
 	}
 
@@ -143,4 +144,5 @@ func init() {
 	rootCmd.AddCommand(importCmd)
 	importCmd.AddCommand(importSingleCmd)
 	setPflag(importCmd, globals.ClientFromLabel, "", "", "", "Where to get the client binaries from", false)
+	setPflag(importCmd, globals.SandboxDirectoryLabel, "", "", "", "Changes the default sandbox directory", false)
 }

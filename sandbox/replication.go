@@ -80,6 +80,13 @@ func checkReadOnlyFlags(sandboxDef SandboxDef) (string, error) {
 	return readOnlyOption, nil
 }
 
+func setServerId(sandboxDef SandboxDef, increment int) int {
+	if sandboxDef.BaseServerId == 0 {
+		return (sandboxDef.BaseServerId + increment) * 100
+	}
+	return sandboxDef.BaseServerId + increment
+}
+
 func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
 
 	var execLists []concurrent.ExecutionList
@@ -107,7 +114,6 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	if sandboxDef.BasePort > 0 {
 		basePort = sandboxDef.BasePort
 	}
-	baseServerId := 0
 	sandboxDef.DirName = defaults.Defaults().MasterName
 	// FindFreePort returns the first free port, but base_port will be used
 	// with a counter. Thus the availability will be checked using
@@ -149,7 +155,8 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	logger.Printf("Replication Sandbox Definition: %s\n", sandboxDefToJson(sandboxDef))
 	common.AddToCleanupStack(common.Rmdir, "Rmdir", sandboxDef.SandboxDir)
 	sandboxDef.Port = basePort + 1
-	sandboxDef.ServerId = (baseServerId + 1) * 100
+	//sandboxDef.ServerId = (baseServerId + 1) * 100
+	sandboxDef.ServerId = setServerId(sandboxDef, 1)
 	sandboxDef.LoadGrants = false
 	masterPort := sandboxDef.Port
 	changeMasterExtra := ""
@@ -290,7 +297,8 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		sandboxDef.LoadGrants = false
 		sandboxDef.Prompt = fmt.Sprintf("%s%d", slaveLabel, i)
 		sandboxDef.DirName = fmt.Sprintf("%s%d", nodeLabel, i)
-		sandboxDef.ServerId = (baseServerId + i + 1) * 100
+		//sandboxDef.ServerId = (baseServerId + i + 1) * 100
+		sandboxDef.ServerId = setServerId(sandboxDef, i+1)
 		sandboxDef.NodeNum = i + 1
 		sbItem.Nodes = append(sbItem.Nodes, sandboxDef.DirName)
 		sbItem.Port = append(sbItem.Port, sandboxDef.Port)

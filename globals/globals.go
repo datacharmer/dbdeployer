@@ -43,6 +43,7 @@ const (
 
 	// Instantiated in cmd/deploy.go
 	BasePortLabel           = "base-port"
+	BaseServerIdLabel       = "base-server-id"
 	BinaryVersionLabel      = "binary-version"
 	BindAddressLabel        = "bind-address"
 	BindAddressValue        = LocalHostIP
@@ -98,6 +99,7 @@ const (
 
 	// Instantiated in cmd/single.go
 	MasterLabel    = "master"
+	ServerIdLabel  = "server-id"
 	ShellPathLabel = "shell-path"
 	ShellPathValue = "/bin/bash"
 
@@ -207,37 +209,39 @@ const (
 	ExportSupportedMysqlVersions = "supported-mysql-versions"
 
 	// Instantiated in sandbox package
-	AutoCnfName          = "auto.cnf"
-	DataDirName          = "data"
-	ScriptAddOption      = "add_option"
-	ScriptClear          = "clear"
-	ScriptGrantsMysql    = "grants.mysql"
-	ScriptInitDb         = "init_db"
-	ScriptAfterStart     = "after_start"
-	ScriptLoadGrants     = "load_grants"
-	ScriptMy             = "my"
-	ScriptMySandboxCnf   = "my.sandbox.cnf"
-	ScriptMysqlsh        = "mysqlsh"
-	ScriptNoClear        = "no_clear"
-	ScriptPostGrantsSql  = "post_grants.sql"
-	ScriptPreGrantsSql   = "pre_grants.sql"
-	ScriptRestart        = "restart"
-	ScriptSbInclude      = "sb_include"
-	ScriptSendKill       = "send_kill"
-	ScriptShowBinlog     = "show_binlog"
-	ScriptShowLog        = "show_log"
-	ScriptShowRelayLog   = "show_relaylog"
-	ScriptStart          = "start"
-	ScriptStatus         = "status"
-	ScriptStop           = "stop"
-	ScriptTestSb         = "test_sb"
-	ScriptUse            = "use"
-	ScriptUseAdmin       = "use_admin"
-	ScriptConnectionConf = "connection.conf"
-	ScriptConnectionSql  = "connection.sql"
-	ScriptConnectionJson = "connection.json"
-	ScriptReplicateFrom  = "replicate_from"
-	ScriptMetadata       = "metadata"
+	AutoCnfName              = "auto.cnf"
+	DataDirName              = "data"
+	ScriptAddOption          = "add_option"
+	ScriptClear              = "clear"
+	ScriptGrantsMysql        = "grants.mysql"
+	ScriptInitDb             = "init_db"
+	ScriptAfterStart         = "after_start"
+	ScriptLoadGrants         = "load_grants"
+	ScriptMy                 = "my"
+	ScriptMySandboxCnf       = "my.sandbox.cnf"
+	ScriptMysqlsh            = "mysqlsh"
+	ScriptNoClear            = "no_clear"
+	ScriptPostGrantsSql      = "post_grants.sql"
+	ScriptPreGrantsSql       = "pre_grants.sql"
+	ScriptRestart            = "restart"
+	ScriptSbInclude          = "sb_include"
+	ScriptSendKill           = "send_kill"
+	ScriptShowBinlog         = "show_binlog"
+	ScriptShowLog            = "show_log"
+	ScriptShowRelayLog       = "show_relaylog"
+	ScriptStart              = "start"
+	ScriptStatus             = "status"
+	ScriptStop               = "stop"
+	ScriptTestSb             = "test_sb"
+	ScriptUse                = "use"
+	ScriptUseAdmin           = "use_admin"
+	ScriptConnectionConf     = "connection.conf"
+	ScriptConnectionSql      = "connection.sql"
+	ScriptConnectionJson     = "connection.json"
+	ScriptReplicateFrom      = "replicate_from"
+	ScriptCloneConnectionSql = "clone_connection.sql"
+	ScriptCloneFrom          = "clone_from"
+	ScriptMetadata           = "metadata"
 
 	ScriptCheckMsNodes      = "check_ms_nodes"
 	ScriptCheckNodes        = "check_nodes"
@@ -327,6 +331,7 @@ var (
 	MinimumMySQLUpgradeTool          = NumericVersion{5, 0, 0}
 	MaximumMySQLUpgradeTool          = NumericVersion{8, 0, 15}
 	MinimumMySQLUpgradeServer        = NumericVersion{8, 0, 16}
+	MinimumCloneMySQLServer          = NumericVersion{8, 0, 17}
 	MinimumMySQLInstallDb            = NumericVersion{3, 3, 23}
 	MaximumMySQLInstallDb            = NumericVersion{5, 6, 999}
 	MinimumDynVariablesVersion       = NumericVersion{5, 1, 0}
@@ -487,3 +492,9 @@ var FlagAliases = []FlagAlias{
 	{"downloads.get-by-version", NewestLabel, "latest"},
 	{"info", EarliestLabel, "oldest"},
 }
+
+const (
+	ErrNoVersionFound = 1
+	ErrNoRecipeFound  = 2
+	VersionNotFound   = "NOTFOUND"
+)

@@ -74,7 +74,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 	}
 	basePort = firstPort - 1
 
-	baseServerId := 0
+	// baseServerId := sandboxDef.BaseServerId
 	if ndbNodes < 3 {
 		return fmt.Errorf("can't run MySQL Cluster with less than 3 NDB nodes")
 	}
@@ -227,7 +227,8 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		data["SqlNodes"] = append(data["SqlNodes"].([]common.StringMap), common.StringMap{"Node": i + ndbNodes})
 		sandboxDef.DirName = fmt.Sprintf("%s%d", nodeLabel, i)
 		sandboxDef.MorePorts = []int{}
-		sandboxDef.ServerId = (baseServerId + i) * 100
+		// sandboxDef.ServerId = (baseServerId + i) * 100
+		sandboxDef.ServerId = setServerId(sandboxDef, i)
 		sbItem.Nodes = append(sbItem.Nodes, sandboxDef.DirName)
 		sbItem.Port = append(sbItem.Port, sandboxDef.Port)
 		sbDesc.Port = append(sbDesc.Port, sandboxDef.Port)

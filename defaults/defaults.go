@@ -526,3 +526,17 @@ func DefaultsToMap() common.StringMap {
 		"timestamp":                         currentDefaults.Timestamp,
 	}
 }
+
+func ResetDefaults() {
+	homeDir = os.Getenv("HOME")
+	ConfigurationDir = path.Join(homeDir, ConfigurationDirName)
+	ConfigurationFile = path.Join(ConfigurationDir, ConfigurationFileName)
+	CustomConfigurationFile = ""
+	SandboxRegistry = path.Join(ConfigurationDir, SandboxRegistryName)
+	SandboxRegistryLock = path.Join(common.GlobalTempDir(), SandboxRegistryLockName)
+	LogSBOperations = common.IsEnvSet("DBDEPLOYER_LOGGING")
+	factoryDefaults.SandboxBinary = path.Join(homeDir, "opt", "mysql")
+	factoryDefaults.SandboxHome = path.Join(homeDir, "sandboxes")
+	factoryDefaults.LogDirectory = path.Join(homeDir, "sandboxes", "logs")
+	currentDefaults = DbdeployerDefaults{}
+}

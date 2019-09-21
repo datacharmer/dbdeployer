@@ -64,7 +64,8 @@ type SandboxDef struct {
 	RemoteAccess         string           // What access have the users created for this SB (127.%)
 	BindAddress          string           // Bind address for this sandbox (127.0.0.1)
 	CustomMysqld         string           // Use an alternative mysqld executable
-	ServerId             int              // Server ID (for replication)
+	ServerId             int              // Server ID (for single sandbox)
+	BaseServerId         int              // Base Server ID (for multiple sandboxes)
 	ReplOptions          string           // Replication options, as string to append to my.sandbox.cnf
 	GtidOptions          string           // Options needed for GTID
 	ReplCrashSafeOptions string           // Options needed for Replication crash safe
@@ -562,6 +563,11 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			logger.Printf("Using mysql_native_password for authentication\n")
 		}
 	}
+	// 8.0.17
+	isMinimumClonePlugin, err := common.HasCapability(sandboxDef.Flavor, common.CloneServer, sandboxDef.Version)
+	if err != nil {
+		return emptyExecutionList, err
+	}
 	// MariaDB 10.4.3 defaults to socket auth
 	isMinimumRootAuth, err := common.HasCapability(sandboxDef.Flavor, common.RootAuth, sandboxDef.Version)
 	if err != nil {
@@ -657,6 +663,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		"VersionMajor":         verList[0],
 		"VersionMinor":         verList[1],
 		"VersionRev":           verList[2],
+		"SortableVersion":      fmt.Sprintf("%03d%03d%03d", verList[0], verList[1], verList[2]),
 		"Datadir":              dataDir,
 		"Tmpdir":               tmpDir,
 		"GlobalTmpDir":         socketDir,
@@ -746,7 +753,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	if usesMysqlInstallDb && !sandboxDef.Imported {
 		script = path.Join(sandboxDef.Basedir, "scripts", globals.FnMysqlInstallDb)
 	}
-	if script != "" && !common.ExecExists(script) {
+	if script != "" && !common.ExecExists(script) && !sandboxDef.Imported {
 		common.CondPrintf("SCRIPT\n")
 		return emptyExecutionList, fmt.Errorf(globals.ErrScriptNotFound, script)
 	}
@@ -888,6 +895,13 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	}
 	if sandboxDef.MysqlXPort != 0 {
 		sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptMysqlsh, "mysqlsh_template", true})
+	}
+	if isMinimumClonePlugin {
+		sb.scripts = append(sb.scripts, ScriptDef{
+			globals.ScriptCloneFrom, "clone_from", true})
+		sb.scripts = append(sb.scripts, ScriptDef{
+			globals.ScriptCloneConnectionSql, "clone_connection_sql", false})
+		logger.Printf("enabling clone scripts")
 	}
 	var grantsTemplateName string = ""
 	// isMinimumRoles, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumRolesVersion)

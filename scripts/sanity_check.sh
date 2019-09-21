@@ -19,6 +19,7 @@ exec_dir=$(dirname $0)
 cd $exec_dir
 cd ..
 
+export GO111MODULE=on
 function check_latest_version {
     echo "## version"
     git_version=$(git tag | tail -n 1 | tr -d 'v')

@@ -1,7 +1,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.37.0 (31-Aug-2019 05:13 UTC)
+Documentation updated for version 1.39.0 (21-Sep-2019 20:31 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -37,6 +37,8 @@ Documentation updated for version 1.37.0 (31-Aug-2019 05:13 UTC)
 - [Dedicated admin address](#dedicated-admin-address)
 - [Obtaining sandbox metadata](#obtaining-sandbox-metadata)
 - [Replication between sandboxes](#replication-between-sandboxes)
+- [Importing databases into sandboxes](#importing-databases-into-sandboxes)
+- [Cloning databases](#cloning-databases)
 - [Using dbdeployer in scripts](#using-dbdeployer-in-scripts)
 - [Compiling dbdeployer](#compiling-dbdeployer)
 - [Generating additional documentation](#generating-additional-documentation)
@@ -55,7 +57,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.37.0
+    $ VERSION=1.39.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -140,7 +142,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.37.0
+    dbdeployer version 1.39.0
     
 
     $ dbdeployer -h
@@ -161,6 +163,7 @@ The program doesn't have any dependencies. Everything is included in the binary.
       export          Exports the command structure in JSON format
       global          Runs a given command in every sandbox
       help            Help about any command
+      import          imports one or more MySQL servers into a sandbox
       info            Shows information about dbdeployer environment samples
       sandboxes       List installed sandboxes
       unpack          unpack a tarball into the binary directory
@@ -237,6 +240,7 @@ The easiest command is ``deploy single``, which installs a single sandbox.
     
     Flags:
           --base-port int                 Overrides default base-port (for multiple sandboxes)
+          --base-server-id int            Overrides default server_id (for multiple sandboxes)
           --binary-version string         Specifies the version when the basedir directory name does not contain it (i.e. it is not x.x.xx)
           --bind-address string           defines the database bind-address  (default "127.0.0.1")
           --client-from string            Where to get the client binaries from
@@ -305,6 +309,7 @@ The easiest command is ``deploy single``, which installs a single sandbox.
       -h, --help            help for single
           --master          Make the server replication ready
           --prompt string   Default prompt for the single client (default "mysql")
+          --server-id int   Overwrite default server-id
     
     
 
@@ -1621,6 +1626,13 @@ Examples:
 ~/sandboxes/group_8_0_15_2/replicate_from ms_8_0_15_1
 ```
 
+## e. Cloning
+
+When both master and slave run version 8.0.17+, the script `replicate_from` allows an extra option `clone`. When this
+option is given, and both sandboxes meet the [cloning pre-requisites](https://dev.mysql.com/doc/refman/8.0/en/clone-plugin-remote.html),
+the script will try to clone the donor before starting replication. If successful, it will use the clone coordinates to
+initialize the slave.
+
 # Using dbdeployer in scripts
 
 dbdeployer has been designed to simplify automated operations. Using it in scripts is easy, as shown in the [cookbook examples](#Practical-examples).
@@ -1717,120 +1729,116 @@ rsandbox_
 ```
 You can ask for any fields from the defaults (see `dbdeployer defaults list` for the field names).
 
-# Compiling dbdeployer
+# Importing databases into sandboxes
 
-Should you need to compile your own binaries for dbdeployer, follow these steps:
+With dbdeployer 1.39.0, you have the ability of importing an existing database into a sandbox.
+The *importing* doesn't involve any re-installation or data transfer: the resulting sandbox will access the existing
+database server using the standard sandbox scripts.
 
-1. Make sure you have go 1.11+ installed in your system.
-2. Run `git clone https://github.com/datacharmer/dbdeployer.git`.  This will import all the code that is needed to build dbdeployer.
-3. Change directory to `./dbdeployer`.
-4. Run ./scripts/build.sh {linux|OSX}`
-5. If you need the docs enabled binaries (see the section "Generating additional documentation") run `MKDOCS=1 ./scripts/build.sh {linux|OSX}`
+Syntax: `dbdeployer import single hostIP/name port username password` 
 
-# Generating additional documentation
+For example, 
 
-Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
-Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
+```
+dbdeployer import single 192.168.0.164 5000 public nOtMyPassW0rd
+ detected: 5.7.22
+ # Using client version 5.7.22
+ Database installed in $HOME/sandboxes/imp_msb_5_7_22
+ run 'dbdeployer usage single' for basic instructions'`
+```
 
-* dbdeployer-1.37.0-docs.linux.tar.gz
-* dbdeployer-1.37.0-docs.osx.tar.gz
-* dbdeployer-1.37.0.linux.tar.gz
-* dbdeployer-1.37.0.osx.tar.gz
+We connect to a server running at IP address 192.168.0.164, listening to port 5000. We pass user name and password on
+the command line, and dbdeployer, detecting that the database runs version 5.7.22, uses the client of the closest
+version to connect to it, and builds a sandbox, which we can access by the usual scripts:
 
-The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
+```
+~/sandboxes/imp_msb_5_7_22/use
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 19
+Server version: 5.7.22 MySQL Community Server (GPL)
 
-This is the command used to help generating the API documentation.
+Copyright (c) 2000, 2018, Oracle and/or its affiliates. All rights reserved.
 
-    $ dbdeployer-docs tree -h
-    This command is only used to create API documentation. 
-    You can, however, use it to show the command structure at a glance.
-    
-    Usage:
-      dbdeployer tree [flags]
-    
-    Aliases:
-      tree, docs
-    
-    Flags:
-          --api               Writes API template
-          --bash-completion   creates bash-completion file
-      -h, --help              help for tree
-          --man-pages         Writes man pages
-          --markdown-pages    Writes Markdown docs
-          --rst-pages         Writes Restructured Text docs
-          --show-hidden       Shows also hidden commands
-    
-    
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
 
-In addition to the API template, the ``tree`` command can produce:
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 
-* man pages;
-* Markdown documentation;
-* Restructured Text pages;
-* Command line completion script (see next section).
+mysql [192.168.0.164:5000] {public} ((none)) > select host, user, authentication_string from mysql.user;
++-----------+---------------+-------------------------------------------+
+| host      | user          | authentication_string                     |
++-----------+---------------+-------------------------------------------+
+| localhost | root          | *14E65567ABDB5135D0CFD9A70B3032C179A49EE7 |
+| localhost | mysql.session | *THISISNOTAVALIDPASSWORDTHATCANBEUSEDHERE |
+| localhost | mysql.sys     | *THISISNOTAVALIDPASSWORDTHATCANBEUSEDHERE |
+| localhost | healthchecker | *36C82179AFA394C4B9655005DD2E482D30A4BDF7 |
+| %         | public        | *129FD0B9224690392BCF7523AC6E6420109E5F70 |
++-----------+---------------+-------------------------------------------+
+5 rows in set (0.00 sec)
+```
 
-# Command line completion
+You have to keep in mind that several assumptions that are taken for granted in regular sandboxes may not hold for an
+imported one. This sandbox refers to an out-of-the-box MySQL deployment that lacks some settings that are expected in
+a regular sandbox:
 
-There is a file ``./docs/dbdeployer_completion.sh``, which is automatically generated with dbdeployer API documentation. If you want to use bash completion on the command line, copy the file to the bash completion directory. For example:
+```
+$ ~/sandboxes/imp_msb_5_7_22/test_sb
+ok - version '5.7.22'
+ok - version is 5.7.22 as expected
+ok - query was successful for user public: 'select 1'
+ok - query was successful for user public: 'select 1'
+ok - query was successful for user public: 'use mysql; select count(*) from information_schema.tables where table_schema=schema()'
+ok - query was successful for user public: 'use mysql; select count(*) from information_schema.tables where table_schema=schema()'
+not ok - query failed for user public: 'create table if not exists test.txyz(i int)'
+ok - query was successful for user public: 'drop table if exists test.txyz'
+# Tests :     8
+# pass  :     7
+# FAIL  :     1
+```
 
-    # Linux
-    $ sudo cp ./docs/dbdeployer_completion.sh /etc/bash_completion.d
-    $ source /etc/bash_completion
+In the above example, the `test` database, which exists in every sandbox, was not found, and the test failed.
 
-    # OSX
-    $ sudo cp ./docs/dbdeployer_completion.sh /usr/local/etc/bash_completion.d
-    $ source /usr/local/etc/bash_completion
+There could be bigger limitations. Here's an attempt with a [db4free.net](https://db4free.net) account that works fine
+but has bigger problems than the previous one:
 
-Then, you can use completion as follows:
+```
+$ dbdeployer import single db4free.net 3306 dbdeployer $(cat ~/.db4free.pwd)
+detected: 8.0.17
+# Using client version 8.0.17
+Database installed in $HOME/sandboxes/imp_msb_8_0_17
+run 'dbdeployer usage single' for basic instructions'
+```
 
-    $ dbdeployer [tab]
-        admin  defaults  delete  deploy  global  sandboxes  unpack  usage  versions
-    $ dbdeployer dep[tab]
-    $ dbdeployer deploy [tab][tab]
-        multiple     replication  single
-    $ dbdeployer deploy s[tab]
-    $ dbdeployer deploy single --b[tab][tab]
-        --base-port=     --bind-address=
+A db4free account can only access the user database, and nothing else. Specifically, it can't create databases, access
+databases `information_schema` or `mysql`, or start replication.
 
-# Using dbdeployer source for other projects
+Speaking of replication, we can use imported sandboxes to start replication between a remote server and a sandbox, or
+between a sandbox and a remote server, or even, if both sandboxes are imported, start replication between two remote
+servers (provided that the credentials used for importing have the necessary privileges.)
 
-If you need to create sandboxes from other Go apps, see  [dbdeployer-as-library.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/coding/dbdeployer-as-library.md).
+```
+$ ~/sandboxes/msb_8_0_17/replicate_from imp_msb_5_7_22
+Connecting to /Users/gmax/sandboxes/imp_msb_5_7_22
+--------------
+CHANGE MASTER TO master_host="192.168.0.164",
+master_port=5000,
+master_user="public",
+master_password="nOtMyPassW0rd"
+, master_log_file="d6db0cd349b8-bin.000001", master_log_pos=154
+--------------
 
-# Exporting dbdeployer structure
+--------------
+start slave
+--------------
 
-If you want to use dbdeployer from other applications, it may be useful to have the command structure in a format that can be used from several programming languages. 
-There is a command for that (since dbdeployer 1.28.0) that produces the commands and options information structure as a JSON structure.
-
-    $ dbdeployer export -h
-    Exports the command line structure, with examples and flags, to a JSON structure.
-    If a command is given, only the structure of that command and below will be exported.
-    Given the length of the output, it is recommended to pipe it to a file or to another command.
-    
-    Usage:
-      dbdeployer export [command [sub-command]] [ > filename ] [ | command ]  [flags]
-    
-    Aliases:
-      export, dump
-    
-    Flags:
-          --force-output-to-terminal   display output to terminal regardless of pipes being used
-      -h, --help                       help for export
-    
-    
-
-# Semantic versioning
-
-As of version 1.0.0, dbdeployer adheres to the principles of [semantic versioning](https://semver.org/). A version number is made of Major, Minor, and Revision. When changes are applied, the following happens:
-
-* Backward-compatible bug fixes increment the **Revision** number.
-* Backward-compatible new features increment the **Minor** number.
-* Backward incompatible changes (either features or bug fixes that break compatibility with the API) increment the **Major** number.
-
-The starting API is defined in [API-1.0.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.0.md) (generated manually.)
-The file [API-1.1.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md) contains the same API definition, but was generated automatically and can be used to better compare the initial API with further version.
-
-
-# Do not edit
-
-``README.md`` is **generated** by processing ``./mkreadme/readme_template.md``. Do not edit it directly, as its contents will be overwritten.
+              Master_Log_File: d6db0cd349b8-bin.000001
+          Read_Master_Log_Pos: 154
+             Slave_IO_Running: Yes
+            Slave_SQL_Running: Yes
+          Exec_Master_Log_Pos: 154
+           Retrieved_Gtid_Set:
+            Executed_Gtid_Set:
+                Auto_Position: 0
+```
 

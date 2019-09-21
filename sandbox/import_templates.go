@@ -95,6 +95,7 @@ export SBDIR="{{.SandboxDir}}"
 export BASEDIR={{.Basedir}}
 export CLIENT_BASEDIR={{.ClientBasedir}}
 export MYSQL_VERSION={{.Version}}
+export MYSQL_SORTABLE_VERSION={{.SortableVersion}}
 export MYSQL_VERSION_MAJOR={{.VersionMajor}}
 export MYSQL_VERSION_MINOR={{.VersionMinor}}
 export MYSQL_VERSION_REV={{.VersionRev}}
@@ -177,6 +178,7 @@ function show_help {
     echo "  minor"
     echo "  rev"
     echo "  short (= major.minor)"
+    echo "  sversion (= sortable version string)"
     echo "  host"
     echo "  cbasedir (Client Basedir)"
     echo "  port"
@@ -202,6 +204,9 @@ case $request in
         ;;
     short)
         echo "$MYSQL_VERSION_MAJOR.$MYSQL_VERSION_MINOR"
+        ;;
+    sversion)
+        echo "$MYSQL_SORTABLE_VERSION"
         ;;
     host)
         echo "$SBHOST"

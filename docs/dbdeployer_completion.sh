@@ -1133,6 +1133,8 @@ _dbdeployer_deploy_multiple()
     two_word_flags+=("-n")
     flags+=("--base-port=")
     two_word_flags+=("--base-port")
+    flags+=("--base-server-id=")
+    two_word_flags+=("--base-server-id")
     flags+=("--binary-version=")
     two_word_flags+=("--binary-version")
     flags+=("--bind-address=")
@@ -1252,6 +1254,8 @@ _dbdeployer_deploy_replication()
     two_word_flags+=("-t")
     flags+=("--base-port=")
     two_word_flags+=("--base-port")
+    flags+=("--base-server-id=")
+    two_word_flags+=("--base-server-id")
     flags+=("--binary-version=")
     two_word_flags+=("--binary-version")
     flags+=("--bind-address=")
@@ -1353,8 +1357,12 @@ _dbdeployer_deploy_single()
     flags+=("--master")
     flags+=("--prompt=")
     two_word_flags+=("--prompt")
+    flags+=("--server-id=")
+    two_word_flags+=("--server-id")
     flags+=("--base-port=")
     two_word_flags+=("--base-port")
+    flags+=("--base-server-id=")
+    two_word_flags+=("--base-server-id")
     flags+=("--binary-version=")
     two_word_flags+=("--binary-version")
     flags+=("--bind-address=")
@@ -1458,6 +1466,8 @@ _dbdeployer_deploy()
 
     flags+=("--base-port=")
     two_word_flags+=("--base-port")
+    flags+=("--base-server-id=")
+    two_word_flags+=("--base-server-id")
     flags+=("--binary-version=")
     two_word_flags+=("--binary-version")
     flags+=("--bind-address=")
@@ -2131,6 +2141,71 @@ _dbdeployer_global()
     noun_aliases=()
 }
 
+_dbdeployer_import_single()
+{
+    last_command="dbdeployer_import_single"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--client-from=")
+    two_word_flags+=("--client-from")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--sandbox-binary=")
+    two_word_flags+=("--sandbox-binary")
+    flags+=("--sandbox-directory=")
+    two_word_flags+=("--sandbox-directory")
+    flags+=("--sandbox-home=")
+    two_word_flags+=("--sandbox-home")
+    flags+=("--shell-path=")
+    two_word_flags+=("--shell-path")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_dbdeployer_import()
+{
+    last_command="dbdeployer_import"
+
+    command_aliases=()
+
+    commands=()
+    commands+=("single")
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--client-from=")
+    two_word_flags+=("--client-from")
+    flags+=("--sandbox-directory=")
+    two_word_flags+=("--sandbox-directory")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--sandbox-binary=")
+    two_word_flags+=("--sandbox-binary")
+    flags+=("--sandbox-home=")
+    two_word_flags+=("--sandbox-home")
+    flags+=("--shell-path=")
+    two_word_flags+=("--shell-path")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _dbdeployer_info_defaults()
 {
     last_command="dbdeployer_info_defaults"
@@ -2478,6 +2553,7 @@ _dbdeployer_root_command()
         aliashash["dump"]="export"
     fi
     commands+=("global")
+    commands+=("import")
     commands+=("info")
     commands+=("sandboxes")
     if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then

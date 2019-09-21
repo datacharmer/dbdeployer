@@ -78,6 +78,7 @@ const (
 	RootAuth          = "rootAuth"
 	AdminAddress      = "adminAddress"
 	EmbedMySQLShell   = "embed-mysql-shell"
+	CloneServer       = "clone-server"
 )
 
 var MySQLCapabilities = Capabilities{
@@ -165,6 +166,10 @@ var MySQLCapabilities = Capabilities{
 		UpgradeWithServer: {
 			Description: "upgrade using mysqld server",
 			Since:       globals.MinimumMySQLUpgradeServer,
+		},
+		CloneServer: {
+			Description: "clone MySQL server",
+			Since:       globals.MinimumCloneMySQLServer,
 		},
 	},
 }

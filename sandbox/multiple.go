@@ -114,7 +114,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 	common.AddToCleanupStack(common.Rmdir, "Rmdir", sandboxDef.SandboxDir)
 
 	sandboxDef.ReplOptions = SingleTemplates["replication_options"].Contents
-	baseServerId := 0
+	// baseServerId := sandboxDef.BaseServerId
 	if nodes < 2 {
 		return emptyStringMap, fmt.Errorf("only one node requested. For single sandbox deployment, use the 'single' command")
 	}
@@ -176,7 +176,8 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		})
 		sandboxDef.LoadGrants = true
 		sandboxDef.DirName = fmt.Sprintf("%s%d", nodeLabel, i)
-		sandboxDef.ServerId = (baseServerId + i) * 100
+		// sandboxDef.ServerId = (baseServerId + i) * 100
+		sandboxDef.ServerId = setServerId(sandboxDef, i)
 		sbItem.Nodes = append(sbItem.Nodes, sandboxDef.DirName)
 		sbItem.Port = append(sbItem.Port, sandboxDef.Port)
 		sbDesc.Port = append(sbDesc.Port, sandboxDef.Port)

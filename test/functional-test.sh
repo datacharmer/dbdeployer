@@ -102,6 +102,7 @@ do
             unset skip_multi_source_operations
             unset skip_pxc_operations
             unset skip_ndb_operations
+            unset skip_import_operations
             unset no_tests
             echo "# Enabling all tests"
             ;;
@@ -129,6 +130,11 @@ do
             unset skip_semisync_operations
             unset no_tests
             echo "# Enabling semi_sync tests"
+            ;;
+        import)
+            unset skip_import_operations
+            unset no_tests
+            echo "# Enabling import tests"
             ;;
         upgrade)
             unset skip_upgrade_operations
@@ -181,6 +187,7 @@ do
             echo "  group    : group replication operations "
             echo "  dd       : data dictionary operations "
             echo "  upgrade  : upgrade operations "
+            echo "  import   : import operations"
             echo "  multi    : multi-source operations (fan-in, all-masters)"
             echo "  pxc      : PXC operations"
             echo "  ndb      : NDB operations"
@@ -1188,7 +1195,6 @@ function custom_replication_methods {
     results "custom replication multi - after deletion"
 }
 
-
 function upgrade_operations {
     current_test=upgrade_operations
     test_header upgrade_operations "" double
@@ -1224,6 +1230,77 @@ function upgrade_operations {
     fi
     dbdeployer delete ALL --skip-confirm
     results "upgrade $latest_5_7 to $latest_8_0 - after deletion"
+}
+
+
+function import_operations {
+    current_test=import_operations
+    test_header import_operations "" double
+    for short_version in 5.6 5.7 8.0
+    do
+        latest_version=$(dbdeployer info version $short_version)
+        if [ -z "$latest_version" ]
+        then
+            echo "Skipping import test. No suitable version found for $short_version"
+            continue
+        fi
+        echo "# import operations $latest_version"
+
+        v_path=$(echo msb_$latest_version| tr '.' '_')
+        v_path_imported=$(echo imp_msb_$latest_version| tr '.' '_')
+
+        for mode in gtid pos
+        do
+            if [ "$mode" == "gtid" ]
+            then
+                gtid=--gtid
+            else
+                gtid=""
+            fi
+            # "fake" sandbox running in separate environment
+            alt_dbdeployer deploy single $latest_version --master $gtid --port=8001 --db-user=different --db-password=anotherthing
+            check_exit_code
+
+            run dbdeployer deploy single $latest_version --master $gtid --port=8002
+            run dbdeployer import single 127.0.0.1 8001 different anotherthing
+
+            capture_test dbdeployer global test
+            
+            # replicate
+
+            sortable_version=$($SANDBOX_HOME/$v_path/metadata sversion)
+            if [[  "v$sortable_version"  > "v008000016" ]]
+            then
+                clone=clone
+                mode=clone
+            else
+                clone=""
+            fi
+
+            if [ "$mode" == "gtid" ]
+            then
+                $SANDBOX_HOME/$v_path_imported/use -vvv -e "reset master"
+            fi
+
+            $SANDBOX_HOME/$v_path/replicate_from $v_path_imported $clone
+
+            sleep 1
+            $SANDBOX_HOME/$v_path_imported/use -e "create schema imported"
+            $SANDBOX_HOME/$v_path_imported/use -e "create table imported.imported(id int not null primary key)"
+            $SANDBOX_HOME/$v_path_imported/use -e "insert into imported.imported values (1234)"
+            
+            sleep 1
+
+            $SANDBOX_HOME/$v_path/use -e "SHOW SLAVE STATUS\G" | grep -i error
+            replicated=$($SANDBOX_HOME/$v_path/use -BN -e 'select id from imported.imported')
+
+            ok_equal "Record replicated from $v_path_imported" "$replicated"  "1234"
+
+            dbdeployer delete ALL --skip-confirm
+            alt_dbdeployer delete ALL --skip-confirm
+        done
+    done
+    results "import $latest_version - after deletion"
 }
 
 function group_operations {
@@ -1370,6 +1447,10 @@ fi
 if [ -z "$skip_upgrade_operations" ]
 then
     upgrade_operations
+fi
+if [ -z "$skip_import_operations" ]
+then
+    import_operations
 fi
 if [ -z "$skip_multi_source_operations" ]
 then

@@ -236,6 +236,7 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 	}
 	sd.UserPort, _ = flags.GetInt(globals.PortLabel)
 	sd.BasePort, _ = flags.GetInt(globals.BasePortLabel)
+	sd.BaseServerId, _ = flags.GetInt(globals.BaseServerIdLabel)
 	sd.DirName, _ = flags.GetString(globals.SandboxDirectoryLabel)
 
 	if sd.UserPort > 0 {
@@ -290,8 +291,13 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 	sd.EnableAdminAddress, _ = flags.GetBool(globals.EnableAdminAddressLabel)
 	sd.SocketInDatadir, _ = flags.GetBool(globals.SocketInDatadirLabel)
 	sd.PortAsServerId, _ = flags.GetBool(globals.PortAsServerIdLabel)
+	sd.ServerId, _ = flags.GetInt(globals.ServerIdLabel)
 	if common.IsEnvSet("SOCKET_IN_DATADIR") {
 		sd.SocketInDatadir = true
+	}
+	if sd.PortAsServerId && sd.ServerId != 0 {
+		return sd, fmt.Errorf("options --%s and --%s should not be provided together",
+			globals.PortAsServerIdLabel, globals.ServerIdLabel)
 	}
 	sd.FlavorInPrompt, _ = flags.GetBool(globals.FlavorInPromptLabel)
 	sd.HistoryDir, _ = flags.GetString(globals.HistoryDirLabel)
@@ -342,7 +348,11 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 	replCrashSafe, _ = flags.GetBool(globals.ReplCrashSafeLabel)
 	if master {
 		sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
-		sd.ServerId = sd.Port
+		if sd.ServerId == 0 {
+			sd.PortAsServerId = true
+		} else {
+			sd.PortAsServerId = false
+		}
 	}
 	if gtid {
 		templateName := "gtid_options_56"
@@ -361,7 +371,11 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 			sd.GtidOptions = sandbox.SingleTemplates[templateName].Contents
 			sd.ReplCrashSafeOptions = sandbox.SingleTemplates["repl_crash_safe_options"].Contents
 			sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
-			sd.ServerId = sd.Port
+			if sd.ServerId == 0 {
+				sd.PortAsServerId = true
+			} else {
+				sd.PortAsServerId = false
+			}
 		} else {
 			common.Exitf(1, globals.ErrOptionRequiresVersion, globals.GtidLabel, common.IntSliceToDottedString(globals.MinimumGtidVersion))
 		}
@@ -420,5 +434,6 @@ Use the "unpack" command to get the tarball into the right directory.
 func init() {
 	deployCmd.AddCommand(singleCmd)
 	singleCmd.PersistentFlags().Bool(globals.MasterLabel, false, "Make the server replication ready")
+	singleCmd.PersistentFlags().Int(globals.ServerIdLabel, 0, "Overwrite default server-id")
 	setPflag(singleCmd, globals.PromptLabel, "", "", globals.PromptValue, "Default prompt for the single client", false)
 }

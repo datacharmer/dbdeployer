@@ -154,7 +154,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		basePort = sandboxDef.BasePort
 	}
 
-	baseServerId := 0
+	// baseServerId := sandboxDef.BaseServerId
 	if nodes < 3 {
 		return fmt.Errorf("can't run group replication with less than 3 nodes")
 	}
@@ -331,7 +331,8 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 
 		sandboxDef.DirName = fmt.Sprintf("%s%d", nodeLabel, i)
 		sandboxDef.MorePorts = []int{groupPort}
-		sandboxDef.ServerId = (baseServerId + i) * 100
+		// sandboxDef.ServerId = (baseServerId + i) * 100
+		sandboxDef.ServerId = setServerId(sandboxDef, i)
 		sbItem.Nodes = append(sbItem.Nodes, sandboxDef.DirName)
 		sbItem.Port = append(sbItem.Port, sandboxDef.Port)
 		sbDesc.Port = append(sbDesc.Port, sandboxDef.Port)

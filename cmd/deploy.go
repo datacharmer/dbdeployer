@@ -45,6 +45,7 @@ func init() {
 	rootCmd.AddCommand(deployCmd)
 	deployCmd.PersistentFlags().Int(globals.PortLabel, 0, "Overrides default port")
 	deployCmd.PersistentFlags().Int(globals.BasePortLabel, 0, "Overrides default base-port (for multiple sandboxes)")
+	deployCmd.PersistentFlags().Int(globals.BaseServerIdLabel, 0, "Overrides default server_id (for multiple sandboxes)")
 	deployCmd.PersistentFlags().Bool(globals.GtidLabel, false, "enables GTID")
 	deployCmd.PersistentFlags().Bool(globals.ReplCrashSafeLabel, false, "enables Replication crash safe")
 	deployCmd.PersistentFlags().Bool(globals.NativeAuthPluginLabel, false, "in 8.0.4+, uses the native password auth plugin")

@@ -27,8 +27,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/pkg/errors"
+
+	"github.com/datacharmer/dbdeployer/globals"
 )
 
 type SandboxInfo struct {
@@ -114,6 +115,18 @@ func GetCompatibleClientVersion(basedir, serverVersion string) (string, error) {
 		if isCompatible {
 			return v, nil
 		}
+	}
+
+	// No suitable version so far.
+	// We try to get the closest one in the same short version
+	serverVersionDigits, err := VersionToList(serverVersion)
+	if err != nil {
+		return globals.EmptyString, err
+	}
+	shortVersion := fmt.Sprintf("%d.%d", serverVersionDigits[0], serverVersionDigits[1])
+	latestVersion := GetLatestVersion(basedir, shortVersion, MySQLFlavor)
+	if !strings.Contains(latestVersion, globals.VersionNotFound) {
+		return latestVersion, nil
 	}
 
 	return globals.EmptyString, fmt.Errorf("no suitable client version found for version %s", serverVersion)
@@ -665,4 +678,32 @@ func IsCompatibleVersion(versionStr string) bool {
 		return false
 	}
 	return isGreater
+}
+
+func GetLatestVersion(sandboxBinary string, wantedVersion, flavor string) string {
+	return getSortedVersion(sandboxBinary, wantedVersion, flavor, -1)
+}
+
+func GetEarliestVersion(sandboxBinary string, wantedVersion, flavor string) string {
+	return getSortedVersion(sandboxBinary, wantedVersion, flavor, 0)
+}
+
+func getSortedVersion(sandboxBinary, wantedVersion, flavor string, position int) string {
+	if wantedVersion == "" {
+		wantedVersion = os.Getenv("WANTED_VERSION")
+	}
+	versions := GetFlavoredVersionsFromDir(sandboxBinary, flavor)
+	if len(versions) == 0 {
+		return globals.VersionNotFound + "_" + flavor
+	}
+
+	sortedVersions := SortVersionsSubset(versions, wantedVersion)
+	if len(sortedVersions) < 1 {
+		return globals.VersionNotFound + "_" + flavor
+	}
+	if position == -1 {
+		position = len(sortedVersions) - 1
+	}
+	latestVersion := sortedVersions[position]
+	return latestVersion
 }
