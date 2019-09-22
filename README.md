@@ -1,7 +1,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.39.0 (21-Sep-2019 20:31 UTC)
+Documentation updated for version 1.39.0 (22-Sep-2019 15:56 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -1841,4 +1841,153 @@ start slave
             Executed_Gtid_Set:
                 Auto_Position: 0
 ```
+
+    $ dbdeployer import single --help
+    Imports an existing (local or remote) server into a sandbox,
+    so that it can be used with the usual sandbox scripts.
+    Requires host, port, user, password.
+    
+    Usage:
+      dbdeployer import single host port user password [flags]
+    
+    Flags:
+      -h, --help   help for single
+    
+    
+
+
+# Cloning databases
+
+In addition to [replicating between sandboxes](#replication-between-sandboxes), we can also clone a database, if it is
+of version 8.0.17+ and [meets the prerequisites](https://dev.mysql.com/doc/refman/8.0/en/clone-plugin-remote.html).
+
+Every sandbox using version 8.0.17 or later will also have a script named `clone_from`, which works like `replicate_from`.
+
+For example, this command will clone from a master-slave sandbox into a single sandbox:
+
+```
+$ ~/sandboxes/msb_8_0_17/clone_from rsandbox_8_0_17
+ Installing clone plugin in recipient sandbox
+ Installing clone plugin in donor sandbox
+ Cloning from rsandbox_8_0_17/master
+ Giving time to cloned server to restart
+ .
+```
+
+# Compiling dbdeployer
+
+Should you need to compile your own binaries for dbdeployer, follow these steps:
+
+1. Make sure you have go 1.11+ installed in your system.
+2. Run `git clone https://github.com/datacharmer/dbdeployer.git`.  This will import all the code that is needed to build dbdeployer.
+3. Change directory to `./dbdeployer`.
+4. Run ./scripts/build.sh {linux|OSX}`
+5. If you need the docs enabled binaries (see the section "Generating additional documentation") run `MKDOCS=1 ./scripts/build.sh {linux|OSX}`
+
+# Generating additional documentation
+
+Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
+Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
+
+* dbdeployer-1.39.0-docs.linux.tar.gz
+* dbdeployer-1.39.0-docs.osx.tar.gz
+* dbdeployer-1.39.0.linux.tar.gz
+* dbdeployer-1.39.0.osx.tar.gz
+
+The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
+
+This is the command used to help generating the API documentation.
+
+    $ dbdeployer-docs tree -h
+    This command is only used to create API documentation. 
+    You can, however, use it to show the command structure at a glance.
+    
+    Usage:
+      dbdeployer tree [flags]
+    
+    Aliases:
+      tree, docs
+    
+    Flags:
+          --api               Writes API template
+          --bash-completion   creates bash-completion file
+      -h, --help              help for tree
+          --man-pages         Writes man pages
+          --markdown-pages    Writes Markdown docs
+          --rst-pages         Writes Restructured Text docs
+          --show-hidden       Shows also hidden commands
+    
+    
+
+In addition to the API template, the ``tree`` command can produce:
+
+* man pages;
+* Markdown documentation;
+* Restructured Text pages;
+* Command line completion script (see next section).
+
+# Command line completion
+
+There is a file ``./docs/dbdeployer_completion.sh``, which is automatically generated with dbdeployer API documentation. If you want to use bash completion on the command line, copy the file to the bash completion directory. For example:
+
+    # Linux
+    $ sudo cp ./docs/dbdeployer_completion.sh /etc/bash_completion.d
+    $ source /etc/bash_completion
+
+    # OSX
+    $ sudo cp ./docs/dbdeployer_completion.sh /usr/local/etc/bash_completion.d
+    $ source /usr/local/etc/bash_completion
+
+Then, you can use completion as follows:
+
+    $ dbdeployer [tab]
+        admin  defaults  delete  deploy  global  sandboxes  unpack  usage  versions
+    $ dbdeployer dep[tab]
+    $ dbdeployer deploy [tab][tab]
+        multiple     replication  single
+    $ dbdeployer deploy s[tab]
+    $ dbdeployer deploy single --b[tab][tab]
+        --base-port=     --bind-address=
+
+# Using dbdeployer source for other projects
+
+If you need to create sandboxes from other Go apps, see  [dbdeployer-as-library.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/coding/dbdeployer-as-library.md).
+
+# Exporting dbdeployer structure
+
+If you want to use dbdeployer from other applications, it may be useful to have the command structure in a format that can be used from several programming languages. 
+There is a command for that (since dbdeployer 1.28.0) that produces the commands and options information structure as a JSON structure.
+
+    $ dbdeployer export -h
+    Exports the command line structure, with examples and flags, to a JSON structure.
+    If a command is given, only the structure of that command and below will be exported.
+    Given the length of the output, it is recommended to pipe it to a file or to another command.
+    
+    Usage:
+      dbdeployer export [command [sub-command]] [ > filename ] [ | command ]  [flags]
+    
+    Aliases:
+      export, dump
+    
+    Flags:
+          --force-output-to-terminal   display output to terminal regardless of pipes being used
+      -h, --help                       help for export
+    
+    
+
+# Semantic versioning
+
+As of version 1.0.0, dbdeployer adheres to the principles of [semantic versioning](https://semver.org/). A version number is made of Major, Minor, and Revision. When changes are applied, the following happens:
+
+* Backward-compatible bug fixes increment the **Revision** number.
+* Backward-compatible new features increment the **Minor** number.
+* Backward incompatible changes (either features or bug fixes that break compatibility with the API) increment the **Major** number.
+
+The starting API is defined in [API-1.0.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.0.md) (generated manually.)
+The file [API-1.1.md](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md) contains the same API definition, but was generated automatically and can be used to better compare the initial API with further version.
+
+
+# Do not edit
+
+``README.md`` is **generated** by processing ``./mkreadme/readme_template.md``. Do not edit it directly, as its contents will be overwritten.
 

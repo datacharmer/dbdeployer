@@ -1313,7 +1313,7 @@ start slave
                 Auto_Position: 0
 ```
 
-    {{ dbdeployer import single --help}}
+    {{dbdeployer import single --help}}
 
 
 # Cloning databases
