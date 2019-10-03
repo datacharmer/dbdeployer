@@ -391,59 +391,60 @@ func FindInPath(filename string) string {
 
 // Runs a command with arguments
 func RunCmdWithArgs(c string, args []string) (string, error) {
-	cmd := exec.Command(c, args...)
-	var out []byte
-	var err error
-	out, err = cmd.Output()
-	if err != nil {
-		CondPrintf("err: %s\n", err)
-		CondPrintf("cmd: %s %s\n", c, args)
-		CondPrintf("stdout: %s\n", out)
-	} else {
-		CondPrintf("%s", out)
-	}
-	return string(out), err
+	out, _, err := runCmdCtrlArgs(c, false, args...)
+	return out, err
 }
 
 // Runs a command with arguments and output suppression
 func RunCmdCtrlWithArgs(c string, args []string, silent bool) (string, error) {
+	out, _, err := runCmdCtrlArgs(c, silent, args...)
+	return out, err
+}
+
+func runCmdCtrlArgs(c string, silent bool, args ...string) (string, string, error) {
 	cmd := exec.Command(c, args...)
-	var out []byte
-	var err error
-	out, err = cmd.Output()
+	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		CondPrintf("err: %s\n", err)
-		CondPrintf("cmd: %s %s\n", c, args)
-		CondPrintf("stdout: %s\n", out)
+		return "", "", err
+	}
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return "", "", err
+	}
+
+	err = cmd.Start()
+	if err != nil {
+		return "", "", err
+	}
+
+	slurpErr, _ := ioutil.ReadAll(stderr)
+	slurpOut, _ := ioutil.ReadAll(stdout)
+	err = cmd.Wait()
+
+	if err != nil {
+		CondPrintf("cmd:    %s\n", c)
+		CondPrintf("err:    %s\n", err)
+		CondPrintf("stdout: %s\n", slurpOut)
+		CondPrintf("stderr: %s\n", slurpErr)
 	} else {
 		if !silent {
-			fmt.Printf("%s", out)
+			fmt.Printf("%s", slurpOut)
 		}
 	}
-	return string(out), err
+
+	return string(slurpOut), string(slurpErr), err
 }
 
 // Runs a command, with optional quiet output
 func RunCmdCtrl(c string, silent bool) (string, error) {
-	cmd := exec.Command(c, "")
-	var out []byte
-	var err error
-	out, err = cmd.Output()
-	if err != nil {
-		CondPrintf("err: %s\n", err)
-		CondPrintf("cmd: %s\n", c)
-		CondPrintf("stdout: %s\n", out)
-	} else {
-		if !silent {
-			fmt.Printf("%s", out)
-		}
-	}
-	return string(out), err
+	out, _, err := runCmdCtrlArgs(c, silent)
+	return out, err
 }
 
 // Runs a command
 func RunCmd(c string) (string, error) {
-	return RunCmdCtrl(c, false)
+	out, _, err := runCmdCtrlArgs(c, false)
+	return out, err
 }
 
 // Copies a file

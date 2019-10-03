@@ -812,8 +812,8 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 				}
 			}
 		} else {
-			common.CondPrintf("InitDb output: %s\n", initOutput)
-			return emptyExecutionList, fmt.Errorf("initDb failure: %s", err)
+			common.CondPrintf("%s output: %s\n", globals.ScriptInitDb, initOutput)
+			return emptyExecutionList, fmt.Errorf("%s failure: %s", globals.ScriptInitDb, err)
 		}
 	}
 

@@ -66,6 +66,7 @@ then
     echo "Database installed in $SBDIR"
 else
     echo "Error installing database in $SBDIR"
+    exit $exit_code
 fi
 {{.FixUuidFile1}}
 {{.FixUuidFile2}}
@@ -111,12 +112,7 @@ else
     fi
     CURDIR=$(pwd)
     cd $BASEDIR
-    if [ "$SBDEBUG" = "" ]
-    then
-        $MYSQLD_SAFE --defaults-file=$SBDIR/my.sandbox.cnf $CUSTOM_MYSQLD $@ > /dev/null 2>&1 &
-    else
-        $MYSQLD_SAFE --defaults-file=$SBDIR/my.sandbox.cnf $CUSTOM_MYSQLD $@ > "$SBDIR/start.log" 2>&1 &
-    fi
+    $MYSQLD_SAFE --defaults-file=$SBDIR/my.sandbox.cnf $CUSTOM_MYSQLD $@ > "$SBDIR/start.log" 2>&1 &
     cd $CURDIR
     ATTEMPTS=1
     while [ ! -f $PIDFILE ]
@@ -128,6 +124,16 @@ else
             break
         fi
         sleep $SLEEP_TIME
+        if [ -f start.log ]
+        then
+		    has_errors=$(grep -iw error start.log)
+            if [ -n "$has_errors" ]
+            then
+                echo "Errors detected in start command"
+                cat start.log
+                break
+            fi
+         fi
     done
 fi
 

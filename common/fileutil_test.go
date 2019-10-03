@@ -275,6 +275,12 @@ func TestRunCmd(t *testing.T) {
 	scriptText := `#!/bin/bash
 value=$1
 [ -z "$value" ] && value=noargs
+if [ "$value" == "fail" ]
+then
+    echo -n "stout <$2>"
+    echo -n 1>&2 "stderr [$2]"
+    exit 1
+fi
 echo -n "You asked for $value, didn't you?"
 `
 	scriptName := path.Join("/tmp", "testcmd")
@@ -283,38 +289,47 @@ echo -n "You asked for $value, didn't you?"
 	err := createCommand(scriptName, fmt.Sprintf("#!/bin/bash\nexit 1"))
 	compare.OkIsNil("command creation err", err, t)
 	if err != nil {
-		t.Skip("error creating command", err)
+		t.Skip(fmt.Sprintf("error creating command: %s", err))
 	}
 	_, err = RunCmd(scriptName)
 	compare.OkIsNotNil("[RunCmd] command execution expected err", err, t)
 	if err == nil {
-		t.Skip("[RunCmd] unexpected success of failing command", err)
+		t.Logf("[RunCmd] unexpected success of failing command")
+		t.Fail()
 	}
 
 	err = createCommand(scriptName, scriptText)
 	compare.OkIsNil("command creation err", err, t)
 	if err != nil {
-		t.Skip("error creating command", err)
+		t.Skip(fmt.Sprintf("error creating command: %s", err))
 	}
 
 	out, err := RunCmd(scriptName)
 	compare.OkIsNil("[RunCmd] command execution err", err, t)
 	if err != nil {
-		t.Skip("[RunCmd] error executing command", err)
+		t.Logf("[RunCmd] error executing command: %s", err)
+		t.Fail()
 	}
 	compare.OkMatchesString("[RunCmd] command result", out, `noargs`, t)
 
 	out, err = RunCmdCtrl(scriptName, true)
 	compare.OkIsNil("[RunCmdCtrl] command execution err", err, t)
 	if err != nil {
-		t.Skip("[RunCmdCtrl] error executing command", err)
+		t.Logf("[RunCmdCtrl] error executing command: %s", err)
+		t.Fail()
 	}
 	compare.OkMatchesString("[RunCmdCtrl] command result", out, `noargs`, t)
 
 	out, err = RunCmdWithArgs(scriptName, []string{"withArgs"})
 	compare.OkIsNil("[RunCmdWithArgs] command execution err", err, t)
 	if err != nil {
-		t.Skip("[RunCmdWithArgs] error executing command", err)
+		t.Logf("[RunCmdWIthArgs] error executing command: %s", err)
+		t.Fail()
 	}
 	compare.OkMatchesString("[RunCmdWithArgs] command result", out, `withArgs`, t)
+
+	outText, errText, err := runCmdCtrlArgs(scriptName, false, []string{"fail", "both streams"}...)
+	compare.OkMatchesString("[runCmdCtrlArgs] command result", errText, `\[both streams\]`, t)
+	compare.OkMatchesString("[runCmdCtrlArgs] command result", outText, `<both streams>`, t)
+	compare.OkIsNotNil("[runCmdCtrlArgs] command execution expected err", err, t)
 }

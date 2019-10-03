@@ -1,3 +1,11 @@
+1.39.1	02-Oct-2019 
+	BUGS FIXED:
+	- Show stderr text when external commands fail - Issue #94
+	- Enable start.log by default.
+	- Add missing exit directive on failure in init_db template
+	- Improve error messages on init_db failure
+	- Build Linux amd64 instead of 386
+
 1.39.0	21-Sep-2019 
 	- Add script clone_from to clone from another 8.0.17+ server
 	- Add option "clone" to script replicate_from

@@ -141,7 +141,7 @@ case $target in
     linux)
         executable=dbdeployer-${version}${docs_tag}.linux
         (set -x
-	    env GOOS=linux GOARCH=386 go build $docs_flags -o $executable .
+	    env GOOS=linux GOARCH=amd64 go build $docs_flags -o $executable .
         )
         tar -c $executable | gzip -c > ${executable}.tar.gz
         shrink $executable
