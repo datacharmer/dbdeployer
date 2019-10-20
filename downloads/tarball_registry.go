@@ -16,12 +16,11 @@
 package downloads
 
 // This file was generated during build. Do not edit.
-// Build time: Sat Jul 27 08:57:28 CEST 2019
+// Build time: Tue Oct 15 14:09:12 CEST 2019
 
 var DefaultTarballRegistry = TarballCollection{
 	// Version of dbdeployer when the list was last updated
-	DbdeployerVersion: "1.34.0",
-	UpdatedOn:         "2019-08-10",
+	DbdeployerVersion: "1.39.0",
 	Tarballs: []TarballDescription{
 
 		{
@@ -533,6 +532,61 @@ var DefaultTarballRegistry = TarballCollection{
 			Size:            30002082,
 			ShortVersion:    "8.0",
 			Version:         "8.0.17",
+		},
+		{
+			Name:            "mysql-5.7.28-macos10.14-x86_64.tar.gz",
+			Checksum:        "MD5: 00c2cabb06d8573b5b52d3dd1576731e",
+			OperatingSystem: "Darwin",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.28-macos10.14-x86_64.tar.gz",
+			Flavor:          "mysql",
+			Minimal:         false,
+			Size:            373682546,
+			ShortVersion:    "5.7",
+			Version:         "5.7.28",
+		},
+		{
+			Name:            "mysql-8.0.18-macos10.14-x86_64.tar.gz",
+			Checksum:        "MD5: 5deda97d03db45374e77e35d7f3a5f56",
+			OperatingSystem: "Darwin",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.18-macos10.14-x86_64.tar.gz",
+			Flavor:          "mysql",
+			Minimal:         false,
+			Size:            166024298,
+			ShortVersion:    "8.0",
+			Version:         "8.0.18",
+		},
+		{
+			Name:            "imysql-5.7.28-linux-glibc2.12-x86_64.tar.gz",
+			Checksum:        "MD5: 1daa30a32b99a92062f481bd3ef8694c",
+			OperatingSystem: "Linux",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.28-linux-glibc2.12-x86_64.tar.gz",
+			Flavor:          "mysql",
+			Minimal:         false,
+			Size:            724672294,
+			ShortVersion:    "5.7",
+			Version:         "5.7.28",
+		},
+		{
+			Name:            "mysql-8.0.18-linux-glibc2.12-x86_64.tar.xz",
+			Checksum:        "MD5: 686b454f7f7f0b0bf4814929fcd0fa81",
+			OperatingSystem: "Linux",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.18-linux-glibc2.12-x86_64.tar.xz",
+			Flavor:          "mysql",
+			Minimal:         false,
+			Size:            503854832,
+			ShortVersion:    "8.0",
+			Version:         "8.0.18",
+		},
+		{
+			Name:            "mysql-8.0.18-linux-x86_64-minimal.tar.xz",
+			Checksum:        "MD5: 2ccad6e3173688c5ef212750d1c3c024",
+			OperatingSystem: "Linux",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.18-linux-x86_64-minimal.tar.xz",
+			Flavor:          "mysql",
+			Minimal:         true,
+			Size:            47765820,
+			ShortVersion:    "8.0",
+			Version:         "8.0.18",
 		},
 	},
 }
