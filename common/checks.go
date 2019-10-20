@@ -338,6 +338,12 @@ func CheckTarballOperatingSystem(basedir string) error {
 	if !wantedOsFound {
 		fmt.Println(globals.DashLine)
 		CondPrintf("Looking for *%s* binaries\n", currentOs)
+		CondPrintln("At least one of the following was needed")
+		for key, value := range findingList {
+			if value.OS == currentOs {
+				CondPrintf("\t%s/%s (%s)\n", value.Dir, key, value.flavor)
+			}
+		}
 		fmt.Println(globals.DashLine)
 		if len(foundList) > 0 {
 			CondPrintf("# Found the following:\n")

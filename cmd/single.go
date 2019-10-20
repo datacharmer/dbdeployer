@@ -249,6 +249,14 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 		common.Exitf(1, "basedir '%s' not found", sd.Basedir)
 	}
 
+	skipLibraryCheck, _ := flags.GetBool(globals.SkipLibraryCheck)
+	if !skipLibraryCheck {
+		err = common.CheckLibraries(sd.Basedir)
+		if err != nil {
+			return sd, err
+		}
+	}
+
 	sd.ClientBasedir, _ = flags.GetString(globals.ClientFromLabel)
 	if sd.ClientBasedir != "" {
 		clientBasedir := path.Join(basedir, sd.ClientBasedir)

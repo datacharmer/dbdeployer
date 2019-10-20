@@ -32,6 +32,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 
@@ -374,6 +375,101 @@ func CheckPrerequisites(label string, neededExecutables []string) error {
 	if len(missingExecutables) > 0 {
 		return fmt.Errorf("[%s] missing executables: %v", label, missingExecutables)
 	}
+	return nil
+}
+
+func CheckLibraries(basedir string) error {
+	// This check is only needed on Linux
+	if strings.ToLower(runtime.GOOS) != "linux" {
+		return nil
+	}
+
+	var (
+		missingAll = ""
+		ldd        = Which("ldd")
+		ldConfig   = Which("ldconfig")
+		basedirLib = path.Join(basedir, "lib")
+		mysqlBin   = path.Join(basedir, "bin", "mysql")
+		mysqldBin  = path.Join(basedir, "bin", "mysqld")
+	)
+
+	// Make sure that the libraries from the expanded tarball are found
+	_ = os.Setenv("LD_LIBRARY_PATH", fmt.Sprintf("%s:%s", basedirLib, os.Getenv("LD_LIBRARY_PATH")))
+
+	// If `ldd` exists and the MySQL executables are found
+	// we check the direct dependencies
+	if ldd != "" && DirExists(basedir) && ExecExists(mysqlBin) && ExecExists(mysqldBin) {
+
+		var missingMysql []string
+		var missingMysqld []string
+
+		// Gets the list of libraries for client and server executables
+		mysqlLibs, _, err := runCmdCtrlArgs(ldd, true, mysqlBin)
+		if err != nil {
+			return nil
+		}
+		mysqldLibs, _, err := runCmdCtrlArgs(ldd, true, mysqldBin)
+		if err != nil {
+			return nil
+		}
+
+		// A library that is found in the system has the format
+		//      library_name => /path/to/library_name
+		reLibPath := regexp.MustCompile(`=>\s*/`)
+
+		// An internal library has the format
+		//      library_name (0x00007ffe1aceb000)
+		reLibInternal := regexp.MustCompile(`\s+\(0x`)
+
+		// We skip empty lines
+		reEmpty := regexp.MustCompile(`^\s*$`)
+
+		for _, lib := range strings.Split(mysqlLibs, "\n") {
+			// If none of the known pattern apply, it's a not-found library
+			if !reEmpty.MatchString(lib) && !reLibPath.MatchString(lib) && !reLibInternal.MatchString(lib) {
+				missingMysql = append(missingMysql, lib)
+			}
+		}
+		for _, lib := range strings.Split(mysqldLibs, "\n") {
+			if !reEmpty.MatchString(lib) && !reLibPath.MatchString(lib) && !reLibInternal.MatchString(lib) {
+				missingMysqld = append(missingMysqld, lib)
+			}
+		}
+
+		// Add the missing libraries to the global results
+		if len(missingMysql) > 0 {
+			missingAll = fmt.Sprintf("client (%s): %v\n", mysqlBin, missingMysql)
+		}
+		if len(missingMysqld) > 0 {
+			missingAll += fmt.Sprintf("\nserver (%s): %v\n", mysqldBin, missingMysqld)
+		}
+	}
+
+	// "ldconfig -p" returns a list of installed libraries
+	if ldConfig != "" {
+		libraryList, _, err := runCmdCtrlArgs(ldConfig, true, "-p")
+		if err != nil {
+			return nil
+		}
+
+		var missing []string
+		// We search for the libraries that are most likely to cause problems
+		for _, library := range []string{"libaio", "libnuma", "libncurses", "libnsl"} {
+			reLib := regexp.MustCompile(library)
+
+			if !reLib.MatchString(libraryList) {
+				missing = append(missing, library)
+			}
+		}
+		if len(missing) > 0 {
+			missingAll += fmt.Sprintf("global: %v\n", missing)
+		}
+	}
+	if missingAll != "" {
+		return fmt.Errorf("missing libraries will prevent MySQL from deploying correctly \n%s.\n"+
+			"Use --%s to skip this check", missingAll, globals.SkipLibraryCheck)
+	}
+
 	return nil
 }
 

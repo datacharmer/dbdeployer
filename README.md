@@ -1,7 +1,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.39.0 (22-Sep-2019 15:56 UTC)
+Documentation updated for version 1.40.0 (19-Oct-2019 20:59 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -57,7 +57,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.39.0
+    $ VERSION=1.40.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -65,7 +65,25 @@ For example:
     $ chmod +x dbdeployer-$VERSION.$OS
     $ sudo mv dbdeployer-$VERSION.$OS /usr/local/bin/dbdeployer
 
-Of course, there are **prerequisites**: your machine must be able to run the MySQL server. Be aware that version 5.6+ and higher require some libraries that are not installed by default in all flavors of Linux (libnuma, libaio.)
+Of course, there are **prerequisites**: your machine must be able to run the MySQL server. Be aware that version 5.5 and higher require some libraries that are not installed by default in all flavors of Linux (libnuma, libaio.)
+
+As of version 1.40.0, dbdeployer tries to detect whether the host has the necessary libraries installed. When missing libraries are detected, the deployment fails with an error showing the missing pieces.
+For example:
+
+```
+# dbdeployer deploy single 5.7
+# 5.7 => 5.7.27
+error while filling the sandbox definition: missing libraries will prevent MySQL from deploying correctly
+client (/root/opt/mysql/5.7.27/bin/mysql): [	libncurses.so.5 => not found 	libtinfo.so.5 => not found]
+
+server (/root/opt/mysql/5.7.27/bin/mysqld): [	libaio.so.1 => not found 	libnuma.so.1 => not found]
+global: [libaio libnuma]
+
+Use --skip-library-check to skip this check
+```
+
+If you use `--skip-library-check`, the above check won't be performed, and the deployment may fail and leave you with an incomplete sandbox.
+Skipping the check may be justified when deploying a very old version of MySQL (4.1, 5.0, 5.1)
 
 # Updating dbdeployer
 
@@ -142,7 +160,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.39.0
+    dbdeployer version 1.40.0
     
 
     $ dbdeployer -h
@@ -177,6 +195,7 @@ The program doesn't have any dependencies. Everything is included in the binary.
           --sandbox-binary string   Binary repository (default "$HOME/opt/mysql")
           --sandbox-home string     Sandbox deployment directory (default "$HOME/sandboxes")
           --shell-path string       Which shell to use for generated scripts (default "/bin/bash")
+          --skip-library-check      Skip check for needed libraries (may cause nasty errors)
           --version                 version for dbdeployer
     
     Use "dbdeployer [command] --help" for more information about a command.
@@ -1889,10 +1908,10 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.39.0-docs.linux.tar.gz
-* dbdeployer-1.39.0-docs.osx.tar.gz
-* dbdeployer-1.39.0.linux.tar.gz
-* dbdeployer-1.39.0.osx.tar.gz
+* dbdeployer-1.40.0-docs.linux.tar.gz
+* dbdeployer-1.40.0-docs.osx.tar.gz
+* dbdeployer-1.40.0.linux.tar.gz
+* dbdeployer-1.40.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

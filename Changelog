@@ -1,3 +1,13 @@
+1.40.0	19-Oct-2019 
+	NEW FEATURES
+	- dbdeployer now detects when essential libraries are missing (Linux only)
+	- New flag '--skip-library-check' will avoid the above automated detection
+	  but will expose to the risk of having an incomplete sandbox if the
+	  prerequisites were not satisfied.
+	- Add tarballs for 8.0.18 and 5.7.28 to the downloads list
+	- Add check to verify tarball correctness (they must contain a directory
+	  that matches the tarball name)
+
 1.39.1	02-Oct-2019 
 	BUGS FIXED:
 	- Show stderr text when external commands fail - Issue #94

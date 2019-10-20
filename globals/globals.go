@@ -32,6 +32,7 @@ const (
 	ConfigLabel        = "config"
 	SandboxBinaryLabel = "sandbox-binary"
 	SandboxHomeLabel   = "sandbox-home"
+	SkipLibraryCheck   = "skip-library-check"
 
 	// Instantiated in cmd/admin.go
 	RemoteLabel         = "remote"

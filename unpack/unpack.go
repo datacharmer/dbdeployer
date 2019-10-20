@@ -57,6 +57,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -85,7 +86,7 @@ func condPrint(s string, nl bool, level int) {
 }
 
 func validSuffix(filename string) bool {
-	for _, suffix := range []string{globals.TgzExt, globals.TarExt, globals.TarGzExt} {
+	for _, suffix := range []string{globals.TgzExt, globals.TarExt, globals.TarGzExt, globals.TarXzExt} {
 		if strings.HasSuffix(filename, suffix) {
 			return true
 		}
@@ -166,7 +167,9 @@ func UnpackTar(filename string, destination string, verbosityLevel int) (err err
 func unpackTarFiles(reader *tar.Reader) (err error) {
 	var header *tar.Header
 	var count int = 0
+	var reSlash = regexp.MustCompile(`/.*`)
 
+	innerDir := ""
 	for {
 		if header, err = reader.Next(); err != nil {
 			if err == io.EOF {
@@ -217,7 +220,17 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 		filemode := os.FileMode(header.Mode)
 		filename := sanitizedName(header.Name)
 		fileDir := path.Dir(filename)
-		if _, err := os.Stat(fileDir); os.IsNotExist(err) {
+		upperDir := reSlash.ReplaceAllString(fileDir, "")
+		if innerDir != "" {
+			if upperDir != innerDir {
+				return fmt.Errorf("found more than one directory inside the tarball\n"+
+					"<%s> and <%s>", upperDir, innerDir)
+			}
+		} else {
+			innerDir = upperDir
+		}
+
+		if _, err = os.Stat(fileDir); os.IsNotExist(err) {
 			if err = os.MkdirAll(fileDir, globals.PublicDirectoryAttr); err != nil {
 				return err
 			}
@@ -253,7 +266,7 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 		case tar.TypeSymlink:
 			if header.Linkname != "" {
 				condPrint(fmt.Sprintf("%s -> %s", filename, header.Linkname), true, CHATTY)
-				err := os.Symlink(header.Linkname, filename)
+				err = os.Symlink(header.Linkname, filename)
 				if err != nil {
 					return fmt.Errorf("%#v\n#ERROR: %s", header, err)
 				}
@@ -285,4 +298,64 @@ func sanitizedName(filename string) string {
 	filename = strings.TrimLeft(filename, "\\/.")
 	filename = strings.Replace(filename, "../", "", -1)
 	return strings.Replace(filename, "..\\", "", -1)
+}
+
+func VerifyTarFile(fileName string) error {
+	if !validSuffix(fileName) {
+		return fmt.Errorf("unrecognized archive suffix %s", fileName)
+	}
+	var file *os.File
+	var err error
+	if file, err = os.Open(fileName); err != nil {
+		return fmt.Errorf("[open file Validation] %s", err)
+	}
+	defer file.Close()
+	var fileReader io.Reader = file
+	var decompressor *gzip.Reader
+	var xzDecompressor *xz.Reader
+
+	if strings.HasSuffix(fileName, globals.GzExt) {
+		if decompressor, err = gzip.NewReader(file); err != nil {
+			return fmt.Errorf("[gz Validation] %s", err)
+		}
+		defer decompressor.Close()
+	} else {
+		if strings.HasSuffix(fileName, globals.TarXzExt) {
+			if xzDecompressor, err = xz.NewReader(file, 0); err != nil {
+				return fmt.Errorf("[xz Validation] %s", err)
+			}
+		}
+	}
+	var reader *tar.Reader
+	if decompressor != nil {
+		reader = tar.NewReader(decompressor)
+	} else {
+		if xzDecompressor != nil {
+			reader = tar.NewReader(xzDecompressor)
+		} else {
+			reader = tar.NewReader(fileReader)
+		}
+	}
+	var header *tar.Header
+	expectedDirName := common.BaseName(fileName)
+	reExt := regexp.MustCompile(`\.(?:tar(?:\.gz|\.xz)?)$`)
+	expectedDirName = reExt.ReplaceAllString(expectedDirName, "")
+
+	if header, err = reader.Next(); err != nil {
+		if err == io.EOF {
+			return fmt.Errorf("[EOF Validation] file %s is empty", fileName)
+		}
+		return fmt.Errorf("[header validation] %s", err)
+	}
+	innerFileName := sanitizedName(header.Name)
+	fileDir := path.Dir(innerFileName)
+
+	reSlash := regexp.MustCompile(`/.*`)
+	fileDir = reSlash.ReplaceAllString(fileDir, "")
+
+	if fileDir != expectedDirName {
+		return fmt.Errorf("inner directory name different from tarball name\n"+
+			"Expected: %s - Found: %s", expectedDirName, fileDir)
+	}
+	return nil
 }

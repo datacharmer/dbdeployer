@@ -160,6 +160,10 @@ func unpackTarball(cmd *cobra.Command, args []string) {
 	default:
 		common.Exitf(1, "tarball extension must be either '%s' or '%s'", globals.TarGzExt, globals.TarXzExt)
 	}
+	err = unpack.VerifyTarFile(tarball)
+	if err != nil {
+		common.Exitf(1, "validation for %s failed: %s", tarball, err)
+	}
 	bareName = extracted[0 : len(extracted)-len(globals.TarGzExt)]
 	if isShell {
 		common.CondPrintf("Merging shell tarball %s to %s\n", common.ReplaceLiteralHome(tarball), common.ReplaceLiteralHome(destination))

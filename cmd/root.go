@@ -139,6 +139,7 @@ func init() {
 	setPflag(rootCmd, globals.SandboxHomeLabel, "", "SANDBOX_HOME", defaults.Defaults().SandboxHome, "Sandbox deployment directory", false)
 	setPflag(rootCmd, globals.SandboxBinaryLabel, "", "SANDBOX_BINARY", defaults.Defaults().SandboxBinary, "Binary repository", false)
 	setPflag(rootCmd, globals.ShellPathLabel, "", "SHELL_PATH", globals.ShellPathValue, "Which shell to use for generated scripts", false)
+	rootCmd.PersistentFlags().BoolP(globals.SkipLibraryCheck, "", false, "Skip check for needed libraries (may cause nasty errors)")
 
 	rootCmd.InitDefaultVersionFlag()
 
