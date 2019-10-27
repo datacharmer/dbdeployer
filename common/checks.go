@@ -95,12 +95,20 @@ func GetCompatibleClientVersion(basedir, serverVersion string) (string, error) {
 	var versionList []string
 	versionInfos = GetVersionInfoFromDir(basedir)
 
+	// Clients of these flavors should work well with imported sandboxes
+	compatibleFlavors := map[string]bool{
+		MySQLFlavor:         true,
+		PerconaServerFlavor: true,
+	}
 	serverVersionList, err := VersionToList(serverVersion)
 	if err != nil {
 		return globals.EmptyString, err
 	}
 	for _, v := range versionInfos {
-		versionList = append(versionList, v.Version)
+		_, ok := compatibleFlavors[v.Flavor]
+		if ok {
+			versionList = append(versionList, v.Version)
+		}
 	}
 	sortedVersionList := SortVersions(versionList)
 

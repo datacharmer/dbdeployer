@@ -1,7 +1,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.40.0 (19-Oct-2019 20:59 UTC)
+Documentation updated for version 1.41.0 (26-Oct-2019 20:41 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -17,6 +17,7 @@ Documentation updated for version 1.40.0 (19-Oct-2019 20:59 UTC)
   - [Customizing the tarball list](#customizing-the-tarball-list)
   - [Changing the tarball list permanently](#changing-the-tarball-list-permanently)
   - [From remote tarball to ready to use in one step](#from-remote-tarball-to-ready-to-use-in-one-step)
+  - [Guessing the latest MySQL version](#guessing-the-last-mysql-version)
 - [Practical examples (cookbook)](#practical-examples)
 - [Standard and non-standard basedir names](#standard-and-non-standard-basedir-names)
 - [Using short version numbers](#using-short-version-numbers)
@@ -57,7 +58,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.40.0
+    $ VERSION=1.41.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -160,7 +161,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.40.0
+    dbdeployer version 1.41.0
     
 
     $ dbdeployer -h
@@ -671,6 +672,47 @@ Checksum matches
 Unpacking tarball mysql-cluster-8.0.16-dmr-linux-glibc2.12-x86_64.tar.gz to $HOME/opt/mysql/ndb8.0.16
 [...]
 Renaming directory $HOME/opt/mysql/mysql-cluster-8.0.16-dmr-linux-glibc2.12-x86_64 to $HOME/opt/mysql/ndb8.0.16
+```
+
+## Guessing the latest MySQL version
+
+If you know that a new version of MySQL is available, but you don't have such version in the downloads list, you can try a shortcut with the command `dbdeployer downloads get-by-version 8.0 --guess-latest`
+(Available in version 1.41.0)
+
+When you use `--guess-latest`, dbdeployer looks for the latest download available in the list, increases the version by 1, and tries to get the tarball from MySQL downloads page.
+
+For example, if the latest version in the tarballs list is `8.0.21`, and you know that 8.0.22 has just been released, you can run the command
+
+```
+$ dbdeployer downloads get-by-version --guess-latest 8.0 --dry-run
+Would download:
+
+Name:          mysql-8.0.22-macos10.14-x86_64.tar.gz
+Short version: 8.0
+Version:       8.0.22
+Flavor:        mysql
+OS:            darwin
+URL:           https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.22-macos10.14-x86_64.tar.gz
+Checksum:
+Size:          0 B
+Notes:         guessed
+```
+
+Whithout `--dry-run`, it would attempt downloading MySQL 8.0.22. If the download is not available, you will get an error:
+
+```
+$ dbdeployer downloads get-by-version --guess-latest 8.0
+Guessed mysql-8.0.22-macos10.14-x86_64.tar.gz file not ready for download
+```
+
+Beware: when the download happens, there is no checksum to perform. Use this feature with caution.
+
+```
+$ dbdeployer downloads get-by-version --guess-latest 8.0
+Downloading mysql-8.0.22-macos10.14-x86_64.tar.gz
+.........105 MB.....  166 MB
+File $PWD/mysql-8.0.22-macos10.14-x86_64.tar.gz downloaded
+No checksum to compare
 ```
 
 # Practical examples
@@ -1908,10 +1950,10 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.40.0-docs.linux.tar.gz
-* dbdeployer-1.40.0-docs.osx.tar.gz
-* dbdeployer-1.40.0.linux.tar.gz
-* dbdeployer-1.40.0.osx.tar.gz
+* dbdeployer-1.41.0-docs.linux.tar.gz
+* dbdeployer-1.41.0-docs.osx.tar.gz
+* dbdeployer-1.41.0.linux.tar.gz
+* dbdeployer-1.41.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

@@ -64,6 +64,7 @@ then
     export skip_dd_operations=1
     export skip_upgrade_operations=1
     export skip_multi_source_operations=1
+    export skip_import_operations=1
     export skip_pxc_operations=1
     export skip_ndb_operations=1
     export no_tests=1

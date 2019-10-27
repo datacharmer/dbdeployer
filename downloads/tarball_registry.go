@@ -556,7 +556,7 @@ var DefaultTarballRegistry = TarballCollection{
 			Version:         "8.0.18",
 		},
 		{
-			Name:            "imysql-5.7.28-linux-glibc2.12-x86_64.tar.gz",
+			Name:            "mysql-5.7.28-linux-glibc2.12-x86_64.tar.gz",
 			Checksum:        "MD5: 1daa30a32b99a92062f481bd3ef8694c",
 			OperatingSystem: "Linux",
 			Url:             "https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.28-linux-glibc2.12-x86_64.tar.gz",

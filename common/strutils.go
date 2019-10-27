@@ -254,17 +254,24 @@ func StringToIntSlice(val string) (numberList []int, err error) {
 }
 
 // Given an array of integers, returns a string containing the numbers
-// separated by a dot.
-// For example: an input of []int{1, 2, 3} returns "1.2.3"
-func IntSliceToDottedString(val []int) string {
+// separated by a given string.
+// For example: an input of []int{1, 2, 3}, "#" returns "1#2#3"
+func IntSliceToSeparatedString(val []int, separator string) string {
 	result := ""
 	for _, i := range val {
 		if result != "" {
-			result += "."
+			result += separator
 		}
 		result += fmt.Sprintf("%d", i)
 	}
 	return result
+}
+
+// Given an array of integers, returns a string containing the numbers
+// separated by a dot.
+// For example: an input of []int{1, 2, 3} returns "1.2.3"
+func IntSliceToDottedString(val []int) string {
+	return IntSliceToSeparatedString(val, ".")
 }
 
 // Removes a slash (if any) at the end of a given string

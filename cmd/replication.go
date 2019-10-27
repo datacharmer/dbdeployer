@@ -132,8 +132,8 @@ Use the "unpack" command to get the tarball into the right directory.
 
 func init() {
 	deployCmd.AddCommand(replicationCmd)
-	replicationCmd.PersistentFlags().StringP(globals.MasterListLabel, "", globals.MasterListValue, "Which nodes are masters in a multi-source deployment")
-	replicationCmd.PersistentFlags().StringP(globals.SlaveListLabel, "", globals.SlaveListValue, "Which nodes are slaves in a multi-source deployment")
+	replicationCmd.PersistentFlags().StringP(globals.MasterListLabel, "", "", "Which nodes are masters in a multi-source deployment")
+	replicationCmd.PersistentFlags().StringP(globals.SlaveListLabel, "", "", "Which nodes are slaves in a multi-source deployment")
 	replicationCmd.PersistentFlags().StringP(globals.MasterIpLabel, "", globals.MasterIpValue, "Which IP the slaves will connect to")
 	replicationCmd.PersistentFlags().StringP(globals.TopologyLabel, "t", globals.TopologyValue, "Which topology will be installed")
 	replicationCmd.PersistentFlags().IntP(globals.NodesLabel, "n", globals.NodesValue, "How many nodes will be installed")

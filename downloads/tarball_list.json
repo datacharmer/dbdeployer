@@ -531,7 +531,7 @@
        "version": "8.0.18"
      },
      {
-       "name": "imysql-5.7.28-linux-glibc2.12-x86_64.tar.gz",
+       "name": "mysql-5.7.28-linux-glibc2.12-x86_64.tar.gz",
        "checksum": "MD5: 1daa30a32b99a92062f481bd3ef8694c",
        "OS": "Linux",
        "url": "https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.28-linux-glibc2.12-x86_64.tar.gz",

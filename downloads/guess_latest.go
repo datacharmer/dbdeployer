@@ -12,15 +12,30 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+package downloads
 
-package common
+type GuessInfo struct {
+	Version string
+	Url     string
+}
 
-// This file was generated during build. Do not edit.
-// Build time: 2019-10-25 23:33
-
-var VersionDef string = "1.41.0" // 2019-10-25
-
-// Compatible version is the version used to mark compatible archives (templates, configuration).
-// It is usually major.minor.0, except when we are at version 0.x, when
-// every revision may bring incompatibility
-var CompatibleVersion string = "1.39.0" // 2019-09-21
+var (
+	DownloadUrlList = map[string]string{
+		"5.7": "https://dev.mysql.com/get/Downloads/MySQL-5.7",
+		"8.0": "https://dev.mysql.com/get/Downloads/MySQL-8.0",
+	}
+	FileNameTemplates = map[string]string{
+		"linux":  "mysql-{{.Version}}-linux-x86_64-minimal.{{.Ext}}",
+		"darwin": "mysql-{{.Version}}-macos10.14-x86_64.{{.Ext}}",
+	}
+	Extensions = map[string]map[string]string{
+		"linux": {
+			"5.7": "tar.gz",
+			"8.0": "tar.xz",
+		},
+		"darwin": {
+			"5.7": "tar.gz",
+			"8.0": "tar.gz",
+		},
+	}
+)

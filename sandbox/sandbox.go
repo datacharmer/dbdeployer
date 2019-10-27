@@ -1136,8 +1136,14 @@ func RemoveSandbox(sandboxDir, sandbox string, runConcurrently bool) (execList [
 		return emptyExecutionList, err
 	}
 	stop := path.Join(fullPath, globals.ScriptStopAll)
+	if common.IsEnvSet("KILL_AS_STOP") {
+		stop = path.Join(fullPath, globals.ScriptSendKillAll)
+	}
 	if !common.ExecExists(stop) {
 		stop = path.Join(fullPath, globals.ScriptStop)
+		if common.IsEnvSet("KILL_AS_STOP") {
+			stop = path.Join(fullPath, globals.ScriptSendKill)
+		}
 	}
 	if !common.ExecExists(stop) {
 		return emptyExecutionList, fmt.Errorf(globals.ErrExecutableNotFound, stop)

@@ -1,3 +1,17 @@
+1.41.0	26-Oct-2019 
+	NEW FEATURES
+	- dbdeployer can guess the next downloadable version with the command
+	  "dbdeployer downloads get-by-version 8.0 --guess-latest"
+	  or
+	  "dbdeployer downloads get-by-version 5.7 --guess-latest"
+	
+	BUGS FIXED
+	- Issue #95 mismatched values in fan-in when using nodes > 3
+	- Issue #93 Client detection for imported sandbox doesn't take flavor into account
+
+	TESTING
+	- Add test for FindOrGuessTarballByVersionFlavorOS
+	- Add mock test for fan-in nodes
 1.40.0	19-Oct-2019 
 	NEW FEATURES
 	- dbdeployer now detects when essential libraries are missing (Linux only)

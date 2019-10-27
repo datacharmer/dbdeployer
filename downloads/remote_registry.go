@@ -88,19 +88,91 @@ func CompareTarballChecksum(tarball TarballDescription, fileName string) error {
 }
 
 func FindTarballByVersionFlavorOS(version, flavor, OS string, minimal, newest bool) (TarballDescription, error) {
+	return FindOrGuessTarballByVersionFlavorOS(version, flavor, OS, minimal, newest, false)
+}
+
+func FindOrGuessTarballByVersionFlavorOS(version, flavor, OS string, minimal, newest, guess bool) (TarballDescription, error) {
 	flavor = strings.ToLower(flavor)
 	OS = strings.ToLower(OS)
 	if OS == "osx" || OS == "macos" || OS == "os x" {
 		OS = "darwin"
 	}
+	if guess {
+		minimal = false
+	}
 	var tbd []TarballDescription
+	var newestVersionList = []int{0, 0, 0}
 	for _, tb := range DefaultTarballRegistry.Tarballs {
 		if (tb.Version == version || tb.ShortVersion == version) &&
 			strings.ToLower(tb.Flavor) == flavor &&
 			strings.ToLower(tb.OperatingSystem) == OS &&
 			(!minimal || minimal == tb.Minimal) {
+
+			if guess {
+				_, ok := DownloadUrlList[tb.ShortVersion]
+				if !ok {
+					guess = false
+					allowedVersions := make([]string, len(DownloadUrlList))
+					i := 0
+					for k := range DownloadUrlList {
+						allowedVersions[i] = k
+						i++
+					}
+					return TarballDescription{}, fmt.Errorf("can only guess versions %s ", allowedVersions)
+				}
+			}
 			tbd = append(tbd, tb)
+			greatest, err := common.GreaterOrEqualVersion(tb.Version, newestVersionList)
+			if err == nil && greatest {
+				versionList, err := common.VersionToList(tb.Version)
+				if err == nil {
+					newestVersionList = versionList
+				}
+			}
 		}
+	}
+
+	if newestVersionList[0] == 0 {
+		return TarballDescription{}, fmt.Errorf("error detecting latest version")
+	}
+	newestVersion := fmt.Sprintf("%d.%d.%d", newestVersionList[0], newestVersionList[1], newestVersionList[2])
+
+	if guess && len(tbd) > 0 {
+
+		newest = true
+		OS := strings.ToLower(tbd[0].OperatingSystem)
+		if OS == "linux" {
+			minimal = true
+		}
+		rev := newestVersionList[2] + 1
+		newVersion := fmt.Sprintf("%d.%d.%d", newestVersionList[0], newestVersionList[1], rev)
+
+		shortVersion := tbd[0].ShortVersion
+		ext := "tar.gz"
+		if OS == "linux" && shortVersion == "8.0" {
+			ext = "tar.xz"
+		}
+		data := common.StringMap{"Version": newVersion, "Ext": ext}
+
+		name, err := common.SafeTemplateFill("", FileNameTemplates[OS], data)
+		if err != nil {
+			return TarballDescription{}, fmt.Errorf("[guess version] error filling new download name %s", err)
+		}
+		downloadUrl := fmt.Sprintf("%s/%s", DownloadUrlList[shortVersion], name)
+		tbd = append(tbd, TarballDescription{
+			Name:            name,
+			Checksum:        "",
+			OperatingSystem: OS,
+			Url:             downloadUrl,
+			Flavor:          flavor,
+			Minimal:         minimal,
+			Size:            0,
+			ShortVersion:    shortVersion,
+			Version:         newVersion,
+			UpdatedBy:       "",
+			Notes:           "guessed",
+		})
+		newestVersion = newVersion
 	}
 
 	if len(tbd) == 1 {
@@ -116,6 +188,9 @@ func FindTarballByVersionFlavorOS(version, flavor, OS string, minimal, newest bo
 			}
 
 			for _, tb := range tbd {
+				if tb.Version != newestVersion {
+					continue
+				}
 				if tb.Name != newestTarball.Name && tb.Version == newestTarball.Version {
 					return TarballDescription{}, fmt.Errorf("tarballs %s and %s have the same version - Get the one you want by name",
 						tb.Name, newestTarball.Name)

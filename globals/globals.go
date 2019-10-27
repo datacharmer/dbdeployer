@@ -119,6 +119,7 @@ const (
 	OSLabel                = "OS"
 	ShowUrlLabel           = "show-url"
 	QuietLabel             = "quiet"
+	GuessLatestLabel       = "guess-latest"
 	MinimalLabel           = "minimal"
 	NewestLabel            = "newest"
 	AddEmptyItemLabel      = "add-empty-item"

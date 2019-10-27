@@ -233,6 +233,58 @@ func normalizeNodeList(list string) string {
 	return re.ReplaceAllString(list, " ")
 }
 
+func intInSlice(i int, slice []int) bool {
+	for _, N := range slice {
+		if N == i {
+			return true
+		}
+	}
+	return false
+}
+
+func setLists(mList, sList []int, mListSet, sListSet bool, nodes int) ([]int, []int, error) {
+
+	// If the count match, there is nothing to do
+	if len(mList)+len(sList) == nodes {
+		return mList, sList, nil
+	}
+
+	// If there are too many roles defined, we return an error
+	if len(mList)+len(sList) > nodes {
+		return []int{}, []int{}, fmt.Errorf("too many nodes defined in master list + slave list")
+	}
+
+	// When the total of defined nodes (possibly the default) is less than the nodes, we try to figure out
+	// how to set it up
+
+	// master list was defined. We try to set the slaves with the remaining nodes
+	if mListSet {
+		if len(mList) >= nodes {
+			return []int{}, []int{}, fmt.Errorf("too many masters (%d) defined for %d nodes", len(mList), nodes)
+		}
+		sList = []int{}
+		for N := 1; N <= nodes; N++ {
+			if !intInSlice(N, mList) {
+				sList = append(sList, N)
+			}
+		}
+	}
+	// slave list was defined. We try to set the masters with the remaining nodes
+	if sListSet {
+		if len(sList) >= nodes {
+			return []int{}, []int{}, fmt.Errorf("too many slaves (%d) defined for %d nodes", len(sList), nodes)
+		}
+		mList = []int{}
+		for N := 1; N <= nodes; N++ {
+			if !intInSlice(N, sList) {
+				mList = append(mList, N)
+			}
+		}
+	}
+
+	return mList, sList, nil
+}
+
 func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp, masterList, slaveList string) error {
 	sandboxDef.SBType = "fan-in"
 
@@ -249,6 +301,16 @@ func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		sandboxDef.LogFileName = common.ReplaceLiteralHome(fileName)
 	}
 
+	var mlist []int
+	var slist []int
+	var err error
+
+	if masterList == "" {
+		masterList = globals.MasterListValue
+	}
+	if slaveList == "" {
+		slaveList = globals.SlaveListValue
+	}
 	sandboxDef.GtidOptions = SingleTemplates["gtid_options_57"].Contents
 	sandboxDef.ReplCrashSafeOptions = SingleTemplates["repl_crash_safe_options"].Contents
 	if sandboxDef.DirName == "" {
@@ -264,13 +326,33 @@ func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	}
 	sandboxDir := sandboxDef.SandboxDir
 	sandboxDef.SandboxDir = common.DirName(sandboxDef.SandboxDir)
-	mlist, err := nodesListToIntSlice(masterList, nodes)
+	mlist, err = nodesListToIntSlice(masterList, nodes)
 	if err != nil {
 		return err
 	}
-	slist, err := nodesListToIntSlice(slaveList, nodes)
+	slist, err = nodesListToIntSlice(slaveList, nodes)
 	if err != nil {
 		return err
+	}
+	if nodes > 3 {
+		// No defaults were changed. We can recalculate them, making the slave as the highest
+		// node number, and masters! all the remaining ones
+		if masterList == globals.MasterListValue && slaveList == globals.SlaveListValue {
+			mlist = []int{}
+			for N := 1; N <= nodes-1; N++ {
+				mlist = append(mlist, N)
+			}
+			slist = []int{nodes}
+		} else {
+			mlist, slist, err = setLists(mlist, slist,
+				masterList != globals.MasterListValue, slaveList != globals.SlaveListValue,
+				nodes)
+			if err != nil {
+				return err
+			}
+		}
+		masterList = common.IntSliceToSeparatedString(mlist, ",")
+		slaveList = common.IntSliceToSeparatedString(slist, ",")
 	}
 	err = checkNodeLists(nodes, mlist, slist)
 	if err != nil {

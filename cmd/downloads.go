@@ -183,6 +183,7 @@ func getRemoteTarballByVersion(cmd *cobra.Command, args []string) {
 	minimal, _ := cmd.Flags().GetBool(globals.MinimalLabel)
 	newest, _ := cmd.Flags().GetBool(globals.NewestLabel)
 	dryRun, _ := cmd.Flags().GetBool(globals.DryRunLabel)
+	guessLatest, _ := cmd.Flags().GetBool(globals.GuessLatestLabel)
 	flavor, _ := cmd.Flags().GetString(globals.FlavorLabel)
 	OS, _ := cmd.Flags().GetString(globals.OSLabel)
 	progressStep, _ := cmd.Flags().GetInt64(globals.ProgressStepLabel)
@@ -198,9 +199,10 @@ func getRemoteTarballByVersion(cmd *cobra.Command, args []string) {
 	var fileName string
 	version := args[0]
 
-	tarball, err = downloads.FindTarballByVersionFlavorOS(version, flavor, OS, minimal, newest)
+	tarball, err = downloads.FindOrGuessTarballByVersionFlavorOS(version, flavor, OS, minimal, newest, guessLatest)
 	if err != nil {
-		common.Exitf(1, "%s", err)
+		common.Exitf(1, "Error getting version %s (%s-%s)[minimal: %v - newest: %v - guess: %v]: %s",
+			version, flavor, OS, minimal, newest, guessLatest, err)
 	}
 
 	fileName = tarball.Name
@@ -221,6 +223,11 @@ func getRemoteTarballByVersion(cmd *cobra.Command, args []string) {
 		fmt.Printf("Downloading %s\n", tarball.Name)
 	}
 	err = rest.DownloadFile(absPath, tarball.Url, !quiet, progressStep)
+	if err != nil {
+		if tarball.Notes == "guessed" {
+			common.Exitf(1, "Guessed %s file not ready for download", tarball.Name)
+		}
+	}
 	common.ErrCheckExitf(err, 1, "error getting remote file %s - %s", fileName, err)
 	postDownloadOps(tarball, fileName, absPath)
 }
@@ -465,6 +472,7 @@ func init() {
 	downloadsGetByVersionCmd.Flags().String(globals.FlavorLabel, "", "Choose only the given flavor")
 	downloadsGetByVersionCmd.Flags().String(globals.OSLabel, "", "Choose only the given OS")
 	downloadsGetByVersionCmd.Flags().BoolP(globals.QuietLabel, "", false, "Do not show download progress")
+	downloadsGetByVersionCmd.Flags().BoolP(globals.GuessLatestLabel, "", false, "Guess the latest version (highest version w/ increased revision number)")
 	downloadsGetByVersionCmd.Flags().Int64P(globals.ProgressStepLabel, "", globals.ProgressStepValue, "Progress interval")
 
 	downloadsGetCmd.Flags().BoolP(globals.QuietLabel, "", false, "Do not show download progress")
