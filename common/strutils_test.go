@@ -333,3 +333,63 @@ func TestCoalesce(t *testing.T) {
 		}
 	}
 }
+
+func TestSortVersionsSubset(t *testing.T) {
+
+	type versionList struct {
+		versions        []string
+		wanted          string
+		expectedVersion string
+		expectedSize    int
+	}
+	var versionData = []versionList{
+		{
+			// homogeneous list
+			versions:        []string{"abc5.7.8", "abc5.7.10", "abc5.7.7"},
+			wanted:          "abc5.7",
+			expectedVersion: "abc5.7.10",
+		},
+		{
+			// Different prefix, but same short version
+			versions:        []string{"abc5.7.9", "abc5.7.10", "abc5.7.8", "5.7.11"},
+			wanted:          "abc5.7",
+			expectedVersion: "5.7.11",
+			expectedSize:    4,
+		},
+		{
+			// mixed short versions
+			versions:        []string{"abc5.7.7", "abc5.7.8", "abc5.7.10", "8.0.11"},
+			wanted:          "abc5.7",
+			expectedVersion: "abc5.7.10",
+			expectedSize:    3,
+		},
+		{
+			// same prefix, different short versions, request lower version
+			versions:        []string{"abc8.0.23", "abc5.7.7", "abc5.7.8", "abc5.7.10", "8.0.11"},
+			wanted:          "abc5.7",
+			expectedVersion: "abc5.7.10",
+			expectedSize:    3,
+		},
+		{
+			// same prefix, different short versions, request higher version
+			versions:        []string{"abc8.0.23", "abc5.7.7", "abc5.7.8", "abc5.7.10", "8.0.11"},
+			wanted:          "abc8.0",
+			expectedVersion: "abc8.0.23",
+			expectedSize:    2,
+		},
+	}
+
+	for _, vd := range versionData {
+		sorted := SortVersionsSubset(vd.versions, vd.wanted)
+
+		expectedSize := len(vd.versions)
+		if vd.expectedSize > 0 {
+			expectedSize = vd.expectedSize
+		}
+		fmt.Printf("%#v\n", sorted)
+		compare.OkEqualInt("sort size", len(sorted), expectedSize, t)
+
+		found := sorted[len(sorted)-1]
+		compare.OkEqualString("found latest version", vd.expectedVersion, found, t)
+	}
+}

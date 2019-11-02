@@ -37,11 +37,35 @@ CHECK_NODE="$CHECK_NODE 'wsrep_gcomm_uuid','wsrep_connected','wsrep_ready')"
 	sleep $SLEEP_TIME
 {{end}}
 `
+	pxcReplicationTemplate string = `
+# These options, after customization, are added to my.sandbox.cnf
+innodb_file_per_table
+innodb_autoinc_lock_mode=2
+wsrep-provider={{.Basedir}}/lib/libgalera_smm.so
+wsrep_cluster_address={{.GroupCommunication}}
+wsrep_node_incoming_address=127.0.0.1
+wsrep_provider_options=gmcast.listen_addr=tcp://127.0.0.1:{{.GroupPort}}
+wsrep_sst_method=rsync
+loose_wsrep_sst_auth=root:
+wsrep_node_address={{.NodeIp}}
+innodb_flush_method=O_DIRECT
+core-file
+secure-file-priv=
+loose-innodb-status-file=1
+log-output=none
+wsrep_slave_threads=2
+wsrep_sst_receive_address=127.0.0.1:{{.RsyncPort}}
+`
 	PxcTemplates = TemplateCollection{
 		"check_pxc_nodes_template": TemplateDesc{
 			Description: "Checks the status of PXC replication",
 			Notes:       "",
 			Contents:    checkPxcNodesTemplate,
+		},
+		"pxc_replication_template": TemplateDesc{
+			Description: "Replication options for PXC",
+			Notes:       "",
+			Contents:    pxcReplicationTemplate,
 		},
 	}
 )

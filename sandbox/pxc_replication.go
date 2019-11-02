@@ -17,35 +17,16 @@ package sandbox
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"time"
+
+	"github.com/dustin/go-humanize/english"
+	"github.com/pkg/errors"
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/concurrent"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
-	"github.com/dustin/go-humanize/english"
-	"github.com/pkg/errors"
 )
-
-var pxcReplicationOptions string = `
-innodb_file_per_table
-innodb_autoinc_lock_mode=2
-wsrep-provider=__BASEDIR__/lib/libgalera_smm.so
-wsrep_cluster_address=__GROUP_COMMUNICATION__
-wsrep_node_incoming_address=127.0.0.1
-wsrep_provider_options=gmcast.listen_addr=tcp://127.0.0.1:__GROUP_PORT__
-wsrep_sst_method=rsync
-wsrep_sst_auth=root:
-wsrep_node_address=127.0.0.1
-innodb_flush_method=O_DIRECT
-core-file
-secure-file-priv=
-loose-innodb-status-file=1
-log-output=none
-wsrep_slave_threads=2
-wsrep_sst_receive_address=127.0.0.1:__RSYNC_PORT__
-`
 
 func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
 	var execLists []concurrent.ExecutionList
@@ -230,6 +211,14 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		sbItem.LogDirectory = common.DirName(sandboxDef.LogFileName)
 	}
 
+	skipLogSlaveUpdates, err := common.HasCapability(common.PxcFlavor, common.XtradbClusterNoSlaveUpdates, sandboxDef.Version)
+	if err != nil {
+		return err
+	}
+	if !skipLogSlaveUpdates {
+		sandboxDef.ReplOptions = fmt.Sprintf("%s\nlog_slave_updates=ON\n", sandboxDef.ReplOptions)
+	}
+	baseReplicationOptions := sandboxDef.ReplOptions
 	var groupCommunication string = ""
 	var auxGroupCommunication string = ""
 
@@ -294,17 +283,22 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 			common.CondPrintf(installationMessage, nodeLabel, i)
 			logger.Printf(installationMessage, nodeLabel, i)
 		}
-		sandboxDef.ReplOptions = SingleTemplates["replication_options"].Contents + fmt.Sprintf("\n%s\n", pxcReplicationOptions)
-		reMasterIp := regexp.MustCompile(`127\.0\.0\.1`)
-		reGroupPort := regexp.MustCompile(`__GROUP_PORT__`)
-		reRSyncPort := regexp.MustCompile(`__RSYNC_PORT__`)
-		reGroupCommunication := regexp.MustCompile(`__GROUP_COMMUNICATION__`)
-		reBasedir := regexp.MustCompile(`__BASEDIR__`)
-		sandboxDef.ReplOptions = reMasterIp.ReplaceAllString(sandboxDef.ReplOptions, masterIp)
-		sandboxDef.ReplOptions = reGroupCommunication.ReplaceAllString(sandboxDef.ReplOptions, groupCommunication)
-		sandboxDef.ReplOptions = reBasedir.ReplaceAllString(sandboxDef.ReplOptions, sandboxDef.Basedir)
-		sandboxDef.ReplOptions = reGroupPort.ReplaceAllString(sandboxDef.ReplOptions, fmt.Sprintf("%d", groupPort))
-		sandboxDef.ReplOptions = reRSyncPort.ReplaceAllString(sandboxDef.ReplOptions, fmt.Sprintf("%d", rsyncPort))
+
+		pxcReplicationText := PxcTemplates["pxc_replication_template"].Contents
+
+		pxcReplicationData := common.StringMap{
+			"NodeIp":             masterIp,
+			"GroupCommunication": groupCommunication,
+			"Basedir":            sandboxDef.Basedir,
+			"RsyncPort":          rsyncPort,
+			"GroupPort":          groupPort,
+		}
+		pxcFilledTemplate, err := common.SafeTemplateFill("pxc_replication_template", pxcReplicationText, pxcReplicationData)
+		if err != nil {
+			return fmt.Errorf("error filling pxc replication template %s", err)
+		}
+
+		sandboxDef.ReplOptions = baseReplicationOptions + fmt.Sprintf("\n%s\n", pxcFilledTemplate)
 
 		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["gtid_options_57"].Contents)
 		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["repl_crash_safe_options"].Contents)

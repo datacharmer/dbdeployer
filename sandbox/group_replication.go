@@ -30,27 +30,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	defaultGroupName        = "%08d-bbbb-cccc-dddd-eeeeeeeeeeee"
-	GroupReplOptions string = `
-binlog_checksum=NONE
-log_slave_updates=ON
-plugin-load-add=group_replication.so
-group_replication=FORCE_PLUS_PERMANENT
-group_replication_start_on_boot=OFF
-group_replication_bootstrap_group=OFF
-transaction_write_set_extraction=XXHASH64
-report-host=127.0.0.1
-loose-group_replication_group_name="__GROUP_NAME__"
-`
-	GroupReplSinglePrimary string = `
-loose-group-replication-single-primary-mode=on
-`
-	GroupReplMultiPrimary string = `
-loose-group-replication-single-primary-mode=off
-`
-)
-
 func getBaseMysqlxPort(basePort int, sdef SandboxDef, nodes int) (int, error) {
 	baseMysqlxPort := basePort + defaults.Defaults().MysqlXPortDelta
 	// 8.0.11
@@ -70,7 +49,7 @@ func getBaseMysqlxPort(basePort int, sdef SandboxDef, nodes int) (int, error) {
 		baseMysqlxPort = firstGroupPort - 1
 		for N := 1; N <= nodes; N++ {
 			checkPort := baseMysqlxPort + N
-			err := checkPortAvailability("get_base_mysqlx_port", sdef.SandboxDir, sdef.InstalledPorts, checkPort)
+			err = checkPortAvailability("get_base_mysqlx_port", sdef.SandboxDir, sdef.InstalledPorts, checkPort)
 			if err != nil {
 				return 0, err
 			}
@@ -275,10 +254,10 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	logger.Printf("Creating connection string %s\n", connectionString)
 
 	sbType := "group-multi-primary"
-	singleMultiPrimary := GroupReplMultiPrimary
+	singlePrimaryMode := "off"
 	if sandboxDef.SinglePrimary {
 		sbType = "group-single-primary"
-		singleMultiPrimary = GroupReplSinglePrimary
+		singlePrimaryMode = "on"
 	}
 	logger.Printf("Defining group type %s\n", sbType)
 
@@ -347,19 +326,29 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 			common.CondPrintf(installationMessage, nodeLabel, i)
 			logger.Printf(installationMessage, nodeLabel, i)
 		}
-		sandboxDef.ReplOptions = SingleTemplates["replication_options"].Contents + fmt.Sprintf("\n%s\n%s\n", GroupReplOptions, singleMultiPrimary)
+
+		basePortText := fmt.Sprintf("%08d", basePort)
+		replicationData := common.StringMap{
+			"BasePort":       basePortText,
+			"GroupSeeds":     connectionString,
+			"LocalAddresses": fmt.Sprintf("%s:%d", masterIp, groupPort),
+			"PrimaryMode":    singlePrimaryMode,
+		}
+
+		replOptionsText, err := common.SafeTemplateFill("group_replication",
+			GroupTemplates["group_repl_options_template"].Contents, replicationData)
+		if err != nil {
+			return err
+		}
+		sandboxDef.ReplOptions = SingleTemplates["replication_options"].Contents + "\n" + replOptionsText
+
 		reMasterIp := regexp.MustCompile(`127\.0\.0\.1`)
-		reGroupName := regexp.MustCompile(`__GROUP_NAME__`)
 		sandboxDef.ReplOptions = reMasterIp.ReplaceAllString(sandboxDef.ReplOptions, masterIp)
 
-		groupName := fmt.Sprintf(defaultGroupName, basePort)
-		sandboxDef.ReplOptions = reGroupName.ReplaceAllString(sandboxDef.ReplOptions, groupName)
 		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["gtid_options_57"].Contents)
 		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["repl_crash_safe_options"].Contents)
-		sandboxDef.ReplOptions += fmt.Sprintf("\nloose-group-replication-local-address=%s:%d\n", masterIp, groupPort)
-		sandboxDef.ReplOptions += fmt.Sprintf("\nloose-group-replication-group-seeds=%s\n", connectionString)
+
 		// 8.0.11
-		// isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
 		isMinimumMySQLXDefault, err := common.HasCapability(sandboxDef.Flavor, common.MySQLXDefault, sandboxDef.Version)
 		if err != nil {
 			return err

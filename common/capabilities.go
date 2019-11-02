@@ -54,31 +54,32 @@ const (
 	TiDbFlavor          = "tidb"
 
 	// Feature names
-	InstallDb         = "installdb"
-	DynVariables      = "dynVars"
-	SemiSynch         = "semiSync"
-	CrashSafe         = "crashSafe"
-	GTID              = "GTID"
-	EnhancedGTID      = "enhancedGTID"
-	Initialize        = "initialize"
-	CreateUser        = "createUser"
-	SuperReadOnly     = "superReadOnly"
-	MySQLX            = "mysqlx"
-	MySQLXDefault     = "mysqlxDefault"
-	MultiSource       = "multiSource"
-	GroupReplication  = "groupReplication"
-	SetPersist        = "setPersist"
-	Roles             = "roles"
-	NativeAuth        = "nativeAuth"
-	DataDict          = "datadict"
-	UpgradeWithTool   = "upgrade_with_tool"
-	UpgradeWithServer = "upgrade_with_server"
-	XtradbCluster     = "xtradbCluster"
-	NdbCluster        = "ndbCluster"
-	RootAuth          = "rootAuth"
-	AdminAddress      = "adminAddress"
-	EmbedMySQLShell   = "embed-mysql-shell"
-	CloneServer       = "clone-server"
+	InstallDb                   = "installdb"
+	DynVariables                = "dynVars"
+	SemiSynch                   = "semiSync"
+	CrashSafe                   = "crashSafe"
+	GTID                        = "GTID"
+	EnhancedGTID                = "enhancedGTID"
+	Initialize                  = "initialize"
+	CreateUser                  = "createUser"
+	SuperReadOnly               = "superReadOnly"
+	MySQLX                      = "mysqlx"
+	MySQLXDefault               = "mysqlxDefault"
+	MultiSource                 = "multiSource"
+	GroupReplication            = "groupReplication"
+	SetPersist                  = "setPersist"
+	Roles                       = "roles"
+	NativeAuth                  = "nativeAuth"
+	DataDict                    = "datadict"
+	UpgradeWithTool             = "upgrade_with_tool"
+	UpgradeWithServer           = "upgrade_with_server"
+	XtradbCluster               = "xtradbCluster"
+	XtradbClusterNoSlaveUpdates = "xtradbCluster_no_slave_updates"
+	NdbCluster                  = "ndbCluster"
+	RootAuth                    = "rootAuth"
+	AdminAddress                = "adminAddress"
+	EmbedMySQLShell             = "embed-mysql-shell"
+	CloneServer                 = "clone-server"
 )
 
 var MySQLCapabilities = Capabilities{
@@ -302,6 +303,10 @@ var PxcCapabilities = Capabilities{
 			XtradbCluster: {
 				Description: "Xtradb Cluster creation",
 				Since:       globals.MinimumXtradbClusterVersion,
+			},
+			XtradbClusterNoSlaveUpdates: {
+				Description: "Xtradb Cluster creation without log_slave_updates",
+				Since:       globals.MinimumXtradbClusterNoSlaveUpdatesVersion,
 			},
 		}),
 }

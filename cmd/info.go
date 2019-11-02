@@ -47,6 +47,14 @@ func displayDefaults(cmd *cobra.Command, args []string) {
 
 func displayAllVersions(basedir, wantedVersion, flavor string) {
 	result := ""
+
+	reShortVersion := regexp.MustCompile(`(\d+\.\d+)`)
+	wantedVersionList := reShortVersion.FindAllStringSubmatch(wantedVersion, -1)
+
+	wantedShortVersion := ""
+	if len(wantedVersionList) > 0 && len(wantedVersionList[0]) > 0 {
+		wantedShortVersion = wantedVersionList[0][1]
+	}
 	var versionInfoList []common.VersionInfo = common.GetVersionInfoFromDir(basedir)
 	for _, verInfo := range versionInfoList {
 		versionList, err := common.VersionToList(verInfo.Version)
@@ -54,7 +62,7 @@ func displayAllVersions(basedir, wantedVersion, flavor string) {
 			common.Exitf(1, "error retrieving version list from %s", verInfo.Version)
 		}
 		shortVersion := fmt.Sprintf("%d.%d", versionList[0], versionList[1])
-		if wantedVersion == shortVersion || strings.ToLower(wantedVersion) == "all" {
+		if wantedShortVersion == shortVersion || strings.ToLower(wantedVersion) == "all" {
 			if verInfo.Flavor == flavor {
 				if result != "" {
 					result += " "

@@ -1,3 +1,13 @@
+1.42.0	01-Nov-2019 
+	NEW FEATURES
+	- Explicit template for PXC replication options (Issues #87 and #92)
+	  Allows installing PXC with version 5.6
+	- Explicit template for Group replication options
+
+	BUGS FIXED
+	- Fix command "dbdeployer info version --flavor VER"
+	  It would not display the requested short version but
+	  the latest one.
 1.41.0	26-Oct-2019 
 	NEW FEATURES
 	- dbdeployer can guess the next downloadable version with the command

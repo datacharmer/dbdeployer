@@ -62,6 +62,22 @@ CHECK_NODE="select * from performance_schema.replication_group_members"
 	sleep $SLEEP_TIME
 {{end}}
 `
+	groupReplOptionsTemplate string = `
+# After customization, these options are added to my.sandbox.cnf
+binlog_checksum=NONE
+log_slave_updates=ON
+plugin-load-add=group_replication.so
+group_replication=FORCE_PLUS_PERMANENT
+group_replication_start_on_boot=OFF
+group_replication_bootstrap_group=OFF
+transaction_write_set_extraction=XXHASH64
+report-host=127.0.0.1
+loose-group_replication_group_name="{{.BasePort}}-bbbb-cccc-dddd-eeeeeeeeeeee"
+loose-group-replication-local-address={{.LocalAddresses}}
+loose-group-replication-group-seeds={{.GroupSeeds}}
+loose-group-replication-single-primary-mode={{.PrimaryMode}}
+`
+
 	GroupTemplates = TemplateCollection{
 		"init_nodes_template": TemplateDesc{
 			Description: "Initialize group replication after deployment",
@@ -72,6 +88,11 @@ CHECK_NODE="select * from performance_schema.replication_group_members"
 			Description: "Checks the status of group replication",
 			Notes:       "",
 			Contents:    checkNodesTemplate,
+		},
+		"group_repl_options_template": TemplateDesc{
+			Description: "replication options for Group replication node",
+			Notes:       "",
+			Contents:    groupReplOptionsTemplate,
 		},
 	}
 )

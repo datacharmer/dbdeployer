@@ -330,35 +330,36 @@ const MaxAllowedPort int = 64000
 // Authentication plugin changed in 8.0.4
 // MySQLX was enabled by default starting with 8.0.11
 var (
-	MinimumMySQLUpgradeTool          = NumericVersion{5, 0, 0}
-	MaximumMySQLUpgradeTool          = NumericVersion{8, 0, 15}
-	MinimumMySQLUpgradeServer        = NumericVersion{8, 0, 16}
-	MinimumCloneMySQLServer          = NumericVersion{8, 0, 17}
-	MinimumMySQLInstallDb            = NumericVersion{3, 3, 23}
-	MaximumMySQLInstallDb            = NumericVersion{5, 6, 999}
-	MinimumDynVariablesVersion       = NumericVersion{5, 1, 0}
-	MinimumSemiSyncVersion           = NumericVersion{5, 5, 1}
-	MinimumCrashSafeVersion          = NumericVersion{5, 6, 2}
-	MinimumGtidVersion               = NumericVersion{5, 6, 9}
-	MinimumEnhancedGtidVersion       = NumericVersion{5, 7, 0}
-	MinimumDefaultInitializeVersion  = NumericVersion{5, 7, 0}
-	MinimumCreateUserVersion         = NumericVersion{5, 7, 6}
-	MinimumSuperReadOnly             = NumericVersion{5, 7, 8}
-	MinimumMultiSourceReplVersion    = NumericVersion{5, 7, 9}
-	MinimumMysqlxVersion             = NumericVersion{5, 7, 12}
-	MinimumGroupReplVersion          = NumericVersion{5, 7, 17}
-	MinimumPersistVersion            = NumericVersion{8, 0, 0}
-	MinimumRolesVersion              = NumericVersion{8, 0, 0}
-	MinimumDataDictionaryVersion     = NumericVersion{8, 0, 0}
-	MinimumNativeAuthPluginVersion   = NumericVersion{8, 0, 4}
-	MinimumMysqlxDefaultVersion      = NumericVersion{8, 0, 11}
-	MariaDbMinimumGtidVersion        = NumericVersion{10, 0, 0}
-	MariaDbMinimumMultiSourceVersion = NumericVersion{10, 0, 0}
-	MinimumXtradbClusterVersion      = NumericVersion{5, 7, 14}
-	MinimumNdbClusterVersion         = NumericVersion{7, 0, 0}
-	MinimumRootAuthVersion           = NumericVersion{10, 4, 3}
-	MinimumAdminAddressVersion       = NumericVersion{8, 0, 14}
-	MinimumMySQLShellEmbed           = NumericVersion{8, 0, 4}
+	MinimumMySQLUpgradeTool                   = NumericVersion{5, 0, 0}
+	MaximumMySQLUpgradeTool                   = NumericVersion{8, 0, 15}
+	MinimumMySQLUpgradeServer                 = NumericVersion{8, 0, 16}
+	MinimumCloneMySQLServer                   = NumericVersion{8, 0, 17}
+	MinimumMySQLInstallDb                     = NumericVersion{3, 3, 23}
+	MaximumMySQLInstallDb                     = NumericVersion{5, 6, 999}
+	MinimumDynVariablesVersion                = NumericVersion{5, 1, 0}
+	MinimumSemiSyncVersion                    = NumericVersion{5, 5, 1}
+	MinimumCrashSafeVersion                   = NumericVersion{5, 6, 2}
+	MinimumGtidVersion                        = NumericVersion{5, 6, 9}
+	MinimumEnhancedGtidVersion                = NumericVersion{5, 7, 0}
+	MinimumDefaultInitializeVersion           = NumericVersion{5, 7, 0}
+	MinimumCreateUserVersion                  = NumericVersion{5, 7, 6}
+	MinimumSuperReadOnly                      = NumericVersion{5, 7, 8}
+	MinimumMultiSourceReplVersion             = NumericVersion{5, 7, 9}
+	MinimumMysqlxVersion                      = NumericVersion{5, 7, 12}
+	MinimumGroupReplVersion                   = NumericVersion{5, 7, 17}
+	MinimumPersistVersion                     = NumericVersion{8, 0, 0}
+	MinimumRolesVersion                       = NumericVersion{8, 0, 0}
+	MinimumDataDictionaryVersion              = NumericVersion{8, 0, 0}
+	MinimumNativeAuthPluginVersion            = NumericVersion{8, 0, 4}
+	MinimumMysqlxDefaultVersion               = NumericVersion{8, 0, 11}
+	MariaDbMinimumGtidVersion                 = NumericVersion{10, 0, 0}
+	MariaDbMinimumMultiSourceVersion          = NumericVersion{10, 0, 0}
+	MinimumXtradbClusterVersion               = NumericVersion{5, 6, 14}
+	MinimumXtradbClusterNoSlaveUpdatesVersion = NumericVersion{5, 7, 14}
+	MinimumNdbClusterVersion                  = NumericVersion{7, 0, 0}
+	MinimumRootAuthVersion                    = NumericVersion{10, 4, 3}
+	MinimumAdminAddressVersion                = NumericVersion{8, 0, 14}
+	MinimumMySQLShellEmbed                    = NumericVersion{8, 0, 4}
 )
 
 const (

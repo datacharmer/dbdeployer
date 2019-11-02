@@ -164,6 +164,8 @@ func SortVersionsSubset(versions []string, wanted string) (sorted []string) {
 		text      string
 		majMinRev []int
 	}
+	reNonNumeric := regexp.MustCompile(`^\D+`)
+	wanted = reNonNumeric.ReplaceAllString(wanted, "")
 	wantedMaj := 0
 	wantedMin := 0
 	if wanted != "" {

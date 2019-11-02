@@ -1136,12 +1136,13 @@ func RemoveSandbox(sandboxDir, sandbox string, runConcurrently bool) (execList [
 		return emptyExecutionList, err
 	}
 	stop := path.Join(fullPath, globals.ScriptStopAll)
-	if common.IsEnvSet("KILL_AS_STOP") {
+	useKill := common.IsEnvSet("KILL_AS_STOP")
+	if useKill {
 		stop = path.Join(fullPath, globals.ScriptSendKillAll)
 	}
 	if !common.ExecExists(stop) {
 		stop = path.Join(fullPath, globals.ScriptStop)
-		if common.IsEnvSet("KILL_AS_STOP") {
+		if useKill {
 			stop = path.Join(fullPath, globals.ScriptSendKill)
 		}
 	}
@@ -1157,7 +1158,7 @@ func RemoveSandbox(sandboxDir, sandbox string, runConcurrently bool) (execList [
 		execList = append(execList, concurrent.ExecutionList{Logger: nil, Priority: 0, Command: eCommand1})
 	} else {
 		common.CondPrintf("Running %s\n", stop)
-		_, err := common.RunCmd(stop)
+		_, err = common.RunCmd(stop)
 		if err != nil {
 			return emptyExecutionList, fmt.Errorf(globals.ErrWhileStoppingSandbox, fullPath)
 		}
@@ -1184,7 +1185,7 @@ func RemoveSandbox(sandboxDir, sandbox string, runConcurrently bool) (execList [
 			if globals.UsingDbDeployer && target != logDirectory {
 				common.CondPrintf("Running %s\n", cmdStr)
 			}
-			_, err := common.RunCmdWithArgs("rm", rmArgs)
+			_, err = common.RunCmdWithArgs("rm", rmArgs)
 			if err != nil {
 				return emptyExecutionList, fmt.Errorf(globals.ErrWhileDeletingSandbox, target)
 			}
