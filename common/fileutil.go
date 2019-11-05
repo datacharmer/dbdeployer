@@ -503,19 +503,13 @@ func runCmdCtrlArgs(c string, silent bool, args ...string) (string, string, erro
 	if err != nil {
 		return "", "", err
 	}
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return "", "", err
-	}
 
-	err = cmd.Start()
+	slurpOut, err := cmd.Output()
 	if err != nil {
 		return "", "", err
 	}
 
 	slurpErr, _ := ioutil.ReadAll(stderr)
-	slurpOut, _ := ioutil.ReadAll(stdout)
-	err = cmd.Wait()
 
 	if err != nil {
 		CondPrintf("cmd:    %s\n", c)
