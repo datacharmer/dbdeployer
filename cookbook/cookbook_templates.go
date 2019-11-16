@@ -873,10 +873,12 @@ ndb2=ndb_${path_version}_2
 
 run dbdeployer deploy replication $version --topology=ndb  \
         --port-as-server-id --sandbox-directory=$ndb1 \
+        -c ndb-log-bin \
         --concurrent
 
 run dbdeployer deploy replication $version --topology=ndb  \
         --port-as-server-id --sandbox-directory=$ndb2 \
+        -c ndb-log-bin \
         --concurrent
 
 run dbdeployer sandboxes --full-info

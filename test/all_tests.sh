@@ -49,6 +49,10 @@ source ./test/common.sh
 start_timer
 timestamp=$(date +%Y-%m-%d-%H.%M)
 
+echo "# Checking that there are no deployed sandboxes"
+how_many=$(count_catalog)
+ok_equal "sandboxes_in_catalog" $how_many 0
+
 if [ ! -d ./test/logs ]
 then
     mkdir ./test/logs

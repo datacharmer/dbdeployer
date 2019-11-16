@@ -404,12 +404,18 @@ func CheckLibraries(basedir string) error {
 		var missingMysqld []string
 
 		// Gets the list of libraries for client and server executables
-		mysqlLibs, _, err := runCmdCtrlArgs(ldd, true, mysqlBin)
+		mysqlLibs, err := runCmdCtrlArgsSimple(ldd, true, mysqlBin)
 		if err != nil {
+			if IsEnvSet("SBDEBUG") {
+				fmt.Printf("# error checking ldd %s -> %s\n", mysqldBin, err)
+			}
 			return nil
 		}
-		mysqldLibs, _, err := runCmdCtrlArgs(ldd, true, mysqldBin)
+		mysqldLibs, err := runCmdCtrlArgsSimple(ldd, true, mysqldBin)
 		if err != nil {
+			if IsEnvSet("SBDEBUG") {
+				fmt.Printf("# error checking ldd %s -> %s\n", mysqldBin, err)
+			}
 			return nil
 		}
 
@@ -447,8 +453,11 @@ func CheckLibraries(basedir string) error {
 
 	// "ldconfig -p" returns a list of installed libraries
 	if ldConfig != "" {
-		libraryList, _, err := runCmdCtrlArgs(ldConfig, true, "-p")
+		libraryList, err := runCmdCtrlArgsSimple(ldConfig, true, "-p")
 		if err != nil {
+			if IsEnvSet("SBDEBUG") {
+				fmt.Printf("# error checking ldconfig -p -> %s\n", err)
+			}
 			return nil
 		}
 
@@ -495,6 +504,24 @@ func RunCmdWithArgs(c string, args []string) (string, error) {
 func RunCmdCtrlWithArgs(c string, args []string, silent bool) (string, error) {
 	out, _, err := runCmdCtrlArgs(c, silent, args...)
 	return out, err
+}
+
+func runCmdCtrlArgsSimple(c string, silent bool, args ...string) (string, error) {
+	cmd := exec.Command(c, args...)
+
+	out, err := cmd.Output()
+
+	if err != nil {
+		CondPrintf("cmd:    %s\n", c)
+		CondPrintf("err:    %s\n", err)
+		CondPrintf("stdout: %s\n", out)
+	} else {
+		if !silent {
+			fmt.Printf("%s", out)
+		}
+	}
+
+	return string(out), err
 }
 
 func runCmdCtrlArgs(c string, silent bool, args ...string) (string, string, error) {

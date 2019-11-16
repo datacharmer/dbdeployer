@@ -488,10 +488,10 @@ create schema if not exists test;
 use mysql;
 set password='{{.DbPassword}}';
 
-create role R_DO_IT_ALL;
-create role R_READ_WRITE;
-create role R_READ_ONLY;
-create role R_REPLICATION;
+create role if not exists R_DO_IT_ALL;
+create role if not exists R_READ_WRITE;
+create role if not exists R_READ_ONLY;
+create role if not exists R_REPLICATION;
 
 grant all on *.* to R_DO_IT_ALL;
 grant SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,INDEX,ALTER,
