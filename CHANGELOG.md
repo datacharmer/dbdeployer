@@ -13,7 +13,6 @@
 ## BUGS FIXED
 
 * Fix for hanging during library check (Issue #99)
-* Fix determination of shell interpreter
 
 ## 1.42.0	01-Nov-2019 
 
