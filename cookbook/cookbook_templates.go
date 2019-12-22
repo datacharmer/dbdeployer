@@ -64,7 +64,7 @@ function run {
 function check_version {
     wanted_version=$1
     check_upgrade=$2
-    invalid_version=$(echo $wanted_version| grep NOTFOUND)
+    invalid_version=$(echo "$wanted_version"| grep NOTFOUND)
     if [ -z "$wanted_version" -o -n "$invalid_version" ]
     then
         echo "No version provided"
@@ -118,7 +118,8 @@ cd $(dirname $0)
 source cookbook_include.sh
 
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
+# [ -z "$version" ] && version={{.LatestVersion}}
 check_version $version
 
 
@@ -138,7 +139,8 @@ cd $(dirname $0)
 source cookbook_include.sh
 
 version=$1
-[ -z "$version" ] && version={{.Latest8_0}}
+[ -z "$version" ] && version=$(dbdeployer info version 8.0)
+# [ -z "$version" ] && version={{.LatestVersion}}
 check_version $version
 
 
@@ -159,7 +161,7 @@ cd $(dirname $0)
 source cookbook_include.sh
 
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 
 if [ -n "$(dbdeployer sandboxes | grep 'single\s*'$version)" ]
@@ -189,7 +191,7 @@ cd $(dirname $0)
 source cookbook_include.sh
 
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 
 if [ -z "$(dbdeployer sandboxes | grep 'single\s*'$version)" ]
@@ -256,7 +258,7 @@ var masterSlaveDeployment string = `#!{{.ShellPath}}
 cd $(dirname $0)
 source cookbook_include.sh
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 
 if [ -n "$(dbdeployer sandboxes | grep 'master-slave\s*'$version)" ]
@@ -273,7 +275,7 @@ var replicationSkipStartTemplate string = `#!{{.ShellPath}}
 cd $(dirname $0)
 source cookbook_include.sh
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 
 export MASTER_SLAVE_OPTIONS="--skip-start"
@@ -301,7 +303,7 @@ var customReplicationDeployment string = `#!{{.ShellPath}}
 cd $(dirname $0)
 source cookbook_include.sh
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 
 if [ -n "$(dbdeployer sandboxes | grep 'master-slave\s*'$version)" ]
@@ -334,7 +336,7 @@ cd $(dirname $0)
 source cookbook_include.sh
 
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 
 if [ -n "$(dbdeployer sandboxes | grep 'fan-in\s*'$version)" ]
@@ -350,7 +352,7 @@ var allMastersDeployment string = `#!{{.ShellPath}}
 cd $(dirname $0)
 source cookbook_include.sh
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 
 if [ -n "$(dbdeployer sandboxes | grep 'all-masters\s*'$version)" ]
@@ -367,7 +369,7 @@ cd $(dirname $0)
 source cookbook_include.sh
 
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 
 if [ -n "$(dbdeployer sandboxes | grep 'group-multi-primary\s*'$version)" ]
@@ -384,7 +386,7 @@ cd $(dirname $0)
 source cookbook_include.sh
 
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 
 if [ -n "$(dbdeployer sandboxes | grep 'group-single-primary\s*'$version)" ]
@@ -402,7 +404,7 @@ cd $(dirname $0)
 source cookbook_include.sh
 
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 
 if [ -z "$(dbdeployer sandboxes | grep 'master-slave\s*'$version)" ]
@@ -458,7 +460,7 @@ cd $(dirname $0)
 source cookbook_include.sh
 
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 
 if [ -z "$(dbdeployer sandboxes | grep 'master-slave\s*'$version)" ]
@@ -553,10 +555,10 @@ function upgrade_db {
     fi
 }
 
-ver_55={{.Latest5_5}}
-ver_56={{.Latest5_6}}
-ver_57={{.Latest5_7}}
-ver_80={{.Latest8_0}}
+ver_55=$(dbdeployer info version 5.5)
+ver_56=$(dbdeployer info version 5.6)
+ver_57=$(dbdeployer info version 5.7)
+ver_80=$(dbdeployer info version 8.0)
 
 for ver in $ver_55 $ver_56 $ver_57 $ver_80
 do
@@ -577,9 +579,9 @@ var tidbDeployment string = `#!{{.ShellPath}}
 cd $(dirname $0)
 source cookbook_include.sh
 
-tidb_version={{.LatestVersion}}
+tidb_version=$(dbdeployer info version)
 tidb_postfix=$(echo $tidb_version | tr '.' '_')
-client_version={{.Latest5_7}}
+client_version=$(dbdeployer info version 5.7)
 single_path=msb_$tidb_postfix
 multiple_path=multi_msb_$tidb_postfix
 if [ ! -d $SANDBOX_BINARY/$tidb_version ]
@@ -658,7 +660,7 @@ cd $recipes_dir
 source cookbook_include.sh
 
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version --flavor=ndb)
 check_version $version
 
 if [ -n "$(dbdeployer sandboxes | grep 'ndb\s*'$version)" ]
@@ -684,7 +686,7 @@ then
 fi
 
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version --flavor=pxc)
 check_version $version
 
 if [ -n "$(dbdeployer sandboxes | grep 'pxc\s*'$version)" ]
@@ -724,7 +726,7 @@ function get_prerequisites_linux {
     echo "# run the commands: "
     echo ""
     echo "1. dbdeployer downloads list"
-    echo "2. dbdeployer downloads get-by-version 5.7 --newest --minimal
+    echo "2. dbdeployer downloads get-by-version 5.7 --newest --minimal"
     echo "3. dbdeployer unpack mysql-5.7.26.tar.xz"
     echo ""
     echo "4. dbdeployer versions"
@@ -741,7 +743,7 @@ function get_prerequisites_darwin {
     echo "# 1a. Get the binaries from https://dev.mysql.com/downloads"
 	echo "  dbdeployer downloads get mysql-5.7.26-macos10.14-x86_64.tar.gz "
 	echo "  dbdeployer downloads get mysql-8.0.16-macos10.14-x86_64.tar.gz "
-	echo "  dbdeployer downloads get-by-version 8.0 --newest
+	echo "  dbdeployer downloads get-by-version 8.0 --newest"
     echo "# or"
     echo "# 1b. Get the binaries from the MySQL fork download pages"
     echo "# run the commands:"
@@ -787,7 +789,7 @@ cd $(dirname $0)
 source cookbook_include.sh
 
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 path_version=$(echo $version | tr '.' '_')
 
@@ -824,7 +826,7 @@ cd $(dirname $0)
 source cookbook_include.sh
 
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 path_version=$(echo $version | tr '.' '_')
 
@@ -840,6 +842,9 @@ run dbdeployer deploy replication $version --topology=master-slave --concurrent 
     -c log-slave-updates
 
 run dbdeployer sandboxes --full-info
+
+gtid_executed=$($SANDBOX_HOME/$master_slave2/m -BN -e 'select @@global.gtid_executed')
+$SANDBOX_HOME/$master_slave1/m -e "set global gtid_purged='$gtid_executed'"
 
 run $SANDBOX_HOME/$master_slave1/replicate_from $master_slave2
 
@@ -864,7 +869,7 @@ cd $(dirname $0)
 source cookbook_include.sh
 
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version --flavor=ndb)
 check_version $version
 path_version=$(echo $version | tr '.' '_')
 
@@ -909,9 +914,9 @@ ver_master=$1
 ver_slave1=$2
 ver_slave2=$3
 
-[ -z "$ver_master" ] && ver_master={{.Latest5_6}}
-[ -z "$ver_slave1" ] && ver_slave1={{.Latest5_7}}
-[ -z "$ver_slave2" ] && ver_slave2={{.Latest8_0}}
+[ -z "$ver_master" ] && ver_master=$(dbdeployer info version 5.6)
+[ -z "$ver_slave1" ] && ver_slave1=$(dbdeployer info version 5.7)
+[ -z "$ver_slave2" ] && ver_slave2=$(dbdeployer info version 5.8)
 
 for ver in $ver_master $ver_slave1 $ver_slave2
 do
@@ -960,7 +965,7 @@ cd $(dirname $0)
 source cookbook_include.sh
 
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 path_version=$(echo $version | tr '.' '_')
 
@@ -974,6 +979,9 @@ run dbdeployer deploy single $version --master --gtid \
         --sandbox-directory=$single2 --port-as-server-id
 
 run dbdeployer sandboxes --full-info
+
+gtid_executed=$($SANDBOX_HOME/$single2/use -BN -e 'select @@global.gtid_executed')
+$SANDBOX_HOME/$single1/use -e "set global gtid_purged='$gtid_executed'"
 
 run $SANDBOX_HOME/$single1/replicate_from $single2
 
@@ -996,7 +1004,7 @@ cd $(dirname $0)
 source cookbook_include.sh
 
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 path_version=$(echo $version | tr '.' '_')
 
@@ -1051,7 +1059,7 @@ var replicationSingleGroup string = `#!{{.ShellPath}}
 cd $(dirname $0)
 source cookbook_include.sh
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 path_version=$(echo $version | tr '.' '_')
 
@@ -1061,10 +1069,16 @@ single=msb_${path_version}
 run dbdeployer deploy replication $version --topology=group --concurrent \
         --port-as-server-id --sandbox-directory=$group
 
-run dbdeployer deploy single $version --master --gtid \
+run dbdeployer deploy single $version --master \
         --sandbox-directory=$single
 
 run dbdeployer sandboxes --full-info
+(set -x
+$SANDBOX_HOME/$single/use -e 'set global enforce_gtid_consistency=on'
+$SANDBOX_HOME/$single/use -e 'set global gtid_mode=off_permissive'
+$SANDBOX_HOME/$single/use -e 'set global gtid_mode=on_permissive'
+$SANDBOX_HOME/$single/use -e 'set global gtid_mode=on'
+)
 
 run $SANDBOX_HOME/$group/replicate_from $single
 
@@ -1088,7 +1102,7 @@ cd $(dirname $0)
 source cookbook_include.sh
 
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 path_version=$(echo $version | tr '.' '_')
 
@@ -1124,7 +1138,7 @@ cd $(dirname $0)
 source cookbook_include.sh
 
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 path_version=$(echo $version | tr '.' '_')
 group=group_msb_${path_version}
@@ -1166,7 +1180,7 @@ cd $(dirname $0)
 source cookbook_include.sh
 
 version=$1
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 path_version=$(echo $version | tr '.' '_')
 
@@ -1180,12 +1194,24 @@ run dbdeployer deploy replication $version --topology=group \
 
 run dbdeployer deploy replication $version --topology=master-slave \
     --concurrent \
-    --gtid \
     --sandbox-directory=$ms \
     --port-as-server-id \
     -c log-slave-updates
 
 run dbdeployer sandboxes --full-info
+
+sleep 3
+(set -x
+$SANDBOX_HOME/$ms/use_all_slaves 'stop slave'
+$SANDBOX_HOME/$ms/use_all 'set global enforce_gtid_consistency=on'
+$SANDBOX_HOME/$ms/use_all 'set global gtid_mode=off_permissive'
+sleep 1
+$SANDBOX_HOME/$ms/use_all 'set global gtid_mode=on_permissive'
+sleep 1
+$SANDBOX_HOME/$ms/use_all 'set global gtid_mode=on'
+sleep 1
+$SANDBOX_HOME/$ms/use_all_slaves 'start slave'
+)
 
 run $SANDBOX_HOME/$group/replicate_from $ms
 
@@ -1208,7 +1234,7 @@ var newName string = `#!{{.ShellPath}}
 # Generated by dbdeployer {{.AppVersion}} using template {{.TemplateName}} on {{.DateTime}}
 cd $(dirname $0)
 source cookbook_include.sh
-[ -z "$version" ] && version={{.LatestVersion}}
+[ -z "$version" ] && version=$(dbdeployer info version)
 check_version $version
 path_version=$(echo $version | tr '.' '_')
 `

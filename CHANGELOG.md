@@ -1,3 +1,9 @@
+## 1.43.1	22-Dec-2019 
+
+## BUGS FIXED
+
+* Fix determination of shell interpreter
+
 ## 1.43.0	10-Nov-2019 
 
 ## ADJUSTMENTS
@@ -6,7 +12,8 @@
 
 ## BUGS FIXED
 
-* Fix hanging during library check
+* Fix for hanging during library check (Issue #99)
+* Fix determination of shell interpreter
 
 ## 1.42.0	01-Nov-2019 
 
@@ -24,9 +31,9 @@
 
 ###	NEW FEATURES
 * dbdeployer can guess the next downloadable version with the command
-  "dbdeployer downloads get-by-version 8.0 --guess-latest"
+  `dbdeployer downloads get-by-version 8.0 --guess-latest`
   or
-  "dbdeployer downloads get-by-version 5.7 --guess-latest"
+  `dbdeployer downloads get-by-version 5.7 --guess-latest`
 	
 ###	BUGS FIXED
 * Issue #95 mismatched values in fan-in when using nodes > 3
