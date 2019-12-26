@@ -58,9 +58,9 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.42.0
+    $ VERSION=1.43.1
     $ OS=linux
-    $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
+    $ origin=https://github.com/datacharmer/dbdeployer/releases/download/$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
     $ tar -xzf dbdeployer-$VERSION.$OS.tar.gz
     $ chmod +x dbdeployer-$VERSION.$OS
