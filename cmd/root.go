@@ -114,6 +114,11 @@ func checkDefaultsFile() {
 			fmt.Println("Tarball list not loaded. Using defaults. Correct the issues listed above before using again.")
 		}
 	}
+	err = downloads.CheckTarballList(downloads.DefaultTarballRegistry.Tarballs)
+	if err != nil {
+		fmt.Printf("tarball list check failed: %s\n", err)
+		os.Exit(1)
+	}
 }
 
 func customizeFlags(cmd *cobra.Command, cmdName string) {

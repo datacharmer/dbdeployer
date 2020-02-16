@@ -381,7 +381,7 @@ baredir=$(basename $SBDIR)
 
 node_status=off
 exit_code=0
-if [ -f $PIDFILE ]
+if [ -f $PIDFILE -a -z "$SB_MOCKING" ]
 then
     MYPID=$(cat $PIDFILE)
     running=$(ps -p $MYPID | grep $MYPID)
@@ -492,7 +492,9 @@ create role if not exists R_DO_IT_ALL;
 create role if not exists R_READ_WRITE;
 create role if not exists R_READ_ONLY;
 create role if not exists R_REPLICATION;
+create role if not exists {{.CustomRoleName}};
 
+grant {{.CustomRolePrivileges}} on {{.CustomRoleTarget}} to {{.CustomRoleName}} {{.CustomRoleExtra}};
 grant all on *.* to R_DO_IT_ALL;
 grant SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,INDEX,ALTER,
     SHOW DATABASES,CREATE TEMPORARY TABLES,LOCK TABLES, EXECUTE
@@ -503,11 +505,11 @@ grant REPLICATION SLAVE on *.* to R_REPLICATION;
 create user {{.DbUser}}@'{{.RemoteAccess}}' identified by '{{.DbPassword}}';
 create user {{.DbUser}}@'localhost' identified by '{{.DbPassword}}';
 
-grant R_DO_IT_ALL to {{.DbUser}}@'{{.RemoteAccess}}' ;
-set default role R_DO_IT_ALL to {{.DbUser}}@'{{.RemoteAccess}}';
+grant {{.DefaultRole}} to {{.DbUser}}@'{{.RemoteAccess}}' ;
+set default role {{.DefaultRole}} to {{.DbUser}}@'{{.RemoteAccess}}';
 
-grant R_DO_IT_ALL to {{.DbUser}}@'localhost' ;
-set default role R_DO_IT_ALL to {{.DbUser}}@'localhost';
+grant {{.DefaultRole}} to {{.DbUser}}@'localhost' ;
+set default role {{.DefaultRole}} to {{.DbUser}}@'localhost';
 
 create user msandbox_rw@'localhost' identified by '{{.DbPassword}}';
 create user msandbox_rw@'{{.RemoteAccess}}' identified by '{{.DbPassword}}';

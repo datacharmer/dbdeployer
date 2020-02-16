@@ -20,22 +20,24 @@ type GuessInfo struct {
 }
 
 var (
-	DownloadUrlList = map[string]string{
+	downloadUrlList = map[string]string{
 		"5.7": "https://dev.mysql.com/get/Downloads/MySQL-5.7",
 		"8.0": "https://dev.mysql.com/get/Downloads/MySQL-8.0",
 	}
-	FileNameTemplates = map[string]string{
+	fileNameTemplates = map[string]string{
 		"linux":  "mysql-{{.Version}}-linux-x86_64-minimal.{{.Ext}}",
-		"darwin": "mysql-{{.Version}}-macos10.14-x86_64.{{.Ext}}",
+		"darwin": "mysql-{{.Version}}-macos10.15-x86_64.{{.Ext}}",
 	}
-	Extensions = map[string]map[string]string{
-		"linux": {
-			"5.7": "tar.gz",
-			"8.0": "tar.xz",
-		},
-		"darwin": {
-			"5.7": "tar.gz",
-			"8.0": "tar.gz",
-		},
-	}
+	/*
+		Extensions = map[string]map[string]string{
+			"linux": {
+				"5.7": "tar.gz",
+				"8.0": "tar.xz",
+			},
+			"darwin": {
+				"5.7": "tar.gz",
+				"8.0": "tar.gz",
+			},
+		}
+	*/
 )

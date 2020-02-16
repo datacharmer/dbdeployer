@@ -408,6 +408,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 			{globals.ScriptClearAll, "clear_all_template", true},
 			{globals.ScriptSendKillAll, "send_kill_all_template", true},
 			{globals.ScriptUseAll, "use_all_template", true},
+			{globals.ScriptMetadataAll, "metadata_all_template", true},
 			{useAllSlaves, "use_all_slaves_template", true},
 			{useAllMasters, "use_all_masters_template", true},
 			{initializeSlaves, "init_slaves_template", true},

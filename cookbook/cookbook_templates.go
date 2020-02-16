@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -873,35 +873,38 @@ version=$1
 check_version $version
 path_version=$(echo $version | tr '.' '_')
 
-ndb1=ndb_${path_version}_1
-ndb2=ndb_${path_version}_2
+alpha=alpha_${path_version}
+bravo=bravo_${path_version}
 
 run dbdeployer deploy replication $version --topology=ndb  \
-        --port-as-server-id --sandbox-directory=$ndb1 \
+        --port-as-server-id --sandbox-directory=$alpha \
         -c ndb-log-bin \
         --concurrent
 
 run dbdeployer deploy replication $version --topology=ndb  \
-        --port-as-server-id --sandbox-directory=$ndb2 \
+        --port-as-server-id --sandbox-directory=$bravo \
         -c ndb-log-bin \
         --concurrent
 
 run dbdeployer sandboxes --full-info
 
-run $SANDBOX_HOME/$ndb1/replicate_from $ndb2
+run $SANDBOX_HOME/$bravo/replicate_from $alpha
 
-echo "# Inserting data in $ndb2 node1"
+echo "# Inserting data in $alpha node1"
 (set -x
-$SANDBOX_HOME/$ndb2/n1 -e 'create table if not exists test.t1 (id int not null primary key, server_id int ) engine=ndbcluster'
-$SANDBOX_HOME/$ndb2/n1 -e 'insert into test.t1 values (1, @@server_id)'
+$SANDBOX_HOME/$alpha/n1 -e 'create schema if not exists new_db'
+$SANDBOX_HOME/$alpha/n1 -e 'create table if not exists new_db.ndbt1 (id int not null primary key, server_id int ) engine=ndbcluster'
+$SANDBOX_HOME/$alpha/n1 -e 'insert into new_db.ndbt1 values (1, @@server_id)'
 )
 
 sleep 3
-echo "# Retrieving data from one of $ndb1 nodes"
+echo "# Retrieving data from one of $bravo nodes"
 echo "# At this point, the data was replicated twice"
 (set -x
-$SANDBOX_HOME/$ndb1/n2 -e 'select *, @@port from test.t1'
+$SANDBOX_HOME/$bravo/n2 -e 'select *, @@port from new_db.ndbt1'
 )
+$SANDBOX_HOME/$alpha/use_all 'show tables from new_db'
+$SANDBOX_HOME/$bravo/use_all 'show tables from new_db'
 `
 
 var replicationBetweenDiffVersions string = `#!{{.ShellPath}}

@@ -91,4 +91,9 @@ func init() {
 	setPflag(deployCmd, globals.HistoryDirLabel, "", "", "", "Where to store mysql client history (default: in sandbox directory)", false)
 	setPflag(deployCmd, globals.FlavorLabel, "", "", "", "Defines the tarball flavor (MySQL, NDB, Percona Server, etc)", false)
 	setPflag(deployCmd, globals.ClientFromLabel, "", "", "", "Where to get the client binaries from", false)
+	setPflag(deployCmd, globals.DefaultRoleLabel, "", "", "R_DO_IT_ALL", "Which role to assign to default user (8.0+)", false)
+	setPflag(deployCmd, globals.CustomRoleNameLabel, "", "", "R_CUSTOM", "Name for custom role (8.0+)", false)
+	setPflag(deployCmd, globals.CustomRolePrivilegesLabel, "", "", "ALL PRIVILEGES", "Privileges for custom role (8.0+)", false)
+	setPflag(deployCmd, globals.CustomRoleTargetLabel, "", "", "*.*", "Target for custom role (8.0+)", false)
+	setPflag(deployCmd, globals.CustomRoleExtraLabel, "", "", "WITH GRANT OPTION", "Extra instructions for custom role (8.0+)", false)
 }

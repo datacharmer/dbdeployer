@@ -365,3 +365,21 @@ func LatestVersion(searchDir, pattern string) string {
 	}
 	return ""
 }
+
+func OptionComponents(s string) (value string, negation bool) {
+	reNegation := regexp.MustCompile(`^(?:!|no-|not-)(\S+)`)
+	valueList := reNegation.FindAllStringSubmatch(s, -1)
+	if len(valueList) == 0 || len(valueList[0]) == 0 {
+		return s, false
+	}
+	return valueList[0][1], true
+}
+
+func OptionCompare(option, value string) bool {
+	optionValue, negation := OptionComponents(option)
+	matches := optionValue == value
+	if negation {
+		matches = !matches
+	}
+	return matches
+}

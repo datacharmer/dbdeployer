@@ -481,6 +481,28 @@ function test_custom_credentials {
     check_for_exit test_custom_credentials
 }
  
+function test_role {
+    running_version=$1
+    latest_version=$2
+    if [ "$running_version" != "$latest_version" ]
+    then
+        return
+    fi
+    group_dir_name=$3
+    custom_role=$4
+    version_path=$(echo $running_version| tr '.' '_')
+    test_header test_role "${group_dir_name}${version_path}"
+    sb_path=$SANDBOX_HOME/${group_dir_name}${version_path}
+
+    role_user=$($sb_path/n1 -BNe "select distinct user from mysql.default_roles where DEFAULT_ROLE_USER='$custom_role'")
+    db_user=$($sb_path/n1 -BNe 'select substring_index(user(), "@", 1)')
+    ok "role user found" "$role_user"
+    ok "db user found" "$db_user"
+    ok_equal "db user matches role user" "$db_user" "$role_user"
+
+    check_for_exit test_role
+}
+
 function test_uuid {
     running_version=$1
     group_dir_name=$2
@@ -1308,8 +1330,20 @@ function group_operations {
     current_test=group_operations
     test_header group_operations "" double
     processes_before=$(pgrep mysqld | wc -l | tr -d ' \t')
+
+    custom_role=R_GROUP
+    role_options="--custom-role-name=$custom_role --default-role=$custom_role"
+    latest_8_version=$(dbdeployer info version 8.0)
     for V in ${group_versions[*]}
     do
+        search_role=$custom_role
+        extra=""
+        if [ "$V" == "$latest_8_version" ]
+        then
+            extra=$role_options
+        else
+            search_role=R_CUSTOM
+        fi
         echo "# Group operations $V"
         mysqld_debug=$SANDBOX_BINARY/$V/bin/mysqld-debug
         plugin_debug=$SANDBOX_BINARY/$V/lib/plugin/debug
@@ -1319,15 +1353,17 @@ function group_operations {
         else
             WITH_DEBUG=""
         fi
-        run dbdeployer deploy replication $V --topology=group
+        run dbdeployer deploy replication $V --topology=group $extra
         run dbdeployer deploy replication $V --topology=group \
-            --single-primary $WITH_DEBUG
+            --single-primary $WITH_DEBUG $extra
         results "group $V"
 
         capture_test run dbdeployer global test
         capture_test run dbdeployer global test-replication
         test_uuid $V group_msb_ 1
         test_uuid $V group_sp_msb_ 1
+        test_role $V "$latest_8_version" group_msb_ $search_role
+        test_role $V "$latest_8_version" group_sp_msb_ $search_role
         test_use_masters_slaves $V group_msb_ 3 3
         test_use_masters_slaves $V group_sp_msb_ 1 2
         test_ports $V group_msb_ 6 3
@@ -1342,22 +1378,35 @@ function multi_source_operations {
     current_test=multi_source_operations
     test_header multi_source_operations "" double
     processes_before=$(pgrep mysqld | wc -l | tr -d ' \t')
+    custom_role=R_MULTI
+    role_options="--custom-role-name=$custom_role --default-role=$custom_role"
+    latest_8_version=$(dbdeployer info version 8.0)
     for V in ${group_versions[*]}
     do
+        search_role=$custom_role
+        extra=""
+        if [ "$V" == "$latest_8_version" ]
+        then
+            extra=$role_options
+        else
+            search_role=R_CUSTOM
+        fi
         echo "# Multi-source operations $V"
         v_path=$(echo $V| tr '.' '_')
-        run dbdeployer deploy replication $V --topology=fan-in
+        run dbdeployer deploy replication $V --topology=fan-in $extra
         run dbdeployer deploy replication $V --topology=fan-in \
             --sandbox-directory=fan_in_msb2_$v_path \
             --base-port=31000 \
             --nodes=4 \
             --master-list='1,2' \
-            --slave-list='3:4'
-        run dbdeployer deploy replication $V --topology=all-masters
+            --slave-list='3:4' $extra
+        run dbdeployer deploy replication $V --topology=all-masters $extra
         results "multi-source"
 
         capture_test run dbdeployer global test
         capture_test run dbdeployer global test-replication
+        test_role $V "$latest_8_version" fan_in_msb_ $search_role
+        test_role $V "$latest_8_version" all_masters_msb_ $search_role
         test_uuid $V fan_in_msb_ 1
         test_uuid $V all_masters_msb_ 1
         test_ports $V fan_in_msb_ 3 3

@@ -229,7 +229,7 @@ func TestExportImport(t *testing.T) {
 			subCommandName:      "",
 			expectedName:        "global",
 			expectedAncestors:   2,
-			expectedSubCommands: 7,
+			expectedSubCommands: 8,
 			expectedArgument:    "",
 		},
 		{

@@ -69,6 +69,7 @@ func SetMockEnvironment(mockUpperDir string) error {
 	os.Setenv("SANDBOX_BINARY", mockSandboxBinary)
 	os.Setenv("HOME", home)
 	os.Setenv("SLEEP_TIME", "0")
+	os.Setenv("SB_MOCKING", "1")
 	defaults.ResetDefaults()
 	defaults.ConfigurationDir = path.Join(home, defaults.ConfigurationDirName)
 	defaults.ConfigurationFile = path.Join(home, defaults.ConfigurationDirName, defaults.ConfigurationFileName)

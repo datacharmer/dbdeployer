@@ -1,16 +1,42 @@
-## 1.43.1	22-Dec-2019 
+## 1.44.0	16-Feb-2020
 
-## BUGS FIXED
+### NEW FEATURES
+
+* Add custom role to 8.0 sandboxes
+* Add role related options: `--default-role`, `--custom-role-name`, `--custom-role-privileges`,
+  `--custom-role-target`, `--custom-role-extra`
+* Add filters to `global` command:
+  `--type`, `--flavor`, `--version`, `--short-version`, `--name`, `--port`, `--port-range`.
+  Each option can also be negated (`--type='!single'`, `--flavor=no-mysql`, `--port='!8019'`)
+* Add verbose and dry-run flags to `global`.
+* Add `metadata_all_template` script to composite sandboxes
+* Add command `downloads add`
+* Add tarballs for 5.7.29, 8.0.19 for MySQL and NDB (Linux and MacOS)
+
+### TESTING
+
+* Add test for tarball integrity and reachability
+
+## 1.43.2	31-Jan-2020 (not released)
+
+### BUGS FIXED
+
+* Fix bug in NDB cluster: the cluster name was not reported correctly
+  in the NDB configuration file
+
+## 1.43.1	22-Dec-2019
+
+### BUGS FIXED
 
 * Fix determination of shell interpreter
 
 ## 1.43.0	10-Nov-2019 
 
-## ADJUSTMENTS
+### ADJUSTMENTS
 * Add 'IF NOT EXISTS' to 'CREATE ROLE', to account to changed
   behavior of NDB server in 8.0.18
 
-## BUGS FIXED
+### BUGS FIXED
 
 * Fix for hanging during library check (Issue #99)
 

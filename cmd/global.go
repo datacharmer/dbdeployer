@@ -18,17 +18,60 @@ package cmd
 import (
 	"fmt"
 	"path"
+	"regexp"
+	"strings"
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/spf13/cobra"
 )
 
+func getRange(s string) (min, max int, negation bool, err error) {
+	if s == "" {
+		return 0, 0, false, nil
+	}
+	value, negate := common.OptionComponents(s)
+	reRange := regexp.MustCompile(`(\d+)[.,:-](\d+)`)
+	rangeList := reRange.FindAllStringSubmatch(value, -1)
+	if len(rangeList) == 0 || len(rangeList[0]) == 0 {
+		return 0, 0, false, fmt.Errorf("error detecting range. Expected format: xxxx-xxxx")
+	}
+	minText := rangeList[0][1]
+	maxText := rangeList[0][2]
+	min = common.Atoi(minText)
+	max = common.Atoi(maxText)
+	if min > max {
+		return 0, 0, false, fmt.Errorf("minimum value (%d) is greater than maximum value (%d)", min, max)
+	}
+	negation = negate
+	return
+}
+
 func globalRunCommand(cmd *cobra.Command, executable string, args []string, requireArgs bool, skipMissing bool) {
 	sandboxDir, err := getAbsolutePathFromFlag(cmd, "sandbox-home")
 	common.ErrCheckExitf(err, 1, "error defining absolute path for 'sandbox-home'")
 	sandboxList, err := common.GetInstalledSandboxes(sandboxDir)
 	common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList, err)
+	flags := cmd.Flags()
+	sbFlavor, _ := flags.GetString(globals.FlavorLabel)
+	sbPortOpt, _ := flags.GetString(globals.PortLabel)
+	sbType, _ := flags.GetString(globals.TypeLabel)
+	sbName, _ := flags.GetString(globals.NameLabel)
+	sbVersion, _ := flags.GetString(globals.VersionLabel)
+	sbShortVersion, _ := flags.GetString(globals.ShortVersionLabel)
+	sbPortRange, _ := flags.GetString(globals.PortRangeLabel)
+	verbose, _ := flags.GetBool(globals.VerboseLabel)
+	dryRun, _ := flags.GetBool(globals.DryRunLabel)
+	sbPortValue, sbPortNegation := common.OptionComponents(sbPortOpt)
+	sbPort := 0
+	if sbPortValue != "" {
+		sbPort = common.Atoi(sbPortValue)
+	}
+	minPort, maxPort, sbPortRangeNegation, err := getRange(sbPortRange)
+	if err != nil {
+		common.Exitf(1, "error getting ports range: %s", err)
+
+	}
 	runList := common.SandboxInfoToFileNames(sandboxList)
 	if len(runList) == 0 {
 		common.Exitf(1, "no sandboxes found in %s", sandboxDir)
@@ -36,9 +79,92 @@ func globalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 	if requireArgs && len(args) < 1 {
 		common.Exitf(1, "arguments required for command %s", executable)
 	}
+	var sbDescription common.SandboxDescription
 	for _, sb := range runList {
 		singleUse := true
 		fullDirPath := path.Join(sandboxDir, sb)
+		sbDescription, err = common.ReadSandboxDescription(fullDirPath)
+		if err != nil {
+			common.Exitf(1, "error reading sandbox description from %s", fullDirPath)
+			return
+		}
+		if sbFlavor != "" {
+			if !common.OptionCompare(sbFlavor, sbDescription.Flavor) { // sbDescription.Flavor != sbFlavor {
+				if verbose {
+					common.CondPrintf("Skipping %s of flavor %s \n", sb, sbDescription.Flavor)
+				}
+				continue
+			}
+		}
+		if sbType != "" {
+			if !common.OptionCompare(sbType, sbDescription.SBType) {
+				if verbose {
+					common.CondPrintf("Skipping %s of type %s \n", sb, sbDescription.SBType)
+				}
+				continue
+			}
+		}
+		if sbVersion != "" {
+			if !common.OptionCompare(sbVersion, sbDescription.Version) {
+				if verbose {
+					common.CondPrintf("Skipping %s of version %s \n", sb, sbDescription.Version)
+				}
+				continue
+			}
+		}
+		shortVersionList := strings.Split(sbDescription.Version, ".")
+		shortVersion := fmt.Sprintf("%s.%s", shortVersionList[0], shortVersionList[1])
+		if sbShortVersion != "" {
+			if !common.OptionCompare(sbShortVersion, shortVersion) {
+				if verbose {
+					common.CondPrintf("Skipping %s of short version %s \n", sb, shortVersion)
+				}
+				continue
+			}
+		}
+		if sbName != "" {
+			if !common.OptionCompare(sbName, sb) {
+				if verbose {
+					common.CondPrintf("Skipping %s (name) \n", sb)
+				}
+				continue
+			}
+		}
+		if sbPort != 0 {
+			found := false
+			for _, port := range sbDescription.Port {
+				if port == sbPort {
+					found = true
+				}
+			}
+			if sbPortNegation {
+				found = !found
+			}
+			if !found {
+				if verbose {
+					common.CondPrintf("Skipping %s - port not found \n", sb)
+				}
+				continue
+			}
+		}
+		if minPort > 0 && maxPort > 0 {
+			found := false
+			for _, port := range sbDescription.Port {
+				if port >= minPort && port <= maxPort {
+					found = true
+				}
+			}
+			if sbPortRangeNegation {
+				found = !found
+			}
+			if !found {
+				if verbose {
+					common.CondPrintf("Skipping %s - port range not matched \n", sb)
+				}
+				continue
+			}
+		}
+
 		cmdFile := path.Join(fullDirPath, executable)
 		realExecutable := executable
 		if !common.ExecExists(cmdFile) {
@@ -61,12 +187,22 @@ func globalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 		cmdArgs = append(cmdArgs, args...)
 		var err error
 		common.CondPrintf("# Running \"%s\" on %s\n", realExecutable, sb)
-		if len(cmdArgs) > 0 {
-			_, err = common.RunCmdWithArgs(cmdFile, cmdArgs)
+		if dryRun {
+			argsStr := ""
+			for _, elem := range cmdArgs {
+				argsStr += " " + elem
+			}
+
+			common.CondPrintf("would run '%s %s'\n", cmdFile, argsStr)
 		} else {
-			_, err = common.RunCmd(cmdFile)
+
+			if len(cmdArgs) > 0 {
+				_, err = common.RunCmdWithArgs(cmdFile, cmdArgs)
+			} else {
+				_, err = common.RunCmd(cmdFile)
+			}
+			common.ErrCheckExitf(err, 1, "error while running %s\n", cmdFile)
 		}
-		common.ErrCheckExitf(err, 1, "error while running %s\n", cmdFile)
 		fmt.Println("")
 	}
 }
@@ -99,6 +235,10 @@ func useAllSandboxes(cmd *cobra.Command, args []string) {
 	globalRunCommand(cmd, globals.ScriptUse, args, true, false)
 }
 
+func metadataAllSandboxes(cmd *cobra.Command, args []string) {
+	globalRunCommand(cmd, globals.ScriptMetadata, args, true, false)
+}
+
 var (
 	globalCmd = &cobra.Command{
 		Use:   "global",
@@ -107,7 +247,13 @@ var (
 		Example: `
 	$ dbdeployer global use "select version()"
 	$ dbdeployer global status
-	$ dbdeployer global stop
+	$ dbdeployer global stop --version=5.7.27
+	$ dbdeployer global stop --short-version=8.0
+	$ dbdeployer global stop --short-version='!8.0' # or --short-version=no-8.0
+	$ dbdeployer global status --port-range=5000-8099
+	$ dbdeployer global start --flavor=percona
+	$ dbdeployer global start --flavor='!percona' --type=single
+	$ dbdeployer global metadata version --flavor='!percona' --type=single
 	`,
 	}
 
@@ -165,6 +311,16 @@ For example, a query using @@port won't run in MySQL 5.0.x`,
 		Run:         useAllSandboxes,
 		Annotations: map[string]string{"export": ExportAnnotationToJson(StringExport)},
 	}
+
+	globalMetadataCmd = &cobra.Command{
+		Use:   "metadata {keyword}",
+		Short: "Runs a metadata query in all sandboxes",
+		Long:  `Runs a metadata query in all sandboxes`,
+		Example: `
+	$ dbdeployer global metadata `,
+		Run:         metadataAllSandboxes,
+		Annotations: map[string]string{"export": ExportAnnotationToJson(StringExport)},
+	}
 )
 
 func init() {
@@ -176,5 +332,15 @@ func init() {
 	globalCmd.AddCommand(globalTestCmd)
 	globalCmd.AddCommand(globalTestReplicationCmd)
 	globalCmd.AddCommand(globalUseCmd)
+	globalCmd.AddCommand(globalMetadataCmd)
 
+	setPflag(globalCmd, globals.VersionLabel, "", "", "", "Runs command only in sandboxes of the given version", false)
+	setPflag(globalCmd, globals.ShortVersionLabel, "", "", "", "Runs command only in sandboxes of the given short version", false)
+	setPflag(globalCmd, globals.FlavorLabel, "", "", "", "Runs command only in sandboxes of the given flavor", false)
+	setPflag(globalCmd, globals.TypeLabel, "", "", "", "Runs command only in sandboxes of the given type", false)
+	setPflag(globalCmd, globals.NameLabel, "", "", "", "Runs command only in sandboxes of the given name", false)
+	setPflag(globalCmd, globals.PortRangeLabel, "", "", "", "Runs command only in sandboxes containing a port in the given range", false)
+	globalCmd.PersistentFlags().String(globals.PortLabel, "", "Runs commands only in sandboxes containing the given port")
+	globalCmd.PersistentFlags().Bool(globals.VerboseLabel, false, "Show what is matched when filters are used")
+	globalCmd.PersistentFlags().Bool(globals.DryRunLabel, false, "Show what would be executed, without doing it")
 }

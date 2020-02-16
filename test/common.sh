@@ -582,6 +582,8 @@ function test_completeness {
         sbdir=$SANDBOX_HOME/$dir_name$version_path
     fi
     base_scripts=(use start stop restart add_option send_kill clear test_sb status)
+    single_scripts=(metadata load_grants init_db metadata add_option my)
+    replication_scripts=(replicate_from initialize_slaves)
     script_postfix=""
     folders=(data tmp)
     non_scripts=(data/msandbox.err sbdescription.json )
@@ -591,7 +593,7 @@ function test_completeness {
     fi
     case  "$mode" in
         single)
-            scripts=( "${base_scripts[@]}" )
+            scripts=( "${base_scripts[@]}" "${single_scripts[@]}" )
             ;;
         multiple)
             scripts=( "${base_scripts[@]}" )

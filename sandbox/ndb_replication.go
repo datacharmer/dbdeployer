@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -144,7 +144,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		"EngineClause":  "engine=ndbcluster",
 		"ClientBasedir": sandboxDef.ClientBasedir,
 		"Copyright":     globals.ShellScriptCopyright,
-		"ClusterName":   fmt.Sprintf("%s_%s", defaults.Defaults().NdbPrefix, sandboxDef.Version),
+		"ClusterName":   common.BaseName(sandboxDef.SandboxDir),
 		"AppVersion":    common.VersionDef,
 		"DateTime":      timestamp.Format(time.UnixDate),
 		"SandboxDir":    sandboxDef.SandboxDir,
@@ -343,6 +343,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 			{globals.ScriptClearAll, "clear_multi_template", true},
 			{globals.ScriptSendKillAll, "send_kill_multi_template", true},
 			{globals.ScriptUseAll, "use_multi_template", true},
+			{globals.ScriptMetadataAll, "metadata_multi_template", true},
 			{globals.ScriptReplicateFrom, "replicate_from_multi_template", true},
 		},
 	}

@@ -44,6 +44,8 @@ mkdir -p $SANDBOX_BINARY
 mkdir $SANDBOX_HOME
 mkdir $SANDBOX_TARBALL
 
+export PS1='[mock \W] $ '
+
 function make_dir {
     dir=$1
     if [ ! -d $dir ]

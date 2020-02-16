@@ -6,6 +6,7 @@ require (
 	github.com/alexeyco/simpletable v0.0.0-20180729223640-1fa9009f1080
 	github.com/dustin/go-humanize v1.0.0
 	github.com/go-sql-driver/mysql v1.4.1
+	// github.com/kr/pretty v0.2.0
 	github.com/nightlyone/lockfile v0.0.0-20180618180623-0ad87eef1443
 	github.com/pkg/errors v0.0.0-20180911062113-c059e472caf7
 	github.com/spf13/cobra v0.0.5

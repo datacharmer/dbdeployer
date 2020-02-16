@@ -29,41 +29,6 @@ import (
 	"github.com/datacharmer/dbdeployer/unpack"
 )
 
-// Tries to detect the database flavor from tarball name
-func detectTarballFlavor(tarballName string) string {
-	flavor := ""
-	flavorsRegexps := map[string]string{
-		common.PerconaServerFlavor: `Percona-Server`,
-		common.MariaDbFlavor:       `mariadb`,
-		common.NdbFlavor:           `mysql-cluster`,
-		common.TiDbFlavor:          `tidb`,
-		common.PxcFlavor:           `Percona-XtraDB-Cluster`,
-		common.MySQLShellFlavor:    `mysql-shell`,
-		common.MySQLFlavor:         `mysql`,
-	}
-
-	// Flavors must be evaluated in order, or else
-	// "mysql-cluster" may be detected as "mysql"
-	flavorDetectionList := []string{
-		common.PerconaServerFlavor,
-		common.MariaDbFlavor,
-		common.NdbFlavor,
-		common.TiDbFlavor,
-		common.PxcFlavor,
-		common.MySQLShellFlavor,
-		common.MySQLFlavor,
-	}
-
-	for _, key := range flavorDetectionList {
-		value := flavorsRegexps[key]
-		re := regexp.MustCompile(value)
-		if re.MatchString(tarballName) {
-			return key
-		}
-	}
-	return flavor
-}
-
 func unpackTarball(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	Basedir, err := getAbsolutePathFromFlag(cmd, "sandbox-binary")
@@ -95,7 +60,7 @@ func unpackTarball(cmd *cobra.Command, args []string) {
 	flavor, _ := flags.GetString(globals.FlavorLabel)
 	if flavor == "" {
 		baseName := common.BaseName(tarball)
-		flavor = detectTarballFlavor(baseName)
+		flavor = common.DetectTarballFlavor(baseName)
 		if flavor == "" {
 			common.Exitf(1, "No flavor detected in %s. Please use --%s", tarball, globals.FlavorLabel)
 		}

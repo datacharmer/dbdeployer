@@ -393,3 +393,34 @@ func TestSortVersionsSubset(t *testing.T) {
 		compare.OkEqualString("found latest version", vd.expectedVersion, found, t)
 	}
 }
+
+func TestOptionComponents(t *testing.T) {
+	type optionData struct {
+		input            string
+		expectedValue    string
+		expectedNegation bool
+	}
+	var optionInfo = []optionData{
+		{"foo", "foo", false},
+		{"!foo", "foo", true},
+		{"no-foo", "foo", true},
+		{"not-foo", "foo", true},
+		{"boo-foo", "boo-foo", false},
+	}
+
+	for _, item := range optionInfo {
+		value, negation := OptionComponents(item.input)
+		if item.expectedValue == value {
+			t.Logf("ok - %s", value)
+		} else {
+			t.Logf("not ok - expected '%s' - found '%s' ", item.expectedValue, value)
+			t.Fail()
+		}
+		if item.expectedNegation == negation {
+			t.Logf("ok - %s %v", item.input, negation)
+		} else {
+			t.Logf("not ok - input '%s' - expected '%v' - found '%v' ", item.input, item.expectedNegation, negation)
+			t.Fail()
+		}
+	}
+}

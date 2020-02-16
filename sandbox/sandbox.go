@@ -61,6 +61,11 @@ type SandboxDef struct {
 	RplUser              string           // Replication user name
 	DbPassword           string           // Database password
 	RplPassword          string           // Replication password
+	DefaultRole          string           // Role assigned to default user
+	CustomRoleName       string           // Custom role name
+	CustomRolePrivileges string           // Custom role privileges (such as 'SELECT, INSERT')
+	CustomRoleTarget     string           // Custom role target (such as 'dbName.*', or '*.*')
+	CustomRoleExtra      string           // Custom role extra (such as 'with grant option')
 	RemoteAccess         string           // What access have the users created for this SB (127.%)
 	BindAddress          string           // Bind address for this sandbox (127.0.0.1)
 	CustomMysqld         string           // Use an alternative mysqld executable
@@ -672,6 +677,11 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		"DbPassword":           sandboxDef.DbPassword,
 		"RplUser":              sandboxDef.RplUser,
 		"RplPassword":          sandboxDef.RplPassword,
+		"DefaultRole":          sandboxDef.DefaultRole,
+		"CustomRoleName":       sandboxDef.CustomRoleName,
+		"CustomRolePrivileges": sandboxDef.CustomRolePrivileges,
+		"CustomRoleTarget":     sandboxDef.CustomRoleTarget,
+		"CustomRoleExtra":      sandboxDef.CustomRoleExtra,
 		"RemoteAccess":         sandboxDef.RemoteAccess,
 		"BindAddress":          sandboxDef.BindAddress,
 		"OsUser":               userDef.Username,

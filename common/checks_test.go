@@ -97,3 +97,123 @@ func TestFindFreePort(t *testing.T) {
 		compare.OkEqualInt(fmt.Sprintf("Free ports %v : %d:%d", d.usedPorts, d.basePort, d.howMany), d.expected, result, t)
 	}
 }
+
+func TestFindSandbox(t *testing.T) {
+	type testFIndSb struct {
+		sample      []SandboxInfo
+		matching    []string
+		nonMatching []string
+		wanted      string
+	}
+
+	var sampleSbInfo1 = []SandboxInfo{
+		{
+			SandboxName: "one",
+			SandboxDesc: SandboxDescription{
+				SBType:  "single",
+				Version: "8.0.19",
+				Flavor:  "mysql",
+				Port:    []int{8019, 18019},
+			},
+		},
+		{
+			SandboxName: "two",
+			SandboxDesc: SandboxDescription{
+				SBType:  "replication",
+				Version: "8.0.18",
+				Flavor:  "mysql",
+				Port:    []int{20819, 30819, 20820, 30820, 20821, 30821},
+			},
+		},
+	}
+
+	var sampleSbInfo2 = []SandboxInfo{
+		{
+			SandboxName: "three",
+			SandboxDesc: SandboxDescription{
+				SBType:  "single",
+				Version: "8.0.19",
+				Flavor:  "mysql",
+				Port:    []int{8019, 18019},
+			},
+		},
+		{
+			SandboxName: "four",
+			SandboxDesc: SandboxDescription{
+				SBType:  "single",
+				Version: "8.0.18",
+				Flavor:  "mysql",
+				Port:    []int{8018, 18018},
+			},
+		},
+		{
+			SandboxName: "five",
+			SandboxDesc: SandboxDescription{
+				SBType:  "single",
+				Version: "8.0.18",
+				Flavor:  "percona",
+				Port:    []int{8018, 18018},
+			},
+		},
+	}
+	var data = []testFIndSb{
+		{
+			sample:      sampleSbInfo1,
+			wanted:      "one",
+			matching:    []string{"one", "single", "8.0.19", "8019"},
+			nonMatching: []string{"mysql"},
+		},
+		{
+			sample:      sampleSbInfo1,
+			wanted:      "two",
+			matching:    []string{"two", "replication", "8.0.18", "20819"},
+			nonMatching: []string{"mysql"},
+		},
+		{
+			sample:      sampleSbInfo2,
+			wanted:      "three",
+			matching:    []string{"three", "8.0.19", "8019"},
+			nonMatching: []string{"mysql", "single"},
+		},
+		{
+			sample:      sampleSbInfo2,
+			wanted:      "four",
+			matching:    []string{"four"},
+			nonMatching: []string{"mysql", "single", "8.0.18", "8018"},
+		},
+		{
+			sample:      sampleSbInfo2,
+			wanted:      "five",
+			matching:    []string{"five", "percona"},
+			nonMatching: []string{"single", "8.0.18", "8018"},
+		},
+	}
+	for _, info := range data {
+		for _, m := range info.matching {
+			result, err := FindSandbox(info.sample, m)
+			if err != nil {
+				t.Logf("not ok - %s : %s", m, err)
+				t.Fail()
+			}
+			if result.SandboxName == info.wanted {
+				t.Logf("ok - param '%s' - got '%s' as expected", m, info.wanted)
+			} else {
+				t.Logf("not ok - not matching (%s): got '%s' instead of '%s'", m, result.SandboxName, info.wanted)
+				t.Fail()
+			}
+		}
+		for _, nm := range info.nonMatching {
+			result, err := FindSandbox(info.sample, nm)
+			if err == nil {
+				t.Logf("not ok - expected failure but got success %s", nm)
+				t.Fail()
+			} else {
+				t.Logf("ok - search for '%s' failed as expected", nm)
+			}
+			if result.SandboxName != "" {
+				t.Logf("not ok - expected failure but got success %s (%s)", nm, result.SandboxName)
+				t.Fail()
+			}
+		}
+	}
+}

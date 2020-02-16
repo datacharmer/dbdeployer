@@ -392,6 +392,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 			{globals.ScriptClearAll, "clear_multi_template", true},
 			{globals.ScriptSendKillAll, "send_kill_multi_template", true},
 			{globals.ScriptUseAll, "use_multi_template", true},
+			{globals.ScriptMetadataAll, "metadata_multi_template", true},
 			{globals.ScriptReplicateFrom, "replicate_from_multi_template", true},
 		},
 	}

@@ -312,6 +312,11 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 	sd.DbUser, _ = flags.GetString(globals.DbUserLabel)
 	sd.DbPassword, _ = flags.GetString(globals.DbPasswordLabel)
 	sd.RplUser, _ = flags.GetString(globals.RplUserLabel)
+	sd.DefaultRole, _ = flags.GetString(globals.DefaultRoleLabel)
+	sd.CustomRoleName, _ = flags.GetString(globals.CustomRoleNameLabel)
+	sd.CustomRolePrivileges, _ = flags.GetString(globals.CustomRolePrivilegesLabel)
+	sd.CustomRoleTarget, _ = flags.GetString(globals.CustomRoleTargetLabel)
+	sd.CustomRoleExtra, _ = flags.GetString(globals.CustomRoleExtraLabel)
 	sd.Flavor, _ = flags.GetString(globals.FlavorLabel)
 
 	sd.Flavor = getFlavor(sd.Flavor, sd.Basedir)
@@ -398,6 +403,17 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 			sd.ReplCrashSafeOptions = sandbox.SingleTemplates["repl_crash_safe_options"].Contents
 		} else {
 			common.Exitf(1, globals.ErrOptionRequiresVersion, globals.ReplCrashSafeLabel, common.IntSliceToDottedString(globals.MinimumCrashSafeVersion))
+		}
+	}
+	if flags.Changed(globals.DefaultRoleLabel) ||
+		flags.Changed(globals.CustomRoleNameLabel) ||
+		flags.Changed(globals.CustomRolePrivilegesLabel) ||
+		flags.Changed(globals.CustomRoleTargetLabel) ||
+		flags.Changed(globals.CustomRoleExtraLabel) {
+		isRoleEnabled, err := common.HasCapability(sd.Flavor, common.Roles, sd.Version)
+		common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
+		if !isRoleEnabled {
+			common.Exitf(1, "options about roles requires version 8.0+")
 		}
 	}
 	return sd, nil

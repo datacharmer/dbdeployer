@@ -1,7 +1,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.42.0 (02-Nov-2019 08:44 UTC)
+Documentation updated for version 1.44.0 (16-Feb-2020 16:43 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -10,6 +10,7 @@ Documentation updated for version 1.42.0 (02-Nov-2019 08:44 UTC)
 - [Installation](#installation)
 - [Updating dbdeployer](#updating-dbdeployer)
 - [Main operations](#main-operations)
+- [Database users](#database-users)
 - [Database server flavors](#database-server-flavors)
 - [Getting remote tarballs](#getting-remote-tarballs)
   - [Looking at the available tarballs](#looking-at-the-available-tarballs)
@@ -58,7 +59,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.42.0
+    $ VERSION=1.44.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -161,7 +162,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.42.0
+    dbdeployer version 1.44.0
     
 
     $ dbdeployer -h
@@ -195,7 +196,7 @@ The program doesn't have any dependencies. Everything is included in the binary.
       -h, --help                    help for dbdeployer
           --sandbox-binary string   Binary repository (default "$HOME/opt/mysql")
           --sandbox-home string     Sandbox deployment directory (default "$HOME/sandboxes")
-          --shell-path string       Which shell to use for generated scripts (default "/bin/bash")
+          --shell-path string       Which shell to use for generated scripts (default "/usr/local/bin/bash")
           --skip-library-check      Skip check for needed libraries (may cause nasty errors)
           --version                 version for dbdeployer
     
@@ -259,52 +260,57 @@ The easiest command is ``deploy single``, which installs a single sandbox.
       single      deploys a single sandbox
     
     Flags:
-          --base-port int                 Overrides default base-port (for multiple sandboxes)
-          --base-server-id int            Overrides default server_id (for multiple sandboxes)
-          --binary-version string         Specifies the version when the basedir directory name does not contain it (i.e. it is not x.x.xx)
-          --bind-address string           defines the database bind-address  (default "127.0.0.1")
-          --client-from string            Where to get the client binaries from
-          --concurrent                    Runs multiple sandbox deployments concurrently
-          --custom-mysqld string          Uses an alternative mysqld (must be in the same directory as regular mysqld)
-      -p, --db-password string            database password (default "msandbox")
-      -u, --db-user string                database user (default "msandbox")
-          --defaults stringArray          Change defaults on-the-fly (--defaults=label:value)
-          --disable-mysqlx                Disable MySQLX plugin (8.0.11+)
-          --enable-admin-address          Enables admin address (8.0.14+)
-          --enable-general-log            Enables general log for the sandbox (MySQL 5.1+)
-          --enable-mysqlx                 Enables MySQLX plugin (5.7.12+)
-          --expose-dd-tables              In MySQL 8.0+ shows data dictionary tables
-          --flavor string                 Defines the tarball flavor (MySQL, NDB, Percona Server, etc)
-          --flavor-in-prompt              Add flavor values to prompt
-          --force                         If a destination sandbox already exists, it will be overwritten
-          --gtid                          enables GTID
-      -h, --help                          help for deploy
-          --history-dir string            Where to store mysql client history (default: in sandbox directory)
-          --init-general-log              uses general log during initialization (MySQL 5.1+)
-      -i, --init-options stringArray      mysqld options to run during initialization
-          --keep-server-uuid              Does not change the server UUID
-          --log-directory string          Where to store dbdeployer logs (default "$HOME/sandboxes/logs")
-          --log-sb-operations             Logs sandbox operations to a file
-          --my-cnf-file string            Alternative source file for my.sandbox.cnf
-      -c, --my-cnf-options stringArray    mysqld options to add to my.sandbox.cnf
-          --native-auth-plugin            in 8.0.4+, uses the native password auth plugin
-          --port int                      Overrides default port
-          --port-as-server-id             Use the port number as server ID
-          --post-grants-sql stringArray   SQL queries to run after loading grants
-          --post-grants-sql-file string   SQL file to run after loading grants
-          --pre-grants-sql stringArray    SQL queries to run before loading grants
-          --pre-grants-sql-file string    SQL file to run before loading grants
-          --remote-access string          defines the database access  (default "127.%")
-          --repl-crash-safe               enables Replication crash safe
-          --rpl-password string           replication password (default "rsandbox")
-          --rpl-user string               replication user (default "rsandbox")
-          --sandbox-directory string      Changes the default sandbox directory
-          --skip-load-grants              Does not load the grants
-          --skip-report-host              Does not include report host in my.sandbox.cnf
-          --skip-report-port              Does not include report port in my.sandbox.cnf
-          --skip-start                    Does not start the database server
-          --socket-in-datadir             Create socket in datadir instead of $TMPDIR
-          --use-template stringArray      [template_name:file_name] Replace existing template with one from file
+          --base-port int                   Overrides default base-port (for multiple sandboxes)
+          --base-server-id int              Overrides default server_id (for multiple sandboxes)
+          --binary-version string           Specifies the version when the basedir directory name does not contain it (i.e. it is not x.x.xx)
+          --bind-address string             defines the database bind-address  (default "127.0.0.1")
+          --client-from string              Where to get the client binaries from
+          --concurrent                      Runs multiple sandbox deployments concurrently
+          --custom-mysqld string            Uses an alternative mysqld (must be in the same directory as regular mysqld)
+          --custom-role-extra string        Extra instructions for custom role (8.0+) (default "WITH GRANT OPTION")
+          --custom-role-name string         Name for custom role (8.0+) (default "R_CUSTOM")
+          --custom-role-privileges string   Privileges for custom role (8.0+) (default "ALL PRIVILEGES")
+          --custom-role-target string       Target for custom role (8.0+) (default "*.*")
+      -p, --db-password string              database password (default "msandbox")
+      -u, --db-user string                  database user (default "msandbox")
+          --default-role string             Which role to assign to default user (8.0+) (default "R_DO_IT_ALL")
+          --defaults stringArray            Change defaults on-the-fly (--defaults=label:value)
+          --disable-mysqlx                  Disable MySQLX plugin (8.0.11+)
+          --enable-admin-address            Enables admin address (8.0.14+)
+          --enable-general-log              Enables general log for the sandbox (MySQL 5.1+)
+          --enable-mysqlx                   Enables MySQLX plugin (5.7.12+)
+          --expose-dd-tables                In MySQL 8.0+ shows data dictionary tables
+          --flavor string                   Defines the tarball flavor (MySQL, NDB, Percona Server, etc)
+          --flavor-in-prompt                Add flavor values to prompt
+          --force                           If a destination sandbox already exists, it will be overwritten
+          --gtid                            enables GTID
+      -h, --help                            help for deploy
+          --history-dir string              Where to store mysql client history (default: in sandbox directory)
+          --init-general-log                uses general log during initialization (MySQL 5.1+)
+      -i, --init-options stringArray        mysqld options to run during initialization
+          --keep-server-uuid                Does not change the server UUID
+          --log-directory string            Where to store dbdeployer logs (default "$HOME/sandboxes/logs")
+          --log-sb-operations               Logs sandbox operations to a file
+          --my-cnf-file string              Alternative source file for my.sandbox.cnf
+      -c, --my-cnf-options stringArray      mysqld options to add to my.sandbox.cnf
+          --native-auth-plugin              in 8.0.4+, uses the native password auth plugin
+          --port int                        Overrides default port
+          --port-as-server-id               Use the port number as server ID
+          --post-grants-sql stringArray     SQL queries to run after loading grants
+          --post-grants-sql-file string     SQL file to run after loading grants
+          --pre-grants-sql stringArray      SQL queries to run before loading grants
+          --pre-grants-sql-file string      SQL file to run before loading grants
+          --remote-access string            defines the database access  (default "127.%")
+          --repl-crash-safe                 enables Replication crash safe
+          --rpl-password string             replication password (default "rsandbox")
+          --rpl-user string                 replication user (default "rsandbox")
+          --sandbox-directory string        Changes the default sandbox directory
+          --skip-load-grants                Does not load the grants
+          --skip-report-host                Does not include report host in my.sandbox.cnf
+          --skip-report-port                Does not include report port in my.sandbox.cnf
+          --skip-start                      Does not start the database server
+          --socket-in-datadir               Create socket in datadir instead of $TMPDIR
+          --use-template stringArray        [template_name:file_name] Replace existing template with one from file
     
     
 
@@ -405,6 +411,73 @@ The ``deploy replication`` command will install a master and two or more slaves,
     
 
 As of version 1.21.0, you can use Percona Xtradb Cluster tarballs to deploy replication of type *pxc*. This deployment only works on Linux.
+
+# Database users
+
+The default users for each server deployed by dbdeployer are:
+
+* `root`, with the default grants as given by the server version being installed. 
+* `msandbox`, with all privileges except GRANT option.
+* `msandbox_rw`, with minimum read/write privileges.
+* `msandbox_ro`, with read-only privileges.
+* `rsandbox`, with only replication related privileges (password: `rsandbox`)
+
+The main user name (`msandbox`) and password (`msandbox`) can be changed using options `--db-user` and `db-password` respectively.
+
+Every user is assigned by default to a limited scope (`127.%`) so that they can only communicate with the local host.
+The scope can be changed using options `--bind-address` and `--remote-access`.
+
+In MySQL 8.0 the above users are instantiated using roles. You can also define a custom role, and assign it to the main user.
+
+You can create a different role and assign it to the default user with options like the following:
+
+```
+dbdeployer deploy single 8.0.19 \
+    --custom-role-name=R_POWERFUL \
+    --custom-role-privileges='ALL PRIVILEGES' \
+    --custom-role-target='*.*' \
+    --custom-role-extra='WITH GRANT OPTION' \
+    --default-role=R_POWERFUL \
+    --bind-address=0.0.0.0 \
+    --remote-access='%' \
+    --db-user=differentuser \
+    --db-password=somethingdifferent
+```
+
+The result of this operation will be:
+
+```
+$ ~/sandboxes/msb_8_0_19/use
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 9
+Server version: 8.0.19 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql [localhost:8019] {differentuser} ((none)) > show grants\G
+*************************** 1. row ***************************
+Grants for differentuser@localhost: GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, 
+DROP, RELOAD, SHUTDOWN, PROCESS, FILE, REFERENCES, INDEX, ALTER, SHOW DATABASES, 
+SUPER, CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, 
+CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, CREATE USER, EVENT, TRIGGER, 
+CREATE TABLESPACE, CREATE ROLE, DROP ROLE ON *.* TO `differentuser`@`localhost` WITH GRANT OPTION
+*************************** 2. row ***************************
+Grants for differentuser@localhost: GRANT APPLICATION_PASSWORD_ADMIN,AUDIT_ADMIN,BACKUP_ADMIN,BINLOG_ADMIN,
+BINLOG_ENCRYPTION_ADMIN,CLONE_ADMIN,CONNECTION_ADMIN,ENCRYPTION_KEY_ADMIN,GROUP_REPLICATION_ADMIN,
+INNODB_REDO_LOG_ARCHIVE,PERSIST_RO_VARIABLES_ADMIN,REPLICATION_APPLIER,REPLICATION_SLAVE_ADMIN,
+RESOURCE_GROUP_ADMIN,RESOURCE_GROUP_USER,ROLE_ADMIN,SERVICE_CONNECTION_ADMIN,SESSION_VARIABLES_ADMIN,
+SET_USER_ID,SYSTEM_USER,SYSTEM_VARIABLES_ADMIN,TABLE_ENCRYPTION_ADMIN,XA_RECOVER_ADMIN 
+ON *.* TO `differentuser`@`localhost` WITH GRANT OPTION
+*************************** 3. row ***************************
+Grants for differentuser@localhost: GRANT `R_POWERFUL`@`%` TO `differentuser`@`localhost`
+3 rows in set (0.01 sec)
+```
 
 # Database server flavors
 
@@ -578,6 +651,7 @@ Size:          1.1 GB
       dbdeployer downloads [command]
     
     Available Commands:
+      add            Adds a tarball to the list
       export         Exports the list of tarballs to a file
       get            Downloads a remote tarball
       get-by-version Downloads a remote tarball
@@ -1354,10 +1428,17 @@ You can run a command in several sandboxes at once, using the ``global`` command
     
     	$ dbdeployer global use "select version()"
     	$ dbdeployer global status
-    	$ dbdeployer global stop
+    	$ dbdeployer global stop --version=5.7.27
+    	$ dbdeployer global stop --short-version=8.0
+    	$ dbdeployer global stop --short-version='!8.0' # or --short-version=no-8.0
+    	$ dbdeployer global status --port-range=5000-8099
+    	$ dbdeployer global start --flavor=percona
+    	$ dbdeployer global start --flavor='!percona' --type=single
+    	$ dbdeployer global metadata version --flavor='!percona' --type=single
     	
     
     Available Commands:
+      metadata         Runs a metadata query in all sandboxes
       restart          Restarts all sandboxes
       start            Starts all sandboxes
       status           Shows the status in all sandboxes
@@ -1367,9 +1448,66 @@ You can run a command in several sandboxes at once, using the ``global`` command
       use              Runs a query in all sandboxes
     
     Flags:
-      -h, --help   help for global
+          --dry-run                Show what would be executed, without doing it
+          --flavor string          Runs command only in sandboxes of the given flavor
+      -h, --help                   help for global
+          --name string            Runs command only in sandboxes of the given name
+          --port string            Runs commands only in sandboxes containing the given port
+          --port-range string      Runs command only in sandboxes containing a port in the given range
+          --short-version string   Runs command only in sandboxes of the given short version
+          --type string            Runs command only in sandboxes of the given type
+          --verbose                Show what is matched when filters are used
+          --version string         Runs command only in sandboxes of the given version
     
     
+
+Using `global`, you can see the status, start, stop, restart, test all sandboxes, or run SQL and metadata queries.
+
+The `global` command accepts filters (as of version 1.44.0) to limit which sandboxes are affected.
+
+    $ dbdeployer global -h
+    This command can propagate the given action through all sandboxes.
+    
+    Usage:
+      dbdeployer global [command]
+    
+    Examples:
+    
+    	$ dbdeployer global use "select version()"
+    	$ dbdeployer global status
+    	$ dbdeployer global stop --version=5.7.27
+    	$ dbdeployer global stop --short-version=8.0
+    	$ dbdeployer global stop --short-version='!8.0' # or --short-version=no-8.0
+    	$ dbdeployer global status --port-range=5000-8099
+    	$ dbdeployer global start --flavor=percona
+    	$ dbdeployer global start --flavor='!percona' --type=single
+    	$ dbdeployer global metadata version --flavor='!percona' --type=single
+    	
+    
+    Available Commands:
+      metadata         Runs a metadata query in all sandboxes
+      restart          Restarts all sandboxes
+      start            Starts all sandboxes
+      status           Shows the status in all sandboxes
+      stop             Stops all sandboxes
+      test             Tests all sandboxes
+      test-replication Tests replication in all sandboxes
+      use              Runs a query in all sandboxes
+    
+    Flags:
+          --dry-run                Show what would be executed, without doing it
+          --flavor string          Runs command only in sandboxes of the given flavor
+      -h, --help                   help for global
+          --name string            Runs command only in sandboxes of the given name
+          --port string            Runs commands only in sandboxes containing the given port
+          --port-range string      Runs command only in sandboxes containing a port in the given range
+          --short-version string   Runs command only in sandboxes of the given short version
+          --type string            Runs command only in sandboxes of the given type
+          --verbose                Show what is matched when filters are used
+          --version string         Runs command only in sandboxes of the given version
+    
+    
+
 
 The sandboxes can also be deleted, either one by one or all at once:
 
@@ -1950,10 +2088,10 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.42.0-docs.linux.tar.gz
-* dbdeployer-1.42.0-docs.osx.tar.gz
-* dbdeployer-1.42.0.linux.tar.gz
-* dbdeployer-1.42.0.osx.tar.gz
+* dbdeployer-1.44.0-docs.linux.tar.gz
+* dbdeployer-1.44.0-docs.osx.tar.gz
+* dbdeployer-1.44.0.linux.tar.gz
+* dbdeployer-1.44.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 
