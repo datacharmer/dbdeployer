@@ -286,7 +286,7 @@ echo -n "You asked for $value, didn't you?"
 	scriptName := path.Join("/tmp", "testcmd")
 
 	// First, a failing test
-	err := createCommand(scriptName, fmt.Sprintf("#!/bin/bash\nexit 1"))
+	err := createCommand(scriptName, "#!/bin/bash\nexit 1")
 	compare.OkIsNil("command creation err", err, t)
 	if err != nil {
 		t.Skip(fmt.Sprintf("error creating command: %s", err))
