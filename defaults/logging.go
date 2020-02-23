@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import (
 	"sync"
 
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/globals"
 )
 
 type Logger struct {
@@ -65,14 +66,14 @@ func NewLogger(logDir, logFileName string) (*Logger, string, error) {
 		return noLogger, "", nil
 	}
 	if !common.DirExists(Defaults().LogDirectory) {
-		err := os.Mkdir(Defaults().LogDirectory, 0755)
+		err := os.Mkdir(Defaults().LogDirectory, globals.PublicDirectoryAttr)
 		if err != nil {
 			return noLogger, "", err
 		}
 	}
 	fullLogDir := path.Join(Defaults().LogDirectory, logDir)
 	if !common.DirExists(fullLogDir) {
-		err := os.Mkdir(fullLogDir, 0755)
+		err := os.Mkdir(fullLogDir, globals.PublicDirectoryAttr)
 		if err != nil {
 			return noLogger, "", err
 		}

@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ func Connect(config *mysql.Config) (*DB, error) {
 	dsn := config.FormatDSN()
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		return nil, fmt.Errorf("error connecting to server %s:%s - %s", config.Addr, err)
+		return nil, fmt.Errorf("error connecting to server %s - %s", config.Addr, err)
 	}
 	return &DB{db}, nil
 }

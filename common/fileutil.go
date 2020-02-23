@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ package common
 
 import (
 	"bufio"
-	"crypto/md5"
-	"crypto/sha1"
+	"crypto/md5"  // #nosec G501 need to compute legacy checksums
+	"crypto/sha1" // #nosec G505 need to compute legacy checksums
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
@@ -198,7 +198,7 @@ func ReadSandboxDescription(sandboxDirectory string) (SandboxDescription, error)
 
 // Reads a file and returns its lines as a string slice
 func SlurpAsLines(filename string) ([]string, error) {
-	f, err := os.Open(filename)
+	f, err := os.Open(filename) // #nosec G304
 	if err != nil {
 		return globals.EmptyStrings, errors.Wrapf(err, "error opening file %s", filename)
 	}
@@ -227,6 +227,7 @@ func SlurpAsString(filename string) (string, error) {
 
 // reads a file and returns its contents as a byte slice
 func SlurpAsBytes(filename string) ([]byte, error) {
+	// #nosec G304
 	b, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return globals.EmptyBytes, errors.Wrapf(err, "error reading from file %s", filename)
@@ -262,9 +263,9 @@ func GetFileChecksum(fileName, crcType string) (string, error) {
 	var hasher hash.Hash
 	switch strings.ToLower(crcType) {
 	case "md5":
-		hasher = md5.New()
+		hasher = md5.New() // #nosec G401 need to compute legacy checksums
 	case "sha1":
-		hasher = sha1.New()
+		hasher = sha1.New() // #nosec G401 need to compute legacy checksums
 	case "sha256":
 		hasher = sha256.New()
 	case "sha512":
@@ -276,7 +277,7 @@ func GetFileChecksum(fileName, crcType string) (string, error) {
 	if hasher == nil {
 		return globals.EmptyString, fmt.Errorf("unhandled checksum error")
 	}
-	f, err := os.Open(fileName)
+	f, err := os.Open(fileName) // #nosec G304
 	if err != nil {
 		return globals.EmptyString, err
 	}
@@ -306,7 +307,7 @@ func GetFileMd5(fileName string) (string, error) {
 
 // append a string slice into an existing file
 func AppendStrings(lines []string, filename string, termination string) error {
-	// file, err := os.Open(filename)
+	// file, err := os.Open(filename) // #nosec G304
 	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
 		return err
@@ -507,7 +508,7 @@ func RunCmdCtrlWithArgs(c string, args []string, silent bool) (string, error) {
 }
 
 func runCmdCtrlArgsSimple(c string, silent bool, args ...string) (string, error) {
-	cmd := exec.Command(c, args...)
+	cmd := exec.Command(c, args...) // #nosec G204
 
 	out, err := cmd.Output()
 
@@ -525,7 +526,7 @@ func runCmdCtrlArgsSimple(c string, silent bool, args ...string) (string, error)
 }
 
 func runCmdCtrlArgs(c string, silent bool, args ...string) (string, string, error) {
-	cmd := exec.Command(c, args...)
+	cmd := exec.Command(c, args...) // #nosec G204
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		return "", "", err
@@ -578,7 +579,7 @@ func CopyFile(source, destination string) error {
 	}
 
 	fileMode := sourceFile.Mode()
-	from, err := os.Open(source)
+	from, err := os.Open(source) // #nosec G304
 	if err != nil {
 		return errors.Wrapf(err, "error opening source file %s", source)
 	}

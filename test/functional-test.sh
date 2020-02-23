@@ -440,6 +440,9 @@ function test_custom_credentials {
     running_version=$1
     mode=$2
     dir_name=$3
+    major=$(echo $running_version | tr '.' ' ' | awk '{print $1}')
+    minor=$(echo $running_version | tr '.' ' ' | awk '{print $2}')
+    running_short_version="${major}.${minor}"
     version_path=$(echo $running_version| tr '.' '_')
     test_header test_custom_credentials "${mode} $version_path"
     sandbox_dir=$dir_name$version_path
@@ -460,19 +463,31 @@ function test_custom_credentials {
     then
         capture_test run $SANDBOX_HOME/$sandbox_dir/$test_replication
     fi
+    task_options=""
+    if [ "$running_short_version"  == "8.0" ]
+    then
+        task_options="--custom-role-name=R_ADMIN --task-user=task_user --task-user-role=R_ADMIN"
+    fi
     new_db_user=different
     new_db_password=anotherthing
     new_repl_user=different_rpl
     new_repl_password=anotherthing_rpl
     run dbdeployer deploy $mode $running_version \
         --db-user=$new_db_user --db-password=$new_db_password \
-        --force  $CUSTOM_OPTIONS \
+        --force  $CUSTOM_OPTIONS $task_options \
         --rpl-user=$new_repl_user --rpl-password=$new_repl_password
     # This deployment will be re-tested later together with the rest of the sandboxes
     user_found=$(grep $new_db_user $SANDBOX_HOME/$sandbox_dir/$my_cnf) 
     password_found=$(grep $new_db_password $SANDBOX_HOME/$sandbox_dir/$my_cnf) 
     repl_user_found=$(grep $new_repl_user $SANDBOX_HOME/$sandbox_dir/$grants_file) 
     repl_password_found=$(grep $new_repl_password $SANDBOX_HOME/$sandbox_dir/$grants_file) 
+    if [ -n "$task_options" ]
+    then
+        task_user_found=$(grep task_user $SANDBOX_HOME/$sandbox_dir/$grants_file) 
+        task_role_found=$(grep task_user $SANDBOX_HOME/$sandbox_dir/$grants_file | grep R_ADMIN) 
+        ok "task user found" "$task_user_found"
+        ok "task role found" "$task_role_found"
+    fi
     ok "custom user found" "$user_found"
     ok "custom password found" "$password_found"
     ok "custom replication user found" "$repl_user_found"

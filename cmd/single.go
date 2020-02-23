@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -317,6 +317,8 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 	sd.CustomRolePrivileges, _ = flags.GetString(globals.CustomRolePrivilegesLabel)
 	sd.CustomRoleTarget, _ = flags.GetString(globals.CustomRoleTargetLabel)
 	sd.CustomRoleExtra, _ = flags.GetString(globals.CustomRoleExtraLabel)
+	sd.TaskUser, _ = flags.GetString(globals.TaskUserLabel)
+	sd.TaskUserRole, _ = flags.GetString(globals.TaskUserRoleLabel)
 	sd.Flavor, _ = flags.GetString(globals.FlavorLabel)
 
 	sd.Flavor = getFlavor(sd.Flavor, sd.Basedir)
@@ -408,6 +410,8 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 	if flags.Changed(globals.DefaultRoleLabel) ||
 		flags.Changed(globals.CustomRoleNameLabel) ||
 		flags.Changed(globals.CustomRolePrivilegesLabel) ||
+		flags.Changed(globals.TaskUserLabel) ||
+		flags.Changed(globals.TaskUserRoleLabel) ||
 		flags.Changed(globals.CustomRoleTargetLabel) ||
 		flags.Changed(globals.CustomRoleExtraLabel) {
 		isRoleEnabled, err := common.HasCapability(sd.Flavor, common.Roles, sd.Version)

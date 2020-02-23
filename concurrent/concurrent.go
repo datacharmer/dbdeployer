@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ var VerboseConcurrency bool
 func addTask(num int, wg *sync.WaitGroup, tasks CommonChan, cmd string, args []string) {
 	wg.Add(1)
 	go startTask(num, wg, tasks)
+	// #nosec G204
 	tasks <- exec.Command(cmd, args...)
 }
 

@@ -1,7 +1,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.44.0 (16-Feb-2020 16:43 UTC)
+Documentation updated for version 1.45.0 (23-Feb-2020 09:11 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -59,7 +59,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.44.0
+    $ VERSION=1.45.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -162,7 +162,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.44.0
+    dbdeployer version 1.45.0
     
 
     $ dbdeployer -h
@@ -310,6 +310,8 @@ The easiest command is ``deploy single``, which installs a single sandbox.
           --skip-report-port                Does not include report port in my.sandbox.cnf
           --skip-start                      Does not start the database server
           --socket-in-datadir               Create socket in datadir instead of $TMPDIR
+          --task-user string                Task user to be created (8.0+)
+          --task-user-role string           Role to be assigned to task user (8.0+)
           --use-template stringArray        [template_name:file_name] Replace existing template with one from file
     
     
@@ -477,6 +479,36 @@ ON *.* TO `differentuser`@`localhost` WITH GRANT OPTION
 *************************** 3. row ***************************
 Grants for differentuser@localhost: GRANT `R_POWERFUL`@`%` TO `differentuser`@`localhost`
 3 rows in set (0.01 sec)
+```
+
+Instead of assigning the custom role to the default user, you can also create a task user.
+
+```
+$ dbdeployer deploy single 8.0 \
+  --task-user=task_user \
+  --custom-role-name=R_ADMIN \
+  --task-user-role=R_ADMIN 
+```
+
+The options shown in this section only apply to MySQL 8.0.
+
+There is a method of creating users during deployment in any versions:
+
+1. create a SQL file containing the `CREATE USER` and `GRANT` statements you want to run
+2. use the option `--post-grants-sql-file` to load the instructions.
+
+```
+cat << EOF > orchestrator.sql
+
+CREATE DATABASE IF NOT EXISTS orchestrator;
+CREATE USER orchestrator IDENTIFIED BY 'msandbox';
+GRANT ALL PRIVILEGES ON orchestrator.* TO orchestrator;
+GRANT SELECT ON mysql.slave_master_info TO orchestrator;
+
+EOF
+
+$ dbdeployer deploy single 5.7 \
+  --post-grants-sql-file=$PWD/orchestrator.sql
 ```
 
 # Database server flavors
@@ -803,6 +835,7 @@ Several examples of dbdeployer usages are avaibale with the command ``dbdeployer
     | all-masters                      | all-masters-deployment.sh           | Creation of an all-masters replication sandbox                                        | mysql  |
     | circular_replication             | circular-replication.sh             | Shows how to run replication between nodes of a multiple deployment                   | -      |
     | custom-named-replication         | custom-named-replication.sh         | Replication sandbox with custom names for directories and scripts                     | -      |
+    | custom-users                     | single-custom-users.sh              | Single sandbox with custom users                                                      | mysql  |
     | delete                           | delete-sandboxes.sh                 | Delete all deployed sandboxes                                                         | -      |
     | fan-in                           | fan-in-deployment.sh                | Creation of a fan-in (many masters, one slave) replication sandbox                    | mysql  |
     | group-multi                      | group-multi-primary-deployment.sh   | Creation of a multi-primary group replication sandbox                                 | mysql  |
@@ -2088,10 +2121,10 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.44.0-docs.linux.tar.gz
-* dbdeployer-1.44.0-docs.osx.tar.gz
-* dbdeployer-1.44.0.linux.tar.gz
-* dbdeployer-1.44.0.osx.tar.gz
+* dbdeployer-1.45.0-docs.linux.tar.gz
+* dbdeployer-1.45.0-docs.osx.tar.gz
+* dbdeployer-1.45.0.linux.tar.gz
+* dbdeployer-1.45.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

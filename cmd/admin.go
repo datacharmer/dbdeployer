@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -111,7 +111,7 @@ func preserveSandbox(sandboxDir, sandboxName string) {
 	if err != nil {
 		common.Exitf(1, "%+v", err)
 	}
-	err = os.Chmod(clear, 0744)
+	err = os.Chmod(clear, globals.ExecutableFileAttr)
 	if err != nil {
 		common.Exitf(1, "%+v", err)
 	}

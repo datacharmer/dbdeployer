@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -66,6 +66,8 @@ type SandboxDef struct {
 	CustomRolePrivileges string           // Custom role privileges (such as 'SELECT, INSERT')
 	CustomRoleTarget     string           // Custom role target (such as 'dbName.*', or '*.*')
 	CustomRoleExtra      string           // Custom role extra (such as 'with grant option')
+	TaskUser             string           // Additional user to be created on demand
+	TaskUserRole         string           // Role to be assigned to task user
 	RemoteAccess         string           // What access have the users created for this SB (127.%)
 	BindAddress          string           // Bind address for this sandbox (127.0.0.1)
 	CustomMysqld         string           // Use an alternative mysqld executable
@@ -646,6 +648,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	if sandboxDef.SbHost == "" {
 		sandboxDef.SbHost = "127.0.0.1"
 	}
+
 	var data = common.StringMap{
 		"ShellPath":            sandboxDef.ShellPath,
 		"SbHost":               sandboxDef.SbHost,
@@ -682,6 +685,8 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		"CustomRolePrivileges": sandboxDef.CustomRolePrivileges,
 		"CustomRoleTarget":     sandboxDef.CustomRoleTarget,
 		"CustomRoleExtra":      sandboxDef.CustomRoleExtra,
+		"TaskUser":             sandboxDef.TaskUser,
+		"TaskUserRole":         sandboxDef.TaskUserRole,
 		"RemoteAccess":         sandboxDef.RemoteAccess,
 		"BindAddress":          sandboxDef.BindAddress,
 		"OsUser":               userDef.Username,
@@ -695,6 +700,26 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		"ReportPort":           fmt.Sprintf("report-port=%d", sandboxDef.Port),
 		"HistoryDir":           sandboxDef.HistoryDir,
 	}
+
+	if sandboxDef.TaskUser != "" {
+		if sandboxDef.TaskUserRole == "" {
+			return emptyExecutionList, fmt.Errorf("task user defined but task role is empty")
+		}
+
+		data["TemplateName"] = "task_user_grants_template"
+		taskUserText, err := common.SafeTemplateFill(
+			"task_user_grants_template",
+			SingleTemplates["task_user_grants_template"].Contents,
+			data)
+		if err != nil {
+			return emptyExecutionList, fmt.Errorf("error filling task user template: %s", err)
+		}
+		data["TaskUserGrants"] = taskUserText
+		delete(data, "TemplateName")
+	} else {
+		data["TaskUserGrants"] = ""
+	}
+
 	if sandboxDef.NodeNum != 0 {
 		data["ReportHost"] = fmt.Sprintf("report-host = node-%d", sandboxDef.NodeNum)
 	}

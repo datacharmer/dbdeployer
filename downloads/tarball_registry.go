@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 package downloads
 
 // This file was generated during build. Do not edit.
-// Build time: Sun Feb 16 10:38:03 CET 2020
+// Build time: Sun Feb 23 10:12:21 CET 2020
 
 var DefaultTarballRegistry = TarballCollection{
 	// Version of dbdeployer when the list was last updated
-	DbdeployerVersion: "1.44.0",
+	DbdeployerVersion: "1.45.0",
 	Tarballs: []TarballDescription{
 
 		{
@@ -602,7 +602,7 @@ var DefaultTarballRegistry = TarballCollection{
 		},
 		{
 			Name:            "mysql-8.0.19-macos10.15-x86_64.tar.gz",
-			Checksum:        "SHA512:f2e73caefd71af8b3d4b2be1a48999e1089cb45b1669ea051c608c413b9f1af30ae304b548e42bd2dcd9a5de8d41587aeebef7949895b7047e97faf8f4f825b3",
+			Checksum:        "SHA512:bc88703e7d080fc08e6f99d3bdb5a1521764d292d44b29c9a37230ce21db2eba7943aa54d9be67629de017880d472f081b768dab00a994b34f403e4a57289d32",
 			OperatingSystem: "Darwin",
 			Url:             "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.19-macos10.15-x86_64.tar.gz",
 			Flavor:          "mysql",

@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 package common
 
 // This file was generated during build. Do not edit.
-// Build time: 2020-02-08 10:05
+// Build time: 2020-02-19 09:16
 
-var VersionDef string = "1.44.0" // 2020-02-08
+var VersionDef string = "1.45.0" // 2020-02-18
 
 // Compatible version is the version used to mark compatible archives (templates, configuration).
 // It is usually major.minor.0, except when we are at version 0.x, when
 // every revision may bring incompatibility
-var CompatibleVersion string = "1.44.0" // 2020-02-08
+var CompatibleVersion string = "1.45.0" // 2020-02-19

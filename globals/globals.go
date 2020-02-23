@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -48,6 +48,8 @@ const (
 	CustomRolePrivilegesLabel = "custom-role-privileges"
 	CustomRoleTargetLabel     = "custom-role-target"
 	CustomRoleExtraLabel      = "custom-role-extra"
+	TaskUserLabel             = "task-user"
+	TaskUserRoleLabel         = "task-user-role"
 	BasePortLabel             = "base-port"
 	BaseServerIdLabel         = "base-server-id"
 	BinaryVersionLabel        = "binary-version"
@@ -460,7 +462,7 @@ var (
 
 var ShellScriptCopyright string = `
 #    DBDeployer - The MySQL Sandbox
-#    Copyright (C) 2006-2019 Giuseppe Maxia
+#    Copyright (C) 2006-2020 Giuseppe Maxia
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.

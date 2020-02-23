@@ -224,6 +224,36 @@ Grants for differentuser@localhost: GRANT `R_POWERFUL`@`%` TO `differentuser`@`l
 3 rows in set (0.01 sec)
 ```
 
+Instead of assigning the custom role to the default user, you can also create a task user.
+
+```
+$ dbdeployer deploy single 8.0 \
+  --task-user=task_user \
+  --custom-role-name=R_ADMIN \
+  --task-user-role=R_ADMIN 
+```
+
+The options shown in this section only apply to MySQL 8.0.
+
+There is a method of creating users during deployment in any versions:
+
+1. create a SQL file containing the `CREATE USER` and `GRANT` statements you want to run
+2. use the option `--post-grants-sql-file` to load the instructions.
+
+```
+cat << EOF > orchestrator.sql
+
+CREATE DATABASE IF NOT EXISTS orchestrator;
+CREATE USER orchestrator IDENTIFIED BY 'msandbox';
+GRANT ALL PRIVILEGES ON orchestrator.* TO orchestrator;
+GRANT SELECT ON mysql.slave_master_info TO orchestrator;
+
+EOF
+
+$ dbdeployer deploy single 5.7 \
+  --post-grants-sql-file=$PWD/orchestrator.sql
+```
+
 # Database server flavors
 
 Before version 1.19.0, dbdeployer assumed that it was dealing to some version of MySQL, using the version to decide which features it would support. In version 1.19.0 dbdeployer started using the concept of **capabilities**, which is a combination of server **flavor** + a version. Some flavors currently supported are

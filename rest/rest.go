@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -134,6 +134,7 @@ func (pt *PassThru) Read(p []byte) (int, error) {
 func DownloadFile(filepath string, url string, progress bool, progressStep int64) error {
 
 	// Get the data
+	// #nosec G107
 	resp, err := http.Get(url)
 	if err != nil {
 		return fmt.Errorf("[DownloadFile] error getting %s: %s", url, err)
@@ -200,6 +201,7 @@ func getReleaseText(tag string) ([]byte, error) {
 		tag = "tags/" + tag
 	}
 	releaseUrl := fmt.Sprintf("https://api.github.com/repos/datacharmer/dbdeployer/releases%s%s", endUrl, tag)
+	// #nosec G107
 	resp, err := http.Get(releaseUrl)
 	if err != nil {
 		return globals.EmptyBytes, fmt.Errorf("[GetReleaseText] error getting %s: %s", releaseUrl, err)

@@ -1,6 +1,6 @@
 #!/bin/bash
 # DBDeployer - The MySQL Sandbox
-# Copyright © 2006-2019 Giuseppe Maxia
+# Copyright © 2006-2020 Giuseppe Maxia
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ function exists_in_path {
 }
 
 
-local_items=(.build cmd defaults downloads common globals compare cookbook unpack abbreviations concurrent sandbox compare rest)
+local_items=(.build cmd defaults downloads common globals compare cookbook unpack abbreviations concurrent sandbox compare rest importing)
 exit_code=0
 spaces="        "
 function run {
@@ -138,8 +138,23 @@ function check_static {
             run staticcheck github.com/datacharmer/dbdeployer/$dir
         done
     fi
-
 }
+
+function check_secure {
+    SECURE_CHECK=$(exists_in_path gosec)
+
+    if [ -n "$SECURE_CHECK" ]
+    then
+        echo ""
+        echo "## secure check"
+        for dir in ${local_items[*]}
+        do
+            echo "# $dir"
+            run gosec -quiet $dir
+        done
+    fi
+}
+
 
 req=$1
 if [ -n "$req" ]
@@ -160,9 +175,12 @@ then
         static)
             check_static
             ;;
+        secure)
+            check_secure
+            ;;
         *)
             echo "Syntax $(basename $0) [check_name]"
-            echo "Allowed checks: version | fmt | vet | copyright | static "
+            echo "Allowed checks: version | fmt | vet | copyright | static | secure"
             exit 0
             ;;
     esac
@@ -172,6 +190,7 @@ else
     check_vet
     check_copyright
     check_static
+    check_secure
 fi
 
 

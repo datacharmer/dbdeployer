@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -567,8 +567,8 @@ func init() {
 	downloadsAddCmd.Flags().String(globals.UrlLabel, "", "Define the tarball URL")
 	downloadsAddCmd.Flags().BoolP(globals.MinimalLabel, "", false, "Define whether the tarball is a minimal one")
 	downloadsAddCmd.Flags().BoolP(globals.OverwriteLabel, "", false, "Overwrite existing entry")
-	downloadsAddCmd.MarkFlagRequired(globals.UrlLabel)
-	downloadsAddCmd.MarkFlagRequired(globals.OSLabel)
+	_ = downloadsAddCmd.MarkFlagRequired(globals.UrlLabel)
+	_ = downloadsAddCmd.MarkFlagRequired(globals.OSLabel)
 
 	// downloadsGetUnpack needs the same flags that cmdUnpack has
 	downloadsGetUnpackCmd.Flags().Int64P(globals.ProgressStepLabel, "", globals.ProgressStepValue, "Progress interval")

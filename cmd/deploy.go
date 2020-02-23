@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,7 +40,8 @@ func init() {
 		// as it bypasses --defaults-file and --no-defaults.
 		// See: https://dev.mysql.com/doc/refman/8.0/en/mysql-config-editor.html
 		// The following statement disables .mylogin.cnf
-		os.Setenv("MYSQL_TEST_LOGIN_FILE", fmt.Sprintf("/tmp/dont_break_my_sandboxes%d", rand.Int()))
+		// #nosec G404 We don't care if the number isn't really random
+		_ = os.Setenv("MYSQL_TEST_LOGIN_FILE", fmt.Sprintf("/tmp/dont_break_my_sandboxes%d", rand.Int()))
 	}
 	rootCmd.AddCommand(deployCmd)
 	deployCmd.PersistentFlags().Int(globals.PortLabel, 0, "Overrides default port")
@@ -92,6 +93,8 @@ func init() {
 	setPflag(deployCmd, globals.FlavorLabel, "", "", "", "Defines the tarball flavor (MySQL, NDB, Percona Server, etc)", false)
 	setPflag(deployCmd, globals.ClientFromLabel, "", "", "", "Where to get the client binaries from", false)
 	setPflag(deployCmd, globals.DefaultRoleLabel, "", "", "R_DO_IT_ALL", "Which role to assign to default user (8.0+)", false)
+	setPflag(deployCmd, globals.TaskUserLabel, "", "", "", "Task user to be created (8.0+)", false)
+	setPflag(deployCmd, globals.TaskUserRoleLabel, "", "", "", "Role to be assigned to task user (8.0+)", false)
 	setPflag(deployCmd, globals.CustomRoleNameLabel, "", "", "R_CUSTOM", "Name for custom role (8.0+)", false)
 	setPflag(deployCmd, globals.CustomRolePrivilegesLabel, "", "", "ALL PRIVILEGES", "Privileges for custom role (8.0+)", false)
 	setPflag(deployCmd, globals.CustomRoleTargetLabel, "", "", "*.*", "Target for custom role (8.0+)", false)

@@ -1,3 +1,19 @@
+## 1.45.0	22-Feb-2020
+
+### NEW FEATURES
+
+* Add option `--task-user` and `--task-user-role` to create additional user with custom role.
+* Add cookbook recipe `single-custom-users` (include sample creation of orchestator user)
+
+### Code improvements
+
+* Add security checks with `gosec` scans
+* Update copyright notice
+
+### TESTING
+
+* Add test for cookbook scripts
+
 ## 1.44.0	16-Feb-2020
 
 ### NEW FEATURES

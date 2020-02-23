@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -110,6 +110,7 @@ func UnpackXzTar(filename string, destination string, verbosityLevel int) (err e
 	if err != nil {
 		return errors.Wrapf(err, "error changing directory to %s", destination)
 	}
+	// #nosec G304
 	f, err := os.Open(filename)
 	if err != nil {
 		return err
@@ -139,6 +140,7 @@ func UnpackTar(filename string, destination string, verbosityLevel int) (err err
 		return fmt.Errorf("unrecognized archive suffix")
 	}
 	var file *os.File
+	// #nosec G304
 	if file, err = os.Open(filename); err != nil {
 		return err
 	}
@@ -306,6 +308,7 @@ func VerifyTarFile(fileName string) error {
 	}
 	var file *os.File
 	var err error
+	// #nosec G304
 	if file, err = os.Open(fileName); err != nil {
 		return fmt.Errorf("[open file Validation] %s", err)
 	}

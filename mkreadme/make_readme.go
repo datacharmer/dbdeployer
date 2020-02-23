@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,13 +36,14 @@ func getCmdOutput(cmdText string) string {
 			args = append(args, arg)
 		}
 	}
+	// #nosec G204
 	cmd := exec.Command(command, args...)
 	stdout, err := cmd.StdoutPipe()
 	if err = cmd.Start(); err != nil {
 		common.Exitf(1, "# ERROR: %s", err)
 	}
 	slurp, _ := ioutil.ReadAll(stdout)
-	stdout.Close()
+	_ = stdout.Close()
 	return fmt.Sprintf("%s", slurp)
 }
 
