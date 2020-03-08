@@ -221,6 +221,16 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 	baseReplicationOptions := sandboxDef.ReplOptions
 	var groupCommunication string = ""
 	var auxGroupCommunication string = ""
+	var sstMethod = "rsync"
+
+	// XtraDB 8.0.15+
+	isMinimumXtrabackupSupport, err := common.HasCapability(sandboxDef.Flavor, common.XtradbClusterXtrabackup, sandboxDef.Version)
+	if err != nil {
+		return err
+	}
+	if isMinimumXtrabackupSupport {
+		sstMethod = "xtrabackup-v2"
+	}
 
 	for i := 1; i <= nodes; i++ {
 		groupPort := groupPorts[i]
@@ -292,6 +302,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 			"Basedir":            sandboxDef.Basedir,
 			"RsyncPort":          rsyncPort,
 			"GroupPort":          groupPort,
+			"SstMethod":          sstMethod,
 		}
 		pxcFilledTemplate, err := common.SafeTemplateFill("pxc_replication_template", pxcReplicationText, pxcReplicationData)
 		if err != nil {
@@ -303,7 +314,6 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["gtid_options_57"].Contents)
 		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["repl_crash_safe_options"].Contents)
 		// 8.0.11
-		// isMinimumMySQLXDefault, err := common.GreaterOrEqualVersion(sandboxDef.Version, globals.MinimumMysqlxDefaultVersion)
 		isMinimumMySQLXDefault, err := common.HasCapability(sandboxDef.Flavor, common.MySQLXDefault, sandboxDef.Version)
 		if err != nil {
 			return err

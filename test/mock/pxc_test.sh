@@ -42,7 +42,7 @@ start_timer
 mkdir -p $mock_dir/home/.dbdeployer
 touch $mock_dir/home/.dbdeployer/sandboxes.json
 
-versions=(pxc5.7)
+versions=(pxc5.7 pxc8.0)
 rev_list="21 99"
 
 for rev in $rev_list
@@ -53,6 +53,18 @@ do
         create_mock_pxc_version $version 
     done
 done
+
+function check_sst_method {
+    dir=$1
+    expected=$2
+
+    my_file=$SANDBOX_HOME/$dir/node1/my.sandbox.cnf
+    ok_file_exists $my_file
+    ok "expected is defined" "$expected"
+
+    found=$(grep "wsrep_sst_method\s*=\s*$expected" $my_file )
+    ok "Expected $expected found in $my_file" "$found"
+}
 
 run dbdeployer available
 for vers in ${versions[*]}
@@ -65,6 +77,16 @@ do
 
         # Check existence 
         test_completeness $version pxc_msb_ multiple
+
+        # Check SST method
+        if [ "$vers" == "pxc5.7" ]
+        then
+            expected=rsync
+        else
+            expected=xtrabackup-v2
+        fi
+        check_sst_method pxc_msb_$version_name $expected
+
         ok_dir_exists "$SANDBOX_HOME/pxc_msb_$version_name"
         results "$version"
     done

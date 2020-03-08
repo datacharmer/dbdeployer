@@ -45,7 +45,7 @@ wsrep-provider={{.Basedir}}/lib/libgalera_smm.so
 wsrep_cluster_address={{.GroupCommunication}}
 wsrep_node_incoming_address=127.0.0.1
 wsrep_provider_options=gmcast.listen_addr=tcp://127.0.0.1:{{.GroupPort}}
-wsrep_sst_method=rsync
+wsrep_sst_method={{.SstMethod}}
 loose_wsrep_sst_auth=root:
 wsrep_node_address={{.NodeIp}}
 innodb_flush_method=O_DIRECT

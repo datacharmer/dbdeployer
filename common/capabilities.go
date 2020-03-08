@@ -75,6 +75,8 @@ const (
 	UpgradeWithServer           = "upgrade_with_server"
 	XtradbCluster               = "xtradbCluster"
 	XtradbClusterNoSlaveUpdates = "xtradbCluster_no_slave_updates"
+	XtradbClusterRsync          = "xtradb_cluster_rsync"
+	XtradbClusterXtrabackup     = "xtradb_cluster_xtrabackup"
 	NdbCluster                  = "ndbCluster"
 	RootAuth                    = "rootAuth"
 	AdminAddress                = "adminAddress"
@@ -301,12 +303,21 @@ var PxcCapabilities = Capabilities{
 	Features: addCapabilities(PerconaCapabilities.Features,
 		FeatureList{
 			XtradbCluster: {
-				Description: "Xtradb Cluster creation",
+				Description: "XtraDB Cluster creation",
 				Since:       globals.MinimumXtradbClusterVersion,
 			},
 			XtradbClusterNoSlaveUpdates: {
-				Description: "Xtradb Cluster creation without log_slave_updates",
+				Description: "XtraDB Cluster creation without log_slave_updates",
 				Since:       globals.MinimumXtradbClusterNoSlaveUpdatesVersion,
+			},
+			XtradbClusterRsync: {
+				Description: "XtraDB Cluster SST method using rsync",
+				Since:       globals.MinimumXtradbClusterRsync,
+				Until:       globals.MaximumXtradbClusterRsync,
+			},
+			XtradbClusterXtrabackup: {
+				Description: "XtraDB Cluster SST method using XtraBackup",
+				Since:       globals.MinimumXtradbClusterXtraBackup,
 			},
 		}),
 }

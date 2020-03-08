@@ -370,6 +370,9 @@ var (
 	MariaDbMinimumMultiSourceVersion          = NumericVersion{10, 0, 0}
 	MinimumXtradbClusterVersion               = NumericVersion{5, 6, 14}
 	MinimumXtradbClusterNoSlaveUpdatesVersion = NumericVersion{5, 7, 14}
+	MinimumXtradbClusterRsync                 = NumericVersion{5, 7, 14}
+	MaximumXtradbClusterRsync                 = NumericVersion{5, 7, 99}
+	MinimumXtradbClusterXtraBackup            = NumericVersion{8, 0, 15}
 	MinimumNdbClusterVersion                  = NumericVersion{7, 0, 0}
 	MinimumRootAuthVersion                    = NumericVersion{10, 4, 3}
 	MinimumAdminAddressVersion                = NumericVersion{8, 0, 14}

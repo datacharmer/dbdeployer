@@ -1,3 +1,10 @@
+## 1.46.0	08-Mar-2020
+
+### NEW FEATURES
+
+* Add ability to deploy PXC 8.0 without using any options (dbdeployer
+  uses `wsrep_sst_method=rsync` for 5.7 and `wsrep_sst_method=xtrabackup-v2` for 8.0)
+
 ## 1.45.0	22-Feb-2020
 
 ### NEW FEATURES
