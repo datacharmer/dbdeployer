@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # DBDeployer - The MySQL Sandbox
 # Copyright © 2006-2018 Giuseppe Maxia
 #

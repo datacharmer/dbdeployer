@@ -1,3 +1,15 @@
+## 1.47.0	29-Mar-2020
+
+### ADJUSTMENTS
+
+* Add `pxc_encrypt_cluster_traffic` option to PXC options file
+  to adjust to recent default changes and allow PXC 8.0.18 to work
+  out of the box
+
+### Code improvements
+
+* Change all explicit `bash` paths in shell scripts to `env bash`
+
 ## 1.46.0	08-Mar-2020
 
 ### NEW FEATURES

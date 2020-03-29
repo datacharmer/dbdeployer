@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # DBDeployer - The MySQL Sandbox
 # Copyright © 2006-2018 Giuseppe Maxia
 #
@@ -143,7 +143,7 @@ fi
 
 temp_template=t$$.dat
 timestamp=$(date +%Y-%m-%d.%H:%M:%S)
-echo "#!/bin/bash" > $temp_template
+echo "#!/usr/bin/env bash" > $temp_template
 echo "echo 'I AM A CUSTOM_TEMPLATE CREATED ON $timestamp'" >> $temp_template
 run dbdeployer deploy --use-template=clear_template:$temp_template single 8.0.67
 sandbox_dir=$SANDBOX_HOME/msb_8_0_67
