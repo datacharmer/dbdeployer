@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ wsrep_cluster_address={{.GroupCommunication}}
 wsrep_node_incoming_address=127.0.0.1
 wsrep_provider_options=gmcast.listen_addr=tcp://127.0.0.1:{{.GroupPort}}
 wsrep_sst_method={{.SstMethod}}
+pxc_encrypt_cluster_traffic=off
 loose_wsrep_sst_auth=root:
 wsrep_node_address={{.NodeIp}}
 innodb_flush_method=O_DIRECT
