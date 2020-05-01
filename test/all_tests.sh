@@ -124,7 +124,7 @@ function all_tests {
     run_test ./test/mock/short-versions.sh
     run_test ./test/mock/direct-paths.sh
     run_test ./test/mock/expected_ports.sh
-    run_test ./test/mock/read-only-replication.sh
+    run_test ./test/mock/replication-setup.sh
     run_test ./test/mock/ndb_test.sh
     run_test ./test/mock/pxc_test.sh
     run_test ./test/mock/fanin_test.sh

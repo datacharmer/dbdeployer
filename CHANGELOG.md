@@ -1,3 +1,20 @@
+## 1.49.0	26-Apr-2020 (not released)
+
+### NEW FEATURES
+
+* Add `--change-master-options` (Issue #107)
+
+### TESTING
+
+* Add more tests
+* Docker test now downloads latest 8.0 binaries instead of using built-in.
+
+## 1.48.0	10-Apr-2020 (not released)
+
+* Improve PXC handling of defaults across versions
+* Fix defaults for PXC 5.6, which were broken after introducing support for PXC8.0 (Issue #106)
+
+
 ## 1.47.0	29-Mar-2020
 
 ### ADJUSTMENTS

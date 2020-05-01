@@ -161,6 +161,7 @@ const (
 	TopologyValue       = "master-slave"
 	PxcLabel            = "pxc"
 	NdbLabel            = "ndb"
+	ChangeMasterOptions = "change-master-options"
 
 	// Instantiated in cmd/unpack.go and unpack/unpack.go
 	GzExt              = ".gz"
@@ -370,6 +371,7 @@ var (
 	MariaDbMinimumMultiSourceVersion          = NumericVersion{10, 0, 0}
 	MinimumXtradbClusterVersion               = NumericVersion{5, 6, 14}
 	MinimumXtradbClusterNoSlaveUpdatesVersion = NumericVersion{5, 7, 14}
+	MinimumXtradbClusterEncryptCluster        = NumericVersion{5, 7, 14}
 	MinimumXtradbClusterRsync                 = NumericVersion{5, 7, 14}
 	MaximumXtradbClusterRsync                 = NumericVersion{5, 7, 99}
 	MinimumXtradbClusterXtraBackup            = NumericVersion{8, 0, 15}

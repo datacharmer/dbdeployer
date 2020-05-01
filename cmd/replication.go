@@ -143,4 +143,5 @@ func init() {
 	replicationCmd.PersistentFlags().BoolP(globals.ReadOnlyLabel, "", false, "Set read-only for slaves")
 	replicationCmd.PersistentFlags().BoolP(globals.SuperReadOnlyLabel, "", false, "Set super-read-only for slaves")
 	replicationCmd.PersistentFlags().Bool(globals.ReplHistoryDirLabel, false, "uses the replication directory to store mysql client history")
+	setPflag(replicationCmd, globals.ChangeMasterOptions, "", "CHANGE_MASTER_OPTIONS", "", "options to add to CHANGE MASTER TO", true)
 }

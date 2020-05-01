@@ -437,7 +437,7 @@ do
             $SBDIR/n$master -BN  -h {{.MasterIp}} --port=$master_port -u {{.RplUser}} -p{{.RplPassword}} -e 'set @a=1'
             user_cmd="$user_cmd CHANGE MASTER TO MASTER_USER='{{.RplUser}}', "
             user_cmd="$user_cmd MASTER_PASSWORD='{{.RplPassword}}', master_host='{{.MasterIp}}', "
-            user_cmd="$user_cmd master_port=$master_port FOR CHANNEL '{{.NodeLabel}}$master';"
+            user_cmd="$user_cmd master_port=$master_port {{.ChangeMasterExtra}} FOR CHANNEL '{{.NodeLabel}}$master';"
             user_cmd="$user_cmd START SLAVE FOR CHANNEL '{{.NodeLabel}}$master';"
         fi
     done

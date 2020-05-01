@@ -1275,6 +1275,8 @@ _dbdeployer_deploy_replication()
     flags_with_completion=()
     flags_completion=()
 
+    flags+=("--change-master-options=")
+    two_word_flags+=("--change-master-options")
     flags+=("--master-ip=")
     two_word_flags+=("--master-ip")
     flags+=("--master-list=")

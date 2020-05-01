@@ -237,6 +237,52 @@ then
     exit 1
 fi
 
+function fetch_latest_version {
+
+    # if it is not running in docker, no need to continue
+    if [ "$(hostname)" != "dbtest" ]
+    then
+        return
+    fi
+    cd /tmp
+    if [ "$?" != "0" ]
+    then
+        return
+    fi
+
+    dbdeployer downloads get-by-version --OS=linux --dry-run 8.0 --minimal --newest > /tmp/buf
+    if [ "$?" != "0" ]
+    then
+        echo "error detecting latest downloadable version"
+        cd -
+        return
+    fi
+    latest_downloadable=$(grep '^Version' /tmp/buf | awk '{print $2}')
+    latest_name=$(grep '^Name' /tmp/buf | awk '{print $2}')
+    rm -f /tmp/buf
+    if [ -z "$latest_downloadable" ]
+    then
+        echo "No latest downloadable version detected"
+        cd -
+        return
+    fi
+    if [ -z "$latest_name" ]
+    then
+        echo "No latest downloadable name detected"
+        cd -
+        return
+    fi
+    latest=$(dbdeployer info version 8.0)
+    if [ "$latest" != "$latest_downloadable"  ]
+    then
+        echo "latest found: $latest"
+        echo "downloading $latest_downloadable"
+        dbdeployer downloads get-unpack --delete-after-unpack $latest_name
+        check_exit_code
+    fi
+    cd -
+}
+
 function test_ports {
     running_version=$1
     dir_name=$2
@@ -682,7 +728,7 @@ fi
 [ -z "$group_short_versions" ] && group_short_versions=(5.7 8.0)
 [ -z "$dd_short_versions" ] && dd_short_versions=(8.0)
 [ -z "$semisync_short_versions" ] && semisync_short_versions=(5.5 5.6 5.7 8.0)
-[ -z "$pxc_short_versions" ] && pxc_short_versions=(pxc5.7)
+[ -z "$pxc_short_versions" ] && pxc_short_versions=(pxc5.6 pxc5.7 pxc8.0)
 [ -z "$ndb_short_versions" ] && ndb_short_versions=(ndb7.6 ndb8.0)
 count=0
 all_versions=()
@@ -692,6 +738,8 @@ semisync_versions=()
 dd_versions=()
 pxc_versions=()
 ndb_versions=()
+
+fetch_latest_version
 
 for v in ${short_versions[*]}
 do
@@ -1449,12 +1497,19 @@ function pxc_operations {
         echo "# PXC operations $V"
         run dbdeployer deploy replication $V --topology=pxc
         results "PXC $V"
+        v_path=$(echo pxc_msb_$V| tr '.' '_')
 
         capture_test run dbdeployer global test
         capture_test run dbdeployer global test-replication
         test_use_masters_slaves $V pxc_msb_ 3 3
         test_ports $V pxc_msb_ 12 3
         check_for_exit pxc_operations
+        for cmd in restart_all node1/restart node2/restart node3/restart
+        do
+            run $SANDBOX_HOME/$v_path/$cmd
+            capture_test run dbdeployer global test
+            capture_test run dbdeployer global test-replication
+        done
         test_deletion $V 1 $processes_before
         results "pxc $V - after deletion"
     done

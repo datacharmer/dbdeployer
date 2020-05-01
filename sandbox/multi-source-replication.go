@@ -181,6 +181,7 @@ func CreateAllMastersReplication(sandboxDef SandboxDef, origin string, nodes int
 	data["RplUser"] = sandboxDef.RplUser
 	data["RplPassword"] = sandboxDef.RplPassword
 	data["NodeLabel"] = defaults.Defaults().NodePrefix
+	data["ChangeMasterExtra"] = setChangeMasterProperties("", sandboxDef.ChangeMasterOptions, logger)
 	logger.Printf("Writing master and slave scripts in %s\n", sandboxDef.SandboxDir)
 	for _, node := range slaveList {
 		data["Node"] = node
@@ -399,6 +400,7 @@ func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	data["RplUser"] = sandboxDef.RplUser
 	data["RplPassword"] = sandboxDef.RplPassword
 	data["NodeLabel"] = defaults.Defaults().NodePrefix
+	data["ChangeMasterExtra"] = setChangeMasterProperties("", sandboxDef.ChangeMasterOptions, logger)
 	data["MasterIp"] = masterIp
 	logger.Printf("Writing master and slave scripts in %s\n", sandboxDef.SandboxDir)
 	for _, slave := range slist {

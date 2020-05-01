@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # DBDeployer - The MySQL Sandbox
-# Copyright © 2006-2018 Giuseppe Maxia
+# Copyright © 2006-2020 Giuseppe Maxia
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -201,6 +201,29 @@ do
         ok_dir_exists "$SANDBOX_HOME/fan_in_msb_$version_name"
         check_variables $version fan_in_msb_ super_read_only "" "" "" ""
         check_variables $version fan_in_msb_ read_only "" "" "" read_only=on
+
+        results "$version"
+    done
+done
+
+run dbdeployer delete ALL --skip-confirm
+
+# test change-master-options
+for vers in ${versions_ro[*]}
+do
+    for rev in $rev_list
+    do
+        version=${vers}.${rev}
+        version_name=$(echo $version | tr '.' '_')
+        run dbdeployer deploy replication $SANDBOX_BINARY/$version --change-master-options=DUMMY1=ABCDE  --change-master-options=DUMMY2=WXYZ
+
+        # Check existence
+        ok_dir_exists "$SANDBOX_HOME/rsandbox_$version_name"
+
+        dummy1_set=$(grep 'DUMMY1=ABCDE' $SANDBOX_HOME/rsandbox_$version_name/initialize_slaves)
+        dummy2_set=$(grep 'DUMMY2=WXYZ' $SANDBOX_HOME/rsandbox_$version_name/initialize_slaves)
+        ok "master option 1 set" "$dummy1_set"
+        ok "master option 2 set" "$dummy2_set"
 
         results "$version"
     done

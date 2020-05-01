@@ -16,11 +16,11 @@
 package downloads
 
 // This file was generated during build. Do not edit.
-// Build time: Sun Feb 23 10:12:21 CET 2020
+// Build time: Fri May  1 09:06:18 CEST 2020
 
 var DefaultTarballRegistry = TarballCollection{
 	// Version of dbdeployer when the list was last updated
-	DbdeployerVersion: "1.45.0",
+	DbdeployerVersion: "1.49.0",
 	Tarballs: []TarballDescription{
 
 		{
@@ -659,6 +659,78 @@ var DefaultTarballRegistry = TarballCollection{
 			ShortVersion:    "8.0",
 			Version:         "8.0.19",
 			Notes:           "added with version 1.44.0",
+		},
+		{
+			Name:            "mysql-8.0.20-macos10.15-x86_64.tar.gz",
+			Checksum:        "SHA512:65e053f5f684991d44eaacfb1d55de0988313116841dd747a8f591882edb4f8de494f86d431f84faba27f877583068f331fa73b49eb370d3941b241f91baca92",
+			OperatingSystem: "Darwin",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.20-macos10.15-x86_64.tar.gz",
+			Flavor:          "mysql",
+			Minimal:         false,
+			Size:            166099243,
+			ShortVersion:    "8.0",
+			Version:         "8.0.20",
+			Notes:           "added with version 1.49.0",
+		},
+		{
+			Name:            "mysql-cluster-8.0.20-macos10.15-x86_64.tar.gz",
+			Checksum:        "SHA512:18c90d13008e4148c83262f240ecb5c20e358074669b9a5b1573f472809f8870852198b899af09702c24ea72c2cd3d29c2431733f4933d65f9e82ee56aa31d8c",
+			OperatingSystem: "Darwin",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-Cluster-8.0/mysql-cluster-8.0.20-macos10.15-x86_64.tar.gz",
+			Flavor:          "ndb",
+			Minimal:         false,
+			Size:            272735407,
+			ShortVersion:    "8.0",
+			Version:         "8.0.20",
+			Notes:           "added with version 1.49.0",
+		},
+		{
+			Name:            "mysql-cluster-8.0.20-linux-glibc2.12-x86_64.tar.gz",
+			Checksum:        "SHA512:57f7b1866201cc2797cba6a981e28a7d3d6ea82c9e3fce5f0c766d21d87e0f44382a683f7f424995b5bb8e348342a240293243dc366f943b4047863f30a8c6cf",
+			OperatingSystem: "Linux",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-Cluster-8.0/mysql-cluster-8.0.20-linux-glibc2.12-x86_64.tar.gz",
+			Flavor:          "ndb",
+			Minimal:         false,
+			Size:            1200018484,
+			ShortVersion:    "8.0",
+			Version:         "8.0.20",
+			Notes:           "added with version 1.49.0",
+		},
+		{
+			Name:            "mysql-8.0.20-linux-x86_64-minimal.tar.xz",
+			Checksum:        "SHA512:4e1ae81c6bed940b2262e972c4596cbbe335d4f5154a40135861c40af12601b6f956ded60cfbbf1f91c08a8e90bb6c504c7185c6ff486ce74d33d5e7574f5ca5",
+			OperatingSystem: "Linux",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.20-linux-x86_64-minimal.tar.xz",
+			Flavor:          "mysql",
+			Minimal:         true,
+			Size:            44216064,
+			ShortVersion:    "8.0",
+			Version:         "8.0.20",
+			Notes:           "added with version 1.49.0",
+		},
+		{
+			Name:            "mysql-5.7.30-macos10.14-x86_64.tar.gz",
+			Checksum:        "SHA512:373fb9478c295e19422dcb4cad6cd48dd74a7bf5b86335ea2ebbaaae779297de568b62904a92cac7ea3d42a915fc8096de9157c56baa801f3b737d990be97cac",
+			OperatingSystem: "Darwin",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.30-macos10.14-x86_64.tar.gz",
+			Flavor:          "mysql",
+			Minimal:         false,
+			Size:            360204356,
+			ShortVersion:    "5.7",
+			Version:         "5.7.30",
+			Notes:           "added with version 1.49.0",
+		},
+		{
+			Name:            "mysql-5.7.30-linux-glibc2.12-x86_64.tar.gz",
+			Checksum:        "SHA512:b877ef84160b9cf9d6b37da89b8635d088f19c98a18517b0843a0c0b408a13780f74652ea20244235a634ea67b29abcf1f64ce2b08eaf9139f0c3bd8e92c8de1",
+			OperatingSystem: "Linux",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.30-linux-glibc2.12-x86_64.tar.gz",
+			Flavor:          "mysql",
+			Minimal:         false,
+			Size:            660017902,
+			ShortVersion:    "5.7",
+			Version:         "5.7.30",
+			Notes:           "added with version 1.49.0",
 		},
 	},
 }

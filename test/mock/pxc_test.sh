@@ -1,6 +1,6 @@
 #!/bin/bash
 # DBDeployer - The MySQL Sandbox
-# Copyright © 2006-2018 Giuseppe Maxia
+# Copyright © 2006-2020 Giuseppe Maxia
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ start_timer
 mkdir -p $mock_dir/home/.dbdeployer
 touch $mock_dir/home/.dbdeployer/sandboxes.json
 
-versions=(pxc5.7 pxc8.0)
+versions=(pxc5.6 pxc5.7 pxc8.0)
 rev_list="21 99"
 
 for rev in $rev_list
@@ -79,11 +79,11 @@ do
         test_completeness $version pxc_msb_ multiple
 
         # Check SST method
-        if [ "$vers" == "pxc5.7" ]
+        if [ "$vers" == "pxc8.0" ]
         then
-            expected=rsync
-        else
             expected=xtrabackup-v2
+        else
+            expected=rsync
         fi
         check_sst_method pxc_msb_$version_name $expected
 

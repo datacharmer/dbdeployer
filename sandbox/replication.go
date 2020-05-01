@@ -46,6 +46,14 @@ type ReplicationData struct {
 	SlaveList  string
 }
 
+func setChangeMasterProperties(currentProperties string, moreProperties []string, logger *defaults.Logger) string {
+	for _, property := range moreProperties {
+		currentProperties += ", " + property
+		logger.Printf("Adding %s to slaves setup \n", property)
+	}
+	return currentProperties
+}
+
 func checkReadOnlyFlags(sandboxDef SandboxDef) (string, error) {
 	readOnlyOption := ""
 	if sandboxDef.SlavesSuperReadOnly && sandboxDef.SlavesReadOnly {
@@ -173,8 +181,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	}
 	if isMinimumNativeAuthPlugin {
 		if !sandboxDef.NativeAuthPlugin {
-			changeMasterExtra += ", GET_MASTER_PUBLIC_KEY=1"
-			logger.Printf("Adding GET_MASTER_PUBLIC_KEY to slaves setup \n")
+			sandboxDef.ChangeMasterOptions = append(sandboxDef.ChangeMasterOptions, "GET_MASTER_PUBLIC_KEY=1")
 		}
 	}
 	slaves := nodes - 1
@@ -184,6 +191,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	slaveAbbr := defaults.Defaults().SlaveAbbr
 	timestamp := time.Now()
 
+	changeMasterExtra = setChangeMasterProperties(changeMasterExtra, sandboxDef.ChangeMasterOptions, logger)
 	var data = common.StringMap{
 		"ShellPath":          sandboxDef.ShellPath,
 		"Copyright":          globals.ShellScriptCopyright,

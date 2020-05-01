@@ -45,6 +45,7 @@ type SandboxDef struct {
 	BasedirName          string           // The bare name of the directory containing the binaries (e.g. 8.0.11)
 	SandboxDir           string           // Target directory for sandboxes
 	ShellPath            string           // The Bash interpreter to use for generated scripts
+	StartArgs            []string         // Arguments passed to the 'start' command
 	LoadGrants           bool             // Should we load grants?
 	SkipReportHost       bool             // Do not add report-host to my.sandbox.cnf
 	SkipReportPort       bool             // Do not add report-port to my.sandbox.cnf
@@ -80,6 +81,7 @@ type SandboxDef struct {
 	ReadOnlyOptions      string           // Options for read-only passed to child sandboxes
 	InitOptions          []string         // Options to be added to the initialization command
 	MyCnfOptions         []string         // Options to be added to my.sandbox.cnf
+	ChangeMasterOptions  []string         // Options to be added to CHANGE MASTER TO
 	PreGrantsSql         []string         // SQL statements to execute before grants assignment
 	PreGrantsSqlFile     string           // SQL file to load before grants assignment
 	PostGrantsSql        []string         // SQL statements to run after grants assignment
@@ -1001,10 +1003,11 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			return emptyExecutionList, err
 		}
 	}
+
 	if !sandboxDef.SkipStart && sandboxDef.RunConcurrently {
 		var eCommand2 = concurrent.ExecCommand{
 			Cmd:  path.Join(sandboxDir, globals.ScriptStart),
-			Args: []string{},
+			Args: sandboxDef.StartArgs,
 		}
 		logger.Printf("Adding start command to execution list\n")
 		execList = append(execList, concurrent.ExecutionList{Logger: logger, Priority: 2, Command: eCommand2})
@@ -1039,7 +1042,11 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	} else {
 		if !sandboxDef.SkipStart {
 			logger.Printf("Running start script\n")
-			_, err = common.RunCmd(path.Join(sandboxDir, globals.ScriptStart))
+			if len(sandboxDef.StartArgs) > 0 {
+				_, err = common.RunCmdWithArgs(path.Join(sandboxDir, globals.ScriptStart), sandboxDef.StartArgs)
+			} else {
+				_, err = common.RunCmd(path.Join(sandboxDir, globals.ScriptStart))
+			}
 			if err != nil {
 				return emptyExecutionList, err
 			}

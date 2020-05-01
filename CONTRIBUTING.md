@@ -120,7 +120,7 @@ made up MySQL versions (such as 5.7.99) and make sure that dbdeployer works as e
 ./test/mock/short-versions.sh
 ./test/mock/direct-paths.sh
 ./test/mock/expected_ports.sh
-./test/mock/read-only-replication.sh
+./test/mock/replication-setup.sh
 ```
 
 

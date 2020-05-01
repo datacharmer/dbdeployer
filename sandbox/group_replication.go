@@ -212,13 +212,8 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 			return err
 		}
 	}
-	changeMasterExtra := ""
+	changeMasterExtra := setChangeMasterProperties("", sandboxDef.ChangeMasterOptions, logger)
 	nodeLabel := defaults.Defaults().NodePrefix
-	//if common.GreaterOrEqualVersion(sdef.Version, []int{8,0,4}) {
-	//	if !sdef.NativeAuthPlugin {
-	//		change_master_extra = ", GET_MASTER_PUBLIC_KEY=1"
-	//	}
-	//}
 	stopNodeList := ""
 	for i := nodes; i > 0; i-- {
 		stopNodeList += fmt.Sprintf(" %d", i)

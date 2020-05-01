@@ -141,8 +141,17 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 	masterLabel := defaults.Defaults().MasterName
 	masterList := makeNodesList(nodes)
 	slaveList := masterList
-	changeMasterExtra := ""
+	changeMasterExtra := setChangeMasterProperties("", sandboxDef.ChangeMasterOptions, logger)
 
+	var pxcEncryptClusterTraffic = "pxc_encrypt_cluster_traffic=off"
+
+	isMinimumEncryptTraffic, err := common.HasCapability(sandboxDef.Flavor, common.XtradbClusterEncryptCluster, sandboxDef.Version)
+	if err != nil {
+		return err
+	}
+	if !isMinimumEncryptTraffic {
+		pxcEncryptClusterTraffic = "# pxc_encrypt_cluster_traffic=off # requires PXC 5.7"
+	}
 	stopNodeList := ""
 	for i := nodes; i > 0; i-- {
 		stopNodeList += fmt.Sprintf(" %d", i)
@@ -219,8 +228,8 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		sandboxDef.ReplOptions = fmt.Sprintf("%s\nlog_slave_updates=ON\n", sandboxDef.ReplOptions)
 	}
 	baseReplicationOptions := sandboxDef.ReplOptions
-	var groupCommunication string = ""
-	var auxGroupCommunication string = ""
+	var groupCommunication string = "gcomm://"
+	//var auxGroupCommunication string = ""
 	var sstMethod = "rsync"
 
 	// XtraDB 8.0.15+
@@ -230,6 +239,14 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 	}
 	if isMinimumXtrabackupSupport {
 		sstMethod = "xtrabackup-v2"
+	}
+
+	for i := 1; i <= nodes; i++ {
+		groupPort := groupPorts[i]
+		groupCommunication += fmt.Sprintf("%s:%d", masterIp, groupPort)
+		if i < nodes {
+			groupCommunication += ","
+		}
 	}
 
 	for i := 1; i <= nodes; i++ {
@@ -253,7 +270,8 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 			"StopNodeList":      stopNodeList,
 			"SandboxDir":        sandboxDef.SandboxDir,
 			"RplUser":           sandboxDef.RplUser,
-			"RplPassword":       sandboxDef.RplPassword})
+			"RplPassword":       sandboxDef.RplPassword,
+		})
 
 		sandboxDef.DirName = fmt.Sprintf("%s%d", nodeLabel, i)
 		sandboxDef.MorePorts = []int{
@@ -276,15 +294,6 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		sbItem.Port = append(sbItem.Port, rsyncPort)
 		sbDesc.Port = append(sbDesc.Port, rsyncPort)
 
-		if i == 1 {
-			groupCommunication = "gcomm://"
-			auxGroupCommunication = fmt.Sprintf("gcomm://%s:%d", masterIp, groupPort)
-		} else {
-			auxGroupCommunication += ","
-			auxGroupCommunication += fmt.Sprintf("gcomm://%s:%d", masterIp, groupPort)
-			groupCommunication = auxGroupCommunication
-		}
-
 		if !sandboxDef.RunConcurrently {
 			installationMessage := "Installing and starting %s %d\n"
 			if sandboxDef.SkipStart {
@@ -297,12 +306,13 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		pxcReplicationText := PxcTemplates["pxc_replication_template"].Contents
 
 		pxcReplicationData := common.StringMap{
-			"NodeIp":             masterIp,
-			"GroupCommunication": groupCommunication,
-			"Basedir":            sandboxDef.Basedir,
-			"RsyncPort":          rsyncPort,
-			"GroupPort":          groupPort,
-			"SstMethod":          sstMethod,
+			"NodeIp":                   masterIp,
+			"GroupCommunication":       groupCommunication,
+			"Basedir":                  sandboxDef.Basedir,
+			"RsyncPort":                rsyncPort,
+			"GroupPort":                groupPort,
+			"SstMethod":                sstMethod,
+			"PxcEncryptClusterTraffic": pxcEncryptClusterTraffic,
 		}
 		pxcFilledTemplate, err := common.SafeTemplateFill("pxc_replication_template", pxcReplicationText, pxcReplicationData)
 		if err != nil {
@@ -334,8 +344,10 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		}
 		sandboxDef.Multi = true
 		if i == 1 {
+			sandboxDef.StartArgs = []string{"--wsrep-new-cluster"}
 			sandboxDef.LoadGrants = true
 		} else {
+			sandboxDef.StartArgs = []string{}
 			sandboxDef.LoadGrants = false
 		}
 		sandboxDef.Prompt = fmt.Sprintf("%s%d", nodeLabel, i)
@@ -394,7 +406,6 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []ScriptDef{
-			{globals.ScriptStartAll, "start_multi_template", true},
 			{globals.ScriptRestartAll, "restart_multi_template", true},
 			{globals.ScriptStatusAll, "status_multi_template", true},
 			{globals.ScriptTestSbAll, "test_sb_multi_template", true},
@@ -429,6 +440,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []ScriptDef{
+			{globals.ScriptStartAll, "pxc_start_template", true},
 			{globals.ScriptCheckNodes, "check_pxc_nodes_template", true},
 		},
 	}

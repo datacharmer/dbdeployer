@@ -75,6 +75,7 @@ const (
 	UpgradeWithServer           = "upgrade_with_server"
 	XtradbCluster               = "xtradbCluster"
 	XtradbClusterNoSlaveUpdates = "xtradbCluster_no_slave_updates"
+	XtradbClusterEncryptCluster = "xtradbCluster_encrypt_cluster"
 	XtradbClusterRsync          = "xtradb_cluster_rsync"
 	XtradbClusterXtrabackup     = "xtradb_cluster_xtrabackup"
 	NdbCluster                  = "ndbCluster"
@@ -308,6 +309,10 @@ var PxcCapabilities = Capabilities{
 			},
 			XtradbClusterNoSlaveUpdates: {
 				Description: "XtraDB Cluster creation without log_slave_updates",
+				Since:       globals.MinimumXtradbClusterNoSlaveUpdatesVersion,
+			},
+			XtradbClusterEncryptCluster: {
+				Description: "XtraDB Cluster creation with cluster encryption",
 				Since:       globals.MinimumXtradbClusterNoSlaveUpdatesVersion,
 			},
 			XtradbClusterRsync: {
