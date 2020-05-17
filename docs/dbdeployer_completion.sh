@@ -2590,6 +2590,8 @@ _dbdeployer_info_releases()
 
     flags+=("--limit=")
     two_word_flags+=("--limit")
+    flags+=("--raw")
+    flags+=("--stats")
     flags+=("--config=")
     two_word_flags+=("--config")
     flags+=("--earliest")

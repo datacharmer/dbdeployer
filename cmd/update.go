@@ -102,8 +102,10 @@ func updateDbDeployer(cmd *cobra.Command, args []string) {
 
 	fileName := fmt.Sprintf("dbdeployer-%s%s.%s", tag, docsLabel, OS)
 	tarballName := fileName + ".tar.gz"
+	signatureName := tarballName + ".sha256"
 
 	fileUrl := ""
+	signatureUrl := ""
 
 	if verbose {
 		fmt.Printf("Remote version:      %s\n", tag)
@@ -120,6 +122,12 @@ func updateDbDeployer(cmd *cobra.Command, args []string) {
 
 	for _, asset := range release.Assets {
 		chosenLabel := ""
+		if signatureName == asset.Name {
+			signatureUrl = asset.BrowserDownloadURL
+			if verbose {
+				fmt.Printf("\t%s (%s) [CHOSEN CRC]\n", asset.Name, humanize.Bytes(uint64(asset.Size)))
+			}
+		}
 		if tarballName == asset.Name {
 			fileUrl = asset.BrowserDownloadURL
 			chosenLabel = " [CHOSEN]"
@@ -160,6 +168,31 @@ func updateDbDeployer(cmd *cobra.Command, args []string) {
 	if verbose {
 		fmt.Printf("File %s extracted from %s\n", fileName, tarballName)
 	}
+	if signatureUrl == "" {
+		fmt.Printf("*** WARNING *** No SHA256 checksum found for %s\n", tarballName)
+	} else {
+		err = rest.DownloadFile(signatureName, signatureUrl, true, globals.MB)
+		common.ErrCheckExitf(err, 1, "error downloading %s", signatureName)
+		signature, err := common.SlurpAsBytes(signatureName)
+		common.ErrCheckExitf(err, 1, "error reading from %s", signatureName)
+		reSignature := regexp.MustCompile(`^(\S+)\s+(\S+)`)
+		signatureList := reSignature.FindAllSubmatch(signature, -1)
+		if len(signatureList) == 0 || len(signatureList[0]) == 0 {
+			common.Exitf(1, "signature not found in %s", signatureName)
+		}
+		checksum := signatureList[0][1]
+		checksumFileName := signatureList[0][2]
+		if string(checksumFileName) != tarballName {
+			common.Exitf(1, "wanted signature for %s but got %s", tarballName, checksumFileName)
+		}
+		calculatedChecksum, err := common.GetFileChecksum(tarballName, "sha256")
+		common.ErrCheckExitf(err, 1, "error calculating checksum for %s: %s", tarballName, err)
+		if string(checksum) != calculatedChecksum {
+			common.Exitf(1, "wanted checksum for %s: %s but got %s", tarballName, checksum, calculatedChecksum)
+		}
+		fmt.Printf("checksum for %s matches\n", tarballName)
+		_ = os.Remove(signatureName)
+	}
 	_ = os.Remove(tarballName)
 	if verbose {
 		fmt.Printf("File %s removed\n", tarballName)
@@ -179,6 +212,16 @@ func updateDbDeployer(cmd *cobra.Command, args []string) {
 	}
 	if verbose {
 		fmt.Printf("File %s moved to %s\n", programName, targetDirectory)
+	}
+	if targetDirectory == "." {
+		currentDir, err := os.Getwd()
+		if err != nil {
+			currentDir = os.Getenv("PWD")
+		}
+		if currentDir == "" {
+			common.Exitf(1, "error getting current working directory")
+		}
+		targetDirectory = currentDir
 	}
 	_, err = common.RunCmdCtrlWithArgs(path.Join(targetDirectory, programName), []string{"--version"}, false)
 	if err != nil {

@@ -16,6 +16,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -126,6 +127,23 @@ func displayVersion(cmd *cobra.Command, args []string) {
 	}
 }
 
+func displayReleaseStats(release rest.DbdeployerRelease, total int64) int64 {
+	var relTotal int64
+	fmt.Printf("%s\n", globals.DashLine)
+	fmt.Printf("Release:        %-30s %s\n", release.Name, release.PublishedAt)
+	for _, asset := range release.Assets {
+		if strings.Contains(asset.Name, "sha256") {
+			continue
+		}
+		fmt.Printf("\t%-50s %5d\n", asset.Name, asset.DownloadCount)
+		total += asset.DownloadCount
+		relTotal += asset.DownloadCount
+	}
+	fmt.Println()
+	fmt.Printf("\t%-50s %5d\n", "total", relTotal)
+	return total
+}
+
 func displayRelease(release rest.DbdeployerRelease) {
 	fmt.Printf("%s\n", globals.DashLine)
 	fmt.Printf("Remote version: %s\n", release.TagName)
@@ -140,6 +158,8 @@ func displayRelease(release rest.DbdeployerRelease) {
 
 func displayReleases(cmd *cobra.Command, args []string) {
 	limit, _ := cmd.Flags().GetInt(globals.LimitLabel)
+	raw, _ := cmd.Flags().GetBool(globals.RawLabel)
+	stats, _ := cmd.Flags().GetBool(globals.StatsLabel)
 	tag := ""
 	var releases []rest.DbdeployerRelease
 	var err error
@@ -159,15 +179,36 @@ func displayReleases(cmd *cobra.Command, args []string) {
 		}
 		releases = append(releases, release)
 	}
-	count := 0
-	for _, r := range releases {
+	if stats && raw {
+		common.Exitf(1, "only one of flags --%s or --%s is allowed", globals.StatsLabel, globals.RawLabel)
+	}
+	if stats {
+		var total int64
+		for i, r := range releases {
+			done := i + 1
+			total = displayReleaseStats(r, total)
+			if limit > 0 && done >= limit {
+				break
+			}
+		}
+		fmt.Printf("%s\n", globals.DashLine)
+		fmt.Printf("TOTAL downloawds: %d\n", total)
+		return
+	}
+	if raw {
+		jsonText, err := json.MarshalIndent(releases, " ", " ")
+		if err != nil {
+			common.Exitf(1, "error encoding JSON releases : %s", err)
+		}
+		fmt.Printf("%s\n", jsonText)
+		return
+	}
+	for i, r := range releases {
+		done := i + 1
 		displayRelease(r)
 		fmt.Println()
-		count++
-		if limit > 0 {
-			if count > limit {
-				return
-			}
+		if limit > 0 && done >= limit {
+			break
 		}
 	}
 }
@@ -241,4 +282,6 @@ func init() {
 	setPflag(infoCmd, globals.FlavorLabel, "", "", "", "For which flavor this info is", false)
 	infoCmd.PersistentFlags().Bool(globals.EarliestLabel, false, "Return the earliest version")
 	infoReleaseCmd.PersistentFlags().Int(globals.LimitLabel, 3, "Limit number of releases to show (0 = unlimited)")
+	infoReleaseCmd.PersistentFlags().Bool(globals.RawLabel, false, "Show the original data")
+	infoReleaseCmd.PersistentFlags().Bool(globals.StatsLabel, false, "Show downloads statistics")
 }

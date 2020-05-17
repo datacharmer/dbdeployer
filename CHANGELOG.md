@@ -1,8 +1,18 @@
-## 1.49.0	26-Apr-2020 (not released)
+## 1.50.0	16-May-2020
+
+### NEW FEATURES
+
+* Add new options `--raw` and `--stats` to  command `info releases`
+* Add checksum files (SHA256) to release
+* Add signature check during dbdeployer update
+
+
+## 1.49.0	26-Apr-2020
 
 ### NEW FEATURES
 
 * Add `--change-master-options` (Issue #107)
+* Add more downloads (8.0.20, 5.7.30)
 
 ### TESTING
 

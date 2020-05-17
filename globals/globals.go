@@ -114,6 +114,7 @@ const (
 	// Instantiated in cmd/info.go
 	EarliestLabel = "earliest"
 	LimitLabel    = "limit"
+	StatsLabel    = "stats"
 
 	// Instantiated in cmd/remote.go
 	MB                = 1024 * 1024

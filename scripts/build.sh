@@ -17,9 +17,9 @@ target=$1
 version=$2
 
 build_dir=$(dirname $0)
-executable=$(basename $0)
+build_script=$(basename $0)
 cd $build_dir
-executable=$PWD/$executable
+build_script=$PWD/$build_script
 cd ..
 build_dir=$PWD
 
@@ -107,7 +107,7 @@ then
 fi
 
 function shrink {
-    executable=$1
+    binary=$1
     if [ -z "$SHRINK_EXECUTABLES" ]
     then
         return
@@ -117,34 +117,51 @@ function shrink {
     then
         return
     fi
-    upx -9 $executable
+    upx -9 $binary
+}
+
+function make_signature {
+    binary_file=$1
+    sha_sum_cmd=$(find_in_path shasum)
+    if [ -z "$sha_sum_cmd" ]
+    then
+        echo "shasum not found - signature missing"
+        return
+    fi
+    $sha_sum_cmd -a 256 $binary_file > ${binary_file}.sha256
+
+    $sha_sum_cmd -a 256 -c ${binary_file}.sha256
 }
 
 case $target in
     all)
-        $executable OSX $version
-        $executable linux $version
+        $build_script OSX $version
+        $build_script linux $version
         ;;
     OSX)
-        executable=dbdeployer-${version}${docs_tag}.osx
+        binary=dbdeployer-${version}${docs_tag}.osx
 	    (set -x
-        env GOOS=darwin GOARCH=amd64 go build $docs_flags -o $executable .
+        env GOOS=darwin GOARCH=amd64 go build $docs_flags -o $binary .
         )
         if [ "$?" != "0" ]
         then
             echo "ERROR during build!"
             exit 1
         fi
-        tar -c $executable | gzip -c > ${executable}.tar.gz
-        shrink $executable
+        tar -c $binary | gzip -c > ${binary}.tar.gz
+        shrink $binary
+        make_signature $binary
+        make_signature ${binary}.tar.gz
     ;;
     linux)
-        executable=dbdeployer-${version}${docs_tag}.linux
+        binary=dbdeployer-${version}${docs_tag}.linux
         (set -x
-	    env GOOS=linux GOARCH=amd64 go build $docs_flags -o $executable .
+	    env GOOS=linux GOARCH=amd64 go build $docs_flags -o $binary .
         )
-        tar -c $executable | gzip -c > ${executable}.tar.gz
-        shrink $executable
+        tar -c $binary | gzip -c > ${binary}.tar.gz
+        shrink $binary
+        make_signature $binary
+        make_signature ${binary}.tar.gz
     ;;
     *)
         echo unrecognized target.
