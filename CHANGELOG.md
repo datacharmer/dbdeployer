@@ -1,3 +1,9 @@
+## 1.50.1	06-Jun-2020
+
+### BUGS FIXED
+
+* Fix Issue #108: panic error when sandbox binary is not a directory
+
 ## 1.50.0	16-May-2020
 
 ### NEW FEATURES

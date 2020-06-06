@@ -182,6 +182,9 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 	if err != nil {
 		return sd, err
 	}
+	if !common.DirExists(basedir) {
+		return sd, fmt.Errorf("sandbox binary %s is not a directory or doesn't exist", basedir)
+	}
 	if os.Getenv("SANDBOX_BINARY") == "" {
 		_ = os.Setenv("SANDBOX_BINARY", basedir)
 	}
