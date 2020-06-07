@@ -65,6 +65,12 @@ func updateDbDeployer(cmd *cobra.Command, args []string) {
 	targetDirectory := newPath
 	programName := common.BaseName(os.Args[0])
 
+	fullProgramName := common.Which(programName)
+	fileInfo, err := os.Stat(fullProgramName)
+	if err != nil {
+		common.Exitf(1, "error retrieving file info for %s", fullProgramName)
+	}
+	filePermissions := fileInfo.Mode().Perm()
 	dbdeployerPath := common.DirName(common.Which(programName))
 	if targetDirectory == "" {
 		targetDirectory = dbdeployerPath
@@ -197,7 +203,9 @@ func updateDbDeployer(cmd *cobra.Command, args []string) {
 	if verbose {
 		fmt.Printf("File %s removed\n", tarballName)
 	}
-	err = os.Chmod(fileName, globals.ExecutableFileAttr)
+
+	// Give the new file the same attributes of the existing dbdeployer executable
+	err = os.Chmod(fileName, filePermissions)
 	common.ErrCheckExitf(err, 1, "error changing attributes of %s", fileName)
 	if currentOS != OS && targetDirectory == dbdeployerPath {
 		fmt.Printf("OS of the remote file (%s) different from current OS (%s)\n", OS, currentOS)

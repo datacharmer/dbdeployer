@@ -1,3 +1,9 @@
+## 1.50.2	07-Jun-2020
+
+### BUGS FIXED
+
+* Fix incorrect privileges when updating dbdeployer as root
+
 ## 1.50.1	06-Jun-2020
 
 ### BUGS FIXED
