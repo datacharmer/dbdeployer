@@ -1,3 +1,9 @@
+## 1.51.0	12-Jun-2020
+
+### NEW FEATURES
+
+* Add default sandbox (commands `admin set-default` and `admin remove-default`)
+
 ## 1.50.2	07-Jun-2020
 
 ### BUGS FIXED
