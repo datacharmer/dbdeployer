@@ -35,12 +35,13 @@ const (
 	SkipLibraryCheck   = "skip-library-check"
 
 	// Instantiated in cmd/admin.go
-	RemoteLabel         = "remote"
-	RemoteUrlLabel      = "remote-url"
-	CompletionFileLabel = "completion-file"
-	CompletionFileValue = "dbdeployer_completion.sh"
-	RunItLabel          = "run-it"
-	CamelCase           = "camel-case"
+	RemoteLabel              = "remote"
+	RemoteUrlLabel           = "remote-url"
+	CompletionFileLabel      = "completion-file"
+	CompletionFileValue      = "dbdeployer_completion.sh"
+	RunItLabel               = "run-it"
+	CamelCase                = "camel-case"
+	DefaultSandboxExecutable = "default-sandbox-executable"
 
 	// Instantiated in cmd/deploy.go
 	DefaultRoleLabel          = "default-role"

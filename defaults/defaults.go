@@ -67,6 +67,7 @@ type DbdeployerDefaults struct {
 	RemoteTarballUrl              string `json:"remote-tarball-url"`
 	PxcPrefix                     string `json:"pxc-prefix"`
 	NdbPrefix                     string `json:"ndb-prefix"`
+	DefaultSandboxExecutable      string `json:"default-sandbox-executable"`
 	Timestamp                     string `json:"timestamp"`
 }
 
@@ -128,13 +129,14 @@ var (
 			33060, // MySQLX
 			33062, // MySQL Server admin port
 		},
-		RemoteRepository:    "https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata",
-		RemoteIndexFile:     "available.json",
-		RemoteCompletionUrl: "https://raw.githubusercontent.com/datacharmer/dbdeployer/master/docs/dbdeployer_completion.sh",
-		RemoteTarballUrl:    "https://raw.githubusercontent.com/datacharmer/dbdeployer/master/downloads/tarball_list.json",
-		NdbPrefix:           "ndb_msb_",
-		PxcPrefix:           "pxc_msb_",
-		Timestamp:           time.Now().Format(time.UnixDate),
+		RemoteRepository:         "https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata",
+		RemoteIndexFile:          "available.json",
+		RemoteCompletionUrl:      "https://raw.githubusercontent.com/datacharmer/dbdeployer/master/docs/dbdeployer_completion.sh",
+		RemoteTarballUrl:         "https://raw.githubusercontent.com/datacharmer/dbdeployer/master/downloads/tarball_list.json",
+		NdbPrefix:                "ndb_msb_",
+		PxcPrefix:                "pxc_msb_",
+		DefaultSandboxExecutable: "default",
+		Timestamp:                time.Now().Format(time.UnixDate),
 	}
 	currentDefaults DbdeployerDefaults
 )
@@ -266,6 +268,7 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		nd.MultiplePrefix != "" &&
 		nd.PxcPrefix != "" &&
 		nd.NdbPrefix != "" &&
+		nd.DefaultSandboxExecutable != "" &&
 		nd.SandboxHome != "" &&
 		nd.SandboxBinary != "" &&
 		nd.RemoteIndexFile != "" &&
@@ -395,6 +398,8 @@ func UpdateDefaults(label, value string, storeDefaults bool) {
 		newDefaults.PxcPrefix = value
 	case "ndb-prefix":
 		newDefaults.NdbPrefix = value
+	case "default-sandbox-executable":
+		newDefaults.DefaultSandboxExecutable = value
 	default:
 		common.Exitf(1, "unrecognized label %s", label)
 	}
@@ -521,6 +526,7 @@ func DefaultsToMap() common.StringMap {
 		"PxcPrefix":                         currentDefaults.PxcPrefix,
 		"pxc-prefix":                        currentDefaults.PxcPrefix,
 		"NdbPrefix":                         currentDefaults.NdbPrefix,
+		"DefaultSandboxExecutable":          currentDefaults.DefaultSandboxExecutable,
 		"ndb-prefix":                        currentDefaults.NdbPrefix,
 		"Timestamp":                         currentDefaults.Timestamp,
 		"timestamp":                         currentDefaults.Timestamp,

@@ -1,7 +1,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.50.0 (16-May-2020 16:32 UTC)
+Documentation updated for version 1.51.0 (12-Jun-2020 04:26 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -35,6 +35,7 @@ Documentation updated for version 1.50.0 (16-May-2020 16:32 UTC)
 - [Sandbox customization](#sandbox-customization)
 - [Sandbox management](#sandbox-management)
 - [Sandbox macro operations](#sandbox-macro-operations)
+- [Default sandbox](#default-sandbox)
 - [Sandbox upgrade](#sandbox-upgrade)
 - [Dedicated admin address](#dedicated-admin-address)
 - [Obtaining sandbox metadata](#obtaining-sandbox-metadata)
@@ -59,7 +60,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.50.0
+    $ VERSION=1.51.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -162,7 +163,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.50.0
+    dbdeployer version 1.51.0
     
 
     $ dbdeployer -h
@@ -304,7 +305,7 @@ The easiest command is ``deploy single``, which installs a single sandbox.
           --repl-crash-safe                 enables Replication crash safe
           --rpl-password string             replication password (default "rsandbox")
           --rpl-user string                 replication user (default "rsandbox")
-          --sandbox-directory string        Changes the default sandbox directory
+          --sandbox-directory string        Changes the default name of the sandbox directory
           --skip-load-grants                Does not load the grants
           --skip-report-host                Does not include report host in my.sandbox.cnf
           --skip-report-port                Does not include report port in my.sandbox.cnf
@@ -1578,6 +1579,57 @@ The lock can also be reverted using
 
     $ dbdeployer admin unlock sandbox_name
 
+# Default sandbox
+
+You can set a default sandbox using the command `dbdeployer admin set-default sandbox_name`
+
+    $ dbdeployer admin set-default -h
+    Sets a given sandbox as default, so that it can be used with $SANDBOX_HOME/default
+    
+    Usage:
+      dbdeployer admin set-default sandbox_name [flags]
+    
+    Flags:
+          --default-sandbox-executable string   Name of the executable to run commands in the default sandbox (default "default")
+      -h, --help                                help for set-default
+    
+    
+
+
+For example:
+
+    $ dbdeployer admin set-default msb_8_0_20
+
+This command creates a script `$HOME/sandboxes/default` that will point to the sandbox you have chosen.
+After that, you can use the sandbox using `~/sandboxes/default command`, such as
+
+    $ ~/sandboxes/default status
+    $ ~/sandboxes/default use   # will get the `mysql` prompt
+    $ ~/sandboxes/default use -e 'select version()'
+
+
+If the sandbox chosen as default is a multiple or replication sandbox, you can use the commands that are available there
+
+    $ ~/sandboxes/default status_all
+    $ ~/sandboxes/default use_all 'select @@version, @@server_id, @@port'
+
+
+You can have more than one default sandbox, using the option `--default-sandbox-executable=name`.
+For example:
+
+
+    $ dbdeployer admin set-default msb_8_0_20 --default-sandbox-executable=single
+    $ dbdeployer admin set-default repl_8_0_20 --default-sandbox-executable=repl
+    $ dbdeployer admin set-default group_msb_8_0_20 --default-sandbox-executable=group
+
+With the above commands, you will have three executables in ~/sandboxes, named `single`, `repl`, and `group`.
+You can use them just like the `default` executable:
+
+    $ ~/sandboxes/single status
+    $ ~/sandboxes/repl check_slaves
+    $ ~/sandboxes/group check_nodes
+
+
 # Sandbox upgrade
 
 dbdeployer 1.10.0 introduces upgrades:
@@ -2122,10 +2174,10 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.50.0-docs.linux.tar.gz
-* dbdeployer-1.50.0-docs.osx.tar.gz
-* dbdeployer-1.50.0.linux.tar.gz
-* dbdeployer-1.50.0.osx.tar.gz
+* dbdeployer-1.51.0-docs.linux.tar.gz
+* dbdeployer-1.51.0-docs.osx.tar.gz
+* dbdeployer-1.51.0.linux.tar.gz
+* dbdeployer-1.51.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

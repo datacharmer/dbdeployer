@@ -518,6 +518,11 @@ function ok_file_exists {
     ok_generic_exists $filename "file" -f
 }
 
+function ok_file_does_not_exists {
+    filename=$1
+    ok_generic_does_not_exist $filename "file" -f
+}
+
 function ok_executable_exists {
     filename=$1
     ok_generic_exists $filename "file" -x

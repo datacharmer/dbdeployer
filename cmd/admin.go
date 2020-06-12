@@ -170,6 +170,26 @@ func unlockSandbox(cmd *cobra.Command, args []string) {
 	}
 }
 
+func setDefaultSandbox(cmd *cobra.Command, args []string) {
+	if len(args) < 1 {
+		common.Exit(1,
+			"'set-default' requires the name of a sandbox",
+			"Example: dbdeployer admin set-default msb_5_7_30")
+	}
+	candidateSandbox := args[0]
+	err := adminDefaultSandbox(cmd, candidateSandbox, true)
+	if err != nil {
+		common.Exitf(1, "%s", err)
+	}
+}
+
+func removeDefaultSandbox(cmd *cobra.Command, args []string) {
+	err := adminDefaultSandbox(cmd, "", false)
+	if err != nil {
+		common.Exitf(1, "%s", err)
+	}
+}
+
 func DryRunCmdWithArgs(cmd string, args []string, dryRun bool) (string, error) {
 	if dryRun {
 		return "", nil
@@ -434,6 +454,7 @@ Users can still delete locked sandboxes manually.`,
 		Run:         unlockSandbox,
 		Annotations: map[string]string{"export": makeExportArgs(globals.ExportSandboxDir, 1)},
 	}
+
 	adminUpgradeCmd = &cobra.Command{
 		Use:   "upgrade sandbox_name newer_sandbox",
 		Short: "Upgrades a sandbox to a newer version",
@@ -445,6 +466,7 @@ The data directory of the old sandbox will be moved to the new one.`,
 		Args:        SandboxNames(2),
 		Annotations: map[string]string{"export": makeExportArgs(globals.ExportSandboxDir, 2)},
 	}
+
 	adminCapabilitiesCmd = &cobra.Command{
 		Use:   "capabilities [flavor [version]]",
 		Short: "Shows capabilities of a given flavor [and optionally version]",
@@ -457,6 +479,22 @@ dbdeployer admin capabilities mysql 5.7.11
 dbdeployer admin capabilities mysql 5.7.13
 `,
 		Run: showCapabilities,
+	}
+
+	adminSetDefaultCmd = &cobra.Command{
+		Use:         "set-default sandbox_name",
+		Short:       "Sets a sandbox as default",
+		Long:        `Sets a given sandbox as default, so that it can be used with $SANDBOX_HOME/default`,
+		Run:         setDefaultSandbox,
+		Annotations: map[string]string{"export": makeExportArgs(globals.ExportSandboxDir, 1)},
+	}
+
+	adminRemoveDefaultCmd = &cobra.Command{
+		Use:         "remove-default",
+		Short:       "Removes default sandbox",
+		Long:        `Removes the default sandbox`,
+		Run:         removeDefaultSandbox,
+		Annotations: map[string]string{"export": makeExportArgs(globals.ExportSandboxDir, 1)},
 	}
 )
 
@@ -486,6 +524,13 @@ func init() {
 	adminCmd.AddCommand(adminUnlockCmd)
 	adminCmd.AddCommand(adminUpgradeCmd)
 	adminCmd.AddCommand(adminCapabilitiesCmd)
+	adminCmd.AddCommand(adminSetDefaultCmd)
+	adminCmd.AddCommand(adminRemoveDefaultCmd)
 	adminUpgradeCmd.Flags().BoolP(globals.VerboseLabel, "", false, "Shows upgrade operations")
 	adminUpgradeCmd.Flags().BoolP(globals.DryRunLabel, "", false, "Shows upgrade operations, but don't execute them")
+
+	adminSetDefaultCmd.PersistentFlags().StringP(globals.DefaultSandboxExecutable, "",
+		defaults.Defaults().DefaultSandboxExecutable, "Name of the executable to run commands in the default sandbox")
+	adminRemoveDefaultCmd.PersistentFlags().StringP(globals.DefaultSandboxExecutable, "",
+		defaults.Defaults().DefaultSandboxExecutable, "Name of the executable to run commands in the default sandbox")
 }

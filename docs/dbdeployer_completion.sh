@@ -308,6 +308,68 @@ _dbdeployer_admin_lock()
     noun_aliases=()
 }
 
+_dbdeployer_admin_remove-default()
+{
+    last_command="dbdeployer_admin_remove-default"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--default-sandbox-executable=")
+    two_word_flags+=("--default-sandbox-executable")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--sandbox-binary=")
+    two_word_flags+=("--sandbox-binary")
+    flags+=("--sandbox-home=")
+    two_word_flags+=("--sandbox-home")
+    flags+=("--shell-path=")
+    two_word_flags+=("--shell-path")
+    flags+=("--skip-library-check")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_dbdeployer_admin_set-default()
+{
+    last_command="dbdeployer_admin_set-default"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--default-sandbox-executable=")
+    two_word_flags+=("--default-sandbox-executable")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--sandbox-binary=")
+    two_word_flags+=("--sandbox-binary")
+    flags+=("--sandbox-home=")
+    two_word_flags+=("--sandbox-home")
+    flags+=("--shell-path=")
+    two_word_flags+=("--shell-path")
+    flags+=("--skip-library-check")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _dbdeployer_admin_unlock()
 {
     last_command="dbdeployer_admin_unlock"
@@ -383,6 +445,8 @@ _dbdeployer_admin()
         command_aliases+=("preserve")
         aliashash["preserve"]="lock"
     fi
+    commands+=("remove-default")
+    commands+=("set-default")
     commands+=("unlock")
     if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
         command_aliases+=("unpreserve")

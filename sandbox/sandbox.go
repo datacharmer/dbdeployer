@@ -22,6 +22,7 @@ import (
 	"os/user"
 	"path"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -1177,6 +1178,8 @@ func RemoveSandbox(sandboxDir, sandbox string, runConcurrently bool) (execList [
 	if err != nil {
 		return emptyExecutionList, err
 	}
+
+	sandboxDefaultMarker := path.Join(fullPath, "is_default")
 	stop := path.Join(fullPath, globals.ScriptStopAll)
 	useKill := common.IsEnvSet("KILL_AS_STOP")
 	if useKill {
@@ -1203,6 +1206,18 @@ func RemoveSandbox(sandboxDir, sandbox string, runConcurrently bool) (execList [
 		_, err = common.RunCmd(stop)
 		if err != nil {
 			return emptyExecutionList, fmt.Errorf(globals.ErrWhileStoppingSandbox, fullPath)
+		}
+	}
+
+	if common.FileExists(sandboxDefaultMarker) {
+		defaultExecutable, err := common.SlurpAsString(sandboxDefaultMarker)
+		if err != nil {
+			return emptyExecutionList, fmt.Errorf("error reading default address from %s: %s",
+				sandboxDefaultMarker, err)
+		}
+		defaultExecutable = strings.TrimSpace(defaultExecutable)
+		if common.FileExists(defaultExecutable) {
+			_ = os.Remove(defaultExecutable)
 		}
 	}
 

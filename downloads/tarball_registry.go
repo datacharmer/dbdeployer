@@ -16,11 +16,11 @@
 package downloads
 
 // This file was generated during build. Do not edit.
-// Build time: Sat May 16 20:32:09 CEST 2020
+// Build time: Mon Jun  8 20:12:39 CEST 2020
 
 var DefaultTarballRegistry = TarballCollection{
 	// Version of dbdeployer when the list was last updated
-	DbdeployerVersion: "1.49.0",
+	DbdeployerVersion: "1.51.0",
 	Tarballs: []TarballDescription{
 
 		{

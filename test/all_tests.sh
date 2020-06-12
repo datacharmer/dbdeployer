@@ -121,6 +121,7 @@ function all_tests {
         run_test ./test/cookbook-test.sh
     fi
     run_test ./test/mock/defaults-change.sh
+    run_test ./test/mock/default-sandbox.sh
     run_test ./test/mock/short-versions.sh
     run_test ./test/mock/direct-paths.sh
     run_test ./test/mock/expected_ports.sh
