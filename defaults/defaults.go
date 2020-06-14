@@ -526,8 +526,9 @@ func DefaultsToMap() common.StringMap {
 		"PxcPrefix":                         currentDefaults.PxcPrefix,
 		"pxc-prefix":                        currentDefaults.PxcPrefix,
 		"NdbPrefix":                         currentDefaults.NdbPrefix,
-		"DefaultSandboxExecutable":          currentDefaults.DefaultSandboxExecutable,
 		"ndb-prefix":                        currentDefaults.NdbPrefix,
+		"DefaultSandboxExecutable":          currentDefaults.DefaultSandboxExecutable,
+		"default-sandbox-executable":        currentDefaults.DefaultSandboxExecutable,
 		"Timestamp":                         currentDefaults.Timestamp,
 		"timestamp":                         currentDefaults.Timestamp,
 	}
