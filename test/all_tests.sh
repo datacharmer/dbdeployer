@@ -111,31 +111,19 @@ function run_test {
     fi
 }
 
+function mock_tests {
+    ./test/docker-test.sh $version test/run-mock-tests.sh
+}
+
 function all_tests {
-    if [ -z "$ONLY_MOCK" ]
+    run_test ./scripts/sanity_check.sh
+    run_test ./test/go-unit-tests.sh
+    run_test ./test/functional-test.sh
+    run_test ./test/docker-test.sh $version
+    run_test ./test/cookbook-test.sh
+    if [ -z "$TRAVIS" ]
     then
-        run_test ./scripts/sanity_check.sh
-        run_test ./test/go-unit-tests.sh
-        run_test ./test/functional-test.sh
-        run_test ./test/docker-test.sh $version
-        run_test ./test/cookbook-test.sh
-    fi
-    run_test ./test/mock/defaults-change.sh
-    run_test ./test/mock/default-sandbox.sh
-    run_test ./test/mock/short-versions.sh
-    run_test ./test/mock/direct-paths.sh
-    run_test ./test/mock/expected_ports.sh
-    run_test ./test/mock/replication-setup.sh
-    run_test ./test/mock/ndb_test.sh
-    run_test ./test/mock/pxc_test.sh
-    run_test ./test/mock/fanin_test.sh
-    run_test ./test/mock/cookbook.sh
-    run_test ./test/mock/parallel.sh
-    if [ -n "$COMPLETE_PORT_TEST" ]
-    then
-        run_test ./test/mock/port-clash.sh
-    else
-        run_test ./test/mock/port-clash.sh sparse
+        run_test mock_tests
     fi
 }
 
@@ -155,8 +143,8 @@ do
         lf_fail=$((lf_fail+lfg_fail))
         lf_pass=$((lf_pass+lfg_pass))
         lf_tests=$((lf_pass+lf_fail))
-        printf "# %-25s - tests: %4d - pass: %4d - fail: %4d\n" $fname $lf_tests $lf_pass $lf_fail
-        printf "# %-25s - tests: %4d - pass: %4d - fail: %4d\n" $fname $lf_tests $lf_pass $lf_fail >> $log_summary
+        printf "# %-25s - tests: %5d - pass: %5d - fail: %5d\n" $fname $lf_tests $lf_pass $lf_fail
+        printf "# %-25s - tests: %5d - pass: %5d - fail: %5d\n" $fname $lf_tests $lf_pass $lf_fail >> $log_summary
     fi
 done
 echo $dash_line
