@@ -1,3 +1,15 @@
+## 1.51.1	14-Jun-2020
+
+### BUGS FIXED
+
+* Fix bug in defaults handling: "default-sandbox-executable" was not used in `info defaults`
+* Prevent `ldd` from running on mocked binaries
+
+### TESTING
+
+* Moved mock tests under docker to improve consistency
+
+
 ## 1.51.0	12-Jun-2020
 
 ### NEW FEATURES

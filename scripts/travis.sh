@@ -29,13 +29,6 @@ export EXIT_ON_FAILURE=1
 run ./scripts/sanity_check.sh
 run ./test/go-unit-tests.sh
 run ./scripts/build.sh linux
-run ./test/mock/defaults-change.sh
-run ./test/mock/short-versions.sh
-run ./test/mock/direct-paths.sh
-run ./test/mock/expected_ports.sh
-run ./test/mock/replication-setup.sh
-run ./test/mock/ndb_test.sh
-run ./test/mock/pxc_test.sh
-run ./test/mock/cookbook.sh
+run ./test/run-mock-tests.sh
 run ./test/docker-test.sh $(cat .build/VERSION)
 
