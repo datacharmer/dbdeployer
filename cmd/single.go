@@ -253,6 +253,9 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 	}
 
 	skipLibraryCheck, _ := flags.GetBool(globals.SkipLibraryCheck)
+	if os.Getenv("SB_MOCKING") != "" {
+		skipLibraryCheck = true
+	}
 	if !skipLibraryCheck {
 		err = common.CheckLibraries(sd.Basedir)
 		if err != nil {
