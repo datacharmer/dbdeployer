@@ -114,18 +114,19 @@ func enableBashCompletion(cmd *cobra.Command, args []string) {
 	destinationDir := path.Join("/etc", "bash_completion.d")
 	alternateDestinationDir := path.Join("/usr", "local", "etc", "bash_completion.d")
 	if !common.DirExists(destinationDir) {
-		destinationDir = alternateDestinationDir
-	}
-	if !common.DirExists(destinationDir) {
-		common.Exitf(1, "neither %s or %s found", destinationDir, alternateDestinationDir)
-	}
-	if !common.FileExists(bashCompletionScript) {
-		bashCompletionScript = alternateBashCompletionScript
+		if common.DirExists(alternateDestinationDir) {
+			destinationDir = alternateDestinationDir
+		} else {
+			common.Exitf(1, "neither %s or %s found", destinationDir, alternateDestinationDir)
+		}
 	}
 	if !common.FileExists(bashCompletionScript) {
-		common.Exitf(1, "neither %s or %s found", bashCompletionScript, alternateBashCompletionScript)
+		if common.FileExists(bashCompletionScript) {
+			bashCompletionScript = alternateBashCompletionScript
+		} else {
+			common.Exitf(1, "neither %s or %s found", bashCompletionScript, alternateBashCompletionScript)
+		}
 	}
-
 	if completionFile == "" {
 		completionFile = globals.CompletionFileValue
 	}

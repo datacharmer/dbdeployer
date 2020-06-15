@@ -1,3 +1,9 @@
+## 1.51.2	15-Jun-2020
+
+### BUGS FIXED
+
+* Fix error handling on default directories detection for bash completion.
+
 ## 1.51.1	14-Jun-2020
 
 ### BUGS FIXED
