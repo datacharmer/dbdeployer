@@ -55,7 +55,7 @@ container_name=dbtest
 #    fi
 #fi
 
-exists=$(docker ps -a | grep $container_name )
+exists=$(docker ps -a | grep -w $container_name )
 if [ -n "$exists" ]
 then
     docker rm -v -f $container_name

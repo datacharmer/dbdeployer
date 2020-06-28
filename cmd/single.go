@@ -183,7 +183,11 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 		return sd, err
 	}
 	if !common.DirExists(basedir) {
-		return sd, fmt.Errorf("sandbox binary %s is not a directory or doesn't exist", basedir)
+		if common.FileExists(basedir) {
+			return sd, fmt.Errorf("the path indicated as SANDBOX_BINARY (%s) is a file, not a directory", basedir)
+		}
+		return sd, fmt.Errorf("sandbox binary directory %s not found\n"+
+			"Use 'dbdeployer init' to initialize it", basedir)
 	}
 	if os.Getenv("SANDBOX_BINARY") == "" {
 		_ = os.Setenv("SANDBOX_BINARY", basedir)
@@ -247,7 +251,6 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 	}
 
 	sd.Basedir = path.Join(basedir, sd.BasedirName)
-	// sd.Basedir = path.Join(basedir, args[0])
 	if !common.DirExists(sd.Basedir) && !sd.Imported {
 		common.Exitf(1, "basedir '%s' not found", sd.Basedir)
 	}
@@ -280,6 +283,9 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 		return sd, err
 	}
 
+	if sd.SandboxDir == sd.Basedir {
+		return sd, fmt.Errorf("sandbox-binary and sandbox-home cannot be the same directory (%s)", sd.SandboxDir)
+	}
 	err = common.CheckSandboxDir(sd.SandboxDir)
 	if err != nil {
 		return sd, err

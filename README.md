@@ -1,13 +1,14 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.51.0 (12-Jun-2020 04:26 UTC)
+Documentation updated for version 1.52.0 (28-Jun-2020 14:35 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
 # Table of contents
 
 - [Installation](#installation)
+- [Initializing the environment](#initializing-the-environment)
 - [Updating dbdeployer](#updating-dbdeployer)
 - [Main operations](#main-operations)
 - [Database users](#database-users)
@@ -60,7 +61,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.51.0
+    $ VERSION=1.52.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -87,6 +88,38 @@ Use --skip-library-check to skip this check
 
 If you use `--skip-library-check`, the above check won't be performed, and the deployment may fail and leave you with an incomplete sandbox.
 Skipping the check may be justified when deploying a very old version of MySQL (4.1, 5.0, 5.1)
+
+
+# Initializing the environment
+
+Immediately after installing dbdeployer, you can get the environment ready for operations using the command
+
+```
+$ dbdeployer init
+```
+
+This command creates the necessary directories, then downloads the latest MySQL binaries, and expands them in the right place. It also enables [command line completion](#command-line-completion).
+
+Running the command without options is what most users need. Advanced ones may look at the documentation to fine tune the initialization.
+
+    $ dbdeployer init -h
+    Initializes dbdeployer environment: 
+    * creates $SANDBOX_HOME and $SANDBOX_BINARY directories
+    * downloads and expands the latest MySQL tarball
+    * installs shell completion file
+    
+    Usage:
+      dbdeployer init [flags]
+    
+    Flags:
+          --dry-run                 Show operations but don't run them
+      -h, --help                    help for init
+          --skip-all-downloads      Do not download any file (skip both MySQL tarball and shell completion file)
+          --skip-shell-completion   Do not download shell completion file
+          --skip-tarball-download   Do not download MySQL tarball
+    
+    
+
 
 # Updating dbdeployer
 
@@ -163,7 +196,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.51.0
+    dbdeployer version 1.52.0
     
 
     $ dbdeployer -h
@@ -186,6 +219,7 @@ The program doesn't have any dependencies. Everything is included in the binary.
       help            Help about any command
       import          imports one or more MySQL servers into a sandbox
       info            Shows information about dbdeployer environment samples
+      init            initializes dbdeployer environment
       sandboxes       List installed sandboxes
       unpack          unpack a tarball into the binary directory
       update          Gets dbdeployer newest version
@@ -2174,10 +2208,10 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.51.0-docs.linux.tar.gz
-* dbdeployer-1.51.0-docs.osx.tar.gz
-* dbdeployer-1.51.0.linux.tar.gz
-* dbdeployer-1.51.0.osx.tar.gz
+* dbdeployer-1.52.0-docs.linux.tar.gz
+* dbdeployer-1.52.0-docs.osx.tar.gz
+* dbdeployer-1.52.0.linux.tar.gz
+* dbdeployer-1.52.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 
@@ -2223,7 +2257,13 @@ There is a file ``./docs/dbdeployer_completion.sh``, which is automatically gene
     $ sudo cp ./docs/dbdeployer_completion.sh /usr/local/etc/bash_completion.d
     $ source /usr/local/etc/bash_completion
 
-Then, you can use completion as follows:
+There is a dbdeployer command that does all the above for you:
+
+```
+dbdeployer defaults enable-bash-completion --remote --run-it
+```
+
+When completion is enabled, you can use it as follows:
 
     $ dbdeployer [tab]
         admin  defaults  delete  deploy  global  sandboxes  unpack  usage  versions

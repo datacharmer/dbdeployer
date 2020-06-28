@@ -22,6 +22,8 @@ cd $version_dir
 if [ -z "$version" ]
 then
     echo "Syntax: $0 version [compatible]"
+    echo "Currenti main version: $(cat VERSION)"
+    echo "Compatible version   : $(cat COMPATIBLE_VERSION)"
     exit 1
 fi
 

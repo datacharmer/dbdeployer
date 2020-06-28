@@ -140,12 +140,11 @@ case $target in
         ;;
     OSX)
         binary=dbdeployer-${version}${docs_tag}.osx
-	    (set -x
+        echo "env GOOS=darwin GOARCH=amd64 go build $docs_flags -o $binary ."
         env GOOS=darwin GOARCH=amd64 go build $docs_flags -o $binary .
-        )
         if [ "$?" != "0" ]
         then
-            echo "ERROR during build!"
+            echo "ERROR during OSX build!"
             exit 1
         fi
         tar -c $binary | gzip -c > ${binary}.tar.gz
@@ -155,9 +154,13 @@ case $target in
     ;;
     linux)
         binary=dbdeployer-${version}${docs_tag}.linux
-        (set -x
+	    echo "env GOOS=linux GOARCH=amd64 go build $docs_flags -o $binary ."
 	    env GOOS=linux GOARCH=amd64 go build $docs_flags -o $binary .
-        )
+        if [ "$?" != "0" ]
+        then
+            echo "ERROR during linux build!"
+            exit 1
+        fi
         tar -c $binary | gzip -c > ${binary}.tar.gz
         shrink $binary
         make_signature $binary

@@ -2741,6 +2741,39 @@ _dbdeployer_info()
     noun_aliases=()
 }
 
+_dbdeployer_init()
+{
+    last_command="dbdeployer_init"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--dry-run")
+    flags+=("--skip-all-downloads")
+    flags+=("--skip-shell-completion")
+    flags+=("--skip-tarball-download")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--sandbox-binary=")
+    two_word_flags+=("--sandbox-binary")
+    flags+=("--sandbox-home=")
+    two_word_flags+=("--sandbox-home")
+    flags+=("--shell-path=")
+    two_word_flags+=("--shell-path")
+    flags+=("--skip-library-check")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _dbdeployer_sandboxes()
 {
     last_command="dbdeployer_sandboxes"
@@ -2966,6 +2999,7 @@ _dbdeployer_root_command()
     commands+=("global")
     commands+=("import")
     commands+=("info")
+    commands+=("init")
     commands+=("sandboxes")
     if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
         command_aliases+=("deployed")

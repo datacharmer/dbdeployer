@@ -43,6 +43,11 @@ const (
 	CamelCase                = "camel-case"
 	DefaultSandboxExecutable = "default-sandbox-executable"
 
+	// Instantiated in cmd/init.go
+	SkipAllDownloadsLabel    = "skip-all-downloads"
+	SkipTarballDownloadLabel = "skip-tarball-download"
+	SkipShellCompletionLabel = "skip-shell-completion"
+
 	// Instantiated in cmd/deploy.go
 	DefaultRoleLabel          = "default-role"
 	CustomRoleNameLabel       = "custom-role-name"
@@ -174,6 +179,7 @@ const (
 	TarXzExt           = ".tar.xz"
 	TargetServerLabel  = "target-server"
 	TgzExt             = ".tgz"
+	ZipExt             = ".zip"
 	UnpackVersionLabel = "unpack-version"
 	VerbosityLabel     = "verbosity"
 	FlavorLabel        = "flavor"

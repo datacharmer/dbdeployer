@@ -115,12 +115,28 @@ function mock_tests {
     ./test/docker-test.sh $version test/run-mock-tests.sh
 }
 
+function init_tests {
+    exists=$(docker ps -a | grep initdbtest )
+    if [ -n "$exists" ]
+    then
+        docker rm -v -f initdbtest
+    fi
+
+    docker run -ti \
+        -v $PWD/$executable:/usr/bin/dbdeployer \
+        -v $PWD/test/test-init.sh:/home/msandbox/test-init.sh \
+        -e EXIT_ON_FAILURE=1 \
+        --hostname=initdbtest \
+        datacharmer/mysql-sb-base /home/msandbox/test-init.sh
+}
+
 function all_tests {
     run_test ./scripts/sanity_check.sh
     run_test ./test/go-unit-tests.sh
     run_test ./test/functional-test.sh
     run_test ./test/docker-test.sh $version
     run_test ./test/cookbook-test.sh
+    run_test init_tests
     if [ -z "$TRAVIS" ]
     then
         run_test mock_tests

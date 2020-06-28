@@ -8,6 +8,7 @@ Documentation updated for version {{.Version}} ({{.Date}})
 # Table of contents
 
 - [Installation](#installation)
+- [Initializing the environment](#initializing-the-environment)
 - [Updating dbdeployer](#updating-dbdeployer)
 - [Main operations](#main-operations)
 - [Database users](#database-users)
@@ -87,6 +88,22 @@ Use --skip-library-check to skip this check
 
 If you use `--skip-library-check`, the above check won't be performed, and the deployment may fail and leave you with an incomplete sandbox.
 Skipping the check may be justified when deploying a very old version of MySQL (4.1, 5.0, 5.1)
+
+
+# Initializing the environment
+
+Immediately after installing dbdeployer, you can get the environment ready for operations using the command
+
+```
+$ dbdeployer init
+```
+
+This command creates the necessary directories, then downloads the latest MySQL binaries, and expands them in the right place. It also enables [command line completion](#command-line-completion).
+
+Running the command without options is what most users need. Advanced ones may look at the documentation to fine tune the initialization.
+
+    {{dbdeployer init -h}}
+
 
 # Updating dbdeployer
 
@@ -1586,7 +1603,13 @@ There is a file ``./docs/dbdeployer_completion.sh``, which is automatically gene
     $ sudo cp ./docs/dbdeployer_completion.sh /usr/local/etc/bash_completion.d
     $ source /usr/local/etc/bash_completion
 
-Then, you can use completion as follows:
+There is a dbdeployer command that does all the above for you:
+
+```
+dbdeployer defaults enable-bash-completion --remote --run-it
+```
+
+When completion is enabled, you can use it as follows:
 
     $ dbdeployer [tab]
         admin  defaults  delete  deploy  global  sandboxes  unpack  usage  versions

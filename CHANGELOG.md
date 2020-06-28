@@ -1,3 +1,12 @@
+## 1.52.0	28-Jun-2020
+
+### NEW FEATURES
+
+* Add  command `init` that initializes dbdeployer environment
+    * creates `$SANDBOX_HOME` and `$SANDBOX_BINARY` directories
+    * downloads and expands the latest MySQL tarball
+    * installs shell completion file
+
 ## 1.51.2	15-Jun-2020
 
 ### BUGS FIXED
