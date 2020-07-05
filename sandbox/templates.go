@@ -1498,6 +1498,15 @@ master_minor=$($master_metadata minor)
 slave_major=$($SBDIR/metadata major)
 slave_minor=$($SBDIR/metadata minor)
 
+if [ -n "$using_gtid" ]
+then
+	if [ "$master_short_version" == "5.7" -o "$master_short_version" == "5.6" ]
+    then
+        echo "resetting master (needed in version < 8.0)"
+        $master_use_script -e "reset master"
+    fi
+fi
+
 master_status=/tmp/mstatus$$
 
 $master_use_script -e 'show master status\G' > $master_status

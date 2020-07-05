@@ -24,9 +24,11 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/araddon/dateparse"
 	"github.com/pkg/errors"
 
 	"github.com/datacharmer/dbdeployer/globals"
@@ -46,6 +48,60 @@ type VersionInfo struct {
 var portDebug bool = IsEnvSet("PORT_DEBUG")
 
 type PortMap map[int]bool
+
+type SandboxInfoList []SandboxInfo
+
+func GetFullSandboxInfo(sandboxHome string) SandboxInfoList {
+	var fullSandboxList SandboxInfoList
+	simpleSandboxList, err := GetInstalledSandboxes(sandboxHome)
+	if err != nil {
+		return fullSandboxList
+	}
+
+	for _, sb := range simpleSandboxList {
+		sbDescription := path.Join(sandboxHome, sb.SandboxName, globals.SandboxDescriptionName)
+		var tempSandboxDesc SandboxDescription
+		if FileExists(sbDescription) {
+			tempSandboxDesc, _ = ReadSandboxDescription(path.Join(sandboxHome, sb.SandboxName))
+		}
+
+		fullSandboxList = append(fullSandboxList,
+			SandboxInfo{SandboxName: sb.SandboxName, SandboxDesc: tempSandboxDesc, Locked: sb.Locked})
+	}
+	return fullSandboxList
+}
+
+func GetSandboxesByDate(sandboxHome string) (SandboxInfoList, error) {
+	sandboxList := GetFullSandboxInfo(sandboxHome)
+	if len(sandboxList) == 0 {
+		return sandboxList, nil
+	}
+	var errors = make(map[string]int)
+	sort.SliceStable(sandboxList, func(i, j int) bool {
+		iDate, err := dateparse.ParseStrict(sandboxList[i].SandboxDesc.Timestamp)
+		if err != nil {
+			if _, ok := errors[sandboxList[i].SandboxDesc.Timestamp]; !ok {
+				errors[sandboxList[i].SandboxDesc.Timestamp] = 0
+			}
+			errors[sandboxList[i].SandboxDesc.Timestamp] += 1
+			return false
+		}
+		jDate, err := dateparse.ParseStrict(sandboxList[j].SandboxDesc.Timestamp)
+		if err != nil {
+			if _, ok := errors[sandboxList[j].SandboxDesc.Timestamp]; !ok {
+				errors[sandboxList[j].SandboxDesc.Timestamp] = 0
+			}
+			errors[sandboxList[j].SandboxDesc.Timestamp] += 1
+			return false
+		}
+		return iDate.UnixNano() < jDate.UnixNano()
+	})
+	if len(errors) > 0 {
+		return nil, fmt.Errorf("errors during date conversions %v", errors)
+	}
+
+	return sandboxList, nil
+}
 
 // Returns a list of inner sandboxes
 func SandboxInfoToFileNames(sbList []SandboxInfo) (fileNames []string) {
@@ -241,7 +297,7 @@ func FindSandbox(sandboxList []SandboxInfo, wanted string) (SandboxInfo, error) 
 }
 
 // Gets a list of installed sandboxes from the $SANDBOX_HOME directory
-func GetInstalledSandboxes(sandboxHome string) (installedSandboxes []SandboxInfo, err error) {
+func GetInstalledSandboxes(sandboxHome string) (installedSandboxes SandboxInfoList, err error) {
 	if !DirExists(sandboxHome) {
 		return installedSandboxes, fmt.Errorf("directory SandboxHome not found")
 	}

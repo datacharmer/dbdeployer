@@ -3,6 +3,7 @@ module github.com/datacharmer/dbdeployer
 go 1.12
 
 require (
+    github.com/araddon/dateparse v0.0.0-20190622164848-0fb0a474d195
 	github.com/alexeyco/simpletable v0.0.0-20180729223640-1fa9009f1080
 	github.com/dustin/go-humanize v1.0.0
 	github.com/go-sql-driver/mysql v1.4.1
