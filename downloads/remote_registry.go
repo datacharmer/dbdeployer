@@ -129,16 +129,8 @@ func FindOrGuessTarballByVersionFlavorOS(version, flavor, OS string, minimal, ne
 			(!minimal || minimal == tb.Minimal) {
 
 			if guess {
-				_, ok := downloadUrlList[tb.ShortVersion]
-				if !ok {
-					guess = false
-					allowedVersions := make([]string, len(downloadUrlList))
-					i := 0
-					for k := range downloadUrlList {
-						allowedVersions[i] = k
-						i++
-					}
-					return TarballDescription{}, fmt.Errorf("can only guess versions %s ", allowedVersions)
+				if !isAllowedForGuessing(tb.ShortVersion) {
+					return TarballDescription{}, fmt.Errorf("can only guess versions %s ", allowedGuessVersions)
 				}
 			}
 			tbd = append(tbd, tb)
@@ -172,13 +164,25 @@ func FindOrGuessTarballByVersionFlavorOS(version, flavor, OS string, minimal, ne
 		if OS == "linux" && shortVersion == "8.0" {
 			ext = "tar.xz"
 		}
-		data := common.StringMap{"Version": newVersion, "Ext": ext}
+		minimalData := ""
 
-		name, err := common.SafeTemplateFill("", fileNameTemplates[OS], data)
+		if minimal {
+			minimalData = "-minimal"
+		}
+		data := common.StringMap{"Version": newVersion, "Ext": ext, "Minimal": minimalData}
+
+		fileNameTemplate := ""
+		switch OS {
+		case "linux":
+			fileNameTemplate = defaults.Defaults().DownloadNameLinux
+		case "darwin":
+			fileNameTemplate = defaults.Defaults().DownloadNameMacOs
+		}
+		name, err := common.SafeTemplateFill("", fileNameTemplate, data)
 		if err != nil {
 			return TarballDescription{}, fmt.Errorf("[guess version] error filling new download name %s", err)
 		}
-		downloadUrl := fmt.Sprintf("%s/%s", downloadUrlList[shortVersion], name)
+		downloadUrl := fmt.Sprintf("%s-%s/%s", defaults.Defaults().DownloadUrl, shortVersion, name)
 		tbd = append(tbd, TarballDescription{
 			Name:            name,
 			Checksum:        "",

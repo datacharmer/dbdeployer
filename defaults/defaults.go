@@ -68,6 +68,9 @@ type DbdeployerDefaults struct {
 	PxcPrefix                     string `json:"pxc-prefix"`
 	NdbPrefix                     string `json:"ndb-prefix"`
 	DefaultSandboxExecutable      string `json:"default-sandbox-executable"`
+	DownloadNameLinux             string `json:"download-name-linux"`
+	DownloadNameMacOs             string `json:"download-name-macos"`
+	DownloadUrl                   string `json:"download-url"`
 	Timestamp                     string `json:"timestamp"`
 }
 
@@ -136,6 +139,9 @@ var (
 		NdbPrefix:                "ndb_msb_",
 		PxcPrefix:                "pxc_msb_",
 		DefaultSandboxExecutable: "default",
+		DownloadNameLinux:        "mysql-{{.Version}}-linux-glibc2.12-x86_64{{.Minimal}}.{{.Ext}}",
+		DownloadNameMacOs:        "mysql-{{.Version}}-macos10.15-x86_64.{{.Ext}}",
+		DownloadUrl:              "https://dev.mysql.com/get/Downloads/MySQL",
 		Timestamp:                time.Now().Format(time.UnixDate),
 	}
 	currentDefaults DbdeployerDefaults
@@ -269,6 +275,9 @@ func ValidateDefaults(nd DbdeployerDefaults) bool {
 		nd.PxcPrefix != "" &&
 		nd.NdbPrefix != "" &&
 		nd.DefaultSandboxExecutable != "" &&
+		nd.DownloadUrl != "" &&
+		nd.DownloadNameLinux != "" &&
+		nd.DownloadNameMacOs != "" &&
 		nd.SandboxHome != "" &&
 		nd.SandboxBinary != "" &&
 		nd.RemoteIndexFile != "" &&
@@ -400,6 +409,12 @@ func UpdateDefaults(label, value string, storeDefaults bool) {
 		newDefaults.NdbPrefix = value
 	case "default-sandbox-executable":
 		newDefaults.DefaultSandboxExecutable = value
+	case "download-url":
+		newDefaults.DownloadUrl = value
+	case "download-name-linux":
+		newDefaults.DownloadNameLinux = value
+	case "download-name-macos":
+		newDefaults.DownloadNameMacOs = value
 	default:
 		common.Exitf(1, "unrecognized label %s", label)
 	}
@@ -529,6 +544,12 @@ func DefaultsToMap() common.StringMap {
 		"ndb-prefix":                        currentDefaults.NdbPrefix,
 		"DefaultSandboxExecutable":          currentDefaults.DefaultSandboxExecutable,
 		"default-sandbox-executable":        currentDefaults.DefaultSandboxExecutable,
+		"download-url":                      currentDefaults.DownloadUrl,
+		"DownloadUrl":                       currentDefaults.DownloadUrl,
+		"download-name-macos":               currentDefaults.DownloadNameMacOs,
+		"DownloadNameMacOs":                 currentDefaults.DownloadNameMacOs,
+		"download-name-linux":               currentDefaults.DownloadNameLinux,
+		"DownloadNameLinux":                 currentDefaults.DownloadNameLinux,
 		"Timestamp":                         currentDefaults.Timestamp,
 		"timestamp":                         currentDefaults.Timestamp,
 	}

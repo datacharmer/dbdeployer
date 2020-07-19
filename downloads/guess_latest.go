@@ -19,25 +19,36 @@ type GuessInfo struct {
 	Url     string
 }
 
-var (
-	downloadUrlList = map[string]string{
-		"5.7": "https://dev.mysql.com/get/Downloads/MySQL-5.7",
-		"8.0": "https://dev.mysql.com/get/Downloads/MySQL-8.0",
-	}
-	fileNameTemplates = map[string]string{
-		"linux":  "mysql-{{.Version}}-linux-x86_64-minimal.{{.Ext}}",
-		"darwin": "mysql-{{.Version}}-macos10.15-x86_64.{{.Ext}}",
-	}
-	/*
-		Extensions = map[string]map[string]string{
-			"linux": {
-				"5.7": "tar.gz",
-				"8.0": "tar.xz",
-			},
-			"darwin": {
-				"5.7": "tar.gz",
-				"8.0": "tar.gz",
-			},
+var allowedGuessVersions = []string{"5.7", "8.0"}
+
+func isAllowedForGuessing(s string) bool {
+	for _, v := range allowedGuessVersions {
+		if v == s {
+			return true
 		}
-	*/
-)
+	}
+	return false
+}
+
+//var (
+//	downloadUrlList = map[string]string{
+//		"5.7": defaults.Defaults().DownloadUrl + "-5.7", // "https://dev.mysql.com/get/Downloads/MySQL-5.7",
+//		"8.0": defaults.Defaults().DownloadUrl + "-8.0", //https://dev.mysql.com/get/Downloads/MySQL-8.0",
+//	}
+//	fileNameTemplates = map[string]string{
+//		"linux":  defaults.Defaults().DownloadNameLinux, // "mysql-{{.Version}}-linux-x86_64-minimal.{{.Ext}}",
+//		"darwin": defaults.Defaults().DownloadNameMacOs, // "mysql-{{.Version}}-macos10.15-x86_64.{{.Ext}}",
+//	}
+/*
+	Extensions = map[string]map[string]string{
+		"linux": {
+			"5.7": "tar.gz",
+			"8.0": "tar.xz",
+		},
+		"darwin": {
+			"5.7": "tar.gz",
+			"8.0": "tar.gz",
+		},
+	}
+*/
+//)

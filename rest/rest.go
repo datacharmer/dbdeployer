@@ -201,6 +201,9 @@ func getReleaseText(tag string) ([]byte, error) {
 		tag = "tags/" + tag
 	}
 	releaseUrl := fmt.Sprintf("https://api.github.com/repos/datacharmer/dbdeployer/releases%s%s", endUrl, tag)
+	if os.Getenv("SBDEBUG") != "" {
+		fmt.Printf("%s\n", releaseUrl)
+	}
 	// #nosec G107
 	resp, err := http.Get(releaseUrl)
 	if err != nil {
