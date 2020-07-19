@@ -1,3 +1,18 @@
+// DBDeployer - The MySQL Sandbox
+// Copyright © 2006-2020 Giuseppe Maxia
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package cmd
 
 import (
@@ -12,9 +27,9 @@ import (
 	"github.com/datacharmer/dbdeployer/globals"
 )
 
-
 func runInteractiveCmd(s string) error {
-	cmd := exec.Command( s)
+	// #nosec G204
+	cmd := exec.Command(s)
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
@@ -44,25 +59,23 @@ func useSandbox(cmd *cobra.Command, args []string) error {
 		if sb.SandboxName == sandbox {
 
 			sandboxDir := path.Join(sandboxHome, sandbox)
-			fmt.Printf("using %s\n",sandboxDir)
+			fmt.Printf("using %s\n", sandboxDir)
 			useSingle := path.Join(sandboxDir, "use")
 			useMulti := path.Join(sandboxDir, "n1")
 			if common.ExecExists(useSingle) {
-				fmt.Printf("%s\n",useSingle)
+				fmt.Printf("%s\n", useSingle)
 				err = runInteractiveCmd(useSingle)
-					return err
+				return err
 			} else if common.ExecExists(useMulti) {
 				err = runInteractiveCmd(useMulti)
-					return err
+				return err
 			} else {
 				return fmt.Errorf("no executable found for %s", sandbox)
 			}
-			return err
 		}
 	}
 	return fmt.Errorf("sandbox %s not found", sandbox)
 }
-
 
 var useCmd = &cobra.Command{
 	Use:   "use [sandbox_name]",
