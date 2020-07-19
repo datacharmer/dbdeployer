@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -81,53 +81,6 @@ func showSandboxesFromCatalog(currentSandboxHome string, useFlavor, useHeader, u
 	}
 	table.Println()
 }
-
-/*
-func getFullSandboxInfo(sandboxHome string) common.SandboxInfoList {
-	var fullSandboxList common.SandboxInfoList
-	simpleSandboxList, err := common.GetInstalledSandboxes(sandboxHome)
-	if err != nil {
-		return fullSandboxList
-	}
-
-	for _, sb := range simpleSandboxList {
-		sbDescription := path.Join(sandboxHome, sb.SandboxName, globals.SandboxDescriptionName)
-		var tempSandboxDesc common.SandboxDescription
-		if common.FileExists(sbDescription) {
-			tempSandboxDesc, _ = common.ReadSandboxDescription(path.Join(sandboxHome, sb.SandboxName))
-		}
-		// No description file was found
-		// We try to get what we can. However, this should not happen unless users delete the description files
-		slaveLabel := defaults.Defaults().SlavePrefix
-		slavePlural := english.PluralWord(2, slaveLabel, "")
-		initializeSlaves := "initialize_" + slavePlural
-		if tempSandboxDesc.SBType == "" {
-			tempSandboxDesc.SBType = globals.SbTypeSingle
-			initSlaves := path.Join(sb.SandboxName, initializeSlaves)
-			initNodes := path.Join(sb.SandboxName, globals.ScriptInitializeNodes)
-			startAll := path.Join(sb.SandboxName, globals.ScriptStartAll)
-			startAllExists := common.FileExists(startAll)
-			initSlavesExists := common.FileExists(initSlaves)
-			initNodesExists := common.FileExists(initNodes)
-			if initSlavesExists {
-				tempSandboxDesc.SBType = "master-slave"
-			}
-			if initNodesExists {
-				tempSandboxDesc.SBType = "replication"
-			}
-			if startAllExists && !initNodesExists && !initSlavesExists {
-				tempSandboxDesc.SBType = "multiple"
-			}
-			tempSandboxDesc.Version = "undetected"
-			tempSandboxDesc.Flavor = "undetected"
-			tempSandboxDesc.Port = []int{0}
-		}
-		fullSandboxList = append(fullSandboxList,
-			common.SandboxInfo{SandboxName: sb.SandboxName, SandboxDesc: tempSandboxDesc, Locked: sb.Locked})
-	}
-	return fullSandboxList
-}
- */
 
 // Shows installed sandboxes
 func showSandboxes(cmd *cobra.Command, args []string) {
