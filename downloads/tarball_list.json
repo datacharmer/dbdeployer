@@ -712,6 +712,32 @@
        "version": "5.7.30",
        "notes": "added with version 1.49.0",
        "date_added": "2020-05-01 08:57"
+     },
+     {
+       "name": "mysql-8.0.21-macos10.15-x86_64.tar.gz",
+       "checksum": "SHA512:e98f91369e5e359e1e34a7452b4e8025305cb724eb66f2cd34ebb9cbe4611aae4c4c2dd3bd9ce7439450f7eab7a41c9a98b424ae14c3dd47e196faeea6a39899",
+       "OS": "Darwin",
+       "url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.21-macos10.15-x86_64.tar.gz",
+       "flavor": "mysql",
+       "minimal": false,
+       "size": 121940824,
+       "short_version": "8.0",
+       "version": "8.0.21",
+       "notes": "added with version 1.53.0",
+       "date_added": "2020-07-19 15:18"
+     },
+     {
+       "name": "mysql-8.0.21-linux-glibc2.17-x86_64-minimal.tar.xz",
+       "checksum": "SHA512:e5ff96ade0eb151dc4da9ee0d7c2a3c54f204f12bd0abb0c895d1a80abdba35f34c153bdb3eb2397dcad1c47445b35c01077190ed58d0914e92219566c4731b4",
+       "OS": "linux",
+       "url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.21-linux-glibc2.17-x86_64-minimal.tar.xz",
+       "flavor": "mysql",
+       "minimal": false,
+       "size": 47765660,
+       "short_version": "8.0",
+       "version": "8.0.21",
+       "notes": "added with version 1.53.0",
+       "date_added": "2020-07-19 15:21"
      }
    ]
  }
