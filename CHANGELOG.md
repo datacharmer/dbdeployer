@@ -1,3 +1,9 @@
+## 1.53.1	26-Jul-2020
+
+### BUGS FIXED
+
+* Fix bash completion for CentOS (missing completion script and unchecked `sudo` call)
+
 ## 1.53.0	26-Jul-2020
 
 ### NEW FEATURES

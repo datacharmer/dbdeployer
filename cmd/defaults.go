@@ -103,8 +103,12 @@ func updateDefaults(cmd *cobra.Command, args []string) {
 func processBashCompletionEnabling(useRemote, runIt bool, remoteUrl, completionFile string) error {
 	useLocal := completionFile != ""
 
-	bashCompletionScript := path.Join("/etc", "bash_completion")
-	alternateBashCompletionScript := path.Join("/usr", "local", "etc", "bash_completion")
+	var bashCompletionScript string
+	var bashCompletionScripts = []string{
+		path.Join("/etc", "bash_completion"),
+		path.Join("/usr", "local", "etc", "bash_completion"),
+		path.Join("/etc", "profile.d", "bash_completion.sh"),
+	}
 	destinationDir := path.Join("/etc", "bash_completion.d")
 	alternateDestinationDir := path.Join("/usr", "local", "etc", "bash_completion.d")
 	if !common.DirExists(destinationDir) {
@@ -114,12 +118,15 @@ func processBashCompletionEnabling(useRemote, runIt bool, remoteUrl, completionF
 			return fmt.Errorf("neither %s or %s found", destinationDir, alternateDestinationDir)
 		}
 	}
-	if !common.FileExists(bashCompletionScript) {
-		if common.FileExists(bashCompletionScript) {
-			bashCompletionScript = alternateBashCompletionScript
-		} else {
-			return fmt.Errorf("neither %s or %s found", bashCompletionScript, alternateBashCompletionScript)
+
+	for _, script := range bashCompletionScripts {
+		if common.FileExists(script) {
+			bashCompletionScript = script
+			break
 		}
+	}
+	if bashCompletionScript == "" {
+		return fmt.Errorf("none of bash completion scripts found (%v)", bashCompletionScripts)
 	}
 	if completionFile == "" {
 		completionFile = globals.CompletionFileValue
@@ -180,9 +187,16 @@ func processBashCompletionEnabling(useRemote, runIt bool, remoteUrl, completionF
 	}
 
 	if runIt {
+		command := "cp"
+		argsList := []string{completionFile, destinationDir}
+		sudo := common.Which("sudo")
+		if sudo != "" {
+			command = sudo
+			argsList = []string{"cp", completionFile, destinationDir}
+		}
 		fmt.Printf("# Running: sudo cp %s %s\n", completionFile, destinationDir)
 
-		output, err := common.RunCmdWithArgs("sudo", []string{"cp", completionFile, destinationDir})
+		output, err := common.RunCmdWithArgs(command, argsList)
 		if err != nil {
 			fmt.Printf("%s\n", output)
 			return fmt.Errorf("error copying bash completion file into %s: %s", destinationDir, err)
