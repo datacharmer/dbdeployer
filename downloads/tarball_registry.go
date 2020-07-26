@@ -16,7 +16,7 @@
 package downloads
 
 // This file was generated during build. Do not edit.
-// Build time: Sun Jul 26 09:20:32 CEST 2020
+// Build time: Sun Jul 26 12:23:05 CEST 2020
 
 var DefaultTarballRegistry = TarballCollection{
 	// Version of dbdeployer when the list was last updated

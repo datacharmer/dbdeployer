@@ -191,7 +191,7 @@ func showSandboxes(cmd *cobra.Command, args []string) {
 				&simpletable.Cell{Align: simpletable.AlignCenter, Text: "locked"},
 			)
 		}
-		if byDate || latest || oldest {
+		if byDate || latest || oldest || useFullInfo {
 			table.Header.Cells = append(table.Header.Cells,
 				&simpletable.Cell{Align: simpletable.AlignCenter, Text: "created"})
 		}
@@ -238,7 +238,7 @@ func showSandboxes(cmd *cobra.Command, args []string) {
 			cells = append(cells, &simpletable.Cell{Align: simpletable.AlignRight, Text: fmt.Sprintf("%d", sb.SandboxDesc.Nodes)})
 			cells = append(cells, &simpletable.Cell{Text: isLocked})
 		}
-		if byDate || latest || oldest {
+		if byDate || latest || oldest || useFullInfo {
 			timestamp, _ := dateparse.ParseStrict(sb.SandboxDesc.Timestamp)
 			//fmt.Printf("%s", timestamp.Format(time.RFC3339))
 			//cells = append(cells, &simpletable.Cell{Text: sb.SandboxDesc.Timestamp})
