@@ -384,6 +384,9 @@ var (
 	MaximumXtradbClusterRsync                 = NumericVersion{5, 7, 99}
 	MinimumXtradbClusterXtraBackup            = NumericVersion{8, 0, 15}
 	MinimumNdbClusterVersion                  = NumericVersion{7, 0, 0}
+	MinimumNdbInstallDb                       = NumericVersion{7, 0, 0}
+	MaximumNdbInstallDb                       = NumericVersion{7, 4, 99}
+	MinimumNdbInitialize                      = NumericVersion{7, 5, 0}
 	MinimumRootAuthVersion                    = NumericVersion{10, 4, 3}
 	MinimumAdminAddressVersion                = NumericVersion{8, 0, 14}
 	MinimumMySQLShellEmbed                    = NumericVersion{8, 0, 4}

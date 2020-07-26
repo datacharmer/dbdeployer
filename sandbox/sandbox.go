@@ -638,6 +638,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	if err != nil {
 		return emptyExecutionList, errors.Wrapf(err, "")
 	}
+	shortVersion := fmt.Sprintf("%d.%d", verList[0], verList[1])
 	if sandboxDef.ClientBasedir == "" {
 		sandboxDef.ClientBasedir = sandboxDef.Basedir
 	}
@@ -954,6 +955,8 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	}
 	switch {
 	// 8.0.0
+	case shortVersion == "7.4":
+		grantsTemplateName = "grants_template5x"
 	case isMinimumRoles:
 		grantsTemplateName = "grants_template8x"
 		// 5.7.6
