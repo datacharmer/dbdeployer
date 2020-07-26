@@ -63,6 +63,7 @@ then
     export skip_group_operations=1
     export skip_dd_operations=1
     export skip_upgrade_operations=1
+    export skip_use_operations=1
     export skip_multi_source_operations=1
     export skip_import_operations=1
     export skip_pxc_operations=1
@@ -100,6 +101,7 @@ do
             unset skip_group_operations
             unset skip_dd_operations
             unset skip_upgrade_operations
+            unset skip_use_operations
             unset skip_multi_source_operations
             unset skip_pxc_operations
             unset skip_ndb_operations
@@ -141,6 +143,11 @@ do
             unset skip_upgrade_operations
             unset no_tests
             echo "# Enabling upgrade tests"
+            ;;
+        use)
+            unset skip_use_operations
+            unset no_tests
+            echo "# Enabling use tests"
             ;;
         pre)
             unset skip_pre_post_operations
@@ -188,6 +195,7 @@ do
             echo "  group    : group replication operations "
             echo "  dd       : data dictionary operations "
             echo "  upgrade  : upgrade operations "
+            echo "  use      : use operations "
             echo "  import   : import operations"
             echo "  multi    : multi-source operations (fan-in, all-masters)"
             echo "  pxc      : PXC operations"
@@ -1281,6 +1289,73 @@ function custom_replication_methods {
     results "custom replication multi - after deletion"
 }
 
+function use_operations {
+    current_test=use_operations
+    test_header use_operations "" double
+    latest_5_6=$(dbdeployer info version 5.6)
+    latest_5_7=$(dbdeployer info version 5.7)
+    latest_8_0=$(dbdeployer info version 8.0)
+    if [ -z "$latest_5_6" -o -z "$latest_5_7" -o -z "$latest_8_0" ]
+    then
+        echo "Skipping use test. No suitable version found for 5.6, 5.7, or 8.0"
+        return
+    fi
+    echo "# use operations deploy $latest_5_6, $latest_5_7 and $latest_8_0"
+
+    run dbdeployer deploy single $latest_8_0
+    run dbdeployer deploy single $latest_5_6
+    run dbdeployer deploy single $latest_5_7
+
+    results "use $latest_5_6 $latest_5_7 $latest_8_0"
+    capture_test run dbdeployer global test
+
+    run dbdeployer sandboxes --by-date
+    sandboxes1=$(dbdeployer sandboxes --by-date | head -n 1)
+    found_80=$(echo $sandboxes1 | grep "$latest_8_0")
+    ok "version $latest_8_0 found as oldest sandbox" "$found_80"
+
+    sandboxes3=$(dbdeployer sandboxes --by-date | tail -n 1)
+    found_57=$(echo $sandboxes3 | grep "$latest_5_7")
+    ok "version $latest_5_7 found as newest sandbox" "$found_57"
+
+    sandboxes1=$(dbdeployer sandboxes --oldest)
+    found_80=$(echo $sandboxes1 | grep "$latest_8_0")
+    ok "version $latest_8_0 found as --oldest sandbox" "$found_80"
+
+    sandboxes3=$(dbdeployer sandboxes --latest)
+    found_57=$(echo $sandboxes3 | grep "$latest_5_7")
+    ok "version $latest_5_7 found as --latest sandbox" "$found_57"
+
+    sandboxes_by_version1=$(dbdeployer sandboxes --by-version | head -n 1)
+    found_80=$(echo $sandboxes_by_version1 | grep "$latest_8_0")
+    ok "version $latest_8_0 found as first sandbox --by-version" "$found_80"
+
+    sandboxes_by_version3=$(dbdeployer sandboxes --by-version | tail -n 1)
+    found_56=$(echo $sandboxes_by_version3 | grep "$latest_5_6")
+    ok "version $latest_5_6 found as last sandbox --by-version" "$found_56"
+
+
+    found_version=$(echo 'select version()' | dbdeployer use | tail -n 1)
+    ok_equal "version used is $latest_5_7" "$latest_5_7" "$found_version"
+
+    run dbdeployer deploy replication $latest_5_6 --concurrent
+    sandboxes4=$(dbdeployer sandboxes --by-date | tail -n 1)
+    found_56=$(echo $sandboxes4 | grep "$latest_5_6")
+    ok "version $latest_5_6 found as newest sandbox" "$found_56"
+
+    sandboxes4=$(dbdeployer sandboxes --latest)
+    found_56=$(echo $sandboxes4 | grep "$latest_5_6")
+    ok "version $latest_5_6 found as --latest sandbox" "$found_56"
+
+    found_version=$(echo 'select version()' | dbdeployer use | tail -n 1)
+
+    ok_contains "version used is $latest_5_6" "$found_version" "$latest_5_6"
+
+    dbdeployer delete ALL --skip-confirm
+    results "use $latest_5_6 $latest_5_7 and $latest_8_0 - after deletion"
+}
+
+
 function upgrade_operations {
     current_test=upgrade_operations
     test_header upgrade_operations "" double
@@ -1567,6 +1642,10 @@ fi
 if [ -z "$skip_upgrade_operations" ]
 then
     upgrade_operations
+fi
+if [ -z "$skip_use_operations" ]
+then
+    use_operations
 fi
 if [ -z "$skip_import_operations" ]
 then

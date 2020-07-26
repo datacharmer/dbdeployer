@@ -742,14 +742,14 @@
      {
        "name": "Percona-Server-8.0.20-11-Linux.x86_64.glibc2.12-minimal.tar.gz",
        "checksum": "SHA512:7f83e4a30f5b6ae91b6f039ae17e60eb21084a903bdcae85d5d8533ec0eec540e24f5bbf277b0352ddc8dc0a9815c365c902481e68911b507e10825e38b5f905",
-       "OS": "Linux",
-       "url": "https://www.percona.com/downloads/Percona-Server-LATEST/Percona-Server-8.0.20-11/binary/tarball/Percona-Server-8.0.20-11-Linux.x86_64.glibc2.12.tar.gz",
+       "OS": "linux",
+       "url": "https://www.percona.com/downloads/Percona-Server-LATEST/Percona-Server-8.0.20-11/binary/tarball/Percona-Server-8.0.20-11-Linux.x86_64.glibc2.12-minimal.tar.gz",
        "flavor": "percona",
        "minimal": true,
        "size": 102622193,
        "short_version": "8.0",
        "version": "8.0.20",
-       "notes": "added with version 1.52.0",
+       "notes": "added with version 1.53.0",
        "date_added": "2020-07-26 08:00"
      }
    ]

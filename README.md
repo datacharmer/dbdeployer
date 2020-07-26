@@ -1,7 +1,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.52.0 (28-Jun-2020 14:35 UTC)
+Documentation updated for version 1.53.0 (26-Jul-2020 10:13 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -37,6 +37,7 @@ Documentation updated for version 1.52.0 (28-Jun-2020 14:35 UTC)
 - [Sandbox management](#sandbox-management)
 - [Sandbox macro operations](#sandbox-macro-operations)
 - [Default sandbox](#default-sandbox)
+- [Using the latest sandbox](#using-the-latest-sandbox)
 - [Sandbox upgrade](#sandbox-upgrade)
 - [Dedicated admin address](#dedicated-admin-address)
 - [Obtaining sandbox metadata](#obtaining-sandbox-metadata)
@@ -61,7 +62,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.52.0
+    $ VERSION=1.53.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -196,7 +197,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.52.0
+    dbdeployer version 1.53.0
     
 
     $ dbdeployer -h
@@ -224,6 +225,7 @@ The program doesn't have any dependencies. Everything is included in the binary.
       unpack          unpack a tarball into the binary directory
       update          Gets dbdeployer newest version
       usage           Shows usage of installed sandboxes
+      use             uses a sandbox
       versions        List available versions
     
     Flags:
@@ -233,7 +235,7 @@ The program doesn't have any dependencies. Everything is included in the binary.
           --sandbox-home string     Sandbox deployment directory (default "$HOME/sandboxes")
           --shell-path string       Which shell to use for generated scripts (default "/usr/local/bin/bash")
           --skip-library-check      Skip check for needed libraries (may cause nasty errors)
-          --version                 version for dbdeployer
+      -v, --version                 version for dbdeployer
     
     Use "dbdeployer [command] --help" for more information about a command.
     
@@ -1664,6 +1666,15 @@ You can use them just like the `default` executable:
     $ ~/sandboxes/group check_nodes
 
 
+# Using the latest sandbox
+
+With the command `dbdeployer use`, you will use the latest sandbox that was deployed. If it is a single sanebox, dbdeployer will invoke the `./use` command. If it is a compound sandbox, it will run the `./n1` command.
+If you don't want the latest sandbox, you can indicate a specific one:
+
+```
+$ dbdeployer use msb_5_7_31
+``` 
+
 # Sandbox upgrade
 
 dbdeployer 1.10.0 introduces upgrades:
@@ -2208,10 +2219,10 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.52.0-docs.linux.tar.gz
-* dbdeployer-1.52.0-docs.osx.tar.gz
-* dbdeployer-1.52.0.linux.tar.gz
-* dbdeployer-1.52.0.osx.tar.gz
+* dbdeployer-1.53.0-docs.linux.tar.gz
+* dbdeployer-1.53.0-docs.osx.tar.gz
+* dbdeployer-1.53.0.linux.tar.gz
+* dbdeployer-1.53.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

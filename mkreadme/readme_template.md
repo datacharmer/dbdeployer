@@ -37,6 +37,7 @@ Documentation updated for version {{.Version}} ({{.Date}})
 - [Sandbox management](#sandbox-management)
 - [Sandbox macro operations](#sandbox-macro-operations)
 - [Default sandbox](#default-sandbox)
+- [Using the latest sandbox](#using-the-latest-sandbox)
 - [Sandbox upgrade](#sandbox-upgrade)
 - [Dedicated admin address](#dedicated-admin-address)
 - [Obtaining sandbox metadata](#obtaining-sandbox-metadata)
@@ -1100,6 +1101,15 @@ You can use them just like the `default` executable:
     $ ~/sandboxes/repl check_slaves
     $ ~/sandboxes/group check_nodes
 
+
+# Using the latest sandbox
+
+With the command `dbdeployer use`, you will use the latest sandbox that was deployed. If it is a single sanebox, dbdeployer will invoke the `./use` command. If it is a compound sandbox, it will run the `./n1` command.
+If you don't want the latest sandbox, you can indicate a specific one:
+
+```
+$ dbdeployer use msb_5_7_31
+``` 
 
 # Sandbox upgrade
 

@@ -16,7 +16,7 @@
 package downloads
 
 // This file was generated during build. Do not edit.
-// Build time: Sun Jul 19 19:48:55 CEST 2020
+// Build time: Sun Jul 26 09:20:32 CEST 2020
 
 var DefaultTarballRegistry = TarballCollection{
 	// Version of dbdeployer when the list was last updated
@@ -731,6 +731,42 @@ var DefaultTarballRegistry = TarballCollection{
 			ShortVersion:    "5.7",
 			Version:         "5.7.30",
 			Notes:           "added with version 1.49.0",
+		},
+		{
+			Name:            "mysql-8.0.21-macos10.15-x86_64.tar.gz",
+			Checksum:        "SHA512:e98f91369e5e359e1e34a7452b4e8025305cb724eb66f2cd34ebb9cbe4611aae4c4c2dd3bd9ce7439450f7eab7a41c9a98b424ae14c3dd47e196faeea6a39899",
+			OperatingSystem: "Darwin",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.21-macos10.15-x86_64.tar.gz",
+			Flavor:          "mysql",
+			Minimal:         false,
+			Size:            121940824,
+			ShortVersion:    "8.0",
+			Version:         "8.0.21",
+			Notes:           "added with version 1.53.0",
+		},
+		{
+			Name:            "mysql-8.0.21-linux-glibc2.17-x86_64-minimal.tar.xz",
+			Checksum:        "SHA512:e5ff96ade0eb151dc4da9ee0d7c2a3c54f204f12bd0abb0c895d1a80abdba35f34c153bdb3eb2397dcad1c47445b35c01077190ed58d0914e92219566c4731b4",
+			OperatingSystem: "linux",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.21-linux-glibc2.17-x86_64-minimal.tar.xz",
+			Flavor:          "mysql",
+			Minimal:         false,
+			Size:            47765660,
+			ShortVersion:    "8.0",
+			Version:         "8.0.21",
+			Notes:           "added with version 1.53.0",
+		},
+		{
+			Name:            "Percona-Server-8.0.20-11-Linux.x86_64.glibc2.12-minimal.tar.gz",
+			Checksum:        "SHA512:7f83e4a30f5b6ae91b6f039ae17e60eb21084a903bdcae85d5d8533ec0eec540e24f5bbf277b0352ddc8dc0a9815c365c902481e68911b507e10825e38b5f905",
+			OperatingSystem: "linux",
+			Url:             "https://www.percona.com/downloads/Percona-Server-LATEST/Percona-Server-8.0.20-11/binary/tarball/Percona-Server-8.0.20-11-Linux.x86_64.glibc2.12-minimal.tar.gz",
+			Flavor:          "percona",
+			Minimal:         true,
+			Size:            102622193,
+			ShortVersion:    "8.0",
+			Version:         "8.0.20",
+			Notes:           "added with version 1.53.0",
 		},
 	},
 }

@@ -36,9 +36,71 @@ __dbdeployer_contains_word()
     return 1
 }
 
+__dbdeployer_handle_go_custom_completion()
+{
+    __dbdeployer_debug "${FUNCNAME[0]}: cur is ${cur}, words[*] is ${words[*]}, #words[@] is ${#words[@]}"
+
+    local out requestComp lastParam lastChar comp directive args
+
+    # Prepare the command to request completions for the program.
+    # Calling ${words[0]} instead of directly dbdeployer allows to handle aliases
+    args=("${words[@]:1}")
+    requestComp="${words[0]} __completeNoDesc ${args[*]}"
+
+    lastParam=${words[$((${#words[@]}-1))]}
+    lastChar=${lastParam:$((${#lastParam}-1)):1}
+    __dbdeployer_debug "${FUNCNAME[0]}: lastParam ${lastParam}, lastChar ${lastChar}"
+
+    if [ -z "${cur}" ] && [ "${lastChar}" != "=" ]; then
+        # If the last parameter is complete (there is a space following it)
+        # We add an extra empty parameter so we can indicate this to the go method.
+        __dbdeployer_debug "${FUNCNAME[0]}: Adding extra empty parameter"
+        requestComp="${requestComp} \"\""
+    fi
+
+    __dbdeployer_debug "${FUNCNAME[0]}: calling ${requestComp}"
+    # Use eval to handle any environment variables and such
+    out=$(eval "${requestComp}" 2>/dev/null)
+
+    # Extract the directive integer at the very end of the output following a colon (:)
+    directive=${out##*:}
+    # Remove the directive
+    out=${out%:*}
+    if [ "${directive}" = "${out}" ]; then
+        # There is not directive specified
+        directive=0
+    fi
+    __dbdeployer_debug "${FUNCNAME[0]}: the completion directive is: ${directive}"
+    __dbdeployer_debug "${FUNCNAME[0]}: the completions are: ${out[*]}"
+
+    if [ $((directive & 1)) -ne 0 ]; then
+        # Error code.  No completion.
+        __dbdeployer_debug "${FUNCNAME[0]}: received error from custom completion go code"
+        return
+    else
+        if [ $((directive & 2)) -ne 0 ]; then
+            if [[ $(type -t compopt) = "builtin" ]]; then
+                __dbdeployer_debug "${FUNCNAME[0]}: activating no space"
+                compopt -o nospace
+            fi
+        fi
+        if [ $((directive & 4)) -ne 0 ]; then
+            if [[ $(type -t compopt) = "builtin" ]]; then
+                __dbdeployer_debug "${FUNCNAME[0]}: activating no file completion"
+                compopt +o default
+            fi
+        fi
+
+        while IFS='' read -r comp; do
+            COMPREPLY+=("$comp")
+        done < <(compgen -W "${out[*]}" -- "$cur")
+    fi
+}
+
 __dbdeployer_handle_reply()
 {
     __dbdeployer_debug "${FUNCNAME[0]}"
+    local comp
     case $cur in
         -*)
             if [[ $(type -t compopt) = "builtin" ]]; then
@@ -50,7 +112,9 @@ __dbdeployer_handle_reply()
             else
                 allflags=("${flags[*]} ${two_word_flags[*]}")
             fi
-            COMPREPLY=( $(compgen -W "${allflags[*]}" -- "$cur") )
+            while IFS='' read -r comp; do
+                COMPREPLY+=("$comp")
+            done < <(compgen -W "${allflags[*]}" -- "$cur")
             if [[ $(type -t compopt) = "builtin" ]]; then
                 [[ "${COMPREPLY[0]}" == *= ]] || compopt +o nospace
             fi
@@ -96,14 +160,22 @@ __dbdeployer_handle_reply()
     completions=("${commands[@]}")
     if [[ ${#must_have_one_noun[@]} -ne 0 ]]; then
         completions=("${must_have_one_noun[@]}")
+    elif [[ -n "${has_completion_function}" ]]; then
+        # if a go completion function is provided, defer to that function
+        completions=()
+        __dbdeployer_handle_go_custom_completion
     fi
     if [[ ${#must_have_one_flag[@]} -ne 0 ]]; then
         completions+=("${must_have_one_flag[@]}")
     fi
-    COMPREPLY=( $(compgen -W "${completions[*]}" -- "$cur") )
+    while IFS='' read -r comp; do
+        COMPREPLY+=("$comp")
+    done < <(compgen -W "${completions[*]}" -- "$cur")
 
     if [[ ${#COMPREPLY[@]} -eq 0 && ${#noun_aliases[@]} -gt 0 && ${#must_have_one_noun[@]} -ne 0 ]]; then
-        COMPREPLY=( $(compgen -W "${noun_aliases[*]}" -- "$cur") )
+        while IFS='' read -r comp; do
+            COMPREPLY+=("$comp")
+        done < <(compgen -W "${noun_aliases[*]}" -- "$cur")
     fi
 
     if [[ ${#COMPREPLY[@]} -eq 0 ]]; then
@@ -138,7 +210,7 @@ __dbdeployer_handle_filename_extension_flag()
 __dbdeployer_handle_subdirs_in_dir_flag()
 {
     local dir="$1"
-    pushd "${dir}" >/dev/null 2>&1 && _filedir -d && popd >/dev/null 2>&1
+    pushd "${dir}" >/dev/null 2>&1 && _filedir -d && popd >/dev/null 2>&1 || return
 }
 
 __dbdeployer_handle_flag()
@@ -2788,6 +2860,12 @@ _dbdeployer_sandboxes()
     flags_with_completion=()
     flags_completion=()
 
+    flags+=("--by-date")
+    local_nonpersistent_flags+=("--by-date")
+    flags+=("--by-flavor")
+    local_nonpersistent_flags+=("--by-flavor")
+    flags+=("--by-version")
+    local_nonpersistent_flags+=("--by-version")
     flags+=("--catalog")
     local_nonpersistent_flags+=("--catalog")
     flags+=("--flavor")
@@ -2796,6 +2874,10 @@ _dbdeployer_sandboxes()
     local_nonpersistent_flags+=("--full-info")
     flags+=("--header")
     local_nonpersistent_flags+=("--header")
+    flags+=("--latest")
+    local_nonpersistent_flags+=("--latest")
+    flags+=("--oldest")
+    local_nonpersistent_flags+=("--oldest")
     flags+=("--table")
     local_nonpersistent_flags+=("--table")
     flags+=("--config=")
@@ -2924,6 +3006,35 @@ _dbdeployer_usage()
     noun_aliases=()
 }
 
+_dbdeployer_use()
+{
+    last_command="dbdeployer_use"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--sandbox-binary=")
+    two_word_flags+=("--sandbox-binary")
+    flags+=("--sandbox-home=")
+    two_word_flags+=("--sandbox-home")
+    flags+=("--shell-path=")
+    two_word_flags+=("--shell-path")
+    flags+=("--skip-library-check")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _dbdeployer_versions()
 {
     last_command="dbdeployer_versions"
@@ -3022,6 +3133,7 @@ _dbdeployer_root_command()
     fi
     commands+=("update")
     commands+=("usage")
+    commands+=("use")
     commands+=("versions")
     if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
         command_aliases+=("available")
@@ -3044,6 +3156,7 @@ _dbdeployer_root_command()
     two_word_flags+=("--shell-path")
     flags+=("--skip-library-check")
     flags+=("--version")
+    flags+=("-v")
     local_nonpersistent_flags+=("--version")
 
     must_have_one_flag=()
@@ -3071,6 +3184,7 @@ __start_dbdeployer()
     local commands=("dbdeployer")
     local must_have_one_flag=()
     local must_have_one_noun=()
+    local has_completion_function
     local last_command
     local nouns=()
 

@@ -1,3 +1,17 @@
+## 1.53.0	26-Jul-2020
+
+### NEW FEATURES
+
+* Add command 'use' and sandboxes options
+* Add options `--by-date`, `--by-flavor`, `--by-version`, `--newest`, `--oldest` to command `sandboxes`
+* Add latest MySQL tarballs to downloads list
+* Add Percona Server minimal to downloads list
+
+### BUGS FIXED
+
+* Fix issue #111 - allows using NDB 7.4/7.5
+
+
 ## 1.52.0	28-Jun-2020
 
 ### NEW FEATURES
