@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,10 +17,11 @@ package cmd
 
 import (
 	"fmt"
-	"path"
+	"sort"
+	"time"
 
 	"github.com/alexeyco/simpletable"
-	"github.com/dustin/go-humanize/english"
+	"github.com/araddon/dateparse"
 	"github.com/spf13/cobra"
 
 	"github.com/datacharmer/dbdeployer/common"
@@ -81,51 +82,6 @@ func showSandboxesFromCatalog(currentSandboxHome string, useFlavor, useHeader, u
 	table.Println()
 }
 
-func getFullSandboxInfo(sandboxHome string) []common.SandboxInfo {
-	var fullSandboxList []common.SandboxInfo
-	simpleSandboxList, err := common.GetInstalledSandboxes(sandboxHome)
-	if err != nil {
-		return fullSandboxList
-	}
-
-	for _, sb := range simpleSandboxList {
-		sbDescription := path.Join(sandboxHome, sb.SandboxName, globals.SandboxDescriptionName)
-		var tempSandboxDesc common.SandboxDescription
-		if common.FileExists(sbDescription) {
-			tempSandboxDesc, _ = common.ReadSandboxDescription(path.Join(sandboxHome, sb.SandboxName))
-		}
-		// No description file was found
-		// We try to get what we can. However, this should not happen unless users delete the description files
-		slaveLabel := defaults.Defaults().SlavePrefix
-		slavePlural := english.PluralWord(2, slaveLabel, "")
-		initializeSlaves := "initialize_" + slavePlural
-		if tempSandboxDesc.SBType == "" {
-			tempSandboxDesc.SBType = globals.SbTypeSingle
-			initSlaves := path.Join(sb.SandboxName, initializeSlaves)
-			initNodes := path.Join(sb.SandboxName, globals.ScriptInitializeNodes)
-			startAll := path.Join(sb.SandboxName, globals.ScriptStartAll)
-			startAllExists := common.FileExists(startAll)
-			initSlavesExists := common.FileExists(initSlaves)
-			initNodesExists := common.FileExists(initNodes)
-			if initSlavesExists {
-				tempSandboxDesc.SBType = "master-slave"
-			}
-			if initNodesExists {
-				tempSandboxDesc.SBType = "replication"
-			}
-			if startAllExists && !initNodesExists && !initSlavesExists {
-				tempSandboxDesc.SBType = "multiple"
-			}
-			tempSandboxDesc.Version = "undetected"
-			tempSandboxDesc.Flavor = "undetected"
-			tempSandboxDesc.Port = []int{0}
-		}
-		fullSandboxList = append(fullSandboxList,
-			common.SandboxInfo{SandboxName: sb.SandboxName, SandboxDesc: tempSandboxDesc, Locked: sb.Locked})
-	}
-	return fullSandboxList
-}
-
 // Shows installed sandboxes
 func showSandboxes(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
@@ -134,8 +90,23 @@ func showSandboxes(cmd *cobra.Command, args []string) {
 	useHeader, _ := flags.GetBool(globals.HeaderLabel)
 	useFlavor, _ := flags.GetBool(globals.FlavorLabel)
 	useTable, _ := flags.GetBool(globals.TableLabel)
+	byDate, _ := flags.GetBool(globals.ByDateLabel)
+	byVersion, _ := flags.GetBool(globals.ByVersionLabel)
+	byFlavor, _ := flags.GetBool(globals.ByFlavorLabel)
+	latest, _ := flags.GetBool(globals.LatestLabel)
+	oldest, _ := flags.GetBool(globals.OldestLabel)
 	useHost := false
 
+	if oldest && latest {
+		common.Exitf(1, "only one of '--%s' and '--%s' can be used", globals.OldestLabel, globals.LatestLabel)
+	}
+	if oldest || latest {
+		byFlavor = false
+		byVersion = false
+	}
+	if byVersion && byFlavor || byVersion && byDate || byDate && byFlavor {
+		common.Exitf(1, "only one of '--%s', '--%s', and '--%s' can be used", globals.ByDateLabel, globals.ByFlavorLabel, globals.ByVersionLabel)
+	}
 	useFullInfo, _ := flags.GetBool(globals.FullInfoLabel)
 	if useFullInfo {
 		useHeader = true
@@ -147,10 +118,18 @@ func showSandboxes(cmd *cobra.Command, args []string) {
 		showSandboxesFromCatalog(SandboxHome, useFlavor, useHeader, useTable)
 		return
 	}
-	var sandboxList []common.SandboxInfo
+	var sandboxList common.SandboxInfoList
 	// If the sandbox directory hasn't been created yet, we start with an empty list
 	if common.DirExists(SandboxHome) {
-		sandboxList = getFullSandboxInfo(SandboxHome)
+		if byDate || latest || oldest {
+			var err error
+			sandboxList, err = common.GetSandboxesByDate(SandboxHome)
+			if err != nil {
+				common.Exitf(1, "error during sandbox sorting by date: %s", err)
+			}
+		} else {
+			sandboxList = common.GetFullSandboxInfo(SandboxHome)
+		}
 	}
 	for _, sb := range sandboxList {
 		if sb.SandboxDesc.Host != "" && sb.SandboxDesc.Host != globals.LocalHostIP {
@@ -160,6 +139,27 @@ func showSandboxes(cmd *cobra.Command, args []string) {
 	if len(sandboxList) == 0 {
 		return
 	}
+
+	if byVersion {
+		sort.SliceStable(sandboxList, func(i, j int) bool {
+			iVersionList, _ := common.VersionToList(sandboxList[i].SandboxDesc.Version)
+			jVersionList, _ := common.VersionToList(sandboxList[j].SandboxDesc.Version)
+			greater, _ := common.GreaterOrEqualVersionList(iVersionList, jVersionList)
+			return greater
+		})
+	}
+	if byFlavor {
+		sort.SliceStable(sandboxList, func(i, j int) bool {
+			return sandboxList[i].SandboxDesc.Flavor < sandboxList[j].SandboxDesc.Flavor
+		})
+	}
+	if oldest {
+		sandboxList = common.SandboxInfoList{sandboxList[0]}
+	}
+	if latest {
+		sandboxList = common.SandboxInfoList{sandboxList[len(sandboxList)-1]}
+	}
+
 	table := simpletable.New()
 
 	if useHeader {
@@ -190,6 +190,10 @@ func showSandboxes(cmd *cobra.Command, args []string) {
 			table.Header.Cells = append(table.Header.Cells,
 				&simpletable.Cell{Align: simpletable.AlignCenter, Text: "locked"},
 			)
+		}
+		if byDate || latest || oldest {
+			table.Header.Cells = append(table.Header.Cells,
+				&simpletable.Cell{Align: simpletable.AlignCenter, Text: "created"})
 		}
 	}
 	for _, sb := range sandboxList {
@@ -234,6 +238,13 @@ func showSandboxes(cmd *cobra.Command, args []string) {
 			cells = append(cells, &simpletable.Cell{Align: simpletable.AlignRight, Text: fmt.Sprintf("%d", sb.SandboxDesc.Nodes)})
 			cells = append(cells, &simpletable.Cell{Text: isLocked})
 		}
+		if byDate || latest || oldest {
+			timestamp, _ := dateparse.ParseStrict(sb.SandboxDesc.Timestamp)
+			//fmt.Printf("%s", timestamp.Format(time.RFC3339))
+			//cells = append(cells, &simpletable.Cell{Text: sb.SandboxDesc.Timestamp})
+			cells = append(cells, &simpletable.Cell{Text: timestamp.Format(time.RFC3339)})
+			//cells = append(cells, &simpletable.Cell{Text: timestamp.Format("2006-01-02 15:04:05Z -07:00")})
+		}
 		table.Body.Cells = append(table.Body.Cells, cells)
 	}
 	table.SetStyle(simpletable.StyleCompactLite)
@@ -264,4 +275,9 @@ func init() {
 	sandboxesCmd.Flags().BoolP(globals.TableLabel, "", false, "Shows sandbox list as a table")
 	sandboxesCmd.Flags().BoolP(globals.FlavorLabel, "", false, "Shows flavor in sandbox list")
 	sandboxesCmd.Flags().BoolP(globals.FullInfoLabel, "", false, "Shows all info in table format")
+	sandboxesCmd.Flags().BoolP(globals.ByDateLabel, "", false, "Show sandboxes in order of creation")
+	sandboxesCmd.Flags().BoolP(globals.ByFlavorLabel, "", false, "Show sandboxes sorted by flavor")
+	sandboxesCmd.Flags().BoolP(globals.ByVersionLabel, "", false, "Show sandboxes sorted by version")
+	sandboxesCmd.Flags().BoolP(globals.LatestLabel, "", false, "Show only latest sandbox")
+	sandboxesCmd.Flags().BoolP(globals.OldestLabel, "", false, "Show only oldest sandbox")
 }

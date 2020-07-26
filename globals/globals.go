@@ -195,11 +195,15 @@ const (
 	ConfirmLabel     = "confirm"
 
 	// Instantiated in cmd/sandboxes.go
-	CatalogLabel  = "catalog"
-	HeaderLabel   = "header"
-	TableLabel    = "table"
-	FullInfoLabel = "full-info"
-	LocalHostIP   = "127.0.0.1"
+	CatalogLabel   = "catalog"
+	HeaderLabel    = "header"
+	TableLabel     = "table"
+	FullInfoLabel  = "full-info"
+	ByDateLabel    = "by-date"
+	ByVersionLabel = "by-version"
+	LatestLabel    = "latest"
+	OldestLabel    = "oldest"
+	LocalHostIP    = "127.0.0.1"
 
 	// Instantiated in cmd/templates.go
 	SimpleLabel       = "simple"
