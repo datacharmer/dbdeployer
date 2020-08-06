@@ -751,6 +751,20 @@
        "version": "8.0.20",
        "notes": "added with version 1.53.0",
        "date_added": "2020-07-26 08:00"
-     }
+     },
+     {
+      "name": "mysql-5.7.31-linux-glibc2.12-x86_64.tar.gz",
+      "checksum": "SHA512:f312774472b08094eafbbf2eb776970a537c434c8b174e43bea5d5dc56d96e4ca37f83af35fc828e49efbafc1be71ae5584bf6519d949a19a257e780aca9760c",
+      "OS": "linux",
+      "url": "https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.31-linux-glibc2.12-x86_64.tar.gz",
+      "flavor": "mysql",
+      "minimal": false,
+      "size": 376537503,
+      "short_version": "5.7",
+      "version": "5.7.31",
+      "updated_by": "Corne van Rooyen",
+      "notes": "Pull request for new Linux MySQL v5.7.31",
+      "date_added": "2020-08-06 14:30"
+    }
    ]
  }
