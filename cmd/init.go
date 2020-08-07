@@ -17,7 +17,9 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path"
 	"runtime"
 	"strings"
 
@@ -79,6 +81,25 @@ func initEnvironment(cmd *cobra.Command, args []string) error {
 	fmt.Printf("\n%s\n", globals.DashLine)
 	if common.DirExists(sandboxBinary) {
 		fmt.Printf("Directory %s ($SANDBOX_BINARY) already exists\n", sandboxBinary)
+		files, err := ioutil.ReadDir(sandboxBinary)
+		if err != nil {
+			return fmt.Errorf("error reading sandbox binary directory %s: %s", sandboxBinary, err)
+		}
+		// Sandbox binary directory exists.
+		// We now check whether there is any expanded tarball directory
+		numSandboxes := 0
+		for _, f := range files {
+			if f.IsDir() {
+				bin := path.Join(sandboxBinary, f.Name(), "bin")
+				if common.DirExists(bin) {
+					numSandboxes++
+				}
+			}
+		}
+		if numSandboxes == 0 {
+			needDownload = true
+		}
+
 	} else {
 
 		if !dryRun {

@@ -64,7 +64,19 @@ func ReplaceLiteralHome(path string) string {
 // for example, if "$HOME" resolves to "/home/goofy" the string "/home/goofy/some/path" would become "$HOME/some/path"
 func ReplaceLiteralEnvVar(name string, envVar string) string {
 	value := os.Getenv(envVar)
-	re := regexp.MustCompile(value)
+	// If the environment variable is empty, we return the initial name
+	if value == "" {
+		return name
+	}
+	// If the current location is at the top of the directory tree, we don't want to do any replacement
+	if value == "/" {
+		return name
+	}
+	// If there is already a variable in the name, no further replacement is needed
+	if strings.Contains(name, "$") {
+		return name
+	}
+	re := regexp.MustCompile(`^` + value)
 	return re.ReplaceAllString(name, "$$"+envVar)
 }
 
@@ -72,6 +84,9 @@ func ReplaceLiteralEnvVar(name string, envVar string) string {
 // for example, if "$HOME" resolves to "/home/goofy" the string "$HOME/some/path" would become "/home/goofy/some/path"
 func ReplaceEnvVar(name string, envVar string) string {
 	value := os.Getenv(envVar)
+	if value == "" || value == "/" {
+		return name
+	}
 	re := regexp.MustCompile(`\$` + envVar + `\b`)
 	return re.ReplaceAllString(name, value)
 }
