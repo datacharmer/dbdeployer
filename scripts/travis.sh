@@ -31,4 +31,5 @@ run ./test/go-unit-tests.sh
 run ./scripts/build.sh linux
 run ./test/run-mock-tests.sh
 run ./test/docker-test.sh $(cat .build/VERSION)
+run ./test/test-linux-init.sh $(cat .build/VERSION)
 

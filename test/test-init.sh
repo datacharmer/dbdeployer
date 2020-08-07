@@ -123,7 +123,7 @@ completion_file=/etc/bash_completion.d/dbdeployer_completion.sh
 
 if [ -f $completion_file ]
 then
-    sudo rm -f $completion_file
+    rm -f $completion_file
 fi
 
 dashline="# ---------------------------------------------------------"

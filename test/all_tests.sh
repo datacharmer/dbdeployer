@@ -133,6 +133,7 @@ function init_tests {
 function all_tests {
     run_test ./scripts/sanity_check.sh
     run_test ./test/go-unit-tests.sh
+    run_test ./test/test-linux-init.sh $version
     run_test ./test/functional-test.sh
     run_test ./test/docker-test.sh $version
     run_test ./test/cookbook-test.sh
