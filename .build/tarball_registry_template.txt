@@ -36,6 +36,7 @@ var DefaultTarballRegistry = TarballCollection{
     Version:         "{{.Version}}",
     {{.Notes}}
     {{.UpdatedBy}}
+    {{.DateAdded}}
   }, {{end}}
 },
 }

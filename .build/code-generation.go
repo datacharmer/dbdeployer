@@ -132,12 +132,16 @@ func createTarballRegistry() {
 			"Version":         tb.Version,
 			"Notes":           "",
 			"UpdatedBy":       "",
+			"DateAdded":       "",
 		}
 		if tb.Notes != "" {
 			tempItem["Notes"] = fmt.Sprintf(`Notes: "%s",`, tb.Notes)
 		}
 		if tb.UpdatedBy != "" {
 			tempItem["UpdatedBy"] = fmt.Sprintf(`UpdatedBy: "%s",`, tb.UpdatedBy)
+		}
+		if tb.DateAdded != "" {
+			tempItem["DateAdded"] = fmt.Sprintf(`DateAdded: "%s",`, tb.DateAdded)
 		}
 		data["Items"] = append(data["Items"].([]common.StringMap), tempItem)
 	}
