@@ -729,7 +729,7 @@
      {
        "name": "mysql-8.0.21-linux-glibc2.17-x86_64-minimal.tar.xz",
        "checksum": "SHA512:e5ff96ade0eb151dc4da9ee0d7c2a3c54f204f12bd0abb0c895d1a80abdba35f34c153bdb3eb2397dcad1c47445b35c01077190ed58d0914e92219566c4731b4",
-       "OS": "linux",
+       "OS": "Linux",
        "url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.21-linux-glibc2.17-x86_64-minimal.tar.xz",
        "flavor": "mysql",
        "minimal": false,
@@ -742,7 +742,7 @@
      {
        "name": "Percona-Server-8.0.20-11-Linux.x86_64.glibc2.12-minimal.tar.gz",
        "checksum": "SHA512:7f83e4a30f5b6ae91b6f039ae17e60eb21084a903bdcae85d5d8533ec0eec540e24f5bbf277b0352ddc8dc0a9815c365c902481e68911b507e10825e38b5f905",
-       "OS": "linux",
+       "OS": "Linux",
        "url": "https://www.percona.com/downloads/Percona-Server-LATEST/Percona-Server-8.0.20-11/binary/tarball/Percona-Server-8.0.20-11-Linux.x86_64.glibc2.12-minimal.tar.gz",
        "flavor": "percona",
        "minimal": true,
@@ -753,18 +753,31 @@
        "date_added": "2020-07-26 08:00"
      },
      {
-      "name": "mysql-5.7.31-linux-glibc2.12-x86_64.tar.gz",
-      "checksum": "SHA512:f312774472b08094eafbbf2eb776970a537c434c8b174e43bea5d5dc56d96e4ca37f83af35fc828e49efbafc1be71ae5584bf6519d949a19a257e780aca9760c",
-      "OS": "linux",
-      "url": "https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.31-linux-glibc2.12-x86_64.tar.gz",
-      "flavor": "mysql",
-      "minimal": false,
-      "size": 376537503,
-      "short_version": "5.7",
-      "version": "5.7.31",
-      "updated_by": "Corne van Rooyen",
-      "notes": "Pull request for new Linux MySQL v5.7.31",
-      "date_added": "2020-08-06 14:30"
-    }
+       "name": "mysql-5.7.31-linux-glibc2.12-x86_64.tar.gz",
+       "checksum": "SHA512:f312774472b08094eafbbf2eb776970a537c434c8b174e43bea5d5dc56d96e4ca37f83af35fc828e49efbafc1be71ae5584bf6519d949a19a257e780aca9760c",
+       "OS": "Linux",
+       "url": "https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.31-linux-glibc2.12-x86_64.tar.gz",
+       "flavor": "mysql",
+       "minimal": false,
+       "size": 376537503,
+       "short_version": "5.7",
+       "version": "5.7.31",
+       "updated_by": "Corne van Rooyen",
+       "notes": "Pull request for new Linux MySQL v5.7.31",
+       "date_added": "2020-08-06 14:30"
+     },
+     {
+       "name": "mysql-5.7.31-macos10.14-x86_64.tar.gz",
+       "checksum": "SHA512:4b34bd67c028f5a5395cd135223541fced1b6c6d2ec94153be88b655864ef74b51742fa09cb15d42b6aa60479326f7b668ecdb4af3d25361b9f7589ff670a3ac",
+       "OS": "Darwin",
+       "url": "https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.31-macos10.14-x86_64.tar.gz",
+       "flavor": "mysql",
+       "minimal": false,
+       "size": 224667207,
+       "short_version": "5.7",
+       "version": "5.7.31",
+       "notes": "added with version 1.53.2",
+       "date_added": "2020-08-06 15:24"
+     }
    ]
  }

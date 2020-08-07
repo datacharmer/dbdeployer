@@ -1,3 +1,21 @@
+## 1.53.2	07-Aug-2020
+
+### BUGS FIXED
+
+* Fixed bug during `init`. When the sandbox-binary directory existed, but empty,
+  the download was skipped.
+* `dbdeployer downloads export` would not export the field `date_added`. Such field was
+   lost during build, due to a missed field in `code-generation.go`
+
+### NOTES
+
+* Added MySQL 5.7.31 to downloads list
+
+### TESTING
+
+* Added test for `dbdeployer init` under Docker containers for Ubuntu 18, Ubuntu 20, CentOS 7, CentOS 8
+
+
 ## 1.53.1	26-Jul-2020
 
 ### BUGS FIXED
@@ -10,6 +28,9 @@
 
 * Add command 'use' and sandboxes options
 * Add options `--by-date`, `--by-flavor`, `--by-version`, `--newest`, `--oldest` to command `sandboxes`
+
+### NOTES
+
 * Add latest MySQL tarballs to downloads list
 * Add Percona Server minimal to downloads list
 

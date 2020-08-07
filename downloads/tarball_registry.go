@@ -16,7 +16,7 @@
 package downloads
 
 // This file was generated during build. Do not edit.
-// Build time: Sun Jul 26 12:23:05 CEST 2020
+// Build time: Thu Aug  6 15:33:04 CEST 2020
 
 var DefaultTarballRegistry = TarballCollection{
 	// Version of dbdeployer when the list was last updated
@@ -671,6 +671,8 @@ var DefaultTarballRegistry = TarballCollection{
 			ShortVersion:    "8.0",
 			Version:         "8.0.20",
 			Notes:           "added with version 1.49.0",
+
+			DateAdded: "2020-05-01 08:43",
 		},
 		{
 			Name:            "mysql-cluster-8.0.20-macos10.15-x86_64.tar.gz",
@@ -683,6 +685,8 @@ var DefaultTarballRegistry = TarballCollection{
 			ShortVersion:    "8.0",
 			Version:         "8.0.20",
 			Notes:           "added with version 1.49.0",
+
+			DateAdded: "2020-05-01 08:45",
 		},
 		{
 			Name:            "mysql-cluster-8.0.20-linux-glibc2.12-x86_64.tar.gz",
@@ -695,6 +699,8 @@ var DefaultTarballRegistry = TarballCollection{
 			ShortVersion:    "8.0",
 			Version:         "8.0.20",
 			Notes:           "added with version 1.49.0",
+
+			DateAdded: "2020-05-01 08:50",
 		},
 		{
 			Name:            "mysql-8.0.20-linux-x86_64-minimal.tar.xz",
@@ -707,6 +713,8 @@ var DefaultTarballRegistry = TarballCollection{
 			ShortVersion:    "8.0",
 			Version:         "8.0.20",
 			Notes:           "added with version 1.49.0",
+
+			DateAdded: "2020-05-01 08:52",
 		},
 		{
 			Name:            "mysql-5.7.30-macos10.14-x86_64.tar.gz",
@@ -719,6 +727,8 @@ var DefaultTarballRegistry = TarballCollection{
 			ShortVersion:    "5.7",
 			Version:         "5.7.30",
 			Notes:           "added with version 1.49.0",
+
+			DateAdded: "2020-05-01 08:54",
 		},
 		{
 			Name:            "mysql-5.7.30-linux-glibc2.12-x86_64.tar.gz",
@@ -731,6 +741,8 @@ var DefaultTarballRegistry = TarballCollection{
 			ShortVersion:    "5.7",
 			Version:         "5.7.30",
 			Notes:           "added with version 1.49.0",
+
+			DateAdded: "2020-05-01 08:57",
 		},
 		{
 			Name:            "mysql-8.0.21-macos10.15-x86_64.tar.gz",
@@ -743,11 +755,13 @@ var DefaultTarballRegistry = TarballCollection{
 			ShortVersion:    "8.0",
 			Version:         "8.0.21",
 			Notes:           "added with version 1.53.0",
+
+			DateAdded: "2020-07-19 15:18",
 		},
 		{
 			Name:            "mysql-8.0.21-linux-glibc2.17-x86_64-minimal.tar.xz",
 			Checksum:        "SHA512:e5ff96ade0eb151dc4da9ee0d7c2a3c54f204f12bd0abb0c895d1a80abdba35f34c153bdb3eb2397dcad1c47445b35c01077190ed58d0914e92219566c4731b4",
-			OperatingSystem: "linux",
+			OperatingSystem: "Linux",
 			Url:             "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.21-linux-glibc2.17-x86_64-minimal.tar.xz",
 			Flavor:          "mysql",
 			Minimal:         false,
@@ -755,11 +769,13 @@ var DefaultTarballRegistry = TarballCollection{
 			ShortVersion:    "8.0",
 			Version:         "8.0.21",
 			Notes:           "added with version 1.53.0",
+
+			DateAdded: "2020-07-19 15:21",
 		},
 		{
 			Name:            "Percona-Server-8.0.20-11-Linux.x86_64.glibc2.12-minimal.tar.gz",
 			Checksum:        "SHA512:7f83e4a30f5b6ae91b6f039ae17e60eb21084a903bdcae85d5d8533ec0eec540e24f5bbf277b0352ddc8dc0a9815c365c902481e68911b507e10825e38b5f905",
-			OperatingSystem: "linux",
+			OperatingSystem: "Linux",
 			Url:             "https://www.percona.com/downloads/Percona-Server-LATEST/Percona-Server-8.0.20-11/binary/tarball/Percona-Server-8.0.20-11-Linux.x86_64.glibc2.12-minimal.tar.gz",
 			Flavor:          "percona",
 			Minimal:         true,
@@ -767,6 +783,36 @@ var DefaultTarballRegistry = TarballCollection{
 			ShortVersion:    "8.0",
 			Version:         "8.0.20",
 			Notes:           "added with version 1.53.0",
+
+			DateAdded: "2020-07-26 08:00",
+		},
+		{
+			Name:            "mysql-5.7.31-linux-glibc2.12-x86_64.tar.gz",
+			Checksum:        "SHA512:f312774472b08094eafbbf2eb776970a537c434c8b174e43bea5d5dc56d96e4ca37f83af35fc828e49efbafc1be71ae5584bf6519d949a19a257e780aca9760c",
+			OperatingSystem: "Linux",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.31-linux-glibc2.12-x86_64.tar.gz",
+			Flavor:          "mysql",
+			Minimal:         false,
+			Size:            376537503,
+			ShortVersion:    "5.7",
+			Version:         "5.7.31",
+			Notes:           "Pull request for new Linux MySQL v5.7.31",
+			UpdatedBy:       "Corne van Rooyen",
+			DateAdded:       "2020-08-06 14:30",
+		},
+		{
+			Name:            "mysql-5.7.31-macos10.14-x86_64.tar.gz",
+			Checksum:        "SHA512:4b34bd67c028f5a5395cd135223541fced1b6c6d2ec94153be88b655864ef74b51742fa09cb15d42b6aa60479326f7b668ecdb4af3d25361b9f7589ff670a3ac",
+			OperatingSystem: "Darwin",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.31-macos10.14-x86_64.tar.gz",
+			Flavor:          "mysql",
+			Minimal:         false,
+			Size:            224667207,
+			ShortVersion:    "5.7",
+			Version:         "5.7.31",
+			Notes:           "added with version 1.53.2",
+
+			DateAdded: "2020-08-06 15:24",
 		},
 	},
 }
