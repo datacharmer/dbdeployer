@@ -1,3 +1,9 @@
+## 1.53.3	29-Aug-2020
+
+### BUGS FIXED
+
+* Fixed issue #115: failing to detect missing `socat` for PXC
+
 ## 1.53.2	07-Aug-2020
 
 ### BUGS FIXED

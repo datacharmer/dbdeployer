@@ -477,7 +477,7 @@ var (
 	}
 
 	// Extra executables needed for PXC
-	NeededPxcExecutables = []string{"rsync", "lsof"}
+	NeededPxcExecutables = []string{"rsync", "lsof", "socat"}
 )
 
 var ShellScriptCopyright string = `
