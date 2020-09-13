@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2018 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ func deleteSandbox(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	sandboxName := args[0]
 	confirm, _ := flags.GetBool(globals.ConfirmLabel)
+	useStop, _ := flags.GetBool(globals.UseStopLabel)
 	runConcurrently, _ := flags.GetBool(globals.ConcurrentLabel)
 	if common.IsEnvSet("RUN_CONCURRENTLY") {
 		runConcurrently = true
@@ -47,7 +48,8 @@ func deleteSandbox(cmd *cobra.Command, args []string) {
 	sandboxDir, err := getAbsolutePathFromFlag(cmd, "sandbox-home")
 	common.ErrCheckExitf(err, 1, "error finding absolute path for 'sandbox-home'")
 
-	deletionList := []common.SandboxInfo{{SandboxName: sandboxName, Locked: false}}
+	deletionList, err := common.GetInstalledSandboxes(sandboxDir)
+	common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList, err)
 	if sandboxName == "ALL" || sandboxName == "all" {
 		confirm = true
 		if skipConfirm {
@@ -55,6 +57,17 @@ func deleteSandbox(cmd *cobra.Command, args []string) {
 		}
 		deletionList, err = common.GetInstalledSandboxes(sandboxDir)
 		common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList, err)
+	} else {
+		for _, sb := range deletionList {
+			if sb.SandboxName == sandboxName {
+				deletionList = common.SandboxInfoList{sb}
+				break
+			}
+		}
+		if len(deletionList) > 1 {
+			common.Exitf(1, "sandbox %s not found", sandboxName)
+		}
+
 	}
 	if len(deletionList) == 0 {
 		common.CondPrintf("Nothing to delete in %s\n", sandboxDir)
@@ -99,7 +112,18 @@ func deleteSandbox(cmd *cobra.Command, args []string) {
 		if sb.Locked {
 			common.CondPrintf("Sandbox %s is locked\n", sb.SandboxName)
 		} else {
-			execList, err := sandbox.RemoveSandbox(sandboxDir, sb.SandboxName, runConcurrently)
+			useStopForSb := useStop
+			if !useStopForSb && (sb.SandboxDesc.Flavor == common.NdbFlavor || sb.SandboxDesc.Flavor == common.PxcFlavor) {
+				fmt.Printf("%s: Using 'stop' for '%s' flavor\n",
+					sb.SandboxName, sb.SandboxDesc.Flavor)
+				useStopForSb = true
+			}
+			if !useStopForSb && sb.SandboxDesc.Flavor == "" {
+				fmt.Printf("%s: no flavor detected: using stop to halt the servers\n",
+					sb.SandboxName)
+				useStopForSb = true
+			}
+			execList, err := sandbox.RemoveCustomSandbox(sandboxDir, sb.SandboxName, runConcurrently, useStopForSb)
 			if err != nil {
 				common.Exitf(1, globals.ErrWhileDeletingSandbox, err)
 			}
@@ -126,7 +150,7 @@ var deleteCmd = &cobra.Command{
 	Example: `
 	$ dbdeployer delete msb_8_0_4
 	$ dbdeployer delete rsandbox_5_7_21`,
-	Long: `Stops the sandbox (and its depending sandboxes, if any), and removes it.
+	Long: `Halts the sandbox (and its depending sandboxes, if any), and removes it.
 Warning: this command is irreversible!`,
 	Run:         deleteSandbox,
 	Annotations: map[string]string{"export": makeExportArgs(globals.ExportSandboxDir, 1)},
@@ -138,4 +162,5 @@ func init() {
 	deleteCmd.Flags().BoolP(globals.SkipConfirmLabel, "", false, "Skips confirmation with multiple deletions.")
 	deleteCmd.Flags().BoolP(globals.ConfirmLabel, "", false, "Requires confirmation.")
 	deleteCmd.Flags().BoolP(globals.ConcurrentLabel, "", false, "Runs multiple deletion tasks concurrently.")
+	deleteCmd.Flags().BoolP(globals.UseStopLabel, "", false, "Use 'stop' instead of 'send_kill destroy' to halt the database servers")
 }

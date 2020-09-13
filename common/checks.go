@@ -318,10 +318,11 @@ func GetInstalledSandboxes(sandboxHome string) (installedSandboxes SandboxInfoLi
 			noClear := path.Join(sandboxHome, fname, "no_clear")
 			noClearAll := path.Join(sandboxHome, fname, "no_clear_all")
 			if FileExists(sbdesc) || FileExists(start) || FileExists(startAll) {
+				description, _ := ReadSandboxDescription(path.Join(sandboxHome, fname))
 				if FileExists(noClearAll) || FileExists(noClear) {
-					installedSandboxes = append(installedSandboxes, SandboxInfo{SandboxName: fname, Locked: true})
+					installedSandboxes = append(installedSandboxes, SandboxInfo{SandboxName: fname, Locked: true, SandboxDesc: description})
 				} else {
-					installedSandboxes = append(installedSandboxes, SandboxInfo{SandboxName: fname, Locked: false})
+					installedSandboxes = append(installedSandboxes, SandboxInfo{SandboxName: fname, Locked: false, SandboxDesc: description})
 				}
 			}
 		}

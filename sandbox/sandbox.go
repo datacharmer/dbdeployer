@@ -633,6 +633,10 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 				"directory for plugins was not found")
 		}
 	}
+	mysqlxSocket := ""
+	if sandboxDef.MysqlXPort != 0 {
+		mysqlxSocket = fmt.Sprintf("%s/mysqlx-%d.sock", socketDir, sandboxDef.MysqlXPort)
+	}
 	timestamp := time.Now()
 	verList, err := common.VersionToList(sandboxDef.Version)
 	if err != nil {
@@ -665,6 +669,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		"CustomMysqld":         sandboxDef.CustomMysqld,
 		"Port":                 sandboxDef.Port,
 		"MysqlXPort":           sandboxDef.MysqlXPort,
+		"MysqlXSocket":         mysqlxSocket,
 		"AdminPort":            sandboxDef.AdminPort,
 		"MysqlShell":           mysqlshExecutable,
 		"BasePort":             sandboxDef.BasePort,
@@ -1163,6 +1168,7 @@ func getLogDirFromSbDescription(fullPath string) (string, error) {
 	return logDirectory, nil
 }
 
+// Deprecated: use RemoveCustomSandbox instead
 func RemoveSandbox(sandboxDir, sandbox string, runConcurrently bool) (execList []concurrent.ExecutionList, err error) {
 	fullPath := path.Join(sandboxDir, sandbox)
 	if !common.DirExists(fullPath) {
@@ -1254,6 +1260,119 @@ func RemoveSandbox(sandboxDir, sandbox string, runConcurrently bool) (execList [
 			}
 		}
 	}
-	// common.CondPrintf("%#v\n",execList)
+	return execList, nil
+}
+
+func RemoveCustomSandbox(sandboxDir, sandbox string, runConcurrently, useStop bool) (execList []concurrent.ExecutionList, err error) {
+	fullPath := path.Join(sandboxDir, sandbox)
+	if !common.DirExists(fullPath) {
+		return emptyExecutionList, fmt.Errorf(globals.ErrDirectoryNotFound, fullPath)
+	}
+	preserve := path.Join(fullPath, globals.ScriptNoClearAll)
+	if !common.ExecExists(preserve) {
+		preserve = path.Join(fullPath, globals.ScriptNoClear)
+	}
+	if common.ExecExists(preserve) {
+		common.CondPrintf("The sandbox %s is locked\n", sandbox)
+		common.CondPrintf("You need to unlock it with \"dbdeployer admin unlock\"\n")
+		return emptyExecutionList, err
+	}
+	logDirectory, err := getLogDirFromSbDescription(fullPath)
+	if err != nil {
+		return emptyExecutionList, err
+	}
+
+	stopCmd := ""
+	sandboxDefaultMarker := path.Join(fullPath, "is_default")
+	var stopArgs []string
+	stop := path.Join(fullPath, globals.ScriptStop)
+	stopAll := path.Join(fullPath, globals.ScriptStopAll)
+	sendKillAll := path.Join(fullPath, globals.ScriptSendKillAll)
+	sendKill := path.Join(fullPath, globals.ScriptSendKill)
+
+	if useStop {
+		if common.ExecExists(stopAll) {
+			stopCmd = stopAll
+		} else {
+			if common.ExecExists(stop) {
+				stopCmd = stop
+			} else {
+				return emptyExecutionList, fmt.Errorf(globals.ErrExecutableNotFound, stop)
+			}
+		}
+	} else {
+		if common.ExecExists(sendKillAll) {
+			stopCmd = sendKillAll
+		} else {
+			if common.ExecExists(sendKill) {
+				stopCmd = sendKill
+			} else {
+				return emptyExecutionList, fmt.Errorf(globals.ErrExecutableNotFound, sendKill)
+			}
+		}
+		stopArgs = append(stopArgs, "destroy")
+	}
+
+	if runConcurrently {
+		var eCommand1 = concurrent.ExecCommand{
+			Cmd:  stopCmd,
+			Args: stopArgs,
+		}
+		execList = append(execList, concurrent.ExecutionList{Logger: nil, Priority: 0, Command: eCommand1})
+	} else {
+		if useStop {
+			common.CondPrintf("Running %s\n", stopCmd)
+			_, err = common.RunCmd(stopCmd)
+		} else {
+			common.CondPrintf("Running %s destroy\n", stopCmd)
+			_, err = common.RunCmdCtrlWithArgs(stopCmd, stopArgs, false)
+		}
+		if err != nil {
+			return emptyExecutionList, fmt.Errorf(globals.ErrWhileStoppingSandbox, fullPath)
+		}
+	}
+
+	if common.FileExists(sandboxDefaultMarker) {
+		defaultExecutable, err := common.SlurpAsString(sandboxDefaultMarker)
+		if err != nil {
+			return emptyExecutionList, fmt.Errorf("error reading default address from %s: %s",
+				sandboxDefaultMarker, err)
+		}
+		defaultExecutable = strings.TrimSpace(defaultExecutable)
+		if common.FileExists(defaultExecutable) {
+			_ = os.Remove(defaultExecutable)
+		}
+	}
+
+	rmTargets := []string{fullPath, logDirectory}
+
+	for _, target := range rmTargets {
+		if target == "" {
+			continue
+		}
+		cmdStr := "rm"
+		rmArgs := []string{"-rf", target}
+		if runConcurrently {
+			var eCommand2 = concurrent.ExecCommand{
+				Cmd:  cmdStr,
+				Args: rmArgs,
+			}
+			execList = append(execList, concurrent.ExecutionList{Logger: nil, Priority: 1, Command: eCommand2})
+		} else {
+			for _, item := range rmArgs {
+				cmdStr += " " + item
+			}
+			if globals.UsingDbDeployer && target != logDirectory {
+				common.CondPrintf("Running %s\n", cmdStr)
+			}
+			_, err = common.RunCmdWithArgs("rm", rmArgs)
+			if err != nil {
+				return emptyExecutionList, fmt.Errorf(globals.ErrWhileDeletingSandbox, target)
+			}
+			if globals.UsingDbDeployer && target != logDirectory {
+				common.CondPrintf("Directory %s deleted\n", target)
+			}
+		}
+	}
 	return execList, nil
 }

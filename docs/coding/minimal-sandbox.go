@@ -86,7 +86,7 @@ func main() {
 	}
 
 	// Removes the sandbox from disk
-	_, err = sandbox.RemoveSandbox(sandboxHome, "msb_5_7_22", false)
+	_, err = sandbox.RemoveCustomSandbox(sandboxHome, "msb_5_7_22", false, false)
 	if err != nil {
 		common.Exitf(1, globals.ErrWhileDeletingSandbox, err)
 	}

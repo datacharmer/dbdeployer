@@ -124,11 +124,11 @@ func main() {
 	}
 
 	// Removes the sandbox from disk
-	_, err = sandbox.RemoveSandbox(sandboxHome, sandboxName1, false)
+	_, err = sandbox.RemoveCustomSandbox(sandboxHome, sandboxName1, false, false)
 	if err != nil {
 		common.Exitf(1, globals.ErrWhileDeletingSandbox, err)
 	}
-	_, err = sandbox.RemoveSandbox(sandboxHome, sandboxName2, false)
+	_, err = sandbox.RemoveCustomSandbox(sandboxHome, sandboxName2, false, false)
 	if err != nil {
 		common.Exitf(1, globals.ErrWhileDeletingSandbox, err)
 	}

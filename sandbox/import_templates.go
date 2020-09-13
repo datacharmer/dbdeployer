@@ -101,6 +101,7 @@ export MYSQL_VERSION_MINOR={{.VersionMinor}}
 export MYSQL_VERSION_REV={{.VersionRev}}
 export MYSQL_PORT={{.Port}}
 export MYSQLX_PORT={{.MysqlXPort}}
+export MYSQLX_SOCKET_FILE={{.MysqlXSocket}}
 export ADMIN_PORT={{.AdminPort}}
 export FLAVOR={{.Flavor}}
 export SANDBOX_TYPE={{.SandboxType}}

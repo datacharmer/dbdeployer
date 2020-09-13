@@ -1111,6 +1111,9 @@ If you don't want the latest sandbox, you can indicate a specific one:
 $ dbdeployer use msb_5_7_31
 ``` 
 
+If that sandbox was stopped, this command will restart it.
+
+
 # Sandbox upgrade
 
 dbdeployer 1.10.0 introduces upgrades:

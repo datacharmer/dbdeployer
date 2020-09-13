@@ -193,6 +193,7 @@ const (
 	// Instantiated in cmd/delete.go
 	SkipConfirmLabel = "skip-confirm"
 	ConfirmLabel     = "confirm"
+	UseStopLabel     = "use-stop"
 
 	// Instantiated in cmd/sandboxes.go
 	CatalogLabel   = "catalog"

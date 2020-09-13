@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2020 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -49,9 +49,10 @@ Example:
 "./clear" stops the server and removes everything from the data directory,
 letting you ready to start from scratch. (Warning! It's irreversible!)
 
-"./send_kill" does almost the same as "./stop", as it sends a SIGTERM (-15) kill
+"./send_kill [destroy]" does almost the same as "./stop", as it sends a SIGTERM (-15) kill
 to shut down the server. Additionally, when the regular kill fails, it will
 send an unfriendly SIGKILL (-9) to the unresponsive server.
+The argument "destroy" will immediately kill the server with SIGKILL (-9).
 
 "./add_option" will add one or more options to my.sandbox.cnf, and restarts the
 server to apply the changes.

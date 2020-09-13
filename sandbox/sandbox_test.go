@@ -322,8 +322,7 @@ func testCreateTidbMockSandbox(t *testing.T) {
 		}
 		okPortExists(t, sandboxDir, sandboxDef.Port)
 
-		_, err = RemoveSandbox(mockSandboxHome, sandboxDef.DirName, false)
-		// _, err = RemoveSandbox(defaults.Defaults().SandboxHome, sandboxDef.DirName, false)
+		_, err = RemoveCustomSandbox(mockSandboxHome, sandboxDef.DirName, false, true)
 		if err != nil {
 			t.Fatal(fmt.Sprintf(globals.ErrWhileRemoving, sandboxDir, err))
 		}
@@ -558,7 +557,7 @@ func testCreateStandaloneSandbox(t *testing.T) {
 		okExecutableExists(t, sandboxDir, script)
 	}
 	okPortExists(t, sandboxDir, sandboxDef.Port)
-	_, err = RemoveSandbox(defaults.Defaults().SandboxHome, sandboxDef.DirName, false)
+	_, err = RemoveCustomSandbox(defaults.Defaults().SandboxHome, sandboxDef.DirName, false, false)
 	if err != nil {
 		t.Fatal(fmt.Sprint(globals.ErrWhileRemoving, sandboxDef.SandboxDir, err))
 	}
@@ -644,7 +643,7 @@ func testCreateReplicationSandbox(t *testing.T) {
 	for _, script := range singleScriptNames {
 		okExecutableExists(t, sandboxDir, script+"_all")
 	}
-	_, err = RemoveSandbox(defaults.Defaults().SandboxHome, sandboxDef.DirName, false)
+	_, err = RemoveCustomSandbox(defaults.Defaults().SandboxHome, sandboxDef.DirName, false, false)
 	if err != nil {
 		t.Fatal(fmt.Sprint(globals.ErrWhileRemoving, sandboxDef.SandboxDir, err))
 	}
