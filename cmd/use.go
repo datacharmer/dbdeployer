@@ -20,6 +20,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -61,14 +62,24 @@ func useSandbox(cmd *cobra.Command, args []string) error {
 			sandboxDir := path.Join(sandboxHome, sandbox)
 			fmt.Printf("using %s\n", sandboxDir)
 			useSingle := path.Join(sandboxDir, "use")
+			startSingle := path.Join(sandboxDir, "start")
 			useMulti := path.Join(sandboxDir, "n1")
+			startMulti := path.Join(sandboxDir, "start_all")
 			if common.ExecExists(useSingle) {
 				fmt.Printf("%s\n", useSingle)
-				err = runInteractiveCmd(useSingle)
-				return err
+				out, _ := common.RunCmdCtrl(startSingle, true)
+				if !strings.Contains(out, "already") {
+					// The server was not already started
+					fmt.Printf("%s\n", out)
+				}
+				return runInteractiveCmd(useSingle)
 			} else if common.ExecExists(useMulti) {
-				err = runInteractiveCmd(useMulti)
-				return err
+				out, _ := common.RunCmdCtrl(startMulti, true)
+				if !strings.Contains(out, "already") {
+					// The server was not already started
+					fmt.Printf("%s\n", out)
+				}
+				return runInteractiveCmd(useMulti)
 			} else {
 				return fmt.Errorf("no executable found for %s", sandbox)
 			}
