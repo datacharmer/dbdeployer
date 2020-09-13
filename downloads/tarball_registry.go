@@ -16,11 +16,11 @@
 package downloads
 
 // This file was generated during build. Do not edit.
-// Build time: Thu Aug  6 15:33:04 CEST 2020
+// Build time: Sun Sep 13 09:33:05 CEST 2020
 
 var DefaultTarballRegistry = TarballCollection{
 	// Version of dbdeployer when the list was last updated
-	DbdeployerVersion: "1.53.0",
+	DbdeployerVersion: "1.54.0",
 	Tarballs: []TarballDescription{
 
 		{
@@ -764,7 +764,7 @@ var DefaultTarballRegistry = TarballCollection{
 			OperatingSystem: "Linux",
 			Url:             "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.21-linux-glibc2.17-x86_64-minimal.tar.xz",
 			Flavor:          "mysql",
-			Minimal:         false,
+			Minimal:         true,
 			Size:            47765660,
 			ShortVersion:    "8.0",
 			Version:         "8.0.21",
@@ -813,6 +813,34 @@ var DefaultTarballRegistry = TarballCollection{
 			Notes:           "added with version 1.53.2",
 
 			DateAdded: "2020-08-06 15:24",
+		},
+		{
+			Name:            "mysql-shell-8.0.21-macos10.15-x86-64bit.tar.gz",
+			Checksum:        "SHA512:63d0d799d88632f07d63744054d12a096017a8e1a68b4a676624efe8be8b32dab6f620acb96f9fffa8f44e87dc55672b5adf24feb7a96ae32226b1bac905d701",
+			OperatingSystem: "Darwin",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-Shell/mysql-shell-8.0.21-macos10.15-x86-64bit.tar.gz",
+			Flavor:          "shell",
+			Minimal:         false,
+			Size:            36727925,
+			ShortVersion:    "8.0",
+			Version:         "8.0.21",
+			Notes:           "added with version 1.54.0",
+
+			DateAdded: "2020-09-13 09:26",
+		},
+		{
+			Name:            "mysql-shell-8.0.21-linux-glibc2.12-x86-64bit.tar.gz",
+			Checksum:        "SHA512:c1ececb5d69ab96a1fa3335c84a5516e6138a4123c4f3bf66230c2ce680d4d0719e881402e348fdf29e815937a6607c38d40bc83230465ee5d5c4c0b0dfb99e1",
+			OperatingSystem: "Linux",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-Shell/mysql-shell-8.0.21-linux-glibc2.12-x86-64bit.tar.gz",
+			Flavor:          "shell",
+			Minimal:         false,
+			Size:            42615006,
+			ShortVersion:    "8.0",
+			Version:         "8.0.21",
+			Notes:           "added with version 1.54.0",
+
+			DateAdded: "2020-09-13 09:30",
 		},
 	},
 }

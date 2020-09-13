@@ -732,7 +732,7 @@
        "OS": "Linux",
        "url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.21-linux-glibc2.17-x86_64-minimal.tar.xz",
        "flavor": "mysql",
-       "minimal": false,
+       "minimal": true,
        "size": 47765660,
        "short_version": "8.0",
        "version": "8.0.21",
@@ -778,6 +778,32 @@
        "version": "5.7.31",
        "notes": "added with version 1.53.2",
        "date_added": "2020-08-06 15:24"
+     },
+     {
+       "name": "mysql-shell-8.0.21-macos10.15-x86-64bit.tar.gz",
+       "checksum": "SHA512:63d0d799d88632f07d63744054d12a096017a8e1a68b4a676624efe8be8b32dab6f620acb96f9fffa8f44e87dc55672b5adf24feb7a96ae32226b1bac905d701",
+       "OS": "Darwin",
+       "url": "https://dev.mysql.com/get/Downloads/MySQL-Shell/mysql-shell-8.0.21-macos10.15-x86-64bit.tar.gz",
+       "flavor": "shell",
+       "minimal": false,
+       "size": 36727925,
+       "short_version": "8.0",
+       "version": "8.0.21",
+       "notes": "added with version 1.54.0",
+       "date_added": "2020-09-13 09:26"
+     },
+     {
+       "name": "mysql-shell-8.0.21-linux-glibc2.12-x86-64bit.tar.gz",
+       "checksum": "SHA512:c1ececb5d69ab96a1fa3335c84a5516e6138a4123c4f3bf66230c2ce680d4d0719e881402e348fdf29e815937a6607c38d40bc83230465ee5d5c4c0b0dfb99e1",
+       "OS": "Linux",
+       "url": "https://dev.mysql.com/get/Downloads/MySQL-Shell/mysql-shell-8.0.21-linux-glibc2.12-x86-64bit.tar.gz",
+       "flavor": "shell",
+       "minimal": false,
+       "size": 42615006,
+       "short_version": "8.0",
+       "version": "8.0.21",
+       "notes": "added with version 1.54.0",
+       "date_added": "2020-09-13 09:30"
      }
    ]
  }

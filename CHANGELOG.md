@@ -1,3 +1,26 @@
+## 1.54.0	13-Sep-2020
+
+### NEW FEATURES
+
+* The `send_kill` script accepts an argument `destroy` (aliases `-9` or `crash`) 
+  to halt the server immediately.
+* The `delete` command is much faster (uses `send_kill destroy`)
+
+### BUGS FIXED
+
+* The `use` command should re-start a sandbox that was stopped, but it was not doing it (Issue #116)
+* Listing of small tarball for 8.0.21 lacked the 'minimal' attribute
+
+### NOTES
+
+* Added MySQL shell 8.0.21 to downloads list
+
+### TESTING
+
+* Improve `all_tests`: Now it doesn't require the version
+* Improve unit test script to detect where to run
+
+
 ## 1.53.3	29-Aug-2020
 
 ### BUGS FIXED

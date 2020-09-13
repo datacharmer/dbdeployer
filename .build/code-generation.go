@@ -117,7 +117,7 @@ func createTarballRegistry() {
 		return
 	}
 	data := make(common.StringMap)
-	data["DbDeployerVersion"] = common.CompatibleVersion
+	data["DbDeployerVersion"] = common.VersionDef
 	data["Items"] = []common.StringMap{}
 	for _, tb := range tarballList.Tarballs {
 		tempItem := common.StringMap{
