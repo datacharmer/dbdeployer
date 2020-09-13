@@ -30,7 +30,9 @@ function check_exit_code {
 
 }
 
-for dir in abbreviations cmd common sandbox cookbook concurrent rest downloads
+test_dirs=$(find . -name '*_test.go' -exec dirname {} \; | tr -d './' | sort |uniq)
+
+for dir in $test_dirs
 do
     cd $dir
     echo "# Testing $dir"

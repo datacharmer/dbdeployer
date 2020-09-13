@@ -27,8 +27,12 @@ fi
 version=$1
 if [ -z $version ]
 then
-    echo "version needed"
-    exit 1
+    version=$(cat .build/VERSION)
+    if [ -z $version ]
+    then
+        echo "version needed"
+        exit 1
+    fi
 fi
 
 executable=dbdeployer-${version}.linux
