@@ -33,6 +33,7 @@ then
         echo "version needed"
         exit 1
     fi
+    echo "### Using version $version"
 fi
 
 executable=dbdeployer-${version}.linux

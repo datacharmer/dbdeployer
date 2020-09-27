@@ -1,3 +1,9 @@
+## 1.54.1	27-Sep-2020
+
+### BUGS FIXED
+
+* Fix Issue #118 (dbdeployer fails to autodetect pxc flavor from binaries of 5.6.x versions)
+
 ## 1.54.0	13-Sep-2020
 
 ### NEW FEATURES
