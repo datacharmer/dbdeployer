@@ -213,6 +213,15 @@ var FlavorCompositionList = []flavorIndicator{
 	{
 		AllNeeded: true,
 		elements: []elementPath{
+			{"bin", globals.FnGarbd},
+			{"lib", globals.FnLibGaleraSmmSo},
+			{"lib", globals.FnLibMySQLClientA},
+		},
+		flavor: PxcFlavor,
+	},
+	{
+		AllNeeded: true,
+		elements: []elementPath{
 			{"bin", globals.FnNdbd},
 			{"bin", globals.FnNdbdMgm},
 			{"bin", globals.FnNdbdMgmd},
