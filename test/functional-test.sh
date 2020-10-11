@@ -1302,7 +1302,7 @@ function use_operations {
     fi
     echo "# use operations deploy $latest_5_6, $latest_5_7 and $latest_8_0"
 
-    run dbdeployer deploy single $latest_8_0
+    run dbdeployer deploy replication $latest_8_0
     run dbdeployer deploy single $latest_5_6
     run dbdeployer deploy single $latest_5_7
 
@@ -1313,6 +1313,7 @@ function use_operations {
     sandboxes1=$(dbdeployer sandboxes --by-date | head -n 1)
     found_80=$(echo $sandboxes1 | grep "$latest_8_0")
     ok "version $latest_8_0 found as oldest sandbox" "$found_80"
+    sb_80_name=$(echo $found_80 | awk '{print $1}')
 
     sandboxes3=$(dbdeployer sandboxes --by-date | tail -n 1)
     found_57=$(echo $sandboxes3 | grep "$latest_5_7")
@@ -1350,6 +1351,16 @@ function use_operations {
     found_version=$(echo 'select version()' | dbdeployer use | tail -n 1)
 
     ok_contains "version used is $latest_5_6" "$found_version" "$latest_5_6"
+
+    found_version=$(echo 'select version()' | dbdeployer use  "$sb_80_name" | tail -n 1)
+    found_server_id1=$(echo 'select @@server_id' | dbdeployer use  "$sb_80_name" | tail -n 1)
+    found_server_id2=$(echo 'select @@server_id' | dbdeployer use  "$sb_80_name" s1 | tail -n 1)
+    found_server_id3=$(echo 'select @@server_id' | dbdeployer use  "$sb_80_name" s2 | tail -n 1)
+
+    ok_contains "version used is $latest_8_0" "$found_version" "$latest_8_0"
+    ok_contains "server ID in node 1 is 100 " "$found_server_id1" "100"
+    ok_contains "server ID in node 2 is 200 " "$found_server_id2" "200"
+    ok_contains "server ID in node 3 is 300 " "$found_server_id3" "300"
 
     dbdeployer delete ALL --skip-confirm
     results "use $latest_5_6 $latest_5_7 and $latest_8_0 - after deletion"

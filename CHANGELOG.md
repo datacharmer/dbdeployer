@@ -1,3 +1,9 @@
+## 1.55.0	10-Oct-2020
+
+### NEW FEATURES
+
+* Add second optional argument to `dbdeployer use` to indicate the executable to run within the sandbox.
+
 ## 1.54.1	27-Sep-2020
 
 ### BUGS FIXED

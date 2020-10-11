@@ -44,6 +44,7 @@ func runInteractiveCmd(s string) error {
 func useSandbox(cmd *cobra.Command, args []string) error {
 	sandboxHome, _ := cmd.Flags().GetString(globals.SandboxHomeLabel)
 	sandbox := ""
+	executable := ""
 	sandboxList, err := common.GetSandboxesByDate(sandboxHome)
 	if len(args) > 0 {
 		sandbox = args[0]
@@ -56,12 +57,16 @@ func useSandbox(cmd *cobra.Command, args []string) error {
 		}
 		sandbox = sandboxList[len(sandboxList)-1].SandboxName
 	}
+	if len(args) > 1 {
+		executable = args[1]
+	} else {
+		executable = "use"
+	}
 	for _, sb := range sandboxList {
 		if sb.SandboxName == sandbox {
-
 			sandboxDir := path.Join(sandboxHome, sandbox)
-			fmt.Printf("using %s\n", sandboxDir)
-			useSingle := path.Join(sandboxDir, "use")
+			fmt.Printf("running %s/ %s\n", sandboxDir, executable)
+			useSingle := path.Join(sandboxDir, executable)
 			startSingle := path.Join(sandboxDir, "start")
 			useMulti := path.Join(sandboxDir, "n1")
 			startMulti := path.Join(sandboxDir, "start_all")
@@ -89,11 +94,18 @@ func useSandbox(cmd *cobra.Command, args []string) error {
 }
 
 var useCmd = &cobra.Command{
-	Use:   "use [sandbox_name]",
+	Use:   "use [sandbox_name [executable]]",
 	Short: "uses a sandbox",
 	Long: `Uses a given sandbox.
 If a sandbox is indicated, it will be used.
-Otherwise, it will use the latest deployed sandbox`,
+Otherwise, it will use the latest deployed sandbox.
+Optionally, an executable can be set as second argument.`,
+	Example: `
+$ dbdeployer use                    # runs "use" on the latest deployed sandbox
+$ dbdeployer use rsandbox_8_0_22    # runs "m" on replication sandbox rsandbox_8_0_22
+$ dbdeployer use rsandbox_8_0_22 s1 # runs "s1" on replication sandbox rsandbox_8_0_22
+$ echo 'SELECT @@SERVER_ID' | dbdeployer use # pipes an SQL query to latest deployed sandbox
+`,
 	RunE: useSandbox,
 }
 
