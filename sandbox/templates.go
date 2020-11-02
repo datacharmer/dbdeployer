@@ -474,7 +474,9 @@ grant SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,INDEX,ALTER,
 grant SELECT,EXECUTE on *.* to msandbox_ro@'{{.RemoteAccess}}' identified by '{{.DbPassword}}';
 grant SELECT,EXECUTE on *.* to msandbox_ro@'localhost' identified by '{{.DbPassword}}';
 grant REPLICATION SLAVE on *.* to {{.RplUser}}@'{{.RemoteAccess}}' identified by '{{.RplPassword}}';
-delete from user where password='';
+# delete from user where password='';
+delete from user where user='';
+delete from user where user='root' and password='';
 delete from db where user='';
 flush privileges;
 create database if not exists test;
