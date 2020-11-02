@@ -16,11 +16,11 @@
 package downloads
 
 // This file was generated during build. Do not edit.
-// Build time: Sun Sep 13 09:33:05 CEST 2020
+// Build time: Mon Nov  2 12:05:13 CET 2020
 
 var DefaultTarballRegistry = TarballCollection{
 	// Version of dbdeployer when the list was last updated
-	DbdeployerVersion: "1.54.0",
+	DbdeployerVersion: "1.56.0",
 	Tarballs: []TarballDescription{
 
 		{
@@ -841,6 +841,90 @@ var DefaultTarballRegistry = TarballCollection{
 			Notes:           "added with version 1.54.0",
 
 			DateAdded: "2020-09-13 09:30",
+		},
+		{
+			Name:            "mysql-8.0.22-macos10.15-x86_64.tar.gz",
+			Checksum:        "SHA512:158b5e79373ea3b2d65d00041c19bdd0ec3f54814292210314b4f3c901adc2e4f702a5b3b3ae6965dbc0afe09ff6114c311435e00eeb41b0a00b1def60a1961d",
+			OperatingSystem: "darwin",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.22-macos10.15-x86_64.tar.gz",
+			Flavor:          "mysql",
+			Minimal:         false,
+			Size:            168439052,
+			ShortVersion:    "8.0",
+			Version:         "8.0.22",
+			Notes:           "added with version 1.56.0",
+
+			DateAdded: "2020-11-02 11:50",
+		},
+		{
+			Name:            "mysql-shell-8.0.22-macos10.15-x86-64bit.tar.gz",
+			Checksum:        "SHA512:7fa45e546d86e0d6d45368924afbfbfb6f2cc648b2e6b3fcd6ff01479c7182d55912e7d6d5c65e5c69bb08906fd53cb7f95ba5e72450da093b64683d946a673b",
+			OperatingSystem: "darwin",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-Shell/mysql-shell-8.0.22-macos10.15-x86-64bit.tar.gz",
+			Flavor:          "shell",
+			Minimal:         false,
+			Size:            37649099,
+			ShortVersion:    "8.0",
+			Version:         "8.0.22",
+			Notes:           "added with version 1.56.0",
+
+			DateAdded: "2020-11-02 11:52",
+		},
+		{
+			Name:            "mysql-cluster-8.0.22-macos10.15-x86_64.tar.gz",
+			Checksum:        "SHA512:ad1adf4b888a65cfc2a8d670a329a81fca89ef91d4e91c748ffcba9f421f15dbc2d16f172147d1179149ad7b0e9c5e8288e2da1ac91df5857ea5f8923bb7340f",
+			OperatingSystem: "darwin",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-Cluster-8.0/mysql-cluster-8.0.22-macos10.15-x86_64.tar.gz",
+			Flavor:          "ndb",
+			Minimal:         false,
+			Size:            279245092,
+			ShortVersion:    "8.0",
+			Version:         "8.0.22",
+			Notes:           "added with version 1.56.0",
+
+			DateAdded: "2020-11-02 11:53",
+		},
+		{
+			Name:            "Percona-Server-8.0.21-12-Linux.x86_64.glibc2.12-minimal.tar.gz",
+			Checksum:        "SHA512:074186a78e7eb8be4c3e3312aa6be65e28e763ef17361ec5e8cb24f7aa9799f8d61a58bcee15f7ddc847dfcaf5912a2c4c7a13d955b99732ec6e7de521d59211",
+			OperatingSystem: "Linux",
+			Url:             "https://www.percona.com/downloads/Percona-Server-LATEST/Percona-Server-8.0.21-12/binary/tarball/Percona-Server-8.0.21-12-Linux.x86_64.glibc2.12-minimal.tar.gz",
+			Flavor:          "percona",
+			Minimal:         true,
+			Size:            103636595,
+			ShortVersion:    "8.0",
+			Version:         "8.0.21",
+			Notes:           "added with version 1.56.0",
+
+			DateAdded: "2020-11-02 11:56",
+		},
+		{
+			Name:            "mysql-8.0.22-linux-glibc2.17-x86_64-minimal.tar.xz",
+			Checksum:        "SHA512:a38f3487adc1a5cee193826c6817765a7527954f139f6feb0a55654113866999c86fa4a4f20838fd82f3859cb141137f4bb8a041cdee80923c251f135d4dee09",
+			OperatingSystem: "Linux",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.22-linux-glibc2.17-x86_64-minimal.tar.xz",
+			Flavor:          "mysql",
+			Minimal:         true,
+			Size:            51368736,
+			ShortVersion:    "8.0",
+			Version:         "8.0.22",
+			Notes:           "added with version 1.56.0",
+
+			DateAdded: "2020-11-02 11:58",
+		},
+		{
+			Name:            "mysql-shell-8.0.22-linux-glibc2.12-x86-64bit.tar.gz",
+			Checksum:        "SHA512:fa365a0c2c679e7337f2ad0d8bd318cdd9a27c3d2e43569004b260639d16de578850895c6dee8664961b3db9315b0a6bbbc8dd070a97d7c5f21cc63d62095927",
+			OperatingSystem: "Linux",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-Shell/mysql-shell-8.0.22-linux-glibc2.12-x86-64bit.tar.gz",
+			Flavor:          "shell",
+			Minimal:         false,
+			Size:            41590556,
+			ShortVersion:    "8.0",
+			Version:         "8.0.22",
+			Notes:           "added with version 1.56.0",
+
+			DateAdded: "2020-11-02 12:01",
 		},
 	},
 }
