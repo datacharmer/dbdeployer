@@ -425,6 +425,8 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 			{"n1", "master_template", true},
 			{"test_replication", "test_replication_template", true},
 			{globals.ScriptReplicateFrom, "repl_replicate_from_template", true},
+			{globals.ScriptSysbench, "repl_sysbench_template", true},
+			{globals.ScriptSysbenchReady, "repl_sysbench_ready_template", true},
 		},
 	}
 	if sandboxDef.SemiSyncOptions != "" {

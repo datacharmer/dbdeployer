@@ -932,6 +932,8 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			{globals.ScriptConnectionJson, "connection_info_json", false},
 			{globals.ScriptReplicateFrom, "replicate_from", true},
 			{globals.ScriptMetadata, "metadata_template", true},
+			{globals.ScriptSysbench, "sysbench_template", true},
+			{globals.ScriptSysbenchReady, "sysbench_ready_template", true},
 		},
 	}
 	if sandboxDef.EnableAdminAddress {

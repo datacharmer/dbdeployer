@@ -267,6 +267,8 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 			{globals.ScriptUseAll, "use_multi_template", true},
 			{globals.ScriptMetadataAll, "metadata_multi_template", true},
 			{globals.ScriptReplicateFrom, "replicate_from_multi_template", true},
+			{globals.ScriptSysbench, "sysbench_multi_template", true},
+			{globals.ScriptSysbenchReady, "sysbench_ready_multi_template", true},
 		},
 	}
 
