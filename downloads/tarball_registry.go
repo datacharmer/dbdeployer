@@ -16,7 +16,7 @@
 package downloads
 
 // This file was generated during build. Do not edit.
-// Build time: Mon Nov  2 12:05:13 CET 2020
+// Build time: Mon Nov  2 12:47:23 CET 2020
 
 var DefaultTarballRegistry = TarballCollection{
 	// Version of dbdeployer when the list was last updated
@@ -925,6 +925,20 @@ var DefaultTarballRegistry = TarballCollection{
 			Notes:           "added with version 1.56.0",
 
 			DateAdded: "2020-11-02 12:01",
+		},
+		{
+			Name:            "mysql-cluster-8.0.22-linux-glibc2.12-x86_64.tar.gz",
+			Checksum:        "SHA512:9ea9af20af9ab6ce67457a5d41b44a8868025696f4e1f987f118d5b50b9142037293c2d12545756af55fa09c6afdbeff30fa53fbd460d9d60ac05caf0a40e69a",
+			OperatingSystem: "Linux",
+			Url:             "https://dev.mysql.com/get/Downloads/MySQL-Cluster-8.0/mysql-cluster-8.0.22-linux-glibc2.12-x86_64.tar.gz",
+			Flavor:          "ndb",
+			Minimal:         false,
+			Size:            1333655456,
+			ShortVersion:    "8.0",
+			Version:         "8.0.22",
+			Notes:           "added with version 1.56.0",
+
+			DateAdded: "2020-11-02 12:44",
 		},
 	},
 }
