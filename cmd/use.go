@@ -17,11 +17,13 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
 
+	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 
 	"github.com/datacharmer/dbdeployer/common"
@@ -42,9 +44,11 @@ func runInteractiveCmd(s string) error {
 }
 
 func useSandbox(cmd *cobra.Command, args []string) error {
-	sandboxHome, _ := cmd.Flags().GetString(globals.SandboxHomeLabel)
+	flags := cmd.Flags()
+	sandboxHome, _ := flags.GetString(globals.SandboxHomeLabel)
 	sandbox := ""
-	executable := ""
+	executable, _ := flags.GetString(globals.RunLabel)
+	wantList, _ := flags.GetBool(globals.LsLabel)
 	sandboxList, err := common.GetSandboxesByDate(sandboxHome)
 	if len(args) > 0 {
 		sandbox = args[0]
@@ -57,14 +61,36 @@ func useSandbox(cmd *cobra.Command, args []string) error {
 		}
 		sandbox = sandboxList[len(sandboxList)-1].SandboxName
 	}
+
+	sandboxDir := path.Join(sandboxHome, sandbox)
+	if wantList {
+		files, err := ioutil.ReadDir(sandboxDir)
+		if err != nil {
+			return err
+		}
+		for _, f := range files {
+			fPath := path.Join(sandboxDir, f.Name())
+			perms := ""
+			if common.ExecExists(fPath) {
+				perms = "{EXEC}"
+			}
+			if f.Mode().IsDir() {
+				perms = "<DIR>"
+			}
+			fmt.Printf("%-30s %8s %s\n", f.Name(), humanize.Bytes(uint64(f.Size())), perms)
+		}
+		return nil
+	}
 	if len(args) > 1 {
 		executable = args[1]
 	} else {
-		executable = "use"
+		if !flags.Changed(globals.RunLabel) {
+			executable = "use"
+		}
 	}
 	for _, sb := range sandboxList {
 		if sb.SandboxName == sandbox {
-			sandboxDir := path.Join(sandboxHome, sandbox)
+			//sandboxDir := path.Join(sandboxHome, sandbox)
 			fmt.Printf("running %s/ %s\n", sandboxDir, executable)
 			useSingle := path.Join(sandboxDir, executable)
 			startSingle := path.Join(sandboxDir, "start")
@@ -78,7 +104,7 @@ func useSandbox(cmd *cobra.Command, args []string) error {
 					fmt.Printf("%s\n", out)
 				}
 				return runInteractiveCmd(useSingle)
-			} else if common.ExecExists(useMulti) {
+			} else if common.ExecExists(useMulti) && !flags.Changed(globals.RunLabel) {
 				out, _ := common.RunCmdCtrl(startMulti, true)
 				if !strings.Contains(out, "already") {
 					// The server was not already started
@@ -86,7 +112,7 @@ func useSandbox(cmd *cobra.Command, args []string) error {
 				}
 				return runInteractiveCmd(useMulti)
 			} else {
-				return fmt.Errorf("no executable found for %s", sandbox)
+				return fmt.Errorf("no executable (%s) found for %s", executable, sandbox)
 			}
 		}
 	}
@@ -111,4 +137,6 @@ $ echo 'SELECT @@SERVER_ID' | dbdeployer use # pipes an SQL query to latest depl
 
 func init() {
 	rootCmd.AddCommand(useCmd)
+	setPflag(useCmd, globals.RunLabel, "", "", "", "Name of executable to run", false)
+	useCmd.Flags().BoolP(globals.LsLabel, "", false, "List files in sandbox")
 }
