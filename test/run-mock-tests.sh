@@ -29,7 +29,7 @@ do
     then
         args=sparse
     fi
-    if [ -x $F ]
+    if [ "$name" != "set-mock.sh" ]
     then
         echo "### ./$F $args"
         ./$F $args

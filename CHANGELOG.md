@@ -1,3 +1,15 @@
+## 1.56.0	02-Nov-2020
+
+### NEW FEATURES
+
+* Add options `--ls` and `--run` to command `use`
+* Add scripts `sysbench` and `sysbench_ready` to all sandboxes
+* Add command `data-load` with subcommands `list`, `show`, `get`
+
+### BUGS FIXED
+
+* Fix Issue #120 (Can't SELECT the mysql.user table in mariadb 10.4 or later)
+
 ## 1.55.0	10-Oct-2020
 
 ### NEW FEATURES

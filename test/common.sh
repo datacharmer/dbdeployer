@@ -666,13 +666,14 @@ function alt_dbdeployer {
     save_sandbox_home=$SANDBOX_HOME
 
     export SANDBOX_BINARY=$HOME/opt/mysql
+    export alt_sandboxes=/tmp/alt_sandboxes
 
-    if [  ! -d ./tmp_sandboxes ]
+    if [  ! -d $alt_sandboxes ]
     then
-        mkdir tmp_sandboxes
+        mkdir $alt_sandboxes
     fi
 
-    export HOME=$PWD/tmp_sandboxes
+    export HOME=$alt_sandboxes
     export SANDBOX_HOME=$HOME/sandboxes
 
     (set -x

@@ -1,3 +1,18 @@
+// DBDeployer - The MySQL Sandbox
+// Copyright © 2006-2020 Giuseppe Maxia
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package data_load
 
 import (
@@ -36,7 +51,7 @@ var Archives = map[string]DataDefinition{
 		InternalDirectory: "",
 		LoadCommands:      []string{"$use < world.sql"},
 		Size:              92707,
-		Sha256:            "b8a93f1c94758215555931e4ca1cd99731e1bd4743c41bd710196dd5683693ec",
+		Sha256:            "", // the checksum for this file is not reliable
 	},
 	"worldx": {
 		Description:       "world_X database",
@@ -104,7 +119,7 @@ func ListArchives() {
 	}
 }
 
-func LoadArchive(archiveName, sandboxName string) error {
+func LoadArchive(archiveName, sandboxName string, overwrite bool) error {
 
 	archive, found := Archives[archiveName]
 	if !found {
@@ -128,8 +143,8 @@ func LoadArchive(archiveName, sandboxName string) error {
 	useExecutable := path.Join(sandboxPath, "use")
 	useMultiExecutable := path.Join(sandboxPath, "n1")
 	myExecutable := path.Join(sandboxPath, "my")
-	myMultiExecutable := path.Join(sandboxPath, defaults.Defaults().NodePrefix + "1", "my")
-	myReplicationExecutable := path.Join(sandboxPath, defaults.Defaults().MasterName , "my")
+	myMultiExecutable := path.Join(sandboxPath, defaults.Defaults().NodePrefix+"1", "my")
+	myReplicationExecutable := path.Join(sandboxPath, defaults.Defaults().MasterName, "my")
 	internalDir := path.Join(sandboxPath, archive.InternalDirectory)
 	if !common.ExecExists(useExecutable) {
 		if common.ExecExists(useMultiExecutable) {
@@ -149,12 +164,12 @@ func LoadArchive(archiveName, sandboxName string) error {
 			}
 		}
 	}
-	if archive.InternalDirectory != "" && common.DirExists(path.Join(sandboxPath, internalDir)) {
+	if !overwrite && archive.InternalDirectory != "" && common.DirExists(path.Join(sandboxPath, internalDir)) {
 		return fmt.Errorf("internal directory %s already exists", internalDir)
 	}
 
 	compressedFile := path.Join(sandboxPath, archive.FileName)
-	if common.FileExists(compressedFile) {
+	if !overwrite && common.FileExists(compressedFile) {
 		return fmt.Errorf(globals.ErrFileAlreadyExists, compressedFile)
 	}
 	fmt.Printf("downloading %s\n", archive.Origin)
@@ -170,7 +185,7 @@ func LoadArchive(archiveName, sandboxName string) error {
 	if err != nil {
 		return fmt.Errorf("error retrieving checksum for file %s", compressedFile)
 	}
-	if localChecksum != archive.Sha256 {
+	if archive.Sha256 != "" && localChecksum != archive.Sha256 {
 		return fmt.Errorf("the checksum of file %s doesn't match. Expected: %s - Found: %s", compressedFile, archive.Sha256, localChecksum)
 	}
 
@@ -179,7 +194,7 @@ func LoadArchive(archiveName, sandboxName string) error {
 	case globals.TarGzExt:
 		err = unpack.UnpackTar(compressedFile, sandboxPath, unpack.VERBOSE)
 	case globals.GzExt:
-		err = unpack.GunzipFile(compressedFile, common.RemoveSuffix(compressedFile, `\.gz`))
+		err = unpack.GunzipFile(compressedFile, common.RemoveSuffix(compressedFile, `\.gz`), overwrite)
 	default:
 		return fmt.Errorf("unsupported file extension")
 	}
@@ -214,7 +229,7 @@ func LoadArchive(archiveName, sandboxName string) error {
 	if err != nil {
 		return fmt.Errorf("error changing attributes to load script %s: %s", loadScript, err)
 	}
-	fmt.Printf("Running %s\n",loadScript)
+	fmt.Printf("Running %s\n", loadScript)
 	_, err = common.RunCmd(loadScript)
 	if err != nil {
 		return fmt.Errorf("error running load script %s: %s", loadScript, err)

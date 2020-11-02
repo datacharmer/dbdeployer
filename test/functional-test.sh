@@ -68,6 +68,7 @@ then
     export skip_import_operations=1
     export skip_pxc_operations=1
     export skip_ndb_operations=1
+    export skip_load_data_operations=1
     export no_tests=1
 fi
 
@@ -106,6 +107,7 @@ do
             unset skip_pxc_operations
             unset skip_ndb_operations
             unset skip_import_operations
+            unset skip_load_data_operations
             unset no_tests
             echo "# Enabling all tests"
             ;;
@@ -184,6 +186,11 @@ do
             unset no_tests
             echo "# Enabling NDB operations tests"
             ;;
+        data)
+            unset skip_load_data_operations
+            unset no_tests
+            echo "# Enabling load data operations tests"
+            ;;
         *)
             echo "Allowed tests (you can choose more than one):"
             echo "  main     : main deployment methods"
@@ -197,6 +204,7 @@ do
             echo "  upgrade  : upgrade operations "
             echo "  use      : use operations "
             echo "  import   : import operations"
+            echo "  data     : load data operations"
             echo "  multi    : multi-source operations (fan-in, all-masters)"
             echo "  pxc      : PXC operations"
             echo "  ndb      : NDB operations"
@@ -916,6 +924,28 @@ function main_deployment_methods {
         test_deletion $V 3 $processes_before
     done
 }
+
+function load_data_operations {
+    current_test=load_data_operations
+    test_header load_data_operations "" double
+    processes_before=$(pgrep mysqld | wc -l | tr -d ' \t')
+    for V in ${group_versions[*]}
+    do
+        run dbdeployer deploy single $V
+        run dbdeployer deploy replication $V
+
+        version_path=$(echo $V| tr '.' '_')
+        for archive in world worldx sakila
+        do
+            run dbdeployer data-load get $archive msb_$version_path
+            run dbdeployer data-load get $archive rsandbox_$version_path
+        done
+        echo "# processes $processes_before"
+        test_deletion $V 2 $processes_before
+    done
+}
+
+
 
 function tidb_deployment_methods {
     current_test=tidb_deployment_methods
@@ -1673,6 +1703,10 @@ fi
 if [ -z "$skip_ndb_operations" ]
 then
     ndb_operations
+fi
+if [ -z "$skip_load_data_operations" ]
+then
+    load_data_operations
 fi
 if [ -z "$skip_custom_replication_methods" ]
 then

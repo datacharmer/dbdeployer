@@ -139,7 +139,7 @@ var (
 		NdbPrefix:                "ndb_msb_",
 		PxcPrefix:                "pxc_msb_",
 		DefaultSandboxExecutable: "default",
-		DownloadNameLinux:        "mysql-{{.Version}}-linux-glibc2.12-x86_64{{.Minimal}}.{{.Ext}}",
+		DownloadNameLinux:        "mysql-{{.Version}}-linux-glibc2.17-x86_64{{.Minimal}}.{{.Ext}}",
 		DownloadNameMacOs:        "mysql-{{.Version}}-macos10.15-x86_64.{{.Ext}}",
 		DownloadUrl:              "https://dev.mysql.com/get/Downloads/MySQL",
 		Timestamp:                time.Now().Format(time.UnixDate),

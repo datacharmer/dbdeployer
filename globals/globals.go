@@ -190,6 +190,10 @@ const (
 	ShortVersionLabel  = "short-version"
 	FlavorFileName     = "FLAVOR"
 
+	// Instantiated in cmd/use.go
+	RunLabel = "run"
+	LsLabel  = "ls"
+
 	// Instantiated in cmd/delete.go
 	SkipConfirmLabel = "skip-confirm"
 	ConfirmLabel     = "confirm"
@@ -271,6 +275,8 @@ const (
 	ScriptCloneConnectionSql = "clone_connection.sql"
 	ScriptCloneFrom          = "clone_from"
 	ScriptMetadata           = "metadata"
+	ScriptSysbench           = "sysbench"
+	ScriptSysbenchReady      = "sysbench_ready"
 
 	ScriptCheckMsNodes      = "check_ms_nodes"
 	ScriptCheckNodes        = "check_nodes"

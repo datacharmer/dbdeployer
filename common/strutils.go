@@ -297,6 +297,11 @@ func RemoveTrailingSlash(s string) string {
 	return re.ReplaceAllString(s, "")
 }
 
+func RemoveSuffix(s, suffix string) string {
+	re := regexp.MustCompile(suffix + `$`)
+	return re.ReplaceAllString(s, "")
+}
+
 // ------------------------------------------------------------------------------------
 // The functions below this point are intended only for use with a command line client,
 // and may not be suitable for other client types
