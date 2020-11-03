@@ -1,7 +1,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.54.0 (12-Sep-2020 14:36 UTC)
+Documentation updated for version 1.56.0 (03-Nov-2020 04:53 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -40,6 +40,8 @@ Documentation updated for version 1.54.0 (12-Sep-2020 14:36 UTC)
 - [Using the latest sandbox](#using-the-latest-sandbox)
 - [Sandbox upgrade](#sandbox-upgrade)
 - [Dedicated admin address](#dedicated-admin-address)
+- [Loading sample data into sandboxes](#loading-sample-data-into-sandboxes)
+- [Running sysbench](#running-sysbench)
 - [Obtaining sandbox metadata](#obtaining-sandbox-metadata)
 - [Replication between sandboxes](#replication-between-sandboxes)
 - [Importing databases into sandboxes](#importing-databases-into-sandboxes)
@@ -62,7 +64,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.54.0
+    $ VERSION=1.56.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -197,7 +199,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.54.0
+    dbdeployer version 1.56.0
     
 
     $ dbdeployer -h
@@ -210,6 +212,7 @@ The program doesn't have any dependencies. Everything is included in the binary.
     Available Commands:
       admin           sandbox management tasks
       cookbook        Shows dbdeployer samples
+      data-load       tasks related to dbdeployer data loading
       defaults        tasks related to dbdeployer defaults
       delete          delete an installed sandbox
       delete-binaries delete an expanded tarball
@@ -1584,7 +1587,7 @@ The `global` command accepts filters (as of version 1.44.0) to limit which sandb
 The sandboxes can also be deleted, either one by one or all at once:
 
     $ dbdeployer delete -h 
-    Stops the sandbox (and its depending sandboxes, if any), and removes it.
+    Halts the sandbox (and its depending sandboxes, if any), and removes it.
     Warning: this command is irreversible!
     
     Usage:
@@ -1753,6 +1756,24 @@ Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 ## ADMIN ##mysql [127.0.0.1:19015] {root} ((none)) >
 ```
 Multiple sandboxes have other shortcuts for the same purpose: `./ma` gives access to the master with admin user, as do the `./sa1` and `./sa2` scripts for slaves. There are similar `./na1` `./na2` scripts for all nodes, and a `./use_all_admin` script sends a query to all nodes through an admin user.
+
+# Loading sample data into sandboxes
+
+The command `data-load` manages the loading of sample databases into a sandbox. (Available since 1.56.0)
+It has the following sub-commands:
+
+* `list` shows the available databases (with the option `--full-info` that displays all the details on the archives)
+* `show archive-name` displays the contents of one archive
+* `get archive-name sandbox-name` downloads the database, unpacks it, and loads its contents into the given sandbox. If the chosen sandbox is not single, the data is loaded into the primary node (`master` or `node1`, depending on the topology)
+
+# Running sysbench
+
+Sandboxes created with version 1.56.0+ include two scripts:
+
+* `sysbench` invokes the sysbench utility with the necessary connection options alredy filled. Users can specify all remaining options to complete the task.
+* `sysbench_ready` can perform two pre-defined actions: `prepare` or `run`.
+
+In both cases, the sysbench utility must already be installed. The scripts look at the dupporting files in standard loactions. If sysbench was installed manually, errors may occur.
 
 # Obtaining sandbox metadata
 
@@ -2224,10 +2245,10 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.54.0-docs.linux.tar.gz
-* dbdeployer-1.54.0-docs.osx.tar.gz
-* dbdeployer-1.54.0.linux.tar.gz
-* dbdeployer-1.54.0.osx.tar.gz
+* dbdeployer-1.56.0-docs.linux.tar.gz
+* dbdeployer-1.56.0-docs.osx.tar.gz
+* dbdeployer-1.56.0.linux.tar.gz
+* dbdeployer-1.56.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

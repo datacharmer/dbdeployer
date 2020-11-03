@@ -40,6 +40,8 @@ Documentation updated for version {{.Version}} ({{.Date}})
 - [Using the latest sandbox](#using-the-latest-sandbox)
 - [Sandbox upgrade](#sandbox-upgrade)
 - [Dedicated admin address](#dedicated-admin-address)
+- [Loading sample data into sandboxes](#loading-sample-data-into-sandboxes)
+- [Running sysbench](#running-sysbench)
 - [Obtaining sandbox metadata](#obtaining-sandbox-metadata)
 - [Replication between sandboxes](#replication-between-sandboxes)
 - [Importing databases into sandboxes](#importing-databases-into-sandboxes)
@@ -1171,6 +1173,24 @@ Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 ## ADMIN ##mysql [127.0.0.1:19015] {root} ((none)) >
 ```
 Multiple sandboxes have other shortcuts for the same purpose: `./ma` gives access to the master with admin user, as do the `./sa1` and `./sa2` scripts for slaves. There are similar `./na1` `./na2` scripts for all nodes, and a `./use_all_admin` script sends a query to all nodes through an admin user.
+
+# Loading sample data into sandboxes
+
+The command `data-load` manages the loading of sample databases into a sandbox. (Available since 1.56.0)
+It has the following sub-commands:
+
+* `list` shows the available databases (with the option `--full-info` that displays all the details on the archives)
+* `show archive-name` displays the contents of one archive
+* `get archive-name sandbox-name` downloads the database, unpacks it, and loads its contents into the given sandbox. If the chosen sandbox is not single, the data is loaded into the primary node (`master` or `node1`, depending on the topology)
+
+# Running sysbench
+
+Sandboxes created with version 1.56.0+ include two scripts:
+
+* `sysbench` invokes the sysbench utility with the necessary connection options alredy filled. Users can specify all remaining options to complete the task.
+* `sysbench_ready` can perform two pre-defined actions: `prepare` or `run`.
+
+In both cases, the sysbench utility must already be installed. The scripts look at the dupporting files in standard loactions. If sysbench was installed manually, errors may occur.
 
 # Obtaining sandbox metadata
 
