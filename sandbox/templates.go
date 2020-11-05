@@ -1325,7 +1325,7 @@ master_password="{{.RplPassword}}"
 master_host = {{.SbHost}}
 master_port = {{.Port}}
 master_user = {{.RplUser}}
-master_password : {{.RplPassword}}
+master_password = {{.RplPassword}}
 `
 
 	cloneConnectionSql string = `
