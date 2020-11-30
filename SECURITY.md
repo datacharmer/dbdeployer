@@ -12,4 +12,4 @@
 ## Reporting a Vulnerability
 
 This projext is about a tool that is mainly used for testing. There should not be any security vulnerability.
-However, if such an coourrence arises, you can contact me at datacharmer AT gmail DOT com.
+However, if such an occurrence arises, you can contact me at datacharmer AT gmail DOT com.
