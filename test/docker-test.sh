@@ -81,13 +81,15 @@ fi
 
 [ -z "$test_command" ] && test_command="./$TARGET_DIR/functional-test.sh"
 
+interactive="-ti"
 if [ "$test_command" != "bash" ]
 then
+    interactive=""
     test_command="bash -c $test_command"
 fi
 
 (set -x
-  docker run -ti  \
+  docker run $interactive \
     -v $PWD/$executable:/usr/bin/dbdeployer \
     -v $PWD/test:/home/msandbox/$TARGET_DIR \
     --name $container_name \
