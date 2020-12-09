@@ -49,7 +49,7 @@ do
     then
         docker rm -v -f $name
     fi
-    docker run -ti \
+    docker run \
        -v $executable:/usr/bin/dbdeployer \
        -v $PWD/test:/root/test \
        --name=$name \

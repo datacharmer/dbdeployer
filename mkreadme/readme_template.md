@@ -3,7 +3,7 @@ This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox),
 
 Documentation updated for version {{.Version}} ({{.Date}})
 
-[![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
+![Build Status](https://github.com/datacharmer/dbdeployer/workflows/.github/workflows/all_tests.yml/badge.svg)
 
 # Table of contents
 
