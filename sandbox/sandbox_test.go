@@ -569,7 +569,7 @@ func testCreateStandaloneSandbox(t *testing.T) {
 
 func preCreationChecks(t *testing.T) string {
 	compare.SkipOnDemand("SKIP_REAL_SANDBOX_TEST", t)
-	compare.SkipOnDemand("TRAVIS", t)
+	compare.SkipOnDemand("GITHUB_ACTIONS", t)
 	sandboxBinary := os.Getenv("SANDBOX_BINARY")
 	if sandboxBinary == "" {
 		sandboxBinary = defaults.Defaults().SandboxBinary

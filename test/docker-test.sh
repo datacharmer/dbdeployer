@@ -63,8 +63,8 @@ fi
 
 TARGET_DIR=test
 
-# $TRAVIS is defined when the test is running in Travis environment
-if [ -n "$TRAVIS" ]
+# $GITHUB_ACTIONS is defined when the test is running in Github actions environment
+if [ -n "$GITHUB_ACTIONS" ]
 then
     export RUN_CONCURRENTLY=1
     export EXIT_ON_FAILURE=1

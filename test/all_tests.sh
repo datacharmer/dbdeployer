@@ -143,7 +143,7 @@ function all_tests {
     run_test ./test/docker-test.sh $version
     run_test ./test/cookbook-test.sh
     run_test init_tests
-    if [ -z "$TRAVIS" ]
+    if [ -z "$GITHUB_ACTIONS" ]
     then
         run_test mock_tests
     fi
