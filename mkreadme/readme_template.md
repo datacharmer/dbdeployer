@@ -3,7 +3,7 @@ This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox),
 
 Documentation updated for version {{.Version}} ({{.Date}})
 
-[![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
+![Build Status](https://github.com/datacharmer/dbdeployer/workflows/.github/workflows/all_tests.yml/badge.svg)
 
 # Table of contents
 
@@ -1182,6 +1182,9 @@ It has the following sub-commands:
 * `list` shows the available databases (with the option `--full-info` that displays all the details on the archives)
 * `show archive-name` displays the contents of one archive
 * `get archive-name sandbox-name` downloads the database, unpacks it, and loads its contents into the given sandbox. If the chosen sandbox is not single, the data is loaded into the primary node (`master` or `node1`, depending on the topology)
+* `export file-name` saves the archives specifications to a JSON file 
+* `import file-name` loads the archives specifications from a JSON file 
+* `reset` Restores the archives specifications to their default values
 
 # Running sysbench
 
