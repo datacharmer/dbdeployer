@@ -682,6 +682,35 @@ _dbdeployer_cookbook()
     noun_aliases=()
 }
 
+_dbdeployer_data-load_export()
+{
+    last_command="dbdeployer_data-load_export"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--sandbox-binary=")
+    two_word_flags+=("--sandbox-binary")
+    flags+=("--sandbox-home=")
+    two_word_flags+=("--sandbox-home")
+    flags+=("--shell-path=")
+    two_word_flags+=("--shell-path")
+    flags+=("--skip-library-check")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _dbdeployer_data-load_get()
 {
     last_command="dbdeployer_data-load_get"
@@ -698,6 +727,35 @@ _dbdeployer_data-load_get()
 
     flags+=("--overwrite")
     local_nonpersistent_flags+=("--overwrite")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--sandbox-binary=")
+    two_word_flags+=("--sandbox-binary")
+    flags+=("--sandbox-home=")
+    two_word_flags+=("--sandbox-home")
+    flags+=("--shell-path=")
+    two_word_flags+=("--shell-path")
+    flags+=("--skip-library-check")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_dbdeployer_data-load_import()
+{
+    last_command="dbdeployer_data-load_import"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
     flags+=("--config=")
     two_word_flags+=("--config")
     flags+=("--sandbox-binary=")
@@ -744,9 +802,9 @@ _dbdeployer_data-load_list()
     noun_aliases=()
 }
 
-_dbdeployer_data-load_show()
+_dbdeployer_data-load_reset()
 {
-    last_command="dbdeployer_data-load_show"
+    last_command="dbdeployer_data-load_reset"
 
     command_aliases=()
 
@@ -773,6 +831,37 @@ _dbdeployer_data-load_show()
     noun_aliases=()
 }
 
+_dbdeployer_data-load_show()
+{
+    last_command="dbdeployer_data-load_show"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--full-info")
+    local_nonpersistent_flags+=("--full-info")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--sandbox-binary=")
+    two_word_flags+=("--sandbox-binary")
+    flags+=("--sandbox-home=")
+    two_word_flags+=("--sandbox-home")
+    flags+=("--shell-path=")
+    two_word_flags+=("--shell-path")
+    flags+=("--skip-library-check")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _dbdeployer_data-load()
 {
     last_command="dbdeployer_data-load"
@@ -780,8 +869,11 @@ _dbdeployer_data-load()
     command_aliases=()
 
     commands=()
+    commands+=("export")
     commands+=("get")
+    commands+=("import")
     commands+=("list")
+    commands+=("reset")
     commands+=("show")
 
     flags=()

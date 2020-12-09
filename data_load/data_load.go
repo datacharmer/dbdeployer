@@ -43,7 +43,7 @@ type DataDefinition struct {
 	Sha256            string   `json:"sha256,omitempty`              // SHA 256 checksum of the compressed archive
 }
 
-var Archives = map[string]DataDefinition{
+var defaultArchives = map[string]DataDefinition{
 	"world": {
 		Description:       "world database",
 		Origin:            "https://downloads.mysql.com/docs/world.sql.gz",
@@ -105,23 +105,60 @@ var Archives = map[string]DataDefinition{
 	},
 }
 
+func Archives() (map[string]DataDefinition, string) {
+
+	if common.FileExists(defaults.ArchivesFile) {
+		archiveText, err := common.SlurpAsBytes(defaults.ArchivesFile)
+		if err != nil {
+			fmt.Printf("WARNING: error reading archive file %s: %s\n", defaults.ArchivesFile, err)
+			fmt.Printf("Using default archives\n")
+			return defaultArchives, defaults.ArchivesFile
+		}
+		var newArchives map[string]DataDefinition
+		err = json.Unmarshal(archiveText, &newArchives)
+		if err != nil {
+			fmt.Printf("WARNING: error decoding archives from file %s: %s\n", defaults.ArchivesFile, err)
+			fmt.Printf("Using default archives\n")
+			return defaultArchives, defaults.ArchivesFile
+		}
+		return newArchives, defaults.ArchivesFile
+	} else {
+		return defaultArchives, "defaults"
+	}
+}
+
+// The JSON encoder by default converts "<" and ">" to their corresponding Unicode values
+// Since this info is not used in HTML, we need to convert back from Unicode to plain text
+func UnescapeJsonString(bytes []byte) string {
+	result := strings.ReplaceAll(string(bytes), `\u003c`, "<")
+	return strings.ReplaceAll(result, `\u003e`, ">")
+}
+
 func ArchivesAsJson() (string, error) {
-	result, err := json.MarshalIndent(Archives, " ", " ")
+	var archives map[string]DataDefinition
+	archives, _ = Archives()
+	result, err := json.MarshalIndent(archives, " ", " ")
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s", result), nil
+
+	return UnescapeJsonString(result), nil
 }
 
 func ListArchives() {
-	for name, archive := range Archives {
+	archives, origin := Archives()
+	if origin != "defaults" {
+		fmt.Printf("Data load info from %s\n", origin)
+	}
+	for name, archive := range archives {
 		fmt.Printf("%-30s %10s %s\n", name, humanize.Bytes(archive.Size), archive.Description)
 	}
 }
 
 func LoadArchive(archiveName, sandboxName string, overwrite bool) error {
 
-	archive, found := Archives[archiveName]
+	archives, _ := Archives()
+	archive, found := archives[archiveName]
 	if !found {
 		return fmt.Errorf("archive %s not found", archiveName)
 	}

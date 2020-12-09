@@ -1,7 +1,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.56.0 (03-Nov-2020 04:53 UTC)
+Documentation updated for version 1.57.0 (09-Dec-2020 12:05 UTC)
 
 [![Build Status](https://travis-ci.org/datacharmer/dbdeployer.svg "Travis CI status")](https://travis-ci.org/datacharmer/dbdeployer)
 
@@ -64,7 +64,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.56.0
+    $ VERSION=1.57.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -199,7 +199,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.56.0
+    dbdeployer version 1.57.0
     
 
     $ dbdeployer -h
@@ -1765,6 +1765,9 @@ It has the following sub-commands:
 * `list` shows the available databases (with the option `--full-info` that displays all the details on the archives)
 * `show archive-name` displays the contents of one archive
 * `get archive-name sandbox-name` downloads the database, unpacks it, and loads its contents into the given sandbox. If the chosen sandbox is not single, the data is loaded into the primary node (`master` or `node1`, depending on the topology)
+* `export file-name` saves the archives specifications to a JSON file 
+* `import file-name` loads the archives specifications from a JSON file 
+* `reset` Restores the archives specifications to their default values
 
 # Running sysbench
 
@@ -2245,10 +2248,10 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.56.0-docs.linux.tar.gz
-* dbdeployer-1.56.0-docs.osx.tar.gz
-* dbdeployer-1.56.0.linux.tar.gz
-* dbdeployer-1.56.0.osx.tar.gz
+* dbdeployer-1.57.0-docs.linux.tar.gz
+* dbdeployer-1.57.0-docs.osx.tar.gz
+* dbdeployer-1.57.0.linux.tar.gz
+* dbdeployer-1.57.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

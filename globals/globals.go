@@ -462,6 +462,13 @@ var ExportReferenceData = map[string]interface{}{
 }
 
 var (
+	ReservedPorts = []int{
+		1186,  // MySQL Cluster
+		3306,  // MySQL Server regular port
+		5432,  // PostgreSQL default port
+		33060, // MySQLX
+		33062, // MySQL Server admin port
+	}
 	DashLine     = strings.Repeat("-", lineLength)
 	StarLine     = strings.Repeat("*", lineLength)
 	HashLine     = strings.Repeat("#", lineLength)
@@ -480,9 +487,8 @@ var (
 	}
 	SupportedAllVersions = []string{
 		"4.1", "5.0", "5.1", "5.5", "5.6", "5.7", "8.0",
-		"10.0", "10.1", "10.2", "10.3", "10.4",
+		"10.0", "10.1", "10.2", "10.3", "10.4", "10.5",
 	}
-
 	// Extra executables needed for PXC
 	NeededPxcExecutables = []string{"rsync", "lsof", "socat"}
 )

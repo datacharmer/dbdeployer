@@ -79,6 +79,7 @@ const (
 	maxPortValue            int    = 30000
 	ConfigurationDirName    string = ".dbdeployer"
 	ConfigurationFileName   string = "config.json"
+	ArchivesFileName        string = "archives.json"
 	SandboxRegistryName     string = "sandboxes.json"
 	SandboxRegistryLockName string = "sandboxes.lock"
 )
@@ -87,6 +88,7 @@ var (
 	homeDir                 string = os.Getenv("HOME")
 	ConfigurationDir        string = path.Join(homeDir, ConfigurationDirName)
 	ConfigurationFile       string = path.Join(ConfigurationDir, ConfigurationFileName)
+	ArchivesFile            string = path.Join(ConfigurationDir, ArchivesFileName)
 	CustomConfigurationFile string = ""
 	SandboxRegistry         string = path.Join(ConfigurationDir, SandboxRegistryName)
 	SandboxRegistryLock     string = path.Join(common.GlobalTempDir(), SandboxRegistryLockName)
@@ -126,23 +128,18 @@ var (
 		MultiplePrefix:                "multi_msb_",
 		FanInPrefix:                   "fan_in_msb_",
 		AllMastersPrefix:              "all_masters_msb_",
-		ReservedPorts: []int{
-			1186,  // MySQL Cluster
-			3306,  // MySQL Server regular port
-			33060, // MySQLX
-			33062, // MySQL Server admin port
-		},
-		RemoteRepository:         "https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata",
-		RemoteIndexFile:          "available.json",
-		RemoteCompletionUrl:      "https://raw.githubusercontent.com/datacharmer/dbdeployer/master/docs/dbdeployer_completion.sh",
-		RemoteTarballUrl:         "https://raw.githubusercontent.com/datacharmer/dbdeployer/master/downloads/tarball_list.json",
-		NdbPrefix:                "ndb_msb_",
-		PxcPrefix:                "pxc_msb_",
-		DefaultSandboxExecutable: "default",
-		DownloadNameLinux:        "mysql-{{.Version}}-linux-glibc2.17-x86_64{{.Minimal}}.{{.Ext}}",
-		DownloadNameMacOs:        "mysql-{{.Version}}-macos10.15-x86_64.{{.Ext}}",
-		DownloadUrl:              "https://dev.mysql.com/get/Downloads/MySQL",
-		Timestamp:                time.Now().Format(time.UnixDate),
+		ReservedPorts:                 globals.ReservedPorts,
+		RemoteRepository:              "https://raw.githubusercontent.com/datacharmer/mysql-docker-minimal/master/dbdata",
+		RemoteIndexFile:               "available.json",
+		RemoteCompletionUrl:           "https://raw.githubusercontent.com/datacharmer/dbdeployer/master/docs/dbdeployer_completion.sh",
+		RemoteTarballUrl:              "https://raw.githubusercontent.com/datacharmer/dbdeployer/master/downloads/tarball_list.json",
+		NdbPrefix:                     "ndb_msb_",
+		PxcPrefix:                     "pxc_msb_",
+		DefaultSandboxExecutable:      "default",
+		DownloadNameLinux:             "mysql-{{.Version}}-linux-glibc2.17-x86_64{{.Minimal}}.{{.Ext}}",
+		DownloadNameMacOs:             "mysql-{{.Version}}-macos10.15-x86_64.{{.Ext}}",
+		DownloadUrl:                   "https://dev.mysql.com/get/Downloads/MySQL",
+		Timestamp:                     time.Now().Format(time.UnixDate),
 	}
 	currentDefaults DbdeployerDefaults
 )

@@ -1,3 +1,9 @@
+## 1.57.0	09-Dec-2020
+
+### NEW FEATURES
+
+* Add subcommands `import`, `export`, and `reset` to command `data-load`
+
 ## 1.56.0	02-Nov-2020
 
 ### NEW FEATURES

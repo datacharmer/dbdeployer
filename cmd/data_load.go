@@ -16,12 +16,16 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 
+	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/data_load"
+	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
 )
 
@@ -52,20 +56,101 @@ func showArchive(cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return fmt.Errorf("command 'show' requires a database name")
 	}
+	flags := cmd.Flags()
+	fullInfo, _ := flags.GetBool(globals.FullInfoLabel)
 	dbName := args[0]
-	archive, found := data_load.Archives[dbName]
+	archives, origin := data_load.Archives()
+	archive, found := archives[dbName]
 	if found {
-		fmt.Printf("Name:          %s\n", dbName)
-		fmt.Printf("Description:   %s\n", archive.Description)
-		fmt.Printf("URL:           %s\n", archive.Origin)
-		fmt.Printf("File name:     %s\n", archive.FileName)
-		fmt.Printf("Size:          %s\n", humanize.Bytes(archive.Size))
-		fmt.Printf("internal dir   %s\n", archive.InternalDirectory)
+		if fullInfo {
+			result, err := json.MarshalIndent(archive, " ", " ")
+			if err != nil {
+				return err
+			}
+			fmt.Printf("%s\n", data_load.UnescapeJsonString(result))
+		} else {
+			if origin != "defaults" {
+				fmt.Printf("Data load info from: %s\n", origin)
+			}
+			fmt.Printf("Name:          %s\n", dbName)
+			fmt.Printf("Description:   %s\n", archive.Description)
+			fmt.Printf("URL:           %s\n", archive.Origin)
+			fmt.Printf("File name:     %s\n", archive.FileName)
+			fmt.Printf("Size:          %s\n", humanize.Bytes(archive.Size))
+			fmt.Printf("internal dir   %s\n", archive.InternalDirectory)
+			fmt.Printf("Loading commands:\n")
+			delta := 1
+			if archive.ChangeDirectory {
+				fmt.Printf("\t%2d cd %s\n", delta, dbName)
+				delta = 2
+			}
+			for i, line := range archive.LoadCommands {
+				fmt.Printf("\t%2d %s\n", i+delta, line)
+			}
+		}
 
 	} else {
 		return fmt.Errorf("archive %s not found", dbName)
 	}
 	return nil
+}
+
+func exportArchives(cmd *cobra.Command, args []string) error {
+	if len(args) < 1 {
+		return fmt.Errorf("command 'export' requires a file name")
+	}
+	destFile := args[0]
+	if common.FileExists(destFile) {
+		return fmt.Errorf(globals.ErrFileAlreadyExists, destFile)
+	}
+	archives, err := data_load.ArchivesAsJson()
+	if err != nil {
+		return err
+	}
+
+	err = common.WriteString(archives, destFile)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("data load info saved to %s\n", destFile)
+	return nil
+}
+
+func importArchives(cmd *cobra.Command, args []string) error {
+	if len(args) < 1 {
+		return fmt.Errorf("command 'import' requires a file name")
+	}
+	importFile := args[0]
+	if !common.FileExists(importFile) {
+		return fmt.Errorf(globals.ErrFileNotFound, importFile)
+	}
+	jsonText, err := common.SlurpAsBytes(importFile)
+	if err != nil {
+		return err
+	}
+	_, err = json.Marshal(jsonText)
+	if err != nil {
+		return err
+	}
+
+	err = common.WriteString(string(jsonText), defaults.ArchivesFile)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("data load info recorded at %s\n", defaults.ArchivesFile)
+	return nil
+}
+
+func resetArchives(cmd *cobra.Command, args []string) error {
+	if common.FileExists(defaults.ArchivesFile) {
+		err := os.Remove(defaults.ArchivesFile)
+		if err != nil {
+			return fmt.Errorf("error removing %s: %s", defaults.ArchivesFile, err)
+		}
+		fmt.Printf("file %s removed\n", defaults.ArchivesFile)
+		return nil
+	}
+	return fmt.Errorf("no archives file found in configuration directory")
 }
 
 var (
@@ -93,6 +178,28 @@ var (
 		Long:  "Loads an archived database into a sandbox",
 		RunE:  loadArchive,
 	}
+	dataLoadExportCmd = &cobra.Command{
+		Use:   "export file-name",
+		Short: "Saves the archives details into a file",
+		Long:  "Saves the archives details into a file",
+		RunE:  exportArchives,
+	}
+	dataLoadImportCmd = &cobra.Command{
+		Use:   "import file-name",
+		Short: "Imports the archives details from a file",
+		Long: `
+Imports modified archives from a JSON file.
+In the archive specification, the strings "$use" and "$my"
+will be expanded to the relative scripts in the target sandbox directory.
+`,
+		RunE: importArchives,
+	}
+	dataLoadResetCmd = &cobra.Command{
+		Use:   "reset",
+		Short: "Resets the archives to their default values",
+		Long:  "Resets the archives to their default values",
+		RunE:  resetArchives,
+	}
 )
 
 func init() {
@@ -100,7 +207,11 @@ func init() {
 	dataLoadCmd.AddCommand(dataLoadListCmd)
 	dataLoadCmd.AddCommand(dataLoadShowCmd)
 	dataLoadCmd.AddCommand(dataLoadGetCmd)
+	dataLoadCmd.AddCommand(dataLoadExportCmd)
+	dataLoadCmd.AddCommand(dataLoadImportCmd)
+	dataLoadCmd.AddCommand(dataLoadResetCmd)
 
 	dataLoadListCmd.Flags().BoolP(globals.FullInfoLabel, "", false, "Shows all archive details")
+	dataLoadShowCmd.Flags().BoolP(globals.FullInfoLabel, "", false, "Shows all archive details")
 	dataLoadGetCmd.Flags().BoolP(globals.OverwriteLabel, "", false, "overwrite previously downloaded archive")
 }
