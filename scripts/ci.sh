@@ -16,7 +16,7 @@
 
 function run {
     echo "$@"
-    $@
+    "$@"
     exit_code=$?
     if [ "$exit_code" != "0" ]
     then

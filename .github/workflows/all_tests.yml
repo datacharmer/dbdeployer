@@ -1,0 +1,24 @@
+on: [push, pull_request]
+
+jobs:
+    build:
+      name: Check
+      runs-on: ubuntu-latest
+      env:
+        GO111MODULE: on
+
+      steps:
+
+        - name: Set up Go 1.x
+          uses: actions/setup-go@v2
+          with:
+            go-version: ^1.15
+
+        - name: Check out code into the Go module directory
+          uses: actions/checkout@v2
+
+        - name: build
+          uses: go build .
+
+        - name: tests
+          run: ./scripts/ci.sh
