@@ -2405,6 +2405,51 @@ _dbdeployer_export()
     noun_aliases=()
 }
 
+_dbdeployer_global_exec()
+{
+    last_command="dbdeployer_global_exec"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--dry-run")
+    flags+=("--flavor=")
+    two_word_flags+=("--flavor")
+    flags+=("--name=")
+    two_word_flags+=("--name")
+    flags+=("--port=")
+    two_word_flags+=("--port")
+    flags+=("--port-range=")
+    two_word_flags+=("--port-range")
+    flags+=("--sandbox-binary=")
+    two_word_flags+=("--sandbox-binary")
+    flags+=("--sandbox-home=")
+    two_word_flags+=("--sandbox-home")
+    flags+=("--shell-path=")
+    two_word_flags+=("--shell-path")
+    flags+=("--short-version=")
+    two_word_flags+=("--short-version")
+    flags+=("--skip-library-check")
+    flags+=("--type=")
+    two_word_flags+=("--type")
+    flags+=("--verbose")
+    flags+=("--version=")
+    two_word_flags+=("--version")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _dbdeployer_global_metadata()
 {
     last_command="dbdeployer_global_metadata"
@@ -2772,6 +2817,7 @@ _dbdeployer_global()
     command_aliases=()
 
     commands=()
+    commands+=("exec")
     commands+=("metadata")
     commands+=("restart")
     commands+=("start")

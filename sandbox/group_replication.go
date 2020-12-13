@@ -416,6 +416,8 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	masterPlural := english.PluralWord(2, masterLabel, "")
 	useAllMasters := "use_all_" + masterPlural
 	useAllSlaves := "use_all_" + slavePlural
+	execAllSlaves := "exec_all_" + slavePlural
+	execAllMasters := "exec_all_" + masterPlural
 
 	logger.Printf("Writing group replication scripts\n")
 	sbMultiple := ScriptBatch{
@@ -436,6 +438,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 			{globals.ScriptReplicateFrom, "replicate_from_multi_template", true},
 			{globals.ScriptSysbench, "sysbench_multi_template", true},
 			{globals.ScriptSysbenchReady, "sysbench_ready_multi_template", true},
+			{globals.ScriptExecAll, "exec_multi_template", true},
 		},
 	}
 	sbRepl := ScriptBatch{
@@ -446,7 +449,11 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		scripts: []ScriptDef{
 			{useAllSlaves, "multi_source_use_slaves_template", true},
 			{useAllMasters, "multi_source_use_masters_template", true},
+			{execAllMasters, "multi_source_exec_masters_template", true},
+			{execAllSlaves, "multi_source_exec_slaves_template", true},
+			{globals.ScriptExecAll, "multi_source_exec_slaves_template", true},
 			{globals.ScriptTestReplication, "multi_source_test_template", true},
+			{globals.ScriptWipeRestartAll, "wipe_and_restart_all_template", true},
 		},
 	}
 	sbGroup := ScriptBatch{

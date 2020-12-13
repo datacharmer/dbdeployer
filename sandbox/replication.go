@@ -401,6 +401,8 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	checkSlaves := "check_" + slavePlural
 	useAllMasters := "use_all_" + masterPlural
 	useAllSlaves := "use_all_" + slavePlural
+	execAllSlaves := "exec_all_" + slavePlural
+	execAllMasters := "exec_all_" + masterPlural
 
 	sb := ScriptBatch{
 		tc:         ReplicationTemplates,
@@ -416,12 +418,16 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 			{globals.ScriptClearAll, "clear_all_template", true},
 			{globals.ScriptSendKillAll, "send_kill_all_template", true},
 			{globals.ScriptUseAll, "use_all_template", true},
+			{globals.ScriptExecAll, "exec_all_template", true},
 			{globals.ScriptMetadataAll, "metadata_all_template", true},
 			{useAllSlaves, "use_all_slaves_template", true},
 			{useAllMasters, "use_all_masters_template", true},
 			{initializeSlaves, "init_slaves_template", true},
 			{checkSlaves, "check_slaves_template", true},
 			{masterAbbr, "master_template", true},
+			{execAllSlaves, "exec_all_slaves_template", true},
+			{execAllMasters, "exec_all_masters_template", true},
+			{globals.ScriptWipeRestartAll, "wipe_and_restart_all_template", true},
 			{"n1", "master_template", true},
 			{"test_replication", "test_replication_template", true},
 			{globals.ScriptReplicateFrom, "repl_replicate_from_template", true},

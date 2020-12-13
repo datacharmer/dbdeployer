@@ -200,6 +200,8 @@ func CreateAllMastersReplication(sandboxDef SandboxDef, origin string, nodes int
 	masterPlural := english.PluralWord(2, masterLabel, "")
 	useAllMasters := "use_all_" + masterPlural
 	useAllSlaves := "use_all_" + slavePlural
+	execAllSlaves := "exec_all_" + slavePlural
+	execAllMasters := "exec_all_" + masterPlural
 
 	sbMulti := ScriptBatch{
 		tc:         ReplicationTemplates,
@@ -210,8 +212,11 @@ func CreateAllMastersReplication(sandboxDef SandboxDef, origin string, nodes int
 			{globals.ScriptTestReplication, "multi_source_test_template", true},
 			{useAllSlaves, "multi_source_use_slaves_template", true},
 			{useAllMasters, "multi_source_use_masters_template", true},
+			{execAllMasters, "multi_source_exec_masters_template", true},
+			{execAllSlaves, "multi_source_exec_slaves_template", true},
 			{globals.ScriptCheckMsNodes, "check_multi_source_template", true},
 			{globals.ScriptInitializeMsNodes, "multi_source_template", true},
+			{globals.ScriptWipeRestartAll, "wipe_and_restart_all_template", true},
 		},
 	}
 	err = writeScripts(sbMulti)
@@ -415,6 +420,8 @@ func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	masterPlural := english.PluralWord(2, masterLabel, "")
 	useAllMasters := "use_all_" + masterPlural
 	useAllSlaves := "use_all_" + slavePlural
+	execAllSlaves := "exec_all_" + slavePlural
+	execAllMasters := "exec_all_" + masterPlural
 	sbMulti := ScriptBatch{
 		tc:         ReplicationTemplates,
 		logger:     logger,
@@ -425,7 +432,10 @@ func CreateFanInReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 			{globals.ScriptCheckMsNodes, "check_multi_source_template", true},
 			{useAllSlaves, "multi_source_use_slaves_template", true},
 			{useAllMasters, "multi_source_use_masters_template", true},
+			{execAllMasters, "multi_source_exec_masters_template", true},
+			{execAllSlaves, "multi_source_exec_slaves_template", true},
 			{globals.ScriptInitializeMsNodes, "multi_source_template", true},
+			{globals.ScriptWipeRestartAll, "wipe_and_restart_all_template", true},
 		},
 	}
 	for _, master := range mlist {

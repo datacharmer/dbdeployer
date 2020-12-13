@@ -277,6 +277,7 @@ const (
 	ScriptMetadata           = "metadata"
 	ScriptSysbench           = "sysbench"
 	ScriptSysbenchReady      = "sysbench_ready"
+	ScriptWipeAndRestart     = "wipe_and_restart"
 
 	ScriptCheckMsNodes      = "check_ms_nodes"
 	ScriptCheckNodes        = "check_nodes"
@@ -292,6 +293,8 @@ const (
 	ScriptTestReplication   = "test_replication"
 	ScriptTestSbAll         = "test_sb_all"
 	ScriptUseAll            = "use_all"
+	ScriptExecAll           = "exec_all"
+	ScriptWipeRestartAll    = "wipe_and_restart_all"
 	ScriptMetadataAll       = "metadata_all"
 
 	// These constants are kept for reference

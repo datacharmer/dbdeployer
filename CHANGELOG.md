@@ -1,3 +1,11 @@
+## 1.58.0	12-Dec-2020
+
+### NEW FEATURES
+
+* Add script `wipe_and_restart` to single sandboxes
+* Add scripts `exec_all`, `exec_all_masters`, `exec_all_slaves`, `wipe_and_restart_all` to replication sandboxes
+* Add subcommand `exec` to command `global`.
+
 ## 1.57.0	09-Dec-2020
 
 ### NEW FEATURES

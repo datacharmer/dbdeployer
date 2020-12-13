@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"path"
 	"regexp"
 	"strings"
@@ -165,6 +166,34 @@ func globalRunCommand(cmd *cobra.Command, executable string, args []string, requ
 			}
 		}
 
+		if executable == "exec" {
+			if dryRun {
+				fmt.Printf("%v\n", args)
+			} else {
+				currentDir := os.Getenv("PWD")
+				err = os.Chdir(fullDirPath)
+				if err != nil {
+					fmt.Printf("error changing directory to %s:%s\n", fullDirPath, err)
+				}
+				cmd := args[0]
+				var cmdArgs []string
+				//if (cmd == "bash" || cmd == "sh") && len(args) >1 {
+				//	cmdArgs = append(cmdArgs, "-c")
+				//}
+				for N := 1; N < len(args); N++ {
+					cmdArgs = append(cmdArgs, args[N])
+				}
+				fmt.Printf("# %s\n", fullDirPath)
+				if len(cmdArgs) > 0 {
+					_, err = common.RunCmdWithArgs(cmd, cmdArgs)
+				} else {
+					_, err = common.RunCmd(cmd)
+				}
+				common.ErrCheckExitf(err, 1, "error while running %s\n", cmd)
+				_ = os.Chdir(currentDir)
+			}
+			continue
+		}
 		cmdFile := path.Join(fullDirPath, executable)
 		realExecutable := executable
 		if !common.ExecExists(cmdFile) {
@@ -233,6 +262,10 @@ func testReplicationAllSandboxes(cmd *cobra.Command, args []string) {
 
 func useAllSandboxes(cmd *cobra.Command, args []string) {
 	globalRunCommand(cmd, globals.ScriptUse, args, true, false)
+}
+
+func execAllSandboxes(cmd *cobra.Command, args []string) {
+	globalRunCommand(cmd, "exec", args, true, false)
 }
 
 func metadataAllSandboxes(cmd *cobra.Command, args []string) {
@@ -312,6 +345,31 @@ For example, a query using @@port won't run in MySQL 5.0.x`,
 		Annotations: map[string]string{"export": ExportAnnotationToJson(StringExport)},
 	}
 
+	globalExecCmd = &cobra.Command{
+		Use:   "exec {command}",
+		Short: "Runs a command in all sandboxes",
+		Long: `Runs a command in all sandboxes.
+The command will be executed inside the sandbox. Thus, you can reference a file that you know should be there.
+There is no check to ensure that a give command is doable.
+For example: the command "cat filename" will result in an error if filename is not present in the sandbox directory.
+You can run complex shell commands by prepending them with either "bash -- -c" or "sh -- -c". Such command must be quoted. 
+Only one command can be passed, although you can use a shell command as described above to overcome this limitation.
+IMPORTANT: if your command argument contains flags, you must use a double dash (--) before any of the flags.
+
+You may combine the command passed to "exec" with other drill-down commands in the sandbox directory, 
+such as "./exec_all". In this case, you need to make sure that all your sandbox contain the command, or use "--type"
+to only run "exec" in the specific topologies.
+`,
+		Example: `$ dbdeployer global exec grep 'version\|type' sbdescription.json
+	$ dbdeployer global exec grep -- -w basedir sbdescription.json
+	$ dbdeployer global exec pwd
+	$ dbdeployer global exec shell -- -c "if [ -f filename ] ; then echo 'found filename'; fi"
+    $ dbdeployer global exec --type=group-multi-primary ./exec_all ls -- -l data/ibdata1
+`,
+		Run:         execAllSandboxes,
+		Annotations: map[string]string{"export": ExportAnnotationToJson(StringExport)},
+	}
+
 	globalMetadataCmd = &cobra.Command{
 		Use:   "metadata {keyword}",
 		Short: "Runs a metadata query in all sandboxes",
@@ -332,6 +390,7 @@ func init() {
 	globalCmd.AddCommand(globalTestCmd)
 	globalCmd.AddCommand(globalTestReplicationCmd)
 	globalCmd.AddCommand(globalUseCmd)
+	globalCmd.AddCommand(globalExecCmd)
 	globalCmd.AddCommand(globalMetadataCmd)
 
 	setPflag(globalCmd, globals.VersionLabel, "", "", "", "Runs command only in sandboxes of the given version", false)

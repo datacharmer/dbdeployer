@@ -481,6 +481,11 @@ function test_force_single {
     run dbdeployer deploy single $CUSTOM_OPTIONS $running_version --force
     port_after=$($SANDBOX_HOME/$sandbox_dir/use -BN -e 'show variables like "port"' | awk '{print $2}')
     ok_equal "Port before and after --force redeployment" $port_after $port_before
+    echo "# $dash_line"
+    echo "# test wipe single sandbox $running_version"
+    echo "# $dash_line"
+    run $SANDBOX_HOME/$sandbox_dir/wipe_and_restart
+    ok_equal "Port before and after wipe_and_restart redeployment" $port_after $port_before
     check_for_exit test_force_single
 }
 
@@ -495,6 +500,11 @@ function test_force_replication {
     run dbdeployer deploy $CUSTOM_OPTIONS replication $running_version --force
     port_after=$($SANDBOX_HOME/$sandbox_dir/m -BN -e 'show variables like "port"' | awk '{print $2}')
     ok_equal "Port before and after --force redeployment" $port_after $port_before
+    echo "# $dash_line"
+    echo "# test wipe replication sandbox $running_version"
+    echo "# $dash_line"
+    run $SANDBOX_HOME/$sandbox_dir/wipe_and_restart_all
+    ok_equal "Port before and after wipe_and_restart_all redeployment" $port_after $port_before
     check_for_exit test_force_replication
 }
 
