@@ -78,17 +78,25 @@ func main() {
 		timestamp = os.Getenv("DBDEPLOYER_TIMESTAMP")
 	}
 
+	fullDocName := "full_doc.markdown"
 	homeFile, err := os.Create("Home.md")
 	if err != nil {
-		fmt.Printf("ERROR opening file%s\n", err)
+		fmt.Printf("ERROR opening file Home.md: %s\n", err)
+		os.Exit(1)
+	}
+	fullDoc, err := os.Create(fullDocName)
+	if err != nil {
+		fmt.Printf("ERROR opening file %s: %s\n", fullDocName, err)
 		os.Exit(1)
 	}
 	defer homeFile.Close()
+	defer fullDoc.Close()
 	header1 := ""
 	header1Name := ""
 	wikiBaseUrl := "https://github.com/datacharmer/dbdeployer/wiki"
 
 	fmt.Fprintf(homeFile, "# dbdeployer\n")
+	fmt.Fprintf(fullDoc, "# dbdeployer\n")
 	reHeader1 := regexp.MustCompile(`^#\s+`)
 	reHeader2 := regexp.MustCompile(`^##\s+`)
 	reCleanHeader := regexp.MustCompile(`^#+\s+`)
@@ -97,6 +105,7 @@ func main() {
 	addHomeLink := false
 
 	var header1File *os.File
+	var filesList = []string{}
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -120,7 +129,9 @@ func main() {
 				fmt.Printf("error opening %s : %s\n", header1Name, err)
 				os.Exit(1)
 			}
+			filesList = append(filesList, header1Name + ".md")
 			fmt.Fprintf(homeFile, "- [%s](%s/%s)\n", header1, wikiBaseUrl, header1Name)
+			fmt.Fprintf(fullDoc, "- [%s](#%s)\n", header1, header1Name)
 			addHomeLink = true
 		}
 		if !insideCode && reHeader2.MatchString(line) {
@@ -129,6 +140,7 @@ func main() {
 			header2Name = strings.ReplaceAll(header2Name, " ", "-")
 			header2Name = strings.ToLower(header2Name)
 			fmt.Fprintf(homeFile, "    - [%s](%s/%s#%s)\n", header2, wikiBaseUrl, header1Name, header2Name)
+			fmt.Fprintf(fullDoc, "    - [%s](#%s)\n", header2,  header2Name)
 		}
 
 		// Replacement for version and date must occur BEFORE
@@ -154,6 +166,7 @@ func main() {
 		} else {
 			if header1File == nil {
 				fmt.Fprintf(homeFile, "%s\n", line)
+				fmt.Fprintf(fullDoc, "%s\n", line)
 			} else {
 				fmt.Fprintf(header1File, "%s\n", line)
 				if addHomeLink {
@@ -170,5 +183,24 @@ func main() {
 
 	if err = scanner.Err(); err != nil {
 		common.Exitf(1, "# ERROR: %s", err)
+	}
+	fullDoc.Close()
+	for _, fileName := range filesList {
+		text, err := common.SlurpAsLines(fileName)
+		if err != nil {
+			fmt.Printf("error reading file %s: %s\n", fileName, err)
+			os.Exit(1)
+		}
+	    var cleanText []string
+		for _, line := range text {
+			if !strings.Contains(line, "[HOME]")	{
+				cleanText = append(cleanText, line)
+			}
+		}
+		err = common.AppendStrings(cleanText, fullDocName, "\n")
+		if err != nil {
+			fmt.Printf("error writing to %s: %s\n", fullDocName, err)
+			os.Exit(1)
+		}
 	}
 }
