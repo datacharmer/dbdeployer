@@ -81,7 +81,7 @@ You can also see the details of a release using `dbdeployer info releases latest
 (See this ASCIIcast for a demo of its operations.)
 [![asciicast](https://asciinema.org/a/165707.png)](https://asciinema.org/a/165707)
 
-## Overview 
+## Overview
 
 With dbdeployer, you can deploy a single sandbox, or many sandboxes  at once, with or without replication.
 
@@ -1428,7 +1428,7 @@ $ ~/sandboxes/ndb_ndb8_0_14_1/replicate_from ndb_ndb8_0_14_2
 [...]
 ```
 
-## b. Group replication to group replication. 
+## b. Group replication to group replication
 
 Also here, the only caveat is to ensure uniqueness of server IDs.
 ```
