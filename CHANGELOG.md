@@ -1,3 +1,9 @@
+## 1.58.1	15-Dec-2020
+
+### BUGS FIXED
+
+* Fix Issue #124 (Can't reset defaults after an upgrade)
+
 ## 1.58.0	12-Dec-2020
 
 ### NEW FEATURES

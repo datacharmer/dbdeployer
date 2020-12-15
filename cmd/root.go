@@ -100,7 +100,9 @@ func checkDefaultsFile() {
 	if err != nil {
 		common.Exitf(1, "error validating shell '%s'", err)
 	}
-	defaults.UpdateDefaults(globals.ShellPathLabel, shellPath, false)
+	if defaults.ValidateDefaults(defaults.Defaults()) {
+		defaults.UpdateDefaults(globals.ShellPathLabel, shellPath, false)
+	}
 	err = sandbox.FillMockTemplates()
 	if err != nil {
 		common.Exitf(1, "error filling mock templates: %s", err)
