@@ -1,3 +1,9 @@
+## 1.58.2	16-Dec-2020
+
+### BUGS FIXED
+
+* Prevent arbitrary symlinks from being extracted with tarballs
+
 ## 1.58.1	15-Dec-2020
 
 ### BUGS FIXED

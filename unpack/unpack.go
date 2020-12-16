@@ -57,14 +57,16 @@ import (
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/pkg/errors"
 	"github.com/xi2/xz"
+
+	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/globals"
 )
 
 const (
@@ -123,7 +125,7 @@ func UnpackXzTar(filename string, destination string, verbosityLevel int) (err e
 	}
 	// Create a tar Reader
 	tr := tar.NewReader(r)
-	return unpackTarFiles(tr)
+	return unpackTarFiles(tr, destination)
 }
 
 func UnpackTar(filename string, destination string, verbosityLevel int) (err error) {
@@ -163,10 +165,15 @@ func UnpackTar(filename string, destination string, verbosityLevel int) (err err
 	} else {
 		reader = tar.NewReader(fileReader)
 	}
-	return unpackTarFiles(reader)
+	return unpackTarFiles(reader, destination)
 }
 
-func unpackTarFiles(reader *tar.Reader) (err error) {
+func unpackTarFiles(reader *tar.Reader, extractDir string) error {
+	const errLinkedDirectoryOutside = "linked directory '%s' is outside the extraction directory"
+	extractAbsDir, err := filepath.Abs(extractDir)
+	if err != nil {
+		return fmt.Errorf("error defining the absolute path of '%s': %s", extractDir, err)
+	}
 	var header *tar.Header
 	var count int = 0
 	var reSlash = regexp.MustCompile(`/.*`)
@@ -267,6 +274,27 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 			}
 		case tar.TypeSymlink:
 			if header.Linkname != "" {
+				linkDepth := pathDepth(header.Linkname)
+				nameDepth := pathDepth(header.Name)
+				if linkDepth > nameDepth {
+					fmt.Println()
+					return fmt.Errorf(errLinkedDirectoryOutside, header.Linkname)
+				}
+				if common.FileExists(header.Linkname) {
+					absFile, err := filepath.Abs(header.Linkname)
+					if err != nil {
+						return fmt.Errorf("error retrieving absolute path of %s: %s", header.Linkname, err)
+					}
+					if !common.BeginsWith(absFile, extractAbsDir) {
+						return fmt.Errorf(errLinkedDirectoryOutside, header.Linkname)
+					}
+				} else {
+					if common.BeginsWith(header.Linkname, "/") {
+						if !common.BeginsWith(header.Linkname, extractAbsDir) {
+							return fmt.Errorf(errLinkedDirectoryOutside, header.Linkname)
+						}
+					}
+				}
 				condPrint(fmt.Sprintf("%s -> %s", filename, header.Linkname), true, CHATTY)
 				err = os.Symlink(header.Linkname, filename)
 				if err != nil {
@@ -278,6 +306,12 @@ func unpackTarFiles(reader *tar.Reader) (err error) {
 		}
 	}
 	// return nil
+}
+
+func pathDepth(s string) int {
+	reSlash := regexp.MustCompilePOSIX("(/)")
+	list := reSlash.FindAllStringIndex(s, -1)
+	return len(list)
 }
 
 func unpackTarFile(filename string,
