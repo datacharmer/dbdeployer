@@ -2,11 +2,14 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.58.0 (13-Dec-2020 20:55 UTC)
+Documentation updated for version 1.58.2 (20-Dec-2020 14:50 UTC)
 
 ![Build Status](https://github.com/datacharmer/dbdeployer/workflows/.github/workflows/all_tests.yml/badge.svg)
 
 - [Installation](#installation)
+    - [Manual installation](#manual-installation)
+    - [Installation via script](#installation-via-script)
+- [Prerequisites](#prerequisites)
 - [Initializing the environment](#initializing-the-environment)
 - [Updating dbdeployer](#updating-dbdeployer)
 - [Main operations](#main-operations)
@@ -69,19 +72,32 @@ Documentation updated for version 1.58.0 (13-Dec-2020 20:55 UTC)
 - [Do not edit](#do-not-edit)
 # Installation
 
+## Manual installation
+
 The installation is simple, as the only thing you will need is a binary executable for your operating system.
 Get the one for your O.S. from [dbdeployer releases](https://github.com/datacharmer/dbdeployer/releases) and place it in a directory in your $PATH.
 (There are no binaries for Windows. See the [features list](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more info.)
 
 For example:
 
-    $ VERSION=1.58.0
+    $ VERSION=1.58.2
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
     $ tar -xzf dbdeployer-$VERSION.$OS.tar.gz
     $ chmod +x dbdeployer-$VERSION.$OS
     $ sudo mv dbdeployer-$VERSION.$OS /usr/local/bin/dbdeployer
+
+## Installation via script
+
+You can download the [installation script](https://raw.githubusercontent.com/datacharmer/dbdeployer/master/scripts/dbdeployer-install.sh), and run it in your computer.
+The script will find the latest version, download the corresponding binaries, check the SHA256 checksum, and - if given privileges - copy the executable to a directory within `$PATH`.
+
+```
+$ curl -s https://raw.githubusercontent.com/datacharmer/dbdeployer/master/scripts/dbdeployer-install.sh | bash
+```
+
+# Prerequisites
 
 Of course, there are **prerequisites**: your machine must be able to run the MySQL server. Be aware that version 5.5 and higher require some libraries that are not installed by default in all flavors of Linux (libnuma, libaio.)
 
@@ -212,7 +228,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.58.0
+    dbdeployer version 1.58.2
     
 
     $ dbdeployer -h
@@ -2353,10 +2369,10 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.58.0-docs.linux.tar.gz
-* dbdeployer-1.58.0-docs.osx.tar.gz
-* dbdeployer-1.58.0.linux.tar.gz
-* dbdeployer-1.58.0.osx.tar.gz
+* dbdeployer-1.58.2-docs.linux.tar.gz
+* dbdeployer-1.58.2-docs.osx.tar.gz
+* dbdeployer-1.58.2.linux.tar.gz
+* dbdeployer-1.58.2.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

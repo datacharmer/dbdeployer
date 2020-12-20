@@ -7,6 +7,8 @@ Documentation updated for version {{.Version}} ({{.Date}})
 
 # Installation
 
+## Manual installation
+
 The installation is simple, as the only thing you will need is a binary executable for your operating system.
 Get the one for your O.S. from [dbdeployer releases](https://github.com/datacharmer/dbdeployer/releases) and place it in a directory in your $PATH.
 (There are no binaries for Windows. See the [features list](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more info.)
@@ -20,6 +22,17 @@ For example:
     $ tar -xzf dbdeployer-$VERSION.$OS.tar.gz
     $ chmod +x dbdeployer-$VERSION.$OS
     $ sudo mv dbdeployer-$VERSION.$OS /usr/local/bin/dbdeployer
+
+## Installation via script
+
+You can download the [installation script](https://raw.githubusercontent.com/datacharmer/dbdeployer/master/scripts/dbdeployer-install.sh), and run it in your computer.
+The script will find the latest version, download the corresponding binaries, check the SHA256 checksum, and - if given privileges - copy the executable to a directory within `$PATH`.
+
+```
+$ curl -s https://raw.githubusercontent.com/datacharmer/dbdeployer/master/scripts/dbdeployer-install.sh | bash
+```
+
+# Prerequisites
 
 Of course, there are **prerequisites**: your machine must be able to run the MySQL server. Be aware that version 5.5 and higher require some libraries that are not installed by default in all flavors of Linux (libnuma, libaio.)
 
