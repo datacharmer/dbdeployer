@@ -1,5 +1,5 @@
 {
-   "DbdeployerVersion": "1.54.0",
+   "DbdeployerVersion": "1.58.0",
    "Tarballs": [
      {
        "name": "tidb-master-darwin-amd64.tar.gz",
@@ -895,6 +895,19 @@
        "version": "8.0.22",
        "notes": "added with version 1.56.0",
        "date_added": "2020-11-02 12:44"
+      },
+      {
+       "name": "Percona-Server-8.0.22-13-Linux.x86_64.glibc2.17-minimal.tar.gz",
+       "checksum": "SHA512:2318691ccd719dd851482dd798f073334176b1011d4586c563022b5e6a5057d699e04afcd47e4f528b6b40f62ed6f90974be166b01afb42aa7d5334694750993",
+       "OS": "linux",
+       "url": "https://downloads.percona.com/downloads/Percona-Server-LATEST/Percona-Server-8.0.22-13/binary/tarball/Percona-Server-8.0.22-13-Linux.x86_64.glibc2.17-minimal.tar.gz",
+       "flavor": "percona",
+       "minimal": true,
+       "size": 107118185,
+       "short_version": "8.0",
+       "version": "8.0.22",
+       "notes": "added with version 1.58.2",
+       "date_added": "2020-12-22 09:55"
       }
    ]
  }
