@@ -1,0 +1,5 @@
+
+# GTID options for 5.6
+gtid_mode=ON
+log-slave-updates
+enforce-gtid-consistency

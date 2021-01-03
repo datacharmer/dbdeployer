@@ -1,0 +1,20 @@
+
+# These options, after customization, are added to my.sandbox.cnf
+innodb_file_per_table
+innodb_autoinc_lock_mode=2
+wsrep-provider={{.Basedir}}/lib/libgalera_smm.so
+wsrep_cluster_address={{.GroupCommunication}}
+wsrep_node_incoming_address=127.0.0.1
+wsrep_provider_options=gmcast.listen_addr=tcp://127.0.0.1:{{.GroupPort}}
+wsrep_sst_method={{.SstMethod}}
+#pxc_encrypt_cluster_traffic=off
+{{.PxcEncryptClusterTraffic}}
+loose_wsrep_sst_auth=root:
+wsrep_node_address={{.NodeIp}}
+innodb_flush_method=O_DIRECT
+core-file
+secure-file-priv=
+loose-innodb-status-file=1
+log-output=none
+wsrep_slave_threads=2
+wsrep_sst_receive_address=127.0.0.1:{{.RsyncPort}}

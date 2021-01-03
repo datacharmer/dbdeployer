@@ -1,0 +1,4 @@
+
+# GTID options for 5.7 +
+gtid_mode=ON
+enforce-gtid-consistency

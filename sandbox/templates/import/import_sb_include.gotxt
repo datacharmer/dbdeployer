@@ -1,0 +1,50 @@
+
+export SBDIR="{{.SandboxDir}}"
+export BASEDIR={{.Basedir}}
+export CLIENT_BASEDIR={{.ClientBasedir}}
+export MYSQL_VERSION={{.Version}}
+export MYSQL_SORTABLE_VERSION={{.SortableVersion}}
+export MYSQL_VERSION_MAJOR={{.VersionMajor}}
+export MYSQL_VERSION_MINOR={{.VersionMinor}}
+export MYSQL_VERSION_REV={{.VersionRev}}
+export MYSQL_PORT={{.Port}}
+export MYSQLX_PORT={{.MysqlXPort}}
+export MYSQLX_SOCKET_FILE={{.MysqlXSocket}}
+export ADMIN_PORT={{.AdminPort}}
+export FLAVOR={{.Flavor}}
+export SANDBOX_TYPE={{.SandboxType}}
+export SERVER_ID={{.ServerId}}
+export SBHOST={{.SbHost}}
+export DATADIR=$SBDIR/data
+export LD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$LD_LIBRARY_PATH
+export CLIENT_LD_LIBRARY_PATH=$CLIENT_BASEDIR/lib:$CLIENT_BASEDIR/lib/mysql:$LD_LIBRARY_PATH
+export DYLD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$DYLD_LIBRARY_PATH
+export CLIENT_DYLD_LIBRARY_PATH=$CLIENT_BASEDIR/lib:$CLIENT_BASEDIR/lib/mysql:$DYLD_LIBRARY_PATH
+[ -z "$SANDBOX_HOME" ] && export SANDBOX_HOME=$HOME/sandboxes
+[ -z "$SANDBOX_BINARY" ] && export SANDBOX_BINARY=$HOME/opt/mysql
+[ -z "$SLEEP_TIME" ] && export SLEEP_TIME=1
+
+# dbdeployer is not compatible with .mylogin.cnf,
+# as it bypasses --defaults-file and --no-defaults.
+# See: https://dev.mysql.com/doc/refman/8.0/en/mysql-config-editor.html
+# The following statement disables .mylogin.cnf
+export MYSQL_TEST_LOGIN_FILE=/tmp/dont_break_my_sandboxes$RANDOM
+
+function is_running
+{
+    cd $SBDIR
+    timeout=5
+    elapsed=0
+
+    while [ "$elapsed" != "$timeout" ]
+    do
+        connect=$(./use -BN -e 'select 12345' 2>/dev/null )
+        if [ "$connect" == "12345" ]
+        then
+            echo "connected"
+            break
+        fi
+        sleep 1
+        elapsed=$((elapsed+1))
+    done
+}
