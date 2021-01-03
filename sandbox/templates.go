@@ -37,8 +37,6 @@ type AllTemplateCollection map[string]TemplateCollection
 
 // templates for single sandbox
 
-//var initDbTemplate string
-
 var (
 	//go:embed templates/single/init_db.gotxt
 	initDbTemplate string
