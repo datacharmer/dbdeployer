@@ -25,6 +25,8 @@ For example:
 
 ## Installation via script
 
+![installation](https://raw.githubusercontent.com/datacharmer/dbdeployer/master/docs/dbdeployer-installation.gif)
+
 You can download the [installation script](https://raw.githubusercontent.com/datacharmer/dbdeployer/master/scripts/dbdeployer-install.sh), and run it in your computer.
 The script will find the latest version, download the corresponding binaries, check the SHA256 checksum, and - if given privileges - copy the executable to a directory within `$PATH`.
 
