@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2019 Giuseppe Maxia
+// Copyright © 2006-2021 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ func replicationSandbox(cmd *cobra.Command, args []string) {
 	if sd.Flavor == common.TiDbFlavor {
 		common.Exitf(1, "flavor '%s' is not suitable to create replication sandboxes", common.TiDbFlavor)
 	}
-	sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
+	sd.ReplOptions = sandbox.SingleTemplates[globals.TmplReplicationOptions].Contents
 	flags := cmd.Flags()
 	semisync, _ = flags.GetBool(globals.SemiSyncLabel)
 	ndbNodes, _ := flags.GetInt(globals.NdbNodesLabel)
@@ -59,7 +59,7 @@ func replicationSandbox(cmd *cobra.Command, args []string) {
 		isMinimumSync, err := common.HasCapability(sd.Flavor, common.SemiSynch, sd.Version)
 		common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
 		if isMinimumSync {
-			sd.SemiSyncOptions = sandbox.SingleTemplates["semisync_master_options"].Contents
+			sd.SemiSyncOptions = sandbox.SingleTemplates[globals.TmplSemisyncMasterOptions].Contents
 		} else {
 			common.Exitf(1, "--%s requires version %s+",
 				globals.SemiSyncLabel,

@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2020 Giuseppe Maxia
+// Copyright © 2006-2021 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -241,7 +241,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 			common.CondPrintf(installationMessage, nodeLabel, i)
 			logger.Printf(installationMessage, nodeLabel, i)
 		}
-		sandboxDef.ReplOptions = SingleTemplates["replication_options"].Contents +
+		sandboxDef.ReplOptions = SingleTemplates[globals.TmplReplicationOptions].Contents +
 			fmt.Sprintf("\n%s\n%s\n", "ndbcluster", connectionString)
 		reMasterIp := regexp.MustCompile(`127\.0\.0\.1`)
 		sandboxDef.ReplOptions = reMasterIp.ReplaceAllString(sandboxDef.ReplOptions, masterIp)
@@ -295,14 +295,14 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		}
 		logger.Printf("Create node script for node %d\n", i)
 		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i),
-			"node_template", sandboxDef.SandboxDir, dataNode, true)
+			globals.TmplNode, sandboxDef.SandboxDir, dataNode, true)
 		if err != nil {
 			return err
 		}
 		if sandboxDef.EnableAdminAddress {
 			logger.Printf("Create admin script for node %d\n", i)
 			err = writeScript(logger, MultipleTemplates, fmt.Sprintf("na%d", i),
-				"node_admin_template", sandboxDef.SandboxDir, dataNode, true)
+				globals.TmplNodeAdmin, sandboxDef.SandboxDir, dataNode, true)
 			if err != nil {
 				return err
 			}
@@ -335,18 +335,18 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []ScriptDef{
-			{globals.ScriptStartAll, "start_multi_template", true},
-			{globals.ScriptRestartAll, "restart_multi_template", true},
-			{globals.ScriptStatusAll, "status_multi_template", true},
-			{globals.ScriptTestSbAll, "test_sb_multi_template", true},
-			// {globals.ScriptStopAll, "stop_multi_template", true},
-			{globals.ScriptClearAll, "clear_multi_template", true},
-			{globals.ScriptSendKillAll, "send_kill_multi_template", true},
-			{globals.ScriptUseAll, "use_multi_template", true},
-			{globals.ScriptMetadataAll, "metadata_multi_template", true},
-			{globals.ScriptReplicateFrom, "replicate_from_multi_template", true},
-			{globals.ScriptSysbench, "sysbench_multi_template", true},
-			{globals.ScriptSysbenchReady, "sysbench_ready_multi_template", true},
+			{globals.ScriptStartAll, globals.TmplStartMulti, true},
+			{globals.ScriptRestartAll, globals.TmplRestartMulti, true},
+			{globals.ScriptStatusAll, globals.TmplStatusMulti, true},
+			{globals.ScriptTestSbAll, globals.TmplTestSbMulti, true},
+			// {globals.ScriptStopAll, globals.TmplStopMulti, true},
+			{globals.ScriptClearAll, globals.TmplClearMulti, true},
+			{globals.ScriptSendKillAll, globals.TmplSendKillMulti, true},
+			{globals.ScriptUseAll, globals.TmplUseMulti, true},
+			{globals.ScriptMetadataAll, globals.TmplMetadataMulti, true},
+			{globals.ScriptReplicateFrom, globals.TmplReplicateFromMulti, true},
+			{globals.ScriptSysbench, globals.TmplSysbenchMulti, true},
+			{globals.ScriptSysbenchReady, globals.TmplSysbenchReadyMulti, true},
 		},
 	}
 
@@ -361,9 +361,9 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []ScriptDef{
-			{useAllSlaves, "multi_source_use_slaves_template", true},
-			{useAllMasters, "multi_source_use_masters_template", true},
-			{globals.ScriptTestReplication, "multi_source_test_template", true},
+			{useAllSlaves, globals.TmplMultiSourceUseSlaves, true},
+			{useAllMasters, globals.TmplMultiSourceUseMasters, true},
+			{globals.ScriptTestReplication, globals.TmplMultiSourceTest, true},
 		},
 	}
 	sbNdb := ScriptBatch{
@@ -372,11 +372,11 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []ScriptDef{
-			{"config.ini", "ndb_config_template", false},
-			{globals.ScriptInitializeNodes, "ndb_start_cluster", true},
-			{globals.ScriptCheckNodes, "ndb_check_status", true},
-			{"ndb_mgm", "ndb_mgm_template", true},
-			{globals.ScriptStopAll, "ndb_stop_cluster", true},
+			{"config.ini", globals.TmplNdbConfig, false},
+			{globals.ScriptInitializeNodes, globals.TmplNdbStartCluster, true},
+			{globals.ScriptCheckNodes, globals.TmplNdbMgm, true},
+			{"ndb_mgm", globals.TmplNdbMgm, true},
+			{globals.ScriptStopAll, globals.TmplNdbStopCluster, true},
 		},
 	}
 
@@ -389,8 +389,8 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 	}
 	if sandboxDef.EnableAdminAddress {
 		logger.Printf("Creating admin script for all nodes\n")
-		err = writeScript(logger, MultipleTemplates, "use_all_admin",
-			"use_multi_admin_template", sandboxDef.SandboxDir, data, true)
+		err = writeScript(logger, MultipleTemplates, globals.ScriptUseAllAdmin,
+			globals.TmplUseMultiAdmin, sandboxDef.SandboxDir, data, true)
 		if err != nil {
 			return err
 		}

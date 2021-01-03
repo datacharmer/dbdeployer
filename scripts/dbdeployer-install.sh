@@ -85,6 +85,11 @@ done
 # (STEP 3) collects the latest version from GitHub
 dbdeployer_version=$(curl -s $version_file)
 check_exit_code "curl -s $version_file"
+if [ -z "${dbdeployer_version}" ]
+then
+    echo "error collecting version from ${version_file}"
+    exit 1
+fi
 
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 
