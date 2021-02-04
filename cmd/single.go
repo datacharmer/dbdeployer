@@ -31,7 +31,8 @@ import (
 )
 
 func replaceTemplate(templateName string, fileName string) {
-	group, _, contents := findTemplate(templateName)
+	// Use the canonical name for the template returned by findTemplate
+	group, templateName, contents := findTemplate(templateName)
 	if !common.FileExists(fileName) {
 		common.Exitf(1, globals.ErrFileNotFound, fileName)
 	}
