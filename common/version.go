@@ -15,12 +15,13 @@
 
 package common
 
-// This file was generated during build. Do not edit.
-// Build time: 2020-12-15 10:49
+import _ "embed"
 
-var VersionDef string = "1.58.2" // 2020-12-15
+//go:embed VERSION
+var VersionDef string
 
 // Compatible version is the version used to mark compatible archives (templates, configuration).
 // It is usually major.minor.0, except when we are at version 0.x, when
 // every revision may bring incompatibility
-var CompatibleVersion string = "1.58.0" // 2020-12-11
+//go:embed COMPATIBLE_VERSION
+var CompatibleVersion string
