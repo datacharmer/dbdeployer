@@ -58,13 +58,13 @@ Basedir: $HOME/opt/mysql
 
 To run the test suite, you need to create the dbdeployer executables.
 
-`.build/set_version.sh NEW_VERSION`
+`common/set_version.sh NEW_VERSION`
 
 (Please read the Semantic Versioning section in the README)
 
 If the addition changes the API, you should also change the compatible version
 
-`.build/set_version NEW_VERSION compatible`
+`common/set_version NEW_VERSION compatible`
 
 Then build the  executables:
 
