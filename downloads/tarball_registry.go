@@ -16,11 +16,11 @@
 package downloads
 
 // This file was generated during build. Do not edit.
-// Build time: Mon Nov  2 12:47:23 CET 2020
+// Build time: Sat Feb  6 15:35:24 CET 2021
 
 var DefaultTarballRegistry = TarballCollection{
 	// Version of dbdeployer when the list was last updated
-	DbdeployerVersion: "1.56.0",
+	DbdeployerVersion: "1.58.3",
 	Tarballs: []TarballDescription{
 
 		{
@@ -939,6 +939,20 @@ var DefaultTarballRegistry = TarballCollection{
 			Notes:           "added with version 1.56.0",
 
 			DateAdded: "2020-11-02 12:44",
+		},
+		{
+			Name:            "Percona-Server-8.0.22-13-Linux.x86_64.glibc2.17-minimal.tar.gz",
+			Checksum:        "SHA512:2318691ccd719dd851482dd798f073334176b1011d4586c563022b5e6a5057d699e04afcd47e4f528b6b40f62ed6f90974be166b01afb42aa7d5334694750993",
+			OperatingSystem: "linux",
+			Url:             "https://downloads.percona.com/downloads/Percona-Server-LATEST/Percona-Server-8.0.22-13/binary/tarball/Percona-Server-8.0.22-13-Linux.x86_64.glibc2.17-minimal.tar.gz",
+			Flavor:          "percona",
+			Minimal:         true,
+			Size:            107118185,
+			ShortVersion:    "8.0",
+			Version:         "8.0.22",
+			Notes:           "added with version 1.58.2",
+
+			DateAdded: "2020-12-22 09:55",
 		},
 	},
 }

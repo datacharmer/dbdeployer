@@ -1,3 +1,9 @@
+## 1.58.3	06-Feb-2021
+
+### BUGS FIXED
+
+* Fix --use-template to not require `_template` suffix (Issue #125)
+
 ## 1.58.2	16-Dec-2020
 
 ### BUGS FIXED
