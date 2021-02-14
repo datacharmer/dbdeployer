@@ -15,7 +15,10 @@
 
 package common
 
-import _ "embed"
+import (
+	_ "embed"
+	"strings"
+)
 
 //go:embed VERSION
 var VersionDef string
@@ -25,3 +28,8 @@ var VersionDef string
 // every revision may bring incompatibility
 //go:embed COMPATIBLE_VERSION
 var CompatibleVersion string
+
+func init() {
+	VersionDef = strings.TrimSpace(VersionDef)
+	CompatibleVersion = strings.TrimSpace(CompatibleVersion)
+}
