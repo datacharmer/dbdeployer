@@ -52,7 +52,7 @@ function set_version {
         exit 1
     fi
     echo "Setting version from '$existing_version' to '$version'"
-    echo $version > $file_name
+    echo -n $version > $file_name
 }
 
 if [ "$vtype" == "compatible" ]
