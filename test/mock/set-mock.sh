@@ -88,11 +88,11 @@ function create_mock_version {
     make_dir $SANDBOX_BINARY/$version_label/bin
     make_dir $SANDBOX_BINARY/$version_label/scripts
     make_dir $SANDBOX_BINARY/$version_label/lib
-    dbdeployer defaults templates show no_op_mock_template > $SANDBOX_BINARY/$version_label/bin/mysqld
-    dbdeployer defaults templates show no_op_mock_template > $SANDBOX_BINARY/$version_label/bin/mysql
-    dbdeployer defaults templates show mysqld_safe_mock_template > $SANDBOX_BINARY/$version_label/bin/mysqld_safe
-    dbdeployer defaults templates show no_op_mock_template > $SANDBOX_BINARY/$version_label/scripts/mysql_install_db
-    dbdeployer defaults templates show no_op_mock_template > $SANDBOX_BINARY/$version_label/lib/libmysqlclient.$OS_extension
+    dbdeployer defaults templates show no_op_mock > $SANDBOX_BINARY/$version_label/bin/mysqld
+    dbdeployer defaults templates show no_op_mock > $SANDBOX_BINARY/$version_label/bin/mysql
+    dbdeployer defaults templates show mysqld_safe_mock > $SANDBOX_BINARY/$version_label/bin/mysqld_safe
+    dbdeployer defaults templates show no_op_mock > $SANDBOX_BINARY/$version_label/scripts/mysql_install_db
+    dbdeployer defaults templates show no_op_mock > $SANDBOX_BINARY/$version_label/lib/libmysqlclient.$OS_extension
     chmod +x $SANDBOX_BINARY/$version_label/bin/*
     chmod +x $SANDBOX_BINARY/$version_label/scripts/*
     echo mysql > $SANDBOX_BINARY/$version_label/FLAVOR
@@ -102,12 +102,12 @@ function create_mock_ndb_version {
     version_label=$1
     create_mock_version $version_label
 
-    dbdeployer defaults templates show no_op_mock_template > $SANDBOX_BINARY/$version_label/bin/ndbd
-    dbdeployer defaults templates show no_op_mock_template > $SANDBOX_BINARY/$version_label/bin/ndb_mgm
-    dbdeployer defaults templates show no_op_mock_template > $SANDBOX_BINARY/$version_label/bin/ndb_mgmd
-    dbdeployer defaults templates show no_op_mock_template > $SANDBOX_BINARY/$version_label/bin/ndbd
-    dbdeployer defaults templates show no_op_mock_template > $SANDBOX_BINARY/$version_label/bin/ndbmtd
-    dbdeployer defaults templates show no_op_mock_template > $SANDBOX_BINARY/$version_label/lib/ndb_engine.so
+    dbdeployer defaults templates show no_op_mock > $SANDBOX_BINARY/$version_label/bin/ndbd
+    dbdeployer defaults templates show no_op_mock > $SANDBOX_BINARY/$version_label/bin/ndb_mgm
+    dbdeployer defaults templates show no_op_mock > $SANDBOX_BINARY/$version_label/bin/ndb_mgmd
+    dbdeployer defaults templates show no_op_mock > $SANDBOX_BINARY/$version_label/bin/ndbd
+    dbdeployer defaults templates show no_op_mock > $SANDBOX_BINARY/$version_label/bin/ndbmtd
+    dbdeployer defaults templates show no_op_mock > $SANDBOX_BINARY/$version_label/lib/ndb_engine.so
     chmod +x $SANDBOX_BINARY/$version_label/bin/*
     echo ndb > $SANDBOX_BINARY/$version_label/FLAVOR
 }
@@ -116,9 +116,9 @@ function create_mock_pxc_version {
     version_label=$1
     create_mock_version $version_label
 
-    dbdeployer defaults templates show no_op_mock_template > $SANDBOX_BINARY/$version_label/bin/garbd
-    dbdeployer defaults templates show no_op_mock_template > $SANDBOX_BINARY/$version_label/lib/libgalera_smm.a
-    dbdeployer defaults templates show no_op_mock_template > $SANDBOX_BINARY/$version_label/lib/libperconaserverclient.a
+    dbdeployer defaults templates show no_op_mock > $SANDBOX_BINARY/$version_label/bin/garbd
+    dbdeployer defaults templates show no_op_mock > $SANDBOX_BINARY/$version_label/lib/libgalera_smm.a
+    dbdeployer defaults templates show no_op_mock > $SANDBOX_BINARY/$version_label/lib/libperconaserverclient.a
     chmod +x $SANDBOX_BINARY/$version_label/bin/*
     echo pxc > $SANDBOX_BINARY/$version_label/FLAVOR
 }
@@ -128,7 +128,7 @@ function create_mock_tidb_version {
     make_dir $SANDBOX_BINARY/$version_label
     make_dir $SANDBOX_BINARY/$version_label/bin
 
-    dbdeployer defaults templates show tidb_mock_template > $SANDBOX_BINARY/$version_label/bin/tidb-server
+    dbdeployer defaults templates show tidb_mock > $SANDBOX_BINARY/$version_label/bin/tidb-server
     chmod +x $SANDBOX_BINARY/$version_label/bin/*
     echo tidb > $SANDBOX_BINARY/$version_label/FLAVOR
 }
