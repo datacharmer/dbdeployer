@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!{{.ShellPath}}
 # The purpose of this script is to run mock tests with a
 # command that returns a wanted exit code
 exit_code=0

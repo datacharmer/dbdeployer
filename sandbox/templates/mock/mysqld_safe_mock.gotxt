@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!{{.ShellPath}}
 # This script mimics the minimal behavior of mysqld_safe
 # so that we can run tests for dbdeployer without using the real
 # MySQL binaries.
