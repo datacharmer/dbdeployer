@@ -15,7 +15,7 @@
 
 package globals
 
-var (
+const (
 	// import
 	TmplImportMyCnf  = "import_my_cnf"
 	TmplImportInitDb = "import_init_db"
