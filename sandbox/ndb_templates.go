@@ -57,7 +57,7 @@ var NdbTemplates = TemplateCollection{
 		Notes:       "",
 		Contents:    ndbMgmTemplate,
 	},
-	globals.TmplNdbMgm: TemplateDesc{
+	globals.TmplNdbCheckStatus: TemplateDesc{
 		Description: "NDB check cluster status",
 		Notes:       "",
 		Contents:    ndbCheckStatusTemplate,
