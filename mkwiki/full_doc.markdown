@@ -259,18 +259,18 @@ The program doesn't have any dependencies. Everything is included in the binary.
       usage           Shows usage of installed sandboxes
       use             uses a sandbox
       versions        List available versions
-    
+
     Flags:
           --config string           configuration file (default "$HOME/.dbdeployer/config.json")
       -h, --help                    help for dbdeployer
           --sandbox-binary string   Binary repository (default "$HOME/opt/mysql")
           --sandbox-home string     Sandbox deployment directory (default "$HOME/sandboxes")
-          --shell-path string       Which shell to use for generated scripts (default "/usr/local/bin/bash")
+          --shell-path string       Path to Bash, used for generated scripts (default "/usr/local/bin/bash")
           --skip-library-check      Skip check for needed libraries (may cause nasty errors)
       -v, --version                 version for dbdeployer
-    
+
     Use "dbdeployer [command] --help" for more information about a command.
-    
+
 
 The flags listed in the main screen can be used with any commands.
 The flags ``--my-cnf-options`` and ``--init-options`` can be used several times.
