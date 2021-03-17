@@ -577,7 +577,7 @@ Size:          0 B
 Notes:         guessed
 ```
 
-Whithout `--dry-run`, it would attempt downloading MySQL 8.0.22. If the download is not available, you will get an error:
+Without `--dry-run`, it would attempt downloading MySQL 8.0.22. If the download is not available, you will get an error:
 
 ```
 $ dbdeployer downloads get-by-version --guess-latest 8.0
@@ -615,7 +615,7 @@ Each `*deployment*` or `*operations*` script runs with this syntax:
 ./recipes/script_name.sh [version]
 ```
 
-where `version` is `5.7.23`, or `8.0.12`, or `ndb7.6.9`, or any other recent version of MySQL. For this to work, you ned to have unpacked the tarball binaries for the corresponding version. 
+where `version` is `5.7.23`, or `8.0.12`, or `ndb7.6.9`, or any other recent version of MySQL. For this to work, you need to have unpacked the tarball binaries for the corresponding version. 
 See `./recipes/prerequisites.sh` for practical steps.
 
 You can run the same command several times, provided that you use a different version at every call.
@@ -730,7 +730,7 @@ You can deploy a single sandbox for a Percona server version 5.7.22 using any of
     export SANDBOX_BINARY=$HOME/opt/percona
     dbdeployer deploy single 5.7.22
 
-Methods #1 and #2 are equivalent. They set the sandbox binary directory temporarily to a new one, and use it for the current deployement
+Methods #1 and #2 are equivalent. They set the sandbox binary directory temporarily to a new one, and use it for the current deployment
 
 Methods #3 and #4  will set the sandbox binary directory permanently, with the difference that #3 is set for any invocation of dbdeployer system-wide (in a different terminal window, it will use the new value,) while #4 is set only for the current session (in a different terminal window, it will still use the default.)
 
@@ -926,7 +926,7 @@ dbdeployer will use your template instead of the original.
 Example:
 
     $ dbdeployer defaults templates export single my_templates
-    # Will export all the templates for the "single" group to the direcory my_templates/single
+    # Will export all the templates for the "single" group to the directory my_templates/single
     $ dbdeployer defaults templates export ALL my_templates
     # exports all templates into my_templates, one directory for each group
     # Edit the templates that you want to change. You can also remove the ones that you want to leave untouched.
@@ -1301,10 +1301,10 @@ data_load_time_diff
 
 Sandboxes created with version 1.56.0+ include two scripts:
 
-* `sysbench` invokes the sysbench utility with the necessary connection options alredy filled. Users can specify all remaining options to complete the task.
+* `sysbench` invokes the sysbench utility with the necessary connection options already filled. Users can specify all remaining options to complete the task.
 * `sysbench_ready` can perform two pre-defined actions: `prepare` or `run`.
 
-In both cases, the sysbench utility must already be installed. The scripts look at the dupporting files in standard loactions. If sysbench was installed manually, errors may occur.
+In both cases, the sysbench utility must already be installed. The scripts look at the supporting files in standard locations. If sysbench was installed manually, errors may occur.
 
 # Obtaining sandbox metadata
 
@@ -1495,10 +1495,10 @@ $  ~/sandboxes/ms_8_0_15_1/replicate_from ms_8_0_15_2
 [...]
 ```
 
-## d. Hibrid replication
+## d. Hybrid replication
 
 Using the same methods, we can replicate from a cluster to a single sandbox (e,g. group replication to single 8.0 sandbox) or the other way around (single 8.0 sandbox to group replication).
-We onlly need to make sure there are no conflicts as mentioned above. The script `replicate_from` can catch some issues, but I am sure there is still room for mistakes. For example, replicating from a NDB cluster to a single sandbox won't work, as the single one can't process the `ndbengine` tables.
+We only need to make sure there are no conflicts as mentioned above. The script `replicate_from` can catch some issues, but I am sure there is still room for mistakes. For example, replicating from an NDB cluster to a single sandbox won't work, as the single one can't process the `ndbengine` tables.
 
 Examples:
 
