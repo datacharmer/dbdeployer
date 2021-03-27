@@ -2,7 +2,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.58.2 (20-Dec-2020 14:50 UTC)
+Documentation updated for version 1.58.2 (17-Mar-2021 13:55 UTC)
 
 ![Build Status](https://github.com/datacharmer/dbdeployer/workflows/.github/workflows/all_tests.yml/badge.svg)
 
@@ -96,6 +96,21 @@ The script will find the latest version, download the corresponding binaries, ch
 ```
 $ curl -s https://raw.githubusercontent.com/datacharmer/dbdeployer/master/scripts/dbdeployer-install.sh | bash
 ```
+
+A shortcut is available via the bit.ly service:
+
+```
+$ curl -L -s https://bit.ly/dbdeployer | bash
+```
+
+Finally, there is a third-party service that installs any Go tool. The command to use it for dbdeployer is
+
+```
+$ curl -sf https://gobinaries.com/datacharmer/dbdeployer | sh
+```
+
+Please see [gobinaries.com](https://gobinaries.com) for more info.
+
 
 # Prerequisites
 
@@ -228,7 +243,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.58.2
+    dbdeployer version 1.59.0
     
 
     $ dbdeployer -h
@@ -259,18 +274,18 @@ The program doesn't have any dependencies. Everything is included in the binary.
       usage           Shows usage of installed sandboxes
       use             uses a sandbox
       versions        List available versions
-
+    
     Flags:
           --config string           configuration file (default "$HOME/.dbdeployer/config.json")
       -h, --help                    help for dbdeployer
           --sandbox-binary string   Binary repository (default "$HOME/opt/mysql")
           --sandbox-home string     Sandbox deployment directory (default "$HOME/sandboxes")
-          --shell-path string       Path to Bash, used for generated scripts (default "/usr/local/bin/bash")
+          --shell-path string       Which shell to use for generated scripts (default "/usr/local/bin/bash")
           --skip-library-check      Skip check for needed libraries (may cause nasty errors)
       -v, --version                 version for dbdeployer
-
+    
     Use "dbdeployer [command] --help" for more information about a command.
-
+    
 
 The flags listed in the main screen can be used with any commands.
 The flags ``--my-cnf-options`` and ``--init-options`` can be used several times.
@@ -2088,10 +2103,10 @@ $  ~/sandboxes/ms_8_0_15_1/replicate_from ms_8_0_15_2
 [...]
 ```
 
-## d. Hibrid replication
+## d. Hybrid replication
 
 Using the same methods, we can replicate from a cluster to a single sandbox (e,g. group replication to single 8.0 sandbox) or the other way around (single 8.0 sandbox to group replication).
-We only need to make sure there are no conflicts as mentioned above. The script `replicate_from` can catch some issues, but I am sure there is still room for mistakes. For example, replicating from a NDB cluster to a single sandbox won't work, as the single one can't process the `ndbengine` tables.
+We only need to make sure there are no conflicts as mentioned above. The script `replicate_from` can catch some issues, but I am sure there is still room for mistakes. For example, replicating from an NDB cluster to a single sandbox won't work, as the single one can't process the `ndbengine` tables.
 
 Examples:
 
