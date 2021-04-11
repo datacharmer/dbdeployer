@@ -24,7 +24,7 @@ function run {
     fi
 }
 
-export dbdeployer_version=$(cat .build/VERSION)
+export dbdeployer_version=$(cat common/VERSION)
 export RUN_CONCURRENTLY=1
 export EXIT_ON_FAILURE=1
 run ./scripts/sanity_check.sh

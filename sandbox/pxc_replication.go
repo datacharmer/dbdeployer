@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2020 Giuseppe Maxia
+// Copyright © 2006-2021 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -303,7 +303,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 			logger.Printf(installationMessage, nodeLabel, i)
 		}
 
-		pxcReplicationText := PxcTemplates["pxc_replication_template"].Contents
+		pxcReplicationText := PxcTemplates[globals.TmplPxcReplication].Contents
 
 		pxcReplicationData := common.StringMap{
 			"NodeIp":                   masterIp,
@@ -314,15 +314,15 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 			"SstMethod":                sstMethod,
 			"PxcEncryptClusterTraffic": pxcEncryptClusterTraffic,
 		}
-		pxcFilledTemplate, err := common.SafeTemplateFill("pxc_replication_template", pxcReplicationText, pxcReplicationData)
+		pxcFilledTemplate, err := common.SafeTemplateFill(globals.TmplPxcReplication, pxcReplicationText, pxcReplicationData)
 		if err != nil {
 			return fmt.Errorf("error filling pxc replication template %s", err)
 		}
 
 		sandboxDef.ReplOptions = baseReplicationOptions + fmt.Sprintf("\n%s\n", pxcFilledTemplate)
 
-		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["gtid_options_57"].Contents)
-		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["repl_crash_safe_options"].Contents)
+		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates[globals.TmplGtidOptions57].Contents)
+		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates[globals.TmplReplCrashSafeOptions].Contents)
 		// 8.0.11
 		isMinimumMySQLXDefault, err := common.HasCapability(sandboxDef.Flavor, common.MySQLXDefault, sandboxDef.Version)
 		if err != nil {
@@ -376,14 +376,14 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 			"SandboxDir":        sandboxDef.SandboxDir,
 		}
 		logger.Printf("Create node script for node %d\n", i)
-		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sandboxDef.SandboxDir, dataNode, true)
+		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), globals.TmplNode, sandboxDef.SandboxDir, dataNode, true)
 		if err != nil {
 			return err
 		}
 		if sandboxDef.EnableAdminAddress {
 			logger.Printf("Create admin script for node %d\n", i)
 			err = writeScript(logger, MultipleTemplates, fmt.Sprintf("na%d", i),
-				"node_admin_template", sandboxDef.SandboxDir, dataNode, true)
+				globals.TmplNodeAdmin, sandboxDef.SandboxDir, dataNode, true)
 			if err != nil {
 				return err
 			}
@@ -406,17 +406,17 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []ScriptDef{
-			{globals.ScriptRestartAll, "restart_multi_template", true},
-			{globals.ScriptStatusAll, "status_multi_template", true},
-			{globals.ScriptTestSbAll, "test_sb_multi_template", true},
-			{globals.ScriptStopAll, "stop_multi_template", true},
-			{globals.ScriptClearAll, "clear_multi_template", true},
-			{globals.ScriptSendKillAll, "send_kill_multi_template", true},
-			{globals.ScriptUseAll, "use_multi_template", true},
-			{globals.ScriptMetadataAll, "metadata_multi_template", true},
-			{globals.ScriptReplicateFrom, "replicate_from_multi_template", true},
-			{globals.ScriptSysbench, "sysbench_multi_template", true},
-			{globals.ScriptSysbenchReady, "sysbench_ready_multi_template", true},
+			{globals.ScriptRestartAll, globals.TmplRestartMulti, true},
+			{globals.ScriptStatusAll, globals.TmplStatusMulti, true},
+			{globals.ScriptTestSbAll, globals.TmplTestSbMulti, true},
+			{globals.ScriptStopAll, globals.TmplStopMulti, true},
+			{globals.ScriptClearAll, globals.TmplClearMulti, true},
+			{globals.ScriptSendKillAll, globals.TmplSendKillMulti, true},
+			{globals.ScriptUseAll, globals.TmplUseMulti, true},
+			{globals.ScriptMetadataAll, globals.TmplMetadataMulti, true},
+			{globals.ScriptReplicateFrom, globals.TmplReplicateFromMulti, true},
+			{globals.ScriptSysbench, globals.TmplSysbenchMulti, true},
+			{globals.ScriptSysbenchReady, globals.TmplSysbenchReadyMulti, true},
 		},
 	}
 
@@ -431,9 +431,9 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []ScriptDef{
-			{useAllSlaves, "multi_source_use_slaves_template", true},
-			{useAllMasters, "multi_source_use_masters_template", true},
-			{globals.ScriptTestReplication, "multi_source_test_template", true},
+			{useAllSlaves, globals.TmplMultiSourceUseSlaves, true},
+			{useAllMasters, globals.TmplMultiSourceUseMasters, true},
+			{globals.ScriptTestReplication, globals.TmplMultiSourceTest, true},
 		},
 	}
 	sbPxc := ScriptBatch{
@@ -442,8 +442,8 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []ScriptDef{
-			{globals.ScriptStartAll, "pxc_start_template", true},
-			{globals.ScriptCheckNodes, "check_pxc_nodes_template", true},
+			{globals.ScriptStartAll, globals.TmplPxcStart, true},
+			{globals.ScriptCheckNodes, globals.TmplPxcCheckNodes, true},
 		},
 	}
 
@@ -455,8 +455,8 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 	}
 	if sandboxDef.EnableAdminAddress {
 		logger.Printf("Creating admin script for all nodes\n")
-		err = writeScript(logger, MultipleTemplates, "use_all_admin",
-			"use_multi_admin_template", sandboxDef.SandboxDir, data, true)
+		err = writeScript(logger, MultipleTemplates, globals.ScriptUseAllAdmin,
+			globals.TmplUseMultiAdmin, sandboxDef.SandboxDir, data, true)
 		if err != nil {
 			return err
 		}

@@ -1,0 +1,8 @@
+
+set persist debug='+d,skip_dd_table_access_check';
+set @col_type=(select c.type from mysql.columns c inner join mysql.tables t where t.id=table_id and t.name='tables' and c.name='hidden');
+set @visible=(if(@col_type = 'MYSQL_TYPE_ENUM', 'Visible', '0'));
+set @hidden=(if(@col_type = 'MYSQL_TYPE_ENUM', 'System', '1'));
+create table sys.dd_hidden_tables (id bigint unsigned not null primary key, name varchar(64), schema_id bigint unsigned);
+insert into sys.dd_hidden_tables select id, name, schema_id from mysql.tables where hidden=@hidden;
+update mysql.tables set hidden=@visible where hidden=@hidden and schema_id = 1

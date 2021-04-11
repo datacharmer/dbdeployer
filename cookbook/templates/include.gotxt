@@ -1,0 +1,73 @@
+
+if [ -z "$SANDBOX_HOME" ]
+then
+    export SANDBOX_HOME=$HOME/sandboxes
+fi
+
+if [ -z "$SANDBOX_BINARY" ]
+then
+    export SANDBOX_BINARY=$HOME/opt/mysql
+fi
+
+function run {
+    (set -x
+    $@
+    )
+    exit_code=$?
+    echo $exit_code
+    if [ "$exit_code" != "0" ]
+    then
+        echo "ERROR running $@"
+        exit $exit_code
+    fi
+}
+
+function check_version {
+    wanted_version=$1
+    check_upgrade=$2
+    invalid_version=$(echo "$wanted_version"| grep NOTFOUND)
+    if [ -z "$wanted_version" -o -n "$invalid_version" ]
+    then
+        echo "No version provided"
+        exit 1
+    fi
+
+    if [ ! -d $SANDBOX_BINARY/$wanted_version ]
+    then
+        echo "Directory $SANDBOX_BINARY/$wanted_version not found"
+        echo "To install the binaries, use: "
+        echo "    dbdeployer unpack mysql-$version-YOUR-OPERATING-SYSTEM.tar.gz"
+        exit 1
+    fi
+    if [ -z "$check_upgrade" ]
+    then
+        return
+    fi
+    if [ ! -x $SANDBOX_BINARY/$wanted_version/bin/mysql_upgrade ]
+    then
+        echo "mysql_upgrade not found in $wanted_version"
+        exit 1
+    fi
+    version_path=$(echo msb_$wanted_version | tr '.' '_')
+    if [ -d $SANDBOX_HOME/$version_path ]
+    then
+        echo "Version $wanted_version is already installed in $SANDBOX_HOME/$version_path"
+        exit 1
+    fi
+}
+
+dash_line="# ----------------------------------------------------------------------------"
+star_line="# ****************************************************************************"
+hash_line="# ############################################################################"
+
+function header {
+    msg="$1"
+    msg2="$2"
+    msg3="$3"
+    echo ""
+    echo "$star_line"
+    echo "# $msg"
+    if [ -n "$msg2" ] ; then echo "# $msg2" ; fi
+    if [ -n "$msg3" ] ; then echo "# $msg3" ; fi
+    echo "$star_line"
+}

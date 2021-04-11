@@ -76,7 +76,6 @@ func DeleteTarball(tarballName string) ([]TarballDescription, error) {
 }
 
 func CompareTarballChecksum(tarball TarballDescription, fileName string) error {
-
 	if tarball.Checksum == "" {
 		return nil
 	}
@@ -121,7 +120,7 @@ func FindOrGuessTarballByVersionFlavorOS(version, flavor, OS string, minimal, ne
 		minimal = false
 	}
 	var tbd []TarballDescription
-	var newestVersionList = []int{0, 0, 0}
+	newestVersionList := []int{0, 0, 0}
 	for _, tb := range DefaultTarballRegistry.Tarballs {
 		if (tb.Version == version || tb.ShortVersion == version) &&
 			strings.ToLower(tb.Flavor) == flavor &&
@@ -279,7 +278,6 @@ func ReadTarballFileInfo() (collection TarballCollection, err error) {
 }
 
 func LoadTarballFileInfo() error {
-
 	collection, err := ReadTarballFileInfo()
 	if err != nil {
 		return err
@@ -342,7 +340,6 @@ func TarballFileInfoValidation(collection TarballCollection) error {
 }
 
 func GetTarballInfo(fileName string, description TarballDescription) (TarballDescription, error) {
-
 	crc, err := common.GetFileSha512(fileName)
 	if err != nil {
 		return TarballDescription{}, err
@@ -376,7 +373,6 @@ func GetTarballInfo(fileName string, description TarballDescription) (TarballDes
 }
 
 func checkRemoteUrl(remoteUrl string) error {
-
 	// #nosec G107
 	resp, err := http.Get(remoteUrl)
 	if err != nil {
@@ -391,8 +387,8 @@ func checkRemoteUrl(remoteUrl string) error {
 }
 
 func CheckTarballList(tarballList []TarballDescription) error {
-	var uniqueNames = make(map[string]bool)
-	var uniqueCombinations = make(map[string]bool)
+	uniqueNames := make(map[string]bool)
+	uniqueCombinations := make(map[string]bool)
 	for _, tb := range tarballList {
 		key := fmt.Sprintf("%s-%s-%s-%v", tb.OperatingSystem, tb.Flavor, tb.Version, tb.Minimal)
 

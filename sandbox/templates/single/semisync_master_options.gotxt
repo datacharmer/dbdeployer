@@ -1,0 +1,4 @@
+
+# semi-synchronous replication options for master
+plugin-load=rpl_semi_sync_master=semisync_master.so
+#rpl_semi_sync_master_enabled=1

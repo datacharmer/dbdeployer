@@ -32,7 +32,7 @@ import (
 
 const (
 	DefaultMockDir       = "mock_dir"
-	noOpMockTemplateName = "no_op_mock_template"
+	noOpMockTemplateName = globals.TmplNoOpMock
 )
 
 var (
@@ -170,7 +170,7 @@ func MySQLMockSet(debug bool) []MockFileSet {
 		[]ScriptDef{
 			{mysqld, noOpMockTemplateName, true},
 			{globals.FnMysql, noOpMockTemplateName, true},
-			{globals.FnMysqldSafe, "mysqld_safe_mock_template", true},
+			{globals.FnMysqldSafe, globals.TmplMysqldSafeMock, true},
 		},
 	}
 	scriptsFileSet := MockFileSet{

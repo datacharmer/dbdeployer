@@ -23,7 +23,7 @@ export GO111MODULE=on
 function check_latest_version {
     echo "## version"
     git_version=$(git tag | tail -n 1 | tr -d 'v')
-    dbdeployer_version=$(cat .build/VERSION | tr -d '\n')
+    dbdeployer_version=$(cat common/VERSION | tr -d '\n')
     if [ -z "$git_version" ]
     then
         echo "# --------------------------------------- #"
@@ -53,7 +53,7 @@ function exists_in_path {
 }
 
 
-local_items=(.build cmd defaults downloads common globals compare cookbook unpack abbreviations concurrent sandbox compare rest importing)
+local_items=(cmd defaults downloads common globals compare cookbook unpack abbreviations concurrent sandbox compare rest importing)
 exit_code=0
 spaces="        "
 function run {

@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2020 Giuseppe Maxia
+// Copyright © 2006-2021 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -293,6 +293,7 @@ const (
 	ScriptTestReplication   = "test_replication"
 	ScriptTestSbAll         = "test_sb_all"
 	ScriptUseAll            = "use_all"
+	ScriptUseAllAdmin       = "use_all_admin"
 	ScriptExecAll           = "exec_all"
 	ScriptWipeRestartAll    = "wipe_and_restart_all"
 	ScriptMetadataAll       = "metadata_all"

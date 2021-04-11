@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2020 Giuseppe Maxia
+// Copyright © 2006-2021 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -376,7 +376,7 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 	gtid, _ = flags.GetBool(globals.GtidLabel)
 	replCrashSafe, _ = flags.GetBool(globals.ReplCrashSafeLabel)
 	if master {
-		sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
+		sd.ReplOptions = sandbox.SingleTemplates[globals.TmplReplicationOptions].Contents
 		if sd.ServerId == 0 {
 			sd.PortAsServerId = true
 		} else {
@@ -384,13 +384,13 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 		}
 	}
 	if gtid {
-		templateName := "gtid_options_56"
+		templateName := globals.TmplGtidOptions56
 		// 5.7.0
 		// isEnhancedGtid, err := common.GreaterOrEqualVersion(sd.Version, globals.MinimumEnhancedGtidVersion)
 		isEnhancedGtid, err := common.HasCapability(sd.Flavor, common.EnhancedGTID, sd.Version)
 		common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
 		if isEnhancedGtid {
-			templateName = "gtid_options_57"
+			templateName = globals.TmplGtidOptions57
 		}
 		// 5.6.9
 		//isMinimumGtid, err := common.GreaterOrEqualVersion(sd.Version, globals.MinimumGtidVersion)
@@ -398,8 +398,8 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 		common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
 		if isMinimumGtid {
 			sd.GtidOptions = sandbox.SingleTemplates[templateName].Contents
-			sd.ReplCrashSafeOptions = sandbox.SingleTemplates["repl_crash_safe_options"].Contents
-			sd.ReplOptions = sandbox.SingleTemplates["replication_options"].Contents
+			sd.ReplCrashSafeOptions = sandbox.SingleTemplates[globals.TmplReplCrashSafeOptions].Contents
+			sd.ReplOptions = sandbox.SingleTemplates[globals.TmplReplicationOptions].Contents
 			if sd.ServerId == 0 {
 				sd.PortAsServerId = true
 			} else {
@@ -416,7 +416,7 @@ func fillSandboxDefinition(cmd *cobra.Command, args []string, usingImport bool) 
 		isMinimumCrashSafe, err := common.HasCapability(sd.Flavor, common.CrashSafe, sd.Version)
 		common.ErrCheckExitf(err, 1, globals.ErrWhileComparingVersions)
 		if isMinimumCrashSafe {
-			sd.ReplCrashSafeOptions = sandbox.SingleTemplates["repl_crash_safe_options"].Contents
+			sd.ReplCrashSafeOptions = sandbox.SingleTemplates[globals.TmplReplCrashSafeOptions].Contents
 		} else {
 			common.Exitf(1, globals.ErrOptionRequiresVersion, globals.ReplCrashSafeLabel, common.IntSliceToDottedString(globals.MinimumCrashSafeVersion))
 		}

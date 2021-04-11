@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2020 Giuseppe Maxia
+// Copyright © 2006-2021 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -331,17 +331,17 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		}
 
 		replOptionsText, err := common.SafeTemplateFill("group_replication",
-			GroupTemplates["group_repl_options_template"].Contents, replicationData)
+			GroupTemplates[globals.TmplGroupReplOptions].Contents, replicationData)
 		if err != nil {
 			return err
 		}
-		sandboxDef.ReplOptions = SingleTemplates["replication_options"].Contents + "\n" + replOptionsText
+		sandboxDef.ReplOptions = SingleTemplates[globals.TmplReplicationOptions].Contents + "\n" + replOptionsText
 
 		reMasterIp := regexp.MustCompile(`127\.0\.0\.1`)
 		sandboxDef.ReplOptions = reMasterIp.ReplaceAllString(sandboxDef.ReplOptions, masterIp)
 
-		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["gtid_options_57"].Contents)
-		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates["repl_crash_safe_options"].Contents)
+		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates[globals.TmplGtidOptions57].Contents)
+		sandboxDef.ReplOptions += fmt.Sprintf("\n%s\n", SingleTemplates[globals.TmplReplCrashSafeOptions].Contents)
 
 		// 8.0.11
 		isMinimumMySQLXDefault, err := common.HasCapability(sandboxDef.Flavor, common.MySQLXDefault, sandboxDef.Version)
@@ -390,12 +390,12 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 			"SandboxDir":        sandboxDef.SandboxDir,
 		}
 		logger.Printf("Create node script for node %d\n", i)
-		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sandboxDef.SandboxDir, dataNode, true)
+		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), globals.TmplNode, sandboxDef.SandboxDir, dataNode, true)
 		if err != nil {
 			return err
 		}
 		if sandboxDef.EnableAdminAddress {
-			err = writeScript(logger, MultipleTemplates, fmt.Sprintf("na%d", i), "node_admin_template", sandboxDef.SandboxDir, dataNode, true)
+			err = writeScript(logger, MultipleTemplates, fmt.Sprintf("na%d", i), globals.TmplNodeAdmin, sandboxDef.SandboxDir, dataNode, true)
 			if err != nil {
 				return err
 			}
@@ -426,19 +426,19 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []ScriptDef{
-			{globals.ScriptStartAll, "start_multi_template", true},
-			{globals.ScriptRestartAll, "restart_multi_template", true},
-			{globals.ScriptStatusAll, "status_multi_template", true},
-			{globals.ScriptTestSbAll, "test_sb_multi_template", true},
-			{globals.ScriptStopAll, "stop_multi_template", true},
-			{globals.ScriptClearAll, "clear_multi_template", true},
-			{globals.ScriptSendKillAll, "send_kill_multi_template", true},
-			{globals.ScriptUseAll, "use_multi_template", true},
-			{globals.ScriptMetadataAll, "metadata_multi_template", true},
-			{globals.ScriptReplicateFrom, "replicate_from_multi_template", true},
-			{globals.ScriptSysbench, "sysbench_multi_template", true},
-			{globals.ScriptSysbenchReady, "sysbench_ready_multi_template", true},
-			{globals.ScriptExecAll, "exec_multi_template", true},
+			{globals.ScriptStartAll, globals.TmplStartMulti, true},
+			{globals.ScriptRestartAll, globals.TmplRestartMulti, true},
+			{globals.ScriptStatusAll, globals.TmplStatusMulti, true},
+			{globals.ScriptTestSbAll, globals.TmplTestSbMulti, true},
+			{globals.ScriptStopAll, globals.TmplStopMulti, true},
+			{globals.ScriptClearAll, globals.TmplClearMulti, true},
+			{globals.ScriptSendKillAll, globals.TmplSendKillMulti, true},
+			{globals.ScriptUseAll, globals.TmplUseMulti, true},
+			{globals.ScriptMetadataAll, globals.TmplMetadataMulti, true},
+			{globals.ScriptReplicateFrom, globals.TmplReplicateFromMulti, true},
+			{globals.ScriptSysbench, globals.TmplSysbenchMulti, true},
+			{globals.ScriptSysbenchReady, globals.TmplSysbenchReadyMulti, true},
+			{globals.ScriptExecAll, globals.TmplExecMulti, true},
 		},
 	}
 	sbRepl := ScriptBatch{
@@ -447,13 +447,12 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []ScriptDef{
-			{useAllSlaves, "multi_source_use_slaves_template", true},
-			{useAllMasters, "multi_source_use_masters_template", true},
-			{execAllMasters, "multi_source_exec_masters_template", true},
-			{execAllSlaves, "multi_source_exec_slaves_template", true},
-			{globals.ScriptExecAll, "multi_source_exec_slaves_template", true},
-			{globals.ScriptTestReplication, "multi_source_test_template", true},
-			{globals.ScriptWipeRestartAll, "wipe_and_restart_all_template", true},
+			{useAllSlaves, globals.TmplMultiSourceUseSlaves, true},
+			{useAllMasters, globals.TmplMultiSourceUseMasters, true},
+			{execAllMasters, globals.TmplMultiSourceExecMasters, true},
+			{execAllSlaves, globals.TmplMultiSourceExecSlaves, true},
+			{globals.ScriptTestReplication, globals.TmplMultiSourceTest, true},
+			{globals.ScriptWipeRestartAll, globals.TmplWipeAndRestartAll, true},
 		},
 	}
 	sbGroup := ScriptBatch{
@@ -462,8 +461,8 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		data:       data,
 		sandboxDir: sandboxDef.SandboxDir,
 		scripts: []ScriptDef{
-			{globals.ScriptInitializeNodes, "init_nodes_template", true},
-			{globals.ScriptCheckNodes, "check_nodes_template", true},
+			{globals.ScriptInitializeNodes, globals.TmplInitNodes, true},
+			{globals.ScriptCheckNodes, globals.TmplCheckNodes, true},
 		},
 	}
 
@@ -475,8 +474,8 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	}
 	if sandboxDef.EnableAdminAddress {
 		logger.Printf("Creating admin script for all nodes\n")
-		err = writeScript(logger, MultipleTemplates, "use_all_admin",
-			"use_multi_admin_template", sandboxDef.SandboxDir, data, true)
+		err = writeScript(logger, MultipleTemplates, globals.ScriptUseAllAdmin,
+			globals.TmplUseMultiAdmin, sandboxDef.SandboxDir, data, true)
 		if err != nil {
 			return err
 		}

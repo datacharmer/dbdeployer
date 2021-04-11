@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2020 Giuseppe Maxia
+// Copyright © 2006-2021 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -113,7 +113,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 
 	common.AddToCleanupStack(common.Rmdir, "Rmdir", sandboxDef.SandboxDir)
 
-	sandboxDef.ReplOptions = SingleTemplates["replication_options"].Contents
+	sandboxDef.ReplOptions = SingleTemplates[globals.TmplReplicationOptions].Contents
 	// baseServerId := sandboxDef.BaseServerId
 	if nodes < 2 {
 		return emptyStringMap, fmt.Errorf("only one node requested. For single sandbox deployment, use the 'single' command")
@@ -227,14 +227,14 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		}
 		logger.Printf("Creating node script for node %d\n", i)
 		logger.Printf("Defining multiple sandbox node inner data: %v\n", stringMapToJson(dataNode))
-		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), "node_template", sandboxDef.SandboxDir, dataNode, true)
+		err = writeScript(logger, MultipleTemplates, fmt.Sprintf("n%d", i), globals.TmplNode, sandboxDef.SandboxDir, dataNode, true)
 		if err != nil {
 			return data, err
 		}
 		if sandboxDef.EnableAdminAddress {
 			logger.Printf("Creating admin script for node %d\n", i)
 			err = writeScript(logger, MultipleTemplates, fmt.Sprintf("na%d", i),
-				"node_admin_template", sandboxDef.SandboxDir, dataNode, true)
+				globals.TmplNodeAdmin, sandboxDef.SandboxDir, dataNode, true)
 			if err != nil {
 				return data, err
 			}
@@ -257,19 +257,19 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		sandboxDir: sandboxDef.SandboxDir,
 		data:       data,
 		scripts: []ScriptDef{
-			{globals.ScriptStartAll, "start_multi_template", true},
-			{globals.ScriptRestartAll, "restart_multi_template", true},
-			{globals.ScriptStatusAll, "status_multi_template", true},
-			{globals.ScriptTestSbAll, "test_sb_multi_template", true},
-			{globals.ScriptStopAll, "stop_multi_template", true},
-			{globals.ScriptClearAll, "clear_multi_template", true},
-			{globals.ScriptSendKillAll, "send_kill_multi_template", true},
-			{globals.ScriptUseAll, "use_multi_template", true},
-			{globals.ScriptExecAll, "exec_multi_template", true},
-			{globals.ScriptMetadataAll, "metadata_multi_template", true},
-			{globals.ScriptReplicateFrom, "replicate_from_multi_template", true},
-			{globals.ScriptSysbench, "sysbench_multi_template", true},
-			{globals.ScriptSysbenchReady, "sysbench_ready_multi_template", true},
+			{globals.ScriptStartAll, globals.TmplStartMulti, true},
+			{globals.ScriptRestartAll, globals.TmplRestartMulti, true},
+			{globals.ScriptStatusAll, globals.TmplStatusMulti, true},
+			{globals.ScriptTestSbAll, globals.TmplTestSbMulti, true},
+			{globals.ScriptStopAll, globals.TmplStopMulti, true},
+			{globals.ScriptClearAll, globals.TmplClearMulti, true},
+			{globals.ScriptSendKillAll, globals.TmplSendKillMulti, true},
+			{globals.ScriptUseAll, globals.TmplUseMulti, true},
+			{globals.ScriptExecAll, globals.TmplExecMulti, true},
+			{globals.ScriptMetadataAll, globals.TmplMetadataMulti, true},
+			{globals.ScriptReplicateFrom, globals.TmplReplicateFromMulti, true},
+			{globals.ScriptSysbench, globals.TmplSysbenchMulti, true},
+			{globals.ScriptSysbenchReady, globals.TmplSysbenchReadyMulti, true},
 		},
 	}
 
@@ -279,8 +279,8 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 	}
 	if sandboxDef.EnableAdminAddress {
 		logger.Printf("Creating admin script for all nodes\n")
-		err = writeScript(logger, MultipleTemplates, "use_all_admin",
-			"use_multi_admin_template", sandboxDef.SandboxDir, data, true)
+		err = writeScript(logger, MultipleTemplates, globals.ScriptUseAllAdmin,
+			globals.TmplUseMultiAdmin, sandboxDef.SandboxDir, data, true)
 		if err != nil {
 			return data, err
 		}

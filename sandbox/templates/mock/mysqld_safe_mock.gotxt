@@ -1,0 +1,36 @@
+#!{{.ShellPath}}
+# This script mimics the minimal behavior of mysqld_safe
+# so that we can run tests for dbdeployer without using the real
+# MySQL binaries.
+defaults_file=$1
+no_defaults_error="No valid defaults file provided: use --defaults-file=filename"
+if [ -z "$defaults_file" ]
+then
+    echo "$no_defaults_error"
+    exit 1
+fi
+valid_defaults=$(echo "$defaults_file" | grep '\--defaults-file')
+if [ -z "$valid_defaults" ]
+then
+    echo "$no_defaults_error"
+    exit 1
+fi
+defaults_file=$(echo $defaults_file| sed 's/--defaults-file=//')
+
+if [ ! -f "$defaults_file" ]
+then
+    echo "defaults file $defaults_file not found"
+    exit 1
+fi
+
+pid_file=$(grep pid-file $defaults_file | awk '{print $3}')
+
+if [ -z "$pid_file" ]
+then
+    echo "PID file not found in  $defaults_file"
+    exit 1
+fi
+
+touch $pid_file
+
+exit 0

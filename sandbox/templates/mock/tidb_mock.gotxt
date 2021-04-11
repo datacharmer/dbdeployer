@@ -1,0 +1,42 @@
+#!{{.ShellPath}}
+# This script mimics the minimal behavior of tidb-server
+# so that we can run tests for dbdeployer without using the real
+# TiDB binaries.
+config=$1
+if [ -z "$config" ]
+then
+    echo "No defaults file provided: use -config filename"
+    exit 1
+fi
+valid_config=$(echo $config | grep '\-config')
+if [ -z "$valid_config" ]
+then
+    echo "Not a valid config spec"
+    exit 1
+fi
+
+config_file=$2
+
+if [ -z "$config_file" ]
+then
+    echo "No configuration file provided"
+    exit 1
+fi
+
+if [ ! -f "$config_file" ]
+then
+    echo "config file $config_file not found"
+    exit 1
+fi
+
+socket_file=$(grep "socket\s*=" $config_file | awk '{print $3}' | tr -d '"')
+
+if [ -z "$socket_file" ]
+then
+    echo "socket file not found in  $config_file"
+    exit 1
+fi
+
+touch $socket_file
+sleep 1
+exit 0

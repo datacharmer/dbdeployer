@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2020 Giuseppe Maxia
+// Copyright © 2006-2021 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -163,10 +163,10 @@ func sandboxDefToJson(sd SandboxDef) string {
 }
 
 func stringMapToJson(data common.StringMap) string {
-	copyright := data["Copyright"]
-	data["Copyright"] = "[skipped] (See 'Copyright' template for full text)"
+	copyright := data[globals.TmplCopyright]
+	data[globals.TmplCopyright] = "[skipped] (See 'copyright' template for full text)"
 	b, err := json.MarshalIndent(data, " ", "\t")
-	data["Copyright"] = copyright
+	data[globals.TmplCopyright] = copyright
 	if err != nil {
 		return "String map could not be encoded"
 	}
@@ -522,7 +522,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		if !isMinimumDataDictionary {
 			return emptyExecutionList, fmt.Errorf(globals.ErrOptionRequiresVersion, "expose-dd-tables", common.IntSliceToDottedString(globals.MinimumDataDictionaryVersion))
 		}
-		sandboxDef.PostGrantsSql = append(sandboxDef.PostGrantsSql, SingleTemplates["expose_dd_tables"].Contents)
+		sandboxDef.PostGrantsSql = append(sandboxDef.PostGrantsSql, SingleTemplates[globals.TmplExposeDdTables].Contents)
 		if sandboxDef.CustomMysqld != "" && sandboxDef.CustomMysqld != "mysqld-debug" {
 			return emptyExecutionList, fmt.Errorf("--expose-dd-tables requires mysqld-debug. A different file was indicated (--custom-mysqld=%s)\n%s",
 				sandboxDef.CustomMysqld, "CoalesceString use \"mysqld-debug\" or remove --custom-mysqld")
@@ -662,7 +662,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		"SbHost":               sandboxDef.SbHost,
 		"Basedir":              sandboxDef.Basedir,
 		"ClientBasedir":        sandboxDef.ClientBasedir,
-		"Copyright":            SingleTemplates["Copyright"].Contents,
+		"Copyright":            SingleTemplates[globals.TmplCopyright].Contents,
 		"AppVersion":           common.VersionDef,
 		"DateTime":             timestamp.Format(time.UnixDate),
 		"SandboxDir":           sandboxDir,
@@ -715,10 +715,10 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 			return emptyExecutionList, fmt.Errorf("task user defined but task role is empty")
 		}
 
-		data["TemplateName"] = "task_user_grants_template"
+		data["TemplateName"] = globals.TmplTaskUserGrants
 		taskUserText, err := common.SafeTemplateFill(
-			"task_user_grants_template",
-			SingleTemplates["task_user_grants_template"].Contents,
+			globals.TmplTaskUserGrants,
+			SingleTemplates[globals.TmplTaskUserGrants].Contents,
 			data)
 		if err != nil {
 			return emptyExecutionList, fmt.Errorf("error filling task user template: %s", err)
@@ -830,7 +830,7 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		}
 	}
 
-	err = writeScript(logger, SingleTemplates, globals.ScriptInitDb, "init_db_template", sandboxDir, data, true)
+	err = writeScript(logger, SingleTemplates, globals.ScriptInitDb, globals.TmplInitDb, sandboxDir, data, true)
 	if err != nil {
 		return emptyExecutionList, err
 	}
@@ -911,43 +911,43 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 		logger:     logger,
 		tc:         SingleTemplates,
 		scripts: []ScriptDef{
-			{globals.ScriptStart, "start_template", true},
-			{globals.ScriptStatus, "status_template", true},
-			{globals.ScriptStop, "stop_template", true},
-			{globals.ScriptClear, "clear_template", true},
-			{globals.ScriptUse, "use_template", true},
-			{globals.ScriptShowLog, "show_log_template", true},
-			{globals.ScriptShowBinlog, "show_binlog_template", true},
-			{globals.ScriptShowRelayLog, "show_relaylog_template", true},
-			{globals.ScriptSendKill, "send_kill_template", true},
-			{globals.ScriptRestart, "restart_template", true},
-			{globals.ScriptLoadGrants, "load_grants_template", true},
-			{globals.ScriptAddOption, "add_option_template", true},
-			{globals.ScriptMy, "my_template", true},
-			{globals.ScriptTestSb, "test_sb_template", true},
-			{globals.ScriptMySandboxCnf, "my_cnf_template", false},
-			{globals.ScriptAfterStart, "after_start_template", true},
-			{globals.ScriptConnectionSql, "connection_info_sql", false},
-			{globals.ScriptConnectionConf, "connection_info_conf", false},
-			{globals.ScriptConnectionJson, "connection_info_json", false},
-			{globals.ScriptReplicateFrom, "replicate_from", true},
-			{globals.ScriptMetadata, "metadata_template", true},
-			{globals.ScriptSysbench, "sysbench_template", true},
-			{globals.ScriptSysbenchReady, "sysbench_ready_template", true},
-			{globals.ScriptWipeAndRestart, "wipe_and_restart_template", true},
+			{globals.ScriptStart, globals.TmplStart, true},
+			{globals.ScriptStatus, globals.TmplStatus, true},
+			{globals.ScriptStop, globals.TmplStop, true},
+			{globals.ScriptClear, globals.TmplClear, true},
+			{globals.ScriptUse, globals.TmplUse, true},
+			{globals.ScriptShowLog, globals.TmplShowLog, true},
+			{globals.ScriptShowBinlog, globals.TmplShowBinlog, true},
+			{globals.ScriptShowRelayLog, globals.TmplShowRelaylog, true},
+			{globals.ScriptSendKill, globals.TmplSendKill, true},
+			{globals.ScriptRestart, globals.TmplRestart, true},
+			{globals.ScriptLoadGrants, globals.TmplLoadGrants, true},
+			{globals.ScriptAddOption, globals.TmplAddOption, true},
+			{globals.ScriptMy, globals.TmplMy, true},
+			{globals.ScriptTestSb, globals.TmplTestSb, true},
+			{globals.ScriptMySandboxCnf, globals.TmplMyCnf, false},
+			{globals.ScriptAfterStart, globals.TmplAfterStart, true},
+			{globals.ScriptConnectionSql, globals.TmplConnectionInfoSql, false},
+			{globals.ScriptConnectionConf, globals.TmplConnectionInfoConf, false},
+			{globals.ScriptConnectionJson, globals.TmplConnectionInfoJson, false},
+			{globals.ScriptReplicateFrom, globals.TmplReplicateFrom, true},
+			{globals.ScriptMetadata, globals.TmplMetadata, true},
+			{globals.ScriptSysbench, globals.TmplSysbench, true},
+			{globals.ScriptSysbenchReady, globals.TmplSysbenchReady, true},
+			{globals.ScriptWipeAndRestart, globals.TmplWipeAndRestart, true},
 		},
 	}
 	if sandboxDef.EnableAdminAddress {
-		sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptUseAdmin, "use_admin_template", true})
+		sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptUseAdmin, globals.TmplUseAdmin, true})
 	}
 	if sandboxDef.MysqlXPort != 0 {
-		sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptMysqlsh, "mysqlsh_template", true})
+		sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptMysqlsh, globals.TmplMysqlsh, true})
 	}
 	if isMinimumClonePlugin {
 		sb.scripts = append(sb.scripts, ScriptDef{
-			globals.ScriptCloneFrom, "clone_from", true})
+			globals.ScriptCloneFrom, globals.TmplCloneFrom, true})
 		sb.scripts = append(sb.scripts, ScriptDef{
-			globals.ScriptCloneConnectionSql, "clone_connection_sql", false})
+			globals.ScriptCloneConnectionSql, globals.TmplCloneConnectionSql, false})
 		logger.Printf("enabling clone scripts")
 	}
 	var grantsTemplateName string = ""
@@ -964,17 +964,17 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 	switch {
 	// 8.0.0
 	case shortVersion == "7.4":
-		grantsTemplateName = "grants_template5x"
+		grantsTemplateName = globals.TmplGrants5x
 	case isMinimumRoles:
-		grantsTemplateName = "grants_template8x"
+		grantsTemplateName = globals.TmplGrants8x
 		// 5.7.6
 	case isMinimumCreateUserVersion:
-		grantsTemplateName = "grants_template57"
+		grantsTemplateName = globals.TmplGrants57
 	default:
-		grantsTemplateName = "grants_template5x"
+		grantsTemplateName = globals.TmplGrants5x
 	}
 	sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptGrantsMysql, grantsTemplateName, false})
-	sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptSbInclude, "sb_include_template", false})
+	sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptSbInclude, globals.TmplSbInclude, false})
 
 	err = writeScripts(sb)
 	if err != nil {

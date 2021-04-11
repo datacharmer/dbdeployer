@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2020 Giuseppe Maxia
+// Copyright © 2006-2021 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -94,10 +94,10 @@ func preserveSandbox(sandboxDir, sandboxName string) {
 	}
 	err := os.Rename(clear, noClear)
 	common.ErrCheckExitf(err, 1, globals.ErrWhileRenamingScript, err)
-	template := sandbox.SingleTemplates["sb_locked_template"].Contents
+	template := sandbox.SingleTemplates[globals.TmplSbLocked].Contents
 	var data = common.StringMap{
 		"ShellPath":    defaults.Defaults().ShellPath,
-		"TemplateName": "sb_locked_template",
+		"TemplateName": globals.TmplSbLocked,
 		"SandboxDir":   sandboxName,
 		"AppVersion":   common.VersionDef,
 		"Copyright":    globals.ShellScriptCopyright,

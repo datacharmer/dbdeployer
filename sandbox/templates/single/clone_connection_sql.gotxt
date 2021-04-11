@@ -1,0 +1,4 @@
+
+-- This file is used by a recipient sandbox
+SET PERSIST clone_valid_donor_list="{{.SbHost}}:{{.Port}}";
+CLONE INSTANCE FROM {{.DbUser}}@{{.SbHost}}:{{.Port}} IDENTIFIED BY '{{.DbPassword}}';
