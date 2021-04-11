@@ -1,0 +1,5 @@
+
+# basic replication options
+relay-log-index=mysql-relay
+relay-log=mysql-relay
+log-bin=mysql-bin

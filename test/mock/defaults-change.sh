@@ -145,7 +145,7 @@ temp_template=t$$.dat
 timestamp=$(date +%Y-%m-%d.%H:%M:%S)
 echo "#!/usr/bin/env bash" > $temp_template
 echo "echo 'I AM A CUSTOM_TEMPLATE CREATED ON $timestamp'" >> $temp_template
-run dbdeployer deploy --use-template=clear_template:$temp_template single 8.0.67
+run dbdeployer deploy --use-template=clear:$temp_template single 8.0.67
 sandbox_dir=$SANDBOX_HOME/msb_8_0_67
 message=$($sandbox_dir/clear)
 ok_contains "custom template" "$message" "CUSTOM_TEMPLATE"
@@ -155,11 +155,11 @@ run dbdeployer delete ALL --skip-confirm
 
 results "After deletion"
 
-run dbdeployer defaults templates export single $mock_dir/templates clear_template
-cp $temp_template $mock_dir/templates/single/clear_template
+run dbdeployer defaults templates export single $mock_dir/templates clear
+cp $temp_template $mock_dir/templates/single/clear
 rm -f $temp_template
 run dbdeployer defaults templates import single $mock_dir/templates
-installed=$(dbdeployer defaults templates list | grep "clear_template" | grep '{F}')
+installed=$(dbdeployer defaults templates list | grep "clear" | grep '{F}')
 echo "# installed template: <$installed>"
 ok "template was installed" "$installed"
 run dbdeployer deploy single 8.0.67

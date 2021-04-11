@@ -1,6 +1,6 @@
 module github.com/datacharmer/dbdeployer
 
-go 1.12
+go 1.16
 
 require (
 	github.com/alexeyco/simpletable v0.0.0-20180729223640-1fa9009f1080

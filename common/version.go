@@ -13,14 +13,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// +build go1.16
+
 package common
 
-// This file was generated during build. Do not edit.
-// Build time: 2021-02-06 15:35
+import (
+	_ "embed"
+	"strings"
+)
 
-var VersionDef string = "1.58.3" // 2021-02-06
+//go:embed VERSION
+var VersionDef string
 
 // Compatible version is the version used to mark compatible archives (templates, configuration).
 // It is usually major.minor.0, except when we are at version 0.x, when
 // every revision may bring incompatibility
-var CompatibleVersion string = "1.58.0" // 2020-12-11
+//go:embed COMPATIBLE_VERSION
+var CompatibleVersion string
+
+func init() {
+	VersionDef = strings.TrimSpace(VersionDef)
+	CompatibleVersion = strings.TrimSpace(CompatibleVersion)
+}

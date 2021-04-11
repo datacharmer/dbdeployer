@@ -58,16 +58,17 @@ func deleteSandbox(cmd *cobra.Command, args []string) {
 		deletionList, err = common.GetInstalledSandboxes(sandboxDir)
 		common.ErrCheckExitf(err, 1, globals.ErrRetrievingSandboxList, err)
 	} else {
+		found := false
 		for _, sb := range deletionList {
 			if sb.SandboxName == sandboxName {
+				found = true
 				deletionList = common.SandboxInfoList{sb}
 				break
 			}
 		}
-		if len(deletionList) > 1 {
+		if !found {
 			common.Exitf(1, "sandbox %s not found", sandboxName)
 		}
-
 	}
 	if len(deletionList) == 0 {
 		common.CondPrintf("Nothing to delete in %s\n", sandboxDir)

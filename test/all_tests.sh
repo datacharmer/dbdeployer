@@ -27,7 +27,7 @@ fi
 version=$1
 if [ -z $version ]
 then
-    version=$(cat .build/VERSION)
+    version=$(cat common/VERSION)
     if [ -z $version ]
     then
         echo "version needed"

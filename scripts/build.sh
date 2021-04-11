@@ -69,16 +69,7 @@ fi
 
 if [ -z "$version" ]
 then
-    version=$(cat .build/VERSION)
-fi
-
-code_generation=.build/code-generation.go
-version_builder=version
-tarball_builder=tarball
-if [ ! -f $code_generation ]
-then
-    echo "File $code_generation not found - aborting"
-    exit 1
+    version=$(cat common/VERSION)
 fi
 
 if [ -z "$target" ]
@@ -86,23 +77,6 @@ then
     echo "Syntax: target [version]"
     echo "      target: (linux | OSX) "
     echo "Set the variable MKDOCS to build the docs-enabled dbdeployer (see README.md)"
-    exit 1
-fi
-
-# Checks whether the regular version and the compatible versions are already in the Go source file
-current_version=$(cat .build/VERSION)
-current_compatible_version=$(cat .build/COMPATIBLE_VERSION)
-is_version=$(grep "VersionDef.*$current_version" common/version.go)
-is_comp_version=$(grep "CompatibleVersion.*$current_compatible_version" common/version.go)
-# if either version is missing from the build file, the source file is created again
-if [ -z "$is_version" -o -z "$is_comp_version" ]
-then
-    go run $code_generation $version_builder
-fi
-go run $code_generation $tarball_builder
-if [ "$?" != "0" ]
-then
-    echo "Error while building tarball registry source file"
     exit 1
 fi
 

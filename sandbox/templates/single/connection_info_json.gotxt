@@ -1,0 +1,7 @@
+
+{
+    "master_host" : "{{.SbHost}}",
+    "master_port" : {{.Port}},
+    "master_user" : "{{.RplUser}}",
+    "master_password" : "{{.RplPassword}}"
+}

@@ -280,7 +280,7 @@ func testCreateTidbMockSandbox(t *testing.T) {
 		fileSet := MockFileSet{
 			"bin",
 			[]ScriptDef{
-				{globals.FnTiDbServer, "tidb_mock_template", true},
+				{globals.FnTiDbServer, globals.TmplTidbMock, true},
 			},
 		}
 		fileSets := []MockFileSet{fileSet}

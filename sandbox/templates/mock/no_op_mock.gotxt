@@ -1,0 +1,23 @@
+#!{{.ShellPath}}
+# The purpose of this script is to run mock tests with a
+# command that returns a wanted exit code
+exit_code=0
+ 
+# The calling procedure can set FAILMOCK to
+# force a failing result.
+if [ -n "$FAILMOCK" ]
+then
+    exit_code=$FAILMOCK
+fi
+# If MOCKMSG is set, the script will display its contents
+if [ -n "$MOCKMSG" ]
+then
+    echo $MOCKMSG
+fi
+
+# If MOCKARGS is set, the script will display its arguments
+if [ -n "$MOCKARGS" ]
+then
+    echo "[$exit_code] $0 $@"
+fi
+exit $exit_code

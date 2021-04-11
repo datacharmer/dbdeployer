@@ -1,0 +1,5 @@
+
+# replication crash-safe options
+master-info-repository=table
+relay-log-info-repository=table
+relay-log-recovery=on

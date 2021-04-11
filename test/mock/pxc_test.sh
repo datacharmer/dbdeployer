@@ -45,9 +45,9 @@ touch $mock_dir/home/.dbdeployer/sandboxes.json
 # Creates a fake $HOME/bin directory, containing the required executables for PXC
 mkdir $mock_dir/home/bin
 export PATH=$PATH:$mock_dir/home/bin
-dbdeployer defaults templates show no_op_mock_template > $mock_dir/home/bin/socat
-dbdeployer defaults templates show no_op_mock_template > $mock_dir/home/bin/rsync
-dbdeployer defaults templates show no_op_mock_template > $mock_dir/home/bin/lsof
+dbdeployer defaults templates show no_op_mock > $mock_dir/home/bin/socat
+dbdeployer defaults templates show no_op_mock > $mock_dir/home/bin/rsync
+dbdeployer defaults templates show no_op_mock > $mock_dir/home/bin/lsof
 chmod +x $mock_dir/home/bin/*
 
 

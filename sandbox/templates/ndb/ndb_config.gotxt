@@ -1,0 +1,26 @@
+
+[system]
+Name={{.ClusterName}}
+
+{{range .NdbNodes}}
+[ndbd]
+DataDir={{.SandboxDir}}/ndb{{.NodeLabel}}{{.Node}}
+HostName=localhost
+NodeId={{.Node}}
+{{end}}
+
+[ndb_mgmd]
+DataDir={{.SandboxDir}}/ndb{{.NodeLabel}}1
+NodeId=1
+HostName=localhost
+PortNumber={{.ClusterPort}}
+
+{{range .SqlNodes}}
+[mysqld]
+NodeId={{.Node}}
+HostName=localhost
+{{end}}
+
+[api]
+NodeId={{.LastNode}}
+HostName=localhost

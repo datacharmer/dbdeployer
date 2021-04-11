@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2020 Giuseppe Maxia
+// Copyright © 2006-2021 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -112,7 +112,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		sandboxDef.LogFileName = common.ReplaceLiteralHome(fileName)
 	}
 
-	sandboxDef.ReplOptions = SingleTemplates["replication_options"].Contents
+	sandboxDef.ReplOptions = SingleTemplates[globals.TmplReplicationOptions].Contents
 	vList, err := common.VersionToList(sandboxDef.Version)
 	if err != nil {
 		return err
@@ -340,7 +340,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 			logger.Printf(installationMessage, slaveLabel, i)
 		}
 		if sandboxDef.SemiSyncOptions != "" {
-			sandboxDef.SemiSyncOptions = SingleTemplates["semisync_slave_options"].Contents
+			sandboxDef.SemiSyncOptions = SingleTemplates[globals.TmplSemisyncSlaveOptions].Contents
 		}
 		logger.Printf("Creating single sandbox for slave %d\n", i)
 		execListNode, err := CreateChildSandbox(sandboxDef)
@@ -367,8 +367,8 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		logger.Printf("Create slave script %d\n", i)
 		err = writeScripts(ScriptBatch{ReplicationTemplates, logger, sandboxDef.SandboxDir, dataSlave,
 			[]ScriptDef{
-				{fmt.Sprintf("%s%d", slaveAbbr, i), "slave_template", true},
-				{fmt.Sprintf("n%d", i+1), "slave_template", true},
+				{fmt.Sprintf("%s%d", slaveAbbr, i), globals.TmplSlave, true},
+				{fmt.Sprintf("n%d", i+1), globals.TmplSlave, true},
 			}})
 		if err != nil {
 			return err
@@ -377,8 +377,8 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 			logger.Printf("Create slave admin script %d\n", i)
 			err = writeScripts(ScriptBatch{ReplicationTemplates, logger, sandboxDef.SandboxDir, dataSlave,
 				[]ScriptDef{
-					{fmt.Sprintf("%sa%d", slaveAbbr, i), "slave_admin_template", true},
-					{fmt.Sprintf("na%d", i+1), "slave_admin_template", true},
+					{fmt.Sprintf("%sa%d", slaveAbbr, i), globals.TmplSlaveAdmin, true},
+					{fmt.Sprintf("na%d", i+1), globals.TmplSlaveAdmin, true},
 				}})
 			if err != nil {
 				return err
@@ -410,38 +410,38 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		sandboxDir: sandboxDef.SandboxDir,
 		data:       data,
 		scripts: []ScriptDef{
-			{globals.ScriptStartAll, "start_all_template", true},
-			{globals.ScriptRestartAll, "restart_all_template", true},
-			{globals.ScriptStatusAll, "status_all_template", true},
-			{globals.ScriptTestSbAll, "test_sb_all_template", true},
-			{globals.ScriptStopAll, "stop_all_template", true},
-			{globals.ScriptClearAll, "clear_all_template", true},
-			{globals.ScriptSendKillAll, "send_kill_all_template", true},
-			{globals.ScriptUseAll, "use_all_template", true},
-			{globals.ScriptExecAll, "exec_all_template", true},
-			{globals.ScriptMetadataAll, "metadata_all_template", true},
-			{useAllSlaves, "use_all_slaves_template", true},
-			{useAllMasters, "use_all_masters_template", true},
-			{initializeSlaves, "init_slaves_template", true},
-			{checkSlaves, "check_slaves_template", true},
-			{masterAbbr, "master_template", true},
-			{execAllSlaves, "exec_all_slaves_template", true},
-			{execAllMasters, "exec_all_masters_template", true},
-			{globals.ScriptWipeRestartAll, "wipe_and_restart_all_template", true},
-			{"n1", "master_template", true},
-			{"test_replication", "test_replication_template", true},
-			{globals.ScriptReplicateFrom, "repl_replicate_from_template", true},
-			{globals.ScriptSysbench, "repl_sysbench_template", true},
-			{globals.ScriptSysbenchReady, "repl_sysbench_ready_template", true},
+			{globals.ScriptStartAll, globals.TmplStartAll, true},
+			{globals.ScriptRestartAll, globals.TmplRestartAll, true},
+			{globals.ScriptStatusAll, globals.TmplStatusAll, true},
+			{globals.ScriptTestSbAll, globals.TmplTestSbAll, true},
+			{globals.ScriptStopAll, globals.TmplStopAll, true},
+			{globals.ScriptClearAll, globals.TmplClearAll, true},
+			{globals.ScriptSendKillAll, globals.TmplSendKillAll, true},
+			{globals.ScriptUseAll, globals.TmplUseAll, true},
+			{globals.ScriptExecAll, globals.TmplExecAll, true},
+			{globals.ScriptMetadataAll, globals.TmplMetadataAll, true},
+			{useAllSlaves, globals.TmplUseAllSlaves, true},
+			{useAllMasters, globals.TmplUseAllMasters, true},
+			{initializeSlaves, globals.TmplInitSlaves, true},
+			{checkSlaves, globals.TmplCheckSlaves, true},
+			{masterAbbr, globals.TmplMaster, true},
+			{execAllSlaves, globals.TmplExecAllSlaves, true},
+			{execAllMasters, globals.TmplExecAllMasters, true},
+			{globals.ScriptWipeRestartAll, globals.TmplWipeAndRestartAll, true},
+			{"n1", globals.TmplMaster, true},
+			{"test_replication", globals.TmplTestReplication, true},
+			{globals.ScriptReplicateFrom, globals.TmplReplReplicateFrom, true},
+			{globals.ScriptSysbench, globals.TmplReplSysbench, true},
+			{globals.ScriptSysbenchReady, globals.TmplReplSysbenchReady, true},
 		},
 	}
 	if sandboxDef.SemiSyncOptions != "" {
-		sb.scripts = append(sb.scripts, ScriptDef{"post_initialization", "semi_sync_start_template", true})
+		sb.scripts = append(sb.scripts, ScriptDef{"post_initialization", globals.TmplSemiSyncStart, true})
 	}
 	if sandboxDef.EnableAdminAddress {
-		sb.scripts = append(sb.scripts, ScriptDef{masterAbbr + "a", "master_admin_template", true})
-		sb.scripts = append(sb.scripts, ScriptDef{"na1", "master_admin_template", true})
-		sb.scripts = append(sb.scripts, ScriptDef{"use_all_admin", "use_all_admin_template", true})
+		sb.scripts = append(sb.scripts, ScriptDef{masterAbbr + "a", globals.TmplMasterAdmin, true})
+		sb.scripts = append(sb.scripts, ScriptDef{"na1", globals.TmplMasterAdmin, true})
+		sb.scripts = append(sb.scripts, ScriptDef{globals.ScriptUseAllAdmin, globals.TmplUseAllAdmin, true})
 	}
 	logger.Printf("Create replication scripts\n")
 	err = writeScripts(sb)
@@ -453,8 +453,9 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	if !sandboxDef.SkipStart {
 		common.CondPrintln(path.Join(common.ReplaceLiteralHome(sandboxDef.SandboxDir), initializeSlaves))
 		logger.Printf("Run replication initialization script \n")
-		_, err = common.RunCmd(path.Join(sandboxDef.SandboxDir, initializeSlaves))
+		out, err := common.RunCmd(path.Join(sandboxDef.SandboxDir, initializeSlaves))
 		if err != nil {
+			fmt.Printf("error initializing cluster: %s\n:%s", out, err)
 			return err
 		}
 	}

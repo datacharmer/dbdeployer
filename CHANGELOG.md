@@ -1,8 +1,14 @@
-## 1.58.3	06-Feb-2021
+## 1.59.0	27-Feb-2021
+
+### Code improvements
+
+* Replace internal template variables with external files (required Go 1.16)
+* Remove `_template` suffix from most template names
+
 
 ### BUGS FIXED
 
-* Fix --use-template to not require `_template` suffix (Issue #125)
+* Fix deletion of specified sandbox when there is only one. Sandbox name was not checked
 
 ## 1.58.2	16-Dec-2020
 
