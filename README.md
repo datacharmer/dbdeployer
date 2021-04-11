@@ -2,7 +2,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.58.2 (20-Dec-2020 14:50 UTC)
+Documentation updated for version 1.59.0 (11-Apr-2021 12:56 UTC)
 
 ![Build Status](https://github.com/datacharmer/dbdeployer/workflows/.github/workflows/all_tests.yml/badge.svg)
 
@@ -58,7 +58,7 @@ Documentation updated for version 1.58.2 (20-Dec-2020 14:50 UTC)
     - [a. NDB to NDB](https://github.com/datacharmer/dbdeployer/wiki/replication-between-sandboxes#a.-ndb-to-ndb)
     - [b. Group replication to group replication](https://github.com/datacharmer/dbdeployer/wiki/replication-between-sandboxes#b.-group-replication-to-group-replication)
     - [c. Master/slave to master/slave.](https://github.com/datacharmer/dbdeployer/wiki/replication-between-sandboxes#c.-master/slave-to-master/slave.)
-    - [d. Hibrid replication](https://github.com/datacharmer/dbdeployer/wiki/replication-between-sandboxes#d.-hibrid-replication)
+    - [d. Hybrid replication](https://github.com/datacharmer/dbdeployer/wiki/replication-between-sandboxes#d.-hybrid-replication)
     - [e. Cloning](https://github.com/datacharmer/dbdeployer/wiki/replication-between-sandboxes#e.-cloning)
 - [Using dbdeployer in scripts](https://github.com/datacharmer/dbdeployer/wiki/using-dbdeployer-in-scripts)
 - [Importing databases into sandboxes](https://github.com/datacharmer/dbdeployer/wiki/importing-databases-into-sandboxes)

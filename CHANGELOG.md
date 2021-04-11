@@ -2,7 +2,7 @@
 
 ### Code improvements
 
-* Replace internal template variables with external files (required Go 1.16)
+* Replace internal template variables with external files (requires Go 1.16)
 * Remove `_template` suffix from most template names
 
 

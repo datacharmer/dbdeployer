@@ -2,7 +2,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.58.2 (20-Dec-2020 14:50 UTC)
+Documentation updated for version 1.59.0 (11-Apr-2021 12:56 UTC)
 
 ![Build Status](https://github.com/datacharmer/dbdeployer/workflows/.github/workflows/all_tests.yml/badge.svg)
 
@@ -58,7 +58,7 @@ Documentation updated for version 1.58.2 (20-Dec-2020 14:50 UTC)
     - [a. NDB to NDB](#a.-ndb-to-ndb)
     - [b. Group replication to group replication](#b.-group-replication-to-group-replication)
     - [c. Master/slave to master/slave.](#c.-master/slave-to-master/slave.)
-    - [d. Hibrid replication](#d.-hibrid-replication)
+    - [d. Hybrid replication](#d.-hybrid-replication)
     - [e. Cloning](#e.-cloning)
 - [Using dbdeployer in scripts](#using-dbdeployer-in-scripts)
 - [Importing databases into sandboxes](#importing-databases-into-sandboxes)
@@ -80,7 +80,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.58.2
+    $ VERSION=1.59.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -90,12 +90,29 @@ For example:
 
 ## Installation via script
 
+![installation](https://raw.githubusercontent.com/datacharmer/dbdeployer/master/docs/dbdeployer-installation.gif)
+
 You can download the [installation script](https://raw.githubusercontent.com/datacharmer/dbdeployer/master/scripts/dbdeployer-install.sh), and run it in your computer.
 The script will find the latest version, download the corresponding binaries, check the SHA256 checksum, and - if given privileges - copy the executable to a directory within `$PATH`.
 
 ```
 $ curl -s https://raw.githubusercontent.com/datacharmer/dbdeployer/master/scripts/dbdeployer-install.sh | bash
 ```
+
+A shortcut is available via the bit.ly service:
+
+```
+$ curl -L -s https://bit.ly/dbdeployer | bash
+```
+
+Finally, there is a third-party service that installs any Go tool. The command to use it for dbdeployer is
+
+```
+$ curl -sf https://gobinaries.com/datacharmer/dbdeployer | sh
+```
+
+Please see [gobinaries.com](https://gobinaries.com) for more info.
+
 
 # Prerequisites
 
@@ -228,7 +245,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.58.2
+    dbdeployer version 1.59.0
     
 
     $ dbdeployer -h
@@ -936,7 +953,7 @@ Size:          0 B
 Notes:         guessed
 ```
 
-Whithout `--dry-run`, it would attempt downloading MySQL 8.0.22. If the download is not available, you will get an error:
+Without `--dry-run`, it would attempt downloading MySQL 8.0.22. If the download is not available, you will get an error:
 
 ```
 $ dbdeployer downloads get-by-version --guess-latest 8.0
@@ -1012,7 +1029,7 @@ Each `*deployment*` or `*operations*` script runs with this syntax:
 ./recipes/script_name.sh [version]
 ```
 
-where `version` is `5.7.23`, or `8.0.12`, or `ndb7.6.9`, or any other recent version of MySQL. For this to work, you ned to have unpacked the tarball binaries for the corresponding version. 
+where `version` is `5.7.23`, or `8.0.12`, or `ndb7.6.9`, or any other recent version of MySQL. For this to work, you need to have unpacked the tarball binaries for the corresponding version. 
 See `./recipes/prerequisites.sh` for practical steps.
 
 You can run the same command several times, provided that you use a different version at every call.
@@ -1145,7 +1162,7 @@ You can deploy a single sandbox for a Percona server version 5.7.22 using any of
     export SANDBOX_BINARY=$HOME/opt/percona
     dbdeployer deploy single 5.7.22
 
-Methods #1 and #2 are equivalent. They set the sandbox binary directory temporarily to a new one, and use it for the current deployement
+Methods #1 and #2 are equivalent. They set the sandbox binary directory temporarily to a new one, and use it for the current deployment
 
 Methods #3 and #4  will set the sandbox binary directory permanently, with the difference that #3 is set for any invocation of dbdeployer system-wide (in a different terminal window, it will use the new value,) while #4 is set only for the current session (in a different terminal window, it will still use the default.)
 
@@ -1341,7 +1358,7 @@ dbdeployer will use your template instead of the original.
 Example:
 
     $ dbdeployer defaults templates export single my_templates
-    # Will export all the templates for the "single" group to the direcory my_templates/single
+    # Will export all the templates for the "single" group to the directory my_templates/single
     $ dbdeployer defaults templates export ALL my_templates
     # exports all templates into my_templates, one directory for each group
     # Edit the templates that you want to change. You can also remove the ones that you want to leave untouched.
@@ -1894,10 +1911,10 @@ data_load_time_diff
 
 Sandboxes created with version 1.56.0+ include two scripts:
 
-* `sysbench` invokes the sysbench utility with the necessary connection options alredy filled. Users can specify all remaining options to complete the task.
+* `sysbench` invokes the sysbench utility with the necessary connection options already filled. Users can specify all remaining options to complete the task.
 * `sysbench_ready` can perform two pre-defined actions: `prepare` or `run`.
 
-In both cases, the sysbench utility must already be installed. The scripts look at the dupporting files in standard loactions. If sysbench was installed manually, errors may occur.
+In both cases, the sysbench utility must already be installed. The scripts look at the supporting files in standard locations. If sysbench was installed manually, errors may occur.
 
 # Obtaining sandbox metadata
 
@@ -2088,10 +2105,10 @@ $  ~/sandboxes/ms_8_0_15_1/replicate_from ms_8_0_15_2
 [...]
 ```
 
-## d. Hibrid replication
+## d. Hybrid replication
 
 Using the same methods, we can replicate from a cluster to a single sandbox (e,g. group replication to single 8.0 sandbox) or the other way around (single 8.0 sandbox to group replication).
-We onlly need to make sure there are no conflicts as mentioned above. The script `replicate_from` can catch some issues, but I am sure there is still room for mistakes. For example, replicating from a NDB cluster to a single sandbox won't work, as the single one can't process the `ndbengine` tables.
+We only need to make sure there are no conflicts as mentioned above. The script `replicate_from` can catch some issues, but I am sure there is still room for mistakes. For example, replicating from an NDB cluster to a single sandbox won't work, as the single one can't process the `ndbengine` tables.
 
 Examples:
 
@@ -2369,10 +2386,10 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.58.2-docs.linux.tar.gz
-* dbdeployer-1.58.2-docs.osx.tar.gz
-* dbdeployer-1.58.2.linux.tar.gz
-* dbdeployer-1.58.2.osx.tar.gz
+* dbdeployer-1.59.0-docs.linux.tar.gz
+* dbdeployer-1.59.0-docs.osx.tar.gz
+* dbdeployer-1.59.0.linux.tar.gz
+* dbdeployer-1.59.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 
