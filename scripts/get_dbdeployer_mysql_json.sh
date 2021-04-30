@@ -1,12 +1,23 @@
 #!/usr/bin/env bash
-
-# Bash script generating JSON entry
-# for dbdeployer's downloads list
+# Bash script generating JSON entry for DBdeployer's downloads list
+# Copyright © 2021 lefred <lefred.descamps@gmail.com>
 
 # v0.1
 
 # 2021-04-30 - lefred - v0.1
 
+html2text_run=$(which html2text 2>/dev/null)
+if [[ $? -ne 0 ]]
+then
+    echo "ERROR: please install html2text (>=2.0)"
+    exit 5
+fi
+html2text_ver=$($html2text_run --version | awk '{print $NF}' | cut -d'.' -f1)
+if [[ $html2text_ver -lt 2 ]]
+then
+    echo "ERROR: please install html2text (>=2.0) - current version is $html2text_ver"
+    exit 5
+fi
 
 categories=(mysql shell cluster)
 os="Linux"
