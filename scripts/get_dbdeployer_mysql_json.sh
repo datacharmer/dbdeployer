@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Bash script generating JSON entry for DBdeployer's downloads list
+# Bash script generating JSON entry for DBDeployer's downloads list
 # Copyright © 2021 lefred <lefred.descamps@gmail.com>
 
 # v0.1
