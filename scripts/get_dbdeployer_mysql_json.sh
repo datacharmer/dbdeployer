@@ -163,7 +163,7 @@ cat << EOL
        "size": ${size::-1},
        "short_version": "${version:0:3}",
        "version": "$version",
-       "notes": "added by  get_dbdeployer_mysql_json.sh",
+       "notes": "added by get_dbdeployer_mysql_json.sh",
        "date_added": "$date_added"
       }
 EOL
