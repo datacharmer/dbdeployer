@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Bash script generating JSON entry
 # for dbdeployer's downloads list
@@ -156,5 +156,4 @@ cat << EOL
        "date_added": "$date_added"
       }
 EOL
-
 
