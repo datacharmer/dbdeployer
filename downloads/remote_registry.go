@@ -50,6 +50,15 @@ type TarballCollection struct {
 	Tarballs          []TarballDescription
 }
 
+func FindTarballByUrl(tarballUrl string) (TarballDescription, error) {
+	for _, tb := range DefaultTarballRegistry.Tarballs {
+		if tb.Url == tarballUrl {
+			return tb, nil
+		}
+	}
+	return TarballDescription{}, fmt.Errorf("tarball with Url %s not found", tarballUrl)
+}
+
 func FindTarballByName(tarballName string) (TarballDescription, error) {
 	for _, tb := range DefaultTarballRegistry.Tarballs {
 		if tb.Name == tarballName {
@@ -58,7 +67,6 @@ func FindTarballByName(tarballName string) (TarballDescription, error) {
 	}
 	return TarballDescription{}, fmt.Errorf("tarball with name %s not found", tarballName)
 }
-
 func DeleteTarball(tarballName string) ([]TarballDescription, error) {
 	var newList []TarballDescription
 	found := false

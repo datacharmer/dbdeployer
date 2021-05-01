@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"strings"
@@ -116,14 +117,52 @@ func getRemoteTarball(cmd *cobra.Command, args []string) {
 	quiet, _ := cmd.Flags().GetBool(globals.QuietLabel)
 	progressStep, _ := cmd.Flags().GetInt64(globals.ProgressStepLabel)
 	dryRun, _ := cmd.Flags().GetBool(globals.DryRunLabel)
+	wantedOs, _ := cmd.Flags().GetString(globals.OSLabel)
 
 	var tarball downloads.TarballDescription
 	var err error
 	var fileName string
 
-	tarball, err = downloads.FindTarballByName(args[0])
-	if err != nil {
-		common.Exitf(1, "%s", err)
+	wanted := args[0]
+
+	if common.IsUrl(wanted) {
+		storedTarball, err := downloads.FindTarballByUrl(wanted)
+		if err == nil {
+			tarball = storedTarball
+		} else {
+			name := filepath.Base(wanted)
+			lowerName := strings.ToLower(name)
+			flavor, version, shortVersion, err := common.FindTarballInfo(name)
+			if err != nil {
+				common.Exitf(1, "%s", err)
+			}
+			tarballOs := runtime.GOOS
+			if wantedOs != "" {
+				tarballOs = wantedOs
+			} else {
+				switch {
+				case strings.Contains(lowerName, "linux"):
+					tarballOs = "linux"
+				case strings.Contains(lowerName, "macos") || strings.Contains(lowerName, "darwin"):
+					tarballOs = "darwin"
+				default:
+					common.Exitf(1, "unable to determine the operating system of tarball '%s'", name)
+				}
+			}
+			tarball = downloads.TarballDescription{
+				Name:            name,
+				Url:             wanted,
+				Flavor:          flavor,
+				ShortVersion:    shortVersion,
+				Version:         version,
+				OperatingSystem: tarballOs,
+			}
+		}
+	} else {
+		tarball, err = downloads.FindTarballByName(wanted)
+		if err != nil {
+			common.Exitf(1, "%s", err)
+		}
 	}
 
 	fileName = tarball.Name
@@ -239,6 +278,7 @@ func getUnpackRemoteTarball(cmd *cobra.Command, args []string) {
 	deleteAfterUnpack, _ := cmd.Flags().GetBool(globals.DeleteAfterUnpackLabel)
 	getRemoteTarball(cmd, args)
 
+	// unpack flags are passed from current command and resolved in the called function
 	unpackTarball(cmd, args)
 	if deleteAfterUnpack {
 		if downloadedTarball == "" {
@@ -557,8 +597,10 @@ func init() {
 	downloadsGetCmd.Flags().BoolP(globals.QuietLabel, "", false, "Do not show download progress")
 	downloadsGetCmd.Flags().Int64P(globals.ProgressStepLabel, "", globals.ProgressStepValue, "Progress interval")
 	downloadsGetCmd.Flags().BoolP(globals.DryRunLabel, "", false, "Show what would be downloaded, but don't run it")
+	downloadsGetCmd.Flags().String(globals.OSLabel, "", "Set the OS of the tarball")
 
 	downloadsGetUnpackCmd.Flags().BoolP(globals.DeleteAfterUnpackLabel, "", false, "Delete the tarball after successful unpack")
+	downloadsGetUnpackCmd.Flags().Bool(globals.DryRunLabel, false, "Show Get operations, but do not run them")
 
 	downloadsAddCmd.Flags().String(globals.OSLabel, "", "Define the tarball OS (default: current OS)")
 	downloadsAddCmd.Flags().String(globals.FlavorLabel, "", "Define the tarball flavor")

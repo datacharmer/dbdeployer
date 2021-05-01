@@ -58,6 +58,7 @@ func unpackTarball(cmd *cobra.Command, args []string) {
 
 	overwrite, _ := flags.GetBool(globals.OverwriteLabel)
 	flavor, _ := flags.GetString(globals.FlavorLabel)
+	dryRun, _ := flags.GetBool(globals.DryRunLabel)
 	if flavor == "" {
 		baseName := common.BaseName(tarball)
 		flavor = common.DetectTarballFlavor(baseName)
@@ -98,12 +99,16 @@ func unpackTarball(cmd *cobra.Command, args []string) {
 	}
 	if common.DirExists(destination) && !isShell {
 		if overwrite {
-			isDeleted, err := deleteBinaries(Basedir, Prefix+Version, false)
-			if !isDeleted {
-				common.Exitf(1, "directory %s could not be removed", Prefix+Version)
-			}
-			if err != nil {
-				common.Exitf(1, "error removing directory %s: %s", Prefix+Version, err)
+			if dryRun {
+				fmt.Printf("delete binaries %s %s\n", Basedir, Prefix+Version)
+			} else {
+				isDeleted, err := deleteBinaries(Basedir, Prefix+Version, false)
+				if !isDeleted {
+					common.Exitf(1, "directory %s could not be removed", Prefix+Version)
+				}
+				if err != nil {
+					common.Exitf(1, "error removing directory %s: %s", Prefix+Version, err)
+				}
 			}
 		} else {
 			common.Exitf(1, globals.ErrNamedDirectoryAlreadyExists, "destination directory", destination)
@@ -132,12 +137,17 @@ func unpackTarball(cmd *cobra.Command, args []string) {
 	bareName = extracted[0 : len(extracted)-len(globals.TarGzExt)]
 	if isShell {
 		common.CondPrintf("Merging shell tarball %s to %s\n", common.ReplaceLiteralHome(tarball), common.ReplaceLiteralHome(destination))
-		err := unpack.MergeShell(tarball, foundExtension, Basedir, destination, bareName, verbosity)
-		common.ErrCheckExitf(err, 1, "error while unpacking mysql shell tarball : %s", err)
+		if !dryRun {
+			err := unpack.MergeShell(tarball, foundExtension, Basedir, destination, bareName, verbosity)
+			common.ErrCheckExitf(err, 1, "error while unpacking mysql shell tarball : %s", err)
+		}
 		return
 	}
 
 	common.CondPrintf("Unpacking tarball %s to %s\n", tarball, common.ReplaceLiteralHome(destination))
+	if dryRun {
+		return
+	}
 	//verbosity_level := unpack.VERBOSE
 	// err := unpack.UnpackTar(tarball, Basedir, verbosity)
 	err = extractFunc(tarball, Basedir, verbosity)
@@ -192,6 +202,7 @@ func init() {
 	unpackCmd.PersistentFlags().String(globals.PrefixLabel, "", "Prefix for the final expanded directory")
 	unpackCmd.PersistentFlags().Bool(globals.ShellLabel, false, "Unpack a shell tarball into the corresponding server directory")
 	unpackCmd.PersistentFlags().Bool(globals.OverwriteLabel, false, "Overwrite the destination directory if already exists")
+	unpackCmd.PersistentFlags().Bool(globals.DryRunLabel, false, "Show unpack operations, but do not run them")
 	unpackCmd.PersistentFlags().String(globals.TargetServerLabel, "", "Uses a different server to unpack a shell tarball")
 	unpackCmd.PersistentFlags().String(globals.FlavorLabel, "", "Defines the tarball flavor (MySQL, NDB, Percona Server, etc)")
 }
