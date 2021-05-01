@@ -538,10 +538,12 @@ func createSingleSandbox(sandboxDef SandboxDef) (execList []concurrent.Execution
 				customMysqld, sandboxDef.CustomMysqld)
 		}
 		pluginDebugDir := fmt.Sprintf("%s/lib/plugin/debug", sandboxDef.Basedir)
-		if sandboxDef.CustomMysqld == "mysqld-debug" && common.DirExists(pluginDebugDir) {
-			sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, fmt.Sprintf("plugin-dir=%s", pluginDebugDir))
-		} else {
-			rightPluginDir = false
+		if sandboxDef.CustomMysqld == "mysqld-debug" {
+			if common.DirExists(pluginDebugDir) {
+				sandboxDef.MyCnfOptions = append(sandboxDef.MyCnfOptions, fmt.Sprintf("plugin-dir=%s", pluginDebugDir))
+			} else {
+				rightPluginDir = false
+			}
 		}
 	}
 	// 5.1.0
