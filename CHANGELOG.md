@@ -1,3 +1,14 @@
+## 1.60.0	01-May-2021
+
+## NEW FEATURES
+
+* (@lefred) Add MySQL 8.0.24 binaries to downloads
+* (@lefred) Add `./scripts/get_dbdeployer_mysql_json.sh`
+
+## BUGS FIXED
+
+*  (@ogroveln) [Allow other custom mysqld than mysqld-debug](https://github.com/datacharmer/dbdeployer/pull/135)
+
 ## 1.59.0	27-Feb-2021
 
 ### Code improvements
