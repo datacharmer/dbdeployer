@@ -70,6 +70,7 @@ case $1 in
             to_grep="_64.tar.gz"
             minimal="false"
         fi
+        # shellcheck disable=SC2066
         for line in "$(curl -s -A "$agent" $url | html2text | grep $to_grep -A 1| grep mysql-[0-9] -A 1)"
         do
             file=$(echo $line | awk '{print substr($1, 2, length($1) - 2)}')
@@ -95,6 +96,7 @@ case $1 in
         then
             to_grep="tar.gz"
         fi
+        # shellcheck disable=SC2066
         for line in "$(curl -s -A "$agent" $url | html2text | grep $to_grep -A 1)"
         do
             file=$(echo $line | awk '{print substr($1, 2, length($1) - 2)}')
@@ -130,6 +132,7 @@ case $1 in
             fi
             url="https://dev.mysql.com/downloads/cluster/7.6.html"
         fi
+        # shellcheck disable=SC2066
         for line in "$(curl -s -A "$agent" $url | html2text | grep $to_grep -A 1| grep mysql-cluster -A 1)"
         do
             file=$(echo $line | awk '{print substr($1, 2, length($1) - 2)}')
@@ -157,13 +160,13 @@ cat << EOL
        "name": "$file",
        "checksum": "MD5:$checksum",
        "OS": "$os",
-       "url": " ${url_file}/${url_file_2}/$file",
+       "url": "${url_file}/${url_file_2}/$file",
        "flavor": "$flavor",
        "minimal": $minimal,
        "size": ${size::-1},
        "short_version": "${version:0:3}",
        "version": "$version",
-       "notes": "added by get_dbdeployer_mysql_json.sh",
+       "updated_by": "get_dbdeployer_mysql_json.sh",
        "date_added": "$date_added"
       }
 EOL
