@@ -1,3 +1,10 @@
+## 1.61.0	08-May-2021
+
+## NEW FEATURES
+
+* "downloads get" can also use direct URL instead of tarball names
+* Add command "downloads add-stdin"
+
 ## 1.60.0	01-May-2021
 
 ## NEW FEATURES
@@ -7,7 +14,7 @@
 
 ## BUGS FIXED
 
-*  (@ogroveln) [Allow other custom mysqld than mysqld-debug](https://github.com/datacharmer/dbdeployer/pull/135)
+*  (@ogrovlen) [Allow other custom mysqld than mysqld-debug](https://github.com/datacharmer/dbdeployer/pull/135)
 
 ## 1.59.0	27-Feb-2021
 

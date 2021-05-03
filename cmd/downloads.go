@@ -16,6 +16,7 @@
 package cmd
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -404,7 +405,6 @@ func importTarballCollection(cmd *cobra.Command, args []string) {
 	}
 	fmt.Printf("Tarball list imported from %s to %s\n", fileName, downloads.TarballFileRegistry)
 }
-
 func addTarballToCollection(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	if len(args) < 1 {
@@ -461,6 +461,47 @@ func addTarballToCollection(cmd *cobra.Command, args []string) {
 		common.Exitf(1, "error collecting tarball info: %s", err)
 	}
 
+	tarballCollection.Tarballs = append(tarballCollection.Tarballs, tarballDesc)
+
+	err = downloads.WriteTarballFileInfo(tarballCollection)
+	if err != nil {
+		common.Exitf(1, "error writing tarball list: %s", err)
+	}
+	fmt.Printf("Tarball below added to %s\n", downloads.TarballFileRegistry)
+	displayTarball(tarballDesc)
+}
+
+func addTarballToCollectionFromStdin(cmd *cobra.Command, args []string) {
+	var err error
+	var tarballCollection = downloads.DefaultTarballRegistry
+	overwrite, _ := cmd.Flags().GetBool(globals.OverwriteLabel)
+	scanner := bufio.NewScanner(os.Stdin)
+
+	text := ""
+	for scanner.Scan() {
+		text += scanner.Text()
+	}
+	var tarballDesc downloads.TarballDescription
+	err = json.Unmarshal([]byte(text), &tarballDesc)
+	if err != nil {
+		common.Exitf(1, "error decoding JSON item:%s", err)
+	}
+	existingTarball, err := downloads.FindTarballByName(tarballDesc.Name)
+	if err == nil {
+		if overwrite {
+			var newList []downloads.TarballDescription
+			newList, err = downloads.DeleteTarball(tarballDesc.Name)
+			if err != nil {
+				common.Exitf(1, "error removing tarball %s from list", tarballDesc.Name)
+			}
+			tarballCollection.Tarballs = newList
+		} else {
+			displayTarball(existingTarball)
+			fmt.Println()
+			common.Exitf(1, "tarball %s already in the list", tarballDesc.Name)
+		}
+	}
+	tarballDesc.Notes = fmt.Sprintf("added with version %s", common.VersionDef)
 	tarballCollection.Tarballs = append(tarballCollection.Tarballs, tarballDesc)
 
 	err = downloads.WriteTarballFileInfo(tarballCollection)
@@ -563,6 +604,14 @@ var downloadsAddCmd = &cobra.Command{
 	Run: addTarballToCollection,
 }
 
+var downloadsAddStdinCmd = &cobra.Command{
+	Use:   "add-stdin ",
+	Short: "Adds a tarball to the list from standard input",
+	Long:  ``,
+
+	Run: addTarballToCollectionFromStdin,
+}
+
 var downloadsCmd = &cobra.Command{
 	Use:   "downloads",
 	Short: "Manages remote tarballs",
@@ -580,6 +629,7 @@ func init() {
 	downloadsCmd.AddCommand(downloadsGetByVersionCmd)
 	downloadsCmd.AddCommand(downloadsGetUnpackCmd)
 	downloadsCmd.AddCommand(downloadsAddCmd)
+	downloadsCmd.AddCommand(downloadsAddStdinCmd)
 
 	downloadsListCmd.Flags().BoolP(globals.ShowUrlLabel, "", false, "Show the URL")
 	downloadsListCmd.Flags().String(globals.FlavorLabel, "", "Which flavor will be listed")
@@ -611,6 +661,8 @@ func init() {
 	downloadsAddCmd.Flags().BoolP(globals.OverwriteLabel, "", false, "Overwrite existing entry")
 	_ = downloadsAddCmd.MarkFlagRequired(globals.UrlLabel)
 	_ = downloadsAddCmd.MarkFlagRequired(globals.OSLabel)
+
+	downloadsAddStdinCmd.Flags().BoolP(globals.OverwriteLabel, "", false, "Overwrite existing entry")
 
 	// downloadsGetUnpack needs the same flags that cmdUnpack has
 	downloadsGetUnpackCmd.Flags().Int64P(globals.ProgressStepLabel, "", globals.ProgressStepValue, "Progress interval")
