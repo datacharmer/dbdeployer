@@ -758,7 +758,7 @@ fi
 [ -z "$ndb_short_versions" ] && ndb_short_versions=(ndb7.6 ndb8.0)
 count=0
 all_versions=()
-tidb_versions=(tidb3.0.0)
+tidb_versions=(tidb3.0.0 tidb4.0.0)
 group_versions=()
 semisync_versions=()
 dd_versions=()
