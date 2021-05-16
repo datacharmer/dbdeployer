@@ -596,6 +596,12 @@ File $PWD/mysql-8.0.22-macos10.14-x86_64.tar.gz downloaded
 No checksum to compare
 ```
 
+### Deprecated
+
+As of version 1.61.0, the option `--guess latest` is deprecated, as the download pattern is not always predictable.
+Instead of it, you should use `dbdeployer downloads add-remote` to include the newest tarballs to the list, and then
+you can download from the enhanced list.
+
 # Practical examples
 
 Several examples of dbdeployer usages are avaibale with the command ``dbdeployer cookbook``
