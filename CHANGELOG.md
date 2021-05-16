@@ -1,9 +1,11 @@
-## 1.61.0	08-May-2021
+## 1.61.0	17-May-2021
 
 ## NEW FEATURES
 
-* "downloads get" can also use direct URL instead of tarball names
-* Add command "downloads add-stdin"
+* Command "downloads get" can also use direct URL instead of tarball names
+* Add (hidden) command "downloads add-stdin"
+* Add command "downloads add-remote"
+* Add option `--version` to "downloads list"
 
 ## 1.60.0	01-May-2021
 

@@ -51,6 +51,7 @@ func listRemoteTarballs(cmd *cobra.Command, args []string) {
 
 	flavor, _ := cmd.Flags().GetString(globals.FlavorLabel)
 	OS, _ := cmd.Flags().GetString(globals.OSLabel)
+	version, _ := cmd.Flags().GetString(globals.VersionLabel)
 	OS = strings.ToLower(OS)
 	flavor = strings.ToLower(flavor)
 	showUrl, _ := cmd.Flags().GetBool(globals.ShowUrlLabel)
@@ -98,11 +99,16 @@ func listRemoteTarballs(cmd *cobra.Command, args []string) {
 		cells = append(cells, &simpletable.Cell{Text: tb.Flavor})
 		cells = append(cells, &simpletable.Cell{Align: simpletable.AlignRight, Text: humanize.Bytes(uint64(tb.Size))})
 		cells = append(cells, &simpletable.Cell{Text: minimalTag})
-		if flavor == strings.ToLower(tb.Flavor) || flavor == "" || flavor == "all" {
-			if OS == strings.ToLower(tb.OperatingSystem) || OS == "" || OS == "all" {
-				table.Body.Cells = append(table.Body.Cells, cells)
-			}
+		if version != "" && version != "all" && version != tb.Version && version != tb.ShortVersion {
+			continue
 		}
+		if flavor != "" && flavor != "all" && flavor != strings.ToLower(tb.Flavor) {
+			continue
+		}
+		if OS != "" && strings.ToLower(OS) != "all" && OS != strings.ToLower(tb.OperatingSystem) {
+			continue
+		}
+		table.Body.Cells = append(table.Body.Cells, cells)
 	}
 	table.SetStyle(simpletable.StyleCompactLite)
 	table.Println()
@@ -244,8 +250,9 @@ func getRemoteTarballByVersion(cmd *cobra.Command, args []string) {
 
 	tarball, err = downloads.FindOrGuessTarballByVersionFlavorOS(version, flavor, OS, minimal, newest, guessLatest)
 	if err != nil {
-		common.Exitf(1, "Error getting version %s (%s-%s)[minimal: %v - newest: %v - guess: %v]: %s",
-			version, flavor, OS, minimal, newest, guessLatest, err)
+		common.Exit(1, fmt.Sprintf("Error getting version %s (%s-%s)[minimal: %v - newest: %v - guess: %v]: %s",
+			version, flavor, OS, minimal, newest, guessLatest, err),
+			fmt.Sprintf("Try using 'dbdeployer downloads get-remote mysql %s %s'", version, OS))
 	}
 
 	fileName = tarball.Name
@@ -405,6 +412,62 @@ func importTarballCollection(cmd *cobra.Command, args []string) {
 	}
 	fmt.Printf("Tarball list imported from %s to %s\n", fileName, downloads.TarballFileRegistry)
 }
+
+func addRemoteTarballToCollection(cmd *cobra.Command, args []string) {
+	flags := cmd.Flags()
+	if len(args) < 3 {
+		common.Exit(1, "command 'add' requires tarball type, short version, and operating system")
+	}
+	tarballType := downloads.TarballType(args[0])
+
+	list, err := downloads.GetRemoteTarballList(tarballType, args[1], args[2], true)
+
+	if err != nil {
+		common.Exitf(1, "error getting remote tarball description: %s", err)
+	}
+
+	var tarballCollection = downloads.DefaultTarballRegistry
+	minimal, _ := flags.GetBool(globals.MinimalLabel)
+	overwrite, _ := flags.GetBool(globals.OverwriteLabel)
+	var added []downloads.TarballDescription
+	for _, tb := range list {
+		if minimal && !tb.Minimal {
+			continue
+		}
+		existingTarball, err := downloads.FindTarballByName(tb.Name)
+		if err == nil {
+			if overwrite {
+				var newList []downloads.TarballDescription
+				newList, err = downloads.DeleteTarball(tb.Name)
+				if err != nil {
+					common.Exitf(1, "error removing tarball %s from list", tb.Name)
+				}
+				tarballCollection.Tarballs = newList
+			} else {
+				displayTarball(existingTarball)
+				fmt.Println()
+				common.Exitf(1, "tarball %s already in the list", tb.Name)
+			}
+		}
+
+		tb.DateAdded = time.Now().Format("2006-01-02 15:04")
+		tb.Notes = fmt.Sprintf("added with version %s", common.VersionDef)
+		tarballCollection.Tarballs = append(tarballCollection.Tarballs, tb)
+		added = append(added, tb)
+	}
+	if len(added) == 0 {
+		common.Exitf(1, "no tarballs found to add")
+	}
+	err = downloads.WriteTarballFileInfo(tarballCollection)
+	if err != nil {
+		common.Exitf(1, "error writing tarball list: %s", err)
+	}
+	fmt.Printf("Tarball below added to %s\n", downloads.TarballFileRegistry)
+	for _, tb := range added {
+		displayTarball(tb)
+	}
+}
+
 func addTarballToCollection(cmd *cobra.Command, args []string) {
 	flags := cmd.Flags()
 	if len(args) < 1 {
@@ -604,10 +667,20 @@ var downloadsAddCmd = &cobra.Command{
 	Run: addTarballToCollection,
 }
 
+var downloadsAddRemoteCmd = &cobra.Command{
+	Use:   "add-remote tarball-type short-version operating-system",
+	Short: "Adds a tarball to the list, by searching MySQL downloads site ",
+	Long: `This command can add a tarball by searching the MySQL site for one of these
+tarball types: mysql, cluster, shell`,
+
+	Run: addRemoteTarballToCollection,
+}
+
 var downloadsAddStdinCmd = &cobra.Command{
-	Use:   "add-stdin ",
-	Short: "Adds a tarball to the list from standard input",
-	Long:  ``,
+	Use:    "add-stdin ",
+	Short:  "Adds a tarball to the list from standard input",
+	Long:   ``,
+	Hidden: true,
 
 	Run: addTarballToCollectionFromStdin,
 }
@@ -629,11 +702,13 @@ func init() {
 	downloadsCmd.AddCommand(downloadsGetByVersionCmd)
 	downloadsCmd.AddCommand(downloadsGetUnpackCmd)
 	downloadsCmd.AddCommand(downloadsAddCmd)
+	downloadsCmd.AddCommand(downloadsAddRemoteCmd)
 	downloadsCmd.AddCommand(downloadsAddStdinCmd)
 
 	downloadsListCmd.Flags().BoolP(globals.ShowUrlLabel, "", false, "Show the URL")
 	downloadsListCmd.Flags().String(globals.FlavorLabel, "", "Which flavor will be listed")
 	downloadsListCmd.Flags().String(globals.OSLabel, "", "Which OS will be listed")
+	downloadsListCmd.Flags().String(globals.VersionLabel, "", "Which version will be listed")
 
 	downloadsGetByVersionCmd.Flags().BoolP(globals.NewestLabel, "", false, "Choose only the newest tarballs not yet downloaded")
 	downloadsGetByVersionCmd.Flags().BoolP(globals.DryRunLabel, "", false, "Show what would be downloaded, but don't run it")
@@ -661,6 +736,9 @@ func init() {
 	downloadsAddCmd.Flags().BoolP(globals.OverwriteLabel, "", false, "Overwrite existing entry")
 	_ = downloadsAddCmd.MarkFlagRequired(globals.UrlLabel)
 	_ = downloadsAddCmd.MarkFlagRequired(globals.OSLabel)
+
+	downloadsAddRemoteCmd.Flags().BoolP(globals.OverwriteLabel, "", false, "Overwrite existing entry")
+	downloadsAddRemoteCmd.Flags().BoolP(globals.MinimalLabel, "", false, "Define whether the wanted tarball is a minimal one")
 
 	downloadsAddStdinCmd.Flags().BoolP(globals.OverwriteLabel, "", false, "Overwrite existing entry")
 

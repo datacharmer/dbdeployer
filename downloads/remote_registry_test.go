@@ -142,12 +142,15 @@ func TestFindOrGuessTarballByVersionFlavorOS(t *testing.T) {
 func TestTarballRegistry(t *testing.T) {
 
 	for _, tarball := range DefaultTarballRegistry.Tarballs {
-		err := checkRemoteUrl(tarball.Url)
+		size, err := checkRemoteUrl(tarball.Url)
 		if err != nil {
 			t.Logf("not ok - tarball %s check failed: %s", tarball.Name, err)
 			t.Fail()
 		} else {
 			t.Logf("ok - tarball %s found", tarball.Name)
+			if size == 0 {
+				t.Logf("not ok - size 0 for tarball %s", tarball.Name)
+			}
 		}
 	}
 }
