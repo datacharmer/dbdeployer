@@ -2,7 +2,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.58.2 (17-Mar-2021 13:55 UTC)
+Documentation updated for version 1.61.0 (16-May-2021 15:39 UTC)
 
 ![Build Status](https://github.com/datacharmer/dbdeployer/workflows/.github/workflows/all_tests.yml/badge.svg)
 
@@ -80,7 +80,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.58.2
+    $ VERSION=1.61.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -89,6 +89,8 @@ For example:
     $ sudo mv dbdeployer-$VERSION.$OS /usr/local/bin/dbdeployer
 
 ## Installation via script
+
+![installation](https://raw.githubusercontent.com/datacharmer/dbdeployer/master/docs/dbdeployer-installation.gif)
 
 You can download the [installation script](https://raw.githubusercontent.com/datacharmer/dbdeployer/master/scripts/dbdeployer-install.sh), and run it in your computer.
 The script will find the latest version, download the corresponding binaries, check the SHA256 checksum, and - if given privileges - copy the executable to a directory within `$PATH`.
@@ -243,7 +245,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.59.0
+    dbdeployer version 1.61.0
     
 
     $ dbdeployer -h
@@ -280,7 +282,7 @@ The program doesn't have any dependencies. Everything is included in the binary.
       -h, --help                    help for dbdeployer
           --sandbox-binary string   Binary repository (default "$HOME/opt/mysql")
           --sandbox-home string     Sandbox deployment directory (default "$HOME/sandboxes")
-          --shell-path string       Which shell to use for generated scripts (default "/usr/local/bin/bash")
+          --shell-path string       Path to Bash, used for generated scripts (default "/usr/local/bin/bash")
           --skip-library-check      Skip check for needed libraries (may cause nasty errors)
       -v, --version                 version for dbdeployer
     
@@ -321,6 +323,7 @@ If you don't have any tarballs installed in your system, you should first ``unpa
     	
     
     Flags:
+          --dry-run                 Show unpack operations, but do not run them
           --flavor string           Defines the tarball flavor (MySQL, NDB, Percona Server, etc)
       -h, --help                    help for unpack
           --overwrite               Overwrite the destination directory if already exists
@@ -817,6 +820,7 @@ Size:          1.1 GB
       dbdeployer downloads get tarball_name [options] [flags]
     
     Flags:
+          --OS string           Set the OS of the tarball
           --dry-run             Show what would be downloaded, but don't run it
       -h, --help                help for get
           --progress-step int   Progress interval (default 10485760)
@@ -831,6 +835,7 @@ Size:          1.1 GB
     
     Available Commands:
       add            Adds a tarball to the list
+      add-remote     Adds a tarball to the list, by searching MySQL downloads site 
       export         Exports the list of tarballs to a file
       get            Downloads a remote tarball
       get-by-version Downloads a remote tarball
@@ -967,6 +972,12 @@ Downloading mysql-8.0.22-macos10.14-x86_64.tar.gz
 File $PWD/mysql-8.0.22-macos10.14-x86_64.tar.gz downloaded
 No checksum to compare
 ```
+
+### Deprecated
+
+As of version 1.61.0, the option `--guess latest` is deprecated, as the download pattern is not always predictable.
+Instead of it, you should use `dbdeployer downloads add-remote` to include the newest tarballs to the list, and then
+you can download from the enhanced list.
 
 # Practical examples
 
@@ -2384,10 +2395,10 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.58.2-docs.linux.tar.gz
-* dbdeployer-1.58.2-docs.osx.tar.gz
-* dbdeployer-1.58.2.linux.tar.gz
-* dbdeployer-1.58.2.osx.tar.gz
+* dbdeployer-1.61.0-docs.linux.tar.gz
+* dbdeployer-1.61.0-docs.osx.tar.gz
+* dbdeployer-1.61.0.linux.tar.gz
+* dbdeployer-1.61.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

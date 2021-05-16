@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2020 Giuseppe Maxia
+// Copyright © 2006-2021 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import (
 	"path"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/datacharmer/dbdeployer/common"
@@ -50,6 +51,15 @@ type TarballCollection struct {
 	Tarballs          []TarballDescription
 }
 
+func FindTarballByUrl(tarballUrl string) (TarballDescription, error) {
+	for _, tb := range DefaultTarballRegistry.Tarballs {
+		if tb.Url == tarballUrl {
+			return tb, nil
+		}
+	}
+	return TarballDescription{}, fmt.Errorf("tarball with Url %s not found", tarballUrl)
+}
+
 func FindTarballByName(tarballName string) (TarballDescription, error) {
 	for _, tb := range DefaultTarballRegistry.Tarballs {
 		if tb.Name == tarballName {
@@ -58,7 +68,6 @@ func FindTarballByName(tarballName string) (TarballDescription, error) {
 	}
 	return TarballDescription{}, fmt.Errorf("tarball with name %s not found", tarballName)
 }
-
 func DeleteTarball(tarballName string) ([]TarballDescription, error) {
 	var newList []TarballDescription
 	found := false
@@ -291,6 +300,10 @@ func LoadTarballFileInfo() error {
 }
 
 func WriteTarballFileInfo(collection TarballCollection) error {
+	err := CheckTarballList(collection.Tarballs)
+	if err != nil {
+		return fmt.Errorf("[write tarball file info] tarball list check failed : %s", err)
+	}
 	text, err := json.MarshalIndent(collection, " ", " ")
 	if err != nil {
 		return err
@@ -372,18 +385,24 @@ func GetTarballInfo(fileName string, description TarballDescription) (TarballDes
 	return description, nil
 }
 
-func checkRemoteUrl(remoteUrl string) error {
+func checkRemoteUrl(remoteUrl string) (int64, error) {
 	// #nosec G107
 	resp, err := http.Get(remoteUrl)
 	if err != nil {
-		return fmt.Errorf("[checkRemoteUrl] error getting %s: %s", remoteUrl, err)
+		return 0, fmt.Errorf("[checkRemoteUrl] error getting %s: %s", remoteUrl, err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("[checkRemoteUrl] received code %d ", resp.StatusCode)
+		return 0, fmt.Errorf("[checkRemoteUrl] received code %d ", resp.StatusCode)
 	}
-	return nil
+	var size int64 = 0
+	for key := range resp.Header {
+		if key == "Content-Length" && len(resp.Header[key]) > 0 {
+			size, _ = strconv.ParseInt(resp.Header[key][0], 10, 0)
+		}
+	}
+	return size, nil
 }
 
 func CheckTarballList(tarballList []TarballDescription) error {

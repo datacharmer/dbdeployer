@@ -40,6 +40,12 @@ __dbdeployer_handle_go_custom_completion()
 {
     __dbdeployer_debug "${FUNCNAME[0]}: cur is ${cur}, words[*] is ${words[*]}, #words[@] is ${#words[@]}"
 
+    local shellCompDirectiveError=1
+    local shellCompDirectiveNoSpace=2
+    local shellCompDirectiveNoFileComp=4
+    local shellCompDirectiveFilterFileExt=8
+    local shellCompDirectiveFilterDirs=16
+
     local out requestComp lastParam lastChar comp directive args
 
     # Prepare the command to request completions for the program.
@@ -73,24 +79,50 @@ __dbdeployer_handle_go_custom_completion()
     __dbdeployer_debug "${FUNCNAME[0]}: the completion directive is: ${directive}"
     __dbdeployer_debug "${FUNCNAME[0]}: the completions are: ${out[*]}"
 
-    if [ $((directive & 1)) -ne 0 ]; then
+    if [ $((directive & shellCompDirectiveError)) -ne 0 ]; then
         # Error code.  No completion.
         __dbdeployer_debug "${FUNCNAME[0]}: received error from custom completion go code"
         return
     else
-        if [ $((directive & 2)) -ne 0 ]; then
+        if [ $((directive & shellCompDirectiveNoSpace)) -ne 0 ]; then
             if [[ $(type -t compopt) = "builtin" ]]; then
                 __dbdeployer_debug "${FUNCNAME[0]}: activating no space"
                 compopt -o nospace
             fi
         fi
-        if [ $((directive & 4)) -ne 0 ]; then
+        if [ $((directive & shellCompDirectiveNoFileComp)) -ne 0 ]; then
             if [[ $(type -t compopt) = "builtin" ]]; then
                 __dbdeployer_debug "${FUNCNAME[0]}: activating no file completion"
                 compopt +o default
             fi
         fi
+    fi
 
+    if [ $((directive & shellCompDirectiveFilterFileExt)) -ne 0 ]; then
+        # File extension filtering
+        local fullFilter filter filteringCmd
+        # Do not use quotes around the $out variable or else newline
+        # characters will be kept.
+        for filter in ${out[*]}; do
+            fullFilter+="$filter|"
+        done
+
+        filteringCmd="_filedir $fullFilter"
+        __dbdeployer_debug "File filtering command: $filteringCmd"
+        $filteringCmd
+    elif [ $((directive & shellCompDirectiveFilterDirs)) -ne 0 ]; then
+        # File completion for directories only
+        local subDir
+        # Use printf to strip any trailing newline
+        subdir=$(printf "%s" "${out[0]}")
+        if [ -n "$subdir" ]; then
+            __dbdeployer_debug "Listing directories in $subdir"
+            __dbdeployer_handle_subdirs_in_dir_flag "$subdir"
+        else
+            __dbdeployer_debug "Listing directories in ."
+            _filedir -d
+        fi
+    else
         while IFS='' read -r comp; do
             COMPREPLY+=("$comp")
         done < <(compgen -W "${out[*]}" -- "$cur")
@@ -159,10 +191,9 @@ __dbdeployer_handle_reply()
     local completions
     completions=("${commands[@]}")
     if [[ ${#must_have_one_noun[@]} -ne 0 ]]; then
-        completions=("${must_have_one_noun[@]}")
+        completions+=("${must_have_one_noun[@]}")
     elif [[ -n "${has_completion_function}" ]]; then
         # if a go completion function is provided, defer to that function
-        completions=()
         __dbdeployer_handle_go_custom_completion
     fi
     if [[ ${#must_have_one_flag[@]} -ne 0 ]]; then
@@ -1213,6 +1244,7 @@ _dbdeployer_defaults_templates_list()
     flags+=("--simple")
     flags+=("-s")
     local_nonpersistent_flags+=("--simple")
+    local_nonpersistent_flags+=("-s")
     flags+=("--config=")
     two_word_flags+=("--config")
     flags+=("--sandbox-binary=")
@@ -2010,9 +2042,11 @@ _dbdeployer_downloads_add()
 
     flags+=("--OS=")
     two_word_flags+=("--OS")
+    local_nonpersistent_flags+=("--OS")
     local_nonpersistent_flags+=("--OS=")
     flags+=("--flavor=")
     two_word_flags+=("--flavor")
+    local_nonpersistent_flags+=("--flavor")
     local_nonpersistent_flags+=("--flavor=")
     flags+=("--minimal")
     local_nonpersistent_flags+=("--minimal")
@@ -2020,12 +2054,15 @@ _dbdeployer_downloads_add()
     local_nonpersistent_flags+=("--overwrite")
     flags+=("--short-version=")
     two_word_flags+=("--short-version")
+    local_nonpersistent_flags+=("--short-version")
     local_nonpersistent_flags+=("--short-version=")
     flags+=("--url=")
     two_word_flags+=("--url")
+    local_nonpersistent_flags+=("--url")
     local_nonpersistent_flags+=("--url=")
     flags+=("--version=")
     two_word_flags+=("--version")
+    local_nonpersistent_flags+=("--version")
     local_nonpersistent_flags+=("--version=")
     flags+=("--config=")
     two_word_flags+=("--config")
@@ -2040,6 +2077,39 @@ _dbdeployer_downloads_add()
     must_have_one_flag=()
     must_have_one_flag+=("--OS=")
     must_have_one_flag+=("--url=")
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
+_dbdeployer_downloads_add-remote()
+{
+    last_command="dbdeployer_downloads_add-remote"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--minimal")
+    local_nonpersistent_flags+=("--minimal")
+    flags+=("--overwrite")
+    local_nonpersistent_flags+=("--overwrite")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--sandbox-binary=")
+    two_word_flags+=("--sandbox-binary")
+    flags+=("--sandbox-home=")
+    two_word_flags+=("--sandbox-home")
+    flags+=("--shell-path=")
+    two_word_flags+=("--shell-path")
+    flags+=("--skip-library-check")
+
+    must_have_one_flag=()
     must_have_one_noun=()
     noun_aliases=()
 }
@@ -2089,10 +2159,15 @@ _dbdeployer_downloads_get()
     flags_with_completion=()
     flags_completion=()
 
+    flags+=("--OS=")
+    two_word_flags+=("--OS")
+    local_nonpersistent_flags+=("--OS")
+    local_nonpersistent_flags+=("--OS=")
     flags+=("--dry-run")
     local_nonpersistent_flags+=("--dry-run")
     flags+=("--progress-step=")
     two_word_flags+=("--progress-step")
+    local_nonpersistent_flags+=("--progress-step")
     local_nonpersistent_flags+=("--progress-step=")
     flags+=("--quiet")
     local_nonpersistent_flags+=("--quiet")
@@ -2127,11 +2202,13 @@ _dbdeployer_downloads_get-by-version()
 
     flags+=("--OS=")
     two_word_flags+=("--OS")
+    local_nonpersistent_flags+=("--OS")
     local_nonpersistent_flags+=("--OS=")
     flags+=("--dry-run")
     local_nonpersistent_flags+=("--dry-run")
     flags+=("--flavor=")
     two_word_flags+=("--flavor")
+    local_nonpersistent_flags+=("--flavor")
     local_nonpersistent_flags+=("--flavor=")
     flags+=("--guess-latest")
     local_nonpersistent_flags+=("--guess-latest")
@@ -2141,6 +2218,7 @@ _dbdeployer_downloads_get-by-version()
     local_nonpersistent_flags+=("--newest")
     flags+=("--progress-step=")
     two_word_flags+=("--progress-step")
+    local_nonpersistent_flags+=("--progress-step")
     local_nonpersistent_flags+=("--progress-step=")
     flags+=("--quiet")
     local_nonpersistent_flags+=("--quiet")
@@ -2175,6 +2253,8 @@ _dbdeployer_downloads_get-unpack()
 
     flags+=("--delete-after-unpack")
     local_nonpersistent_flags+=("--delete-after-unpack")
+    flags+=("--dry-run")
+    local_nonpersistent_flags+=("--dry-run")
     flags+=("--flavor=")
     two_word_flags+=("--flavor")
     flags+=("--overwrite")
@@ -2182,6 +2262,7 @@ _dbdeployer_downloads_get-unpack()
     two_word_flags+=("--prefix")
     flags+=("--progress-step=")
     two_word_flags+=("--progress-step")
+    local_nonpersistent_flags+=("--progress-step")
     local_nonpersistent_flags+=("--progress-step=")
     flags+=("--shell")
     flags+=("--target-server=")
@@ -2250,12 +2331,18 @@ _dbdeployer_downloads_list()
 
     flags+=("--OS=")
     two_word_flags+=("--OS")
+    local_nonpersistent_flags+=("--OS")
     local_nonpersistent_flags+=("--OS=")
     flags+=("--flavor=")
     two_word_flags+=("--flavor")
+    local_nonpersistent_flags+=("--flavor")
     local_nonpersistent_flags+=("--flavor=")
     flags+=("--show-url")
     local_nonpersistent_flags+=("--show-url")
+    flags+=("--version=")
+    two_word_flags+=("--version")
+    local_nonpersistent_flags+=("--version")
+    local_nonpersistent_flags+=("--version=")
     flags+=("--config=")
     two_word_flags+=("--config")
     flags+=("--sandbox-binary=")
@@ -2337,6 +2424,7 @@ _dbdeployer_downloads()
 
     commands=()
     commands+=("add")
+    commands+=("add-remote")
     commands+=("export")
     commands+=("get")
     commands+=("get-by-version")
@@ -2874,6 +2962,36 @@ _dbdeployer_global()
     noun_aliases=()
 }
 
+_dbdeployer_help()
+{
+    last_command="dbdeployer_help"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--sandbox-binary=")
+    two_word_flags+=("--sandbox-binary")
+    flags+=("--sandbox-home=")
+    two_word_flags+=("--sandbox-home")
+    flags+=("--shell-path=")
+    two_word_flags+=("--shell-path")
+    flags+=("--skip-library-check")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    has_completion_function=1
+    noun_aliases=()
+}
+
 _dbdeployer_import_single()
 {
     last_command="dbdeployer_import_single"
@@ -3172,6 +3290,7 @@ _dbdeployer_unpack()
     flags_with_completion=()
     flags_completion=()
 
+    flags+=("--dry-run")
     flags+=("--flavor=")
     two_word_flags+=("--flavor")
     flags+=("--overwrite")
@@ -3380,6 +3499,7 @@ _dbdeployer_root_command()
         aliashash["dump"]="export"
     fi
     commands+=("global")
+    commands+=("help")
     commands+=("import")
     commands+=("info")
     commands+=("init")
@@ -3430,6 +3550,7 @@ _dbdeployer_root_command()
     flags+=("--version")
     flags+=("-v")
     local_nonpersistent_flags+=("--version")
+    local_nonpersistent_flags+=("-v")
 
     must_have_one_flag=()
     must_have_one_noun=()
