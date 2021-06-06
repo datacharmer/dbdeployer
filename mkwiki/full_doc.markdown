@@ -2,7 +2,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.61.0 (16-May-2021 15:39 UTC)
+Documentation updated for version 1.62.0 (06-Jun-2021 13:54 UTC)
 
 ![Build Status](https://github.com/datacharmer/dbdeployer/workflows/.github/workflows/all_tests.yml/badge.svg)
 
@@ -80,7 +80,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.61.0
+    $ VERSION=1.62.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -245,7 +245,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.61.0
+    dbdeployer version 1.62.0
     
 
     $ dbdeployer -h
@@ -718,6 +718,38 @@ Available tarballs
 ```
 The list is kept internally by dbdeployer, but it can be exported, edited, and reloaded (more on that later).
 
+You can also list by version, using the command `dbdeployer downloads tree`:
+
+```
+$ dbdeployer downloads  tree --flavor=mysql
+ Vers                   name                    version     size   minimal
+------ --------------------------------------- --------- -------- ---------
+ 5.0    mysql-5.0.96-osx10.5-x86_64.tar.gz       5.0.96    61 MB
+
+ 5.1    mysql-5.1.73-osx10.6-x86_64.tar.gz       5.1.73    82 MB
+
+ 5.5    mysql-5.5.53-osx10.9-x86_64.tar.gz       5.5.53   114 MB
+
+ 5.6    mysql-5.6.41-macos10.13-x86_64.tar.gz    5.6.41   176 MB
+
+ 5.7    mysql-5.7.29-macos10.14-x86_64.tar.gz    5.7.29   361 MB
+        mysql-5.7.30-macos10.14-x86_64.tar.gz    5.7.30   360 MB
+        mysql-5.7.31-macos10.14-x86_64.tar.gz    5.7.31   225 MB
+
+ 8.0    mysql-8.0.22-macos10.15-x86_64.tar.gz    8.0.22   168 MB
+        mysql-8.0.24-macos11-x86_64.tar.gz       8.0.24   169 MB
+        mysql-8.0.25-macos11-x86_64.tar.gz       8.0.25   169 MB
+
+$ dbdeployer downloads  tree --flavor=ndb
+ Vers                         name                          version     size   minimal
+------ --------------------------------------------------- --------- -------- ---------
+ 7.6    mysql-cluster-gpl-7.6.10-macos10.14-x86_64.tar.gz    7.6.10   482 MB
+        mysql-cluster-gpl-7.6.11-macos10.14-x86_64.tar.gz    7.6.11   482 MB
+
+ 8.0    mysql-cluster-8.0.20-macos10.15-x86_64.tar.gz        8.0.20   273 MB
+        mysql-cluster-8.0.22-macos10.15-x86_64.tar.gz        8.0.22   279 MB
+        mysql-cluster-8.0.25-macos11-x86_64.tar.gz           8.0.25   264 MB
+```
 
 ## Getting a tarball
 
@@ -844,6 +876,7 @@ Size:          1.1 GB
       list           list remote tarballs
       reset          Reset the custom list of tarballs and resume the defaults
       show           Downloads a remote tarball
+      tree           Display a tree by version of remote tarballs
     
     Flags:
       -h, --help   help for downloads
@@ -2395,10 +2428,10 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.61.0-docs.linux.tar.gz
-* dbdeployer-1.61.0-docs.osx.tar.gz
-* dbdeployer-1.61.0.linux.tar.gz
-* dbdeployer-1.61.0.osx.tar.gz
+* dbdeployer-1.62.0-docs.linux.tar.gz
+* dbdeployer-1.62.0-docs.osx.tar.gz
+* dbdeployer-1.62.0.linux.tar.gz
+* dbdeployer-1.62.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

@@ -2339,6 +2339,10 @@ _dbdeployer_downloads_list()
     local_nonpersistent_flags+=("--flavor=")
     flags+=("--show-url")
     local_nonpersistent_flags+=("--show-url")
+    flags+=("--sort-by=")
+    two_word_flags+=("--sort-by")
+    local_nonpersistent_flags+=("--sort-by")
+    local_nonpersistent_flags+=("--sort-by=")
     flags+=("--version=")
     two_word_flags+=("--version")
     local_nonpersistent_flags+=("--version")
@@ -2416,6 +2420,54 @@ _dbdeployer_downloads_show()
     noun_aliases=()
 }
 
+_dbdeployer_downloads_tree()
+{
+    last_command="dbdeployer_downloads_tree"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--OS=")
+    two_word_flags+=("--OS")
+    local_nonpersistent_flags+=("--OS")
+    local_nonpersistent_flags+=("--OS=")
+    flags+=("--flavor=")
+    two_word_flags+=("--flavor")
+    local_nonpersistent_flags+=("--flavor")
+    local_nonpersistent_flags+=("--flavor=")
+    flags+=("--max-items=")
+    two_word_flags+=("--max-items")
+    local_nonpersistent_flags+=("--max-items")
+    local_nonpersistent_flags+=("--max-items=")
+    flags+=("--show-url")
+    local_nonpersistent_flags+=("--show-url")
+    flags+=("--version=")
+    two_word_flags+=("--version")
+    local_nonpersistent_flags+=("--version")
+    local_nonpersistent_flags+=("--version=")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--sandbox-binary=")
+    two_word_flags+=("--sandbox-binary")
+    flags+=("--sandbox-home=")
+    two_word_flags+=("--sandbox-home")
+    flags+=("--shell-path=")
+    two_word_flags+=("--shell-path")
+    flags+=("--skip-library-check")
+
+    must_have_one_flag=()
+    must_have_one_flag+=("--flavor=")
+    must_have_one_noun=()
+    noun_aliases=()
+}
+
 _dbdeployer_downloads()
 {
     last_command="dbdeployer_downloads"
@@ -2441,6 +2493,7 @@ _dbdeployer_downloads()
         command_aliases+=("display")
         aliashash["display"]="show"
     fi
+    commands+=("tree")
 
     flags=()
     two_word_flags=()

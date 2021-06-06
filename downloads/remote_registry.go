@@ -22,9 +22,11 @@ import (
 	"path"
 	"regexp"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/araddon/dateparse"
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
@@ -45,10 +47,105 @@ type TarballDescription struct {
 	DateAdded       string `json:"date_added,omitempty"`
 }
 
+type TarballDescriptionByName []TarballDescription
+type TarballDescriptionByDate []TarballDescription
+type TarballDescriptionByVersion []TarballDescription
+type TarballDescriptionByShortVersion []TarballDescription
+
+func (tb TarballDescriptionByDate) Less(i, j int) bool {
+	dateI, errI := dateparse.ParseAny(tb[i].DateAdded)
+	dateJ, errJ := dateparse.ParseAny(tb[j].DateAdded)
+	if errI != nil || errJ != nil {
+		return tb[i].DateAdded < tb[j].DateAdded
+	}
+	return dateI.UnixNano() < dateJ.UnixNano()
+}
+
+func (tb TarballDescriptionByDate) Len() int {
+	return len(tb)
+}
+
+func (tb TarballDescriptionByDate) Swap(i, j int) {
+	tb[i], tb[j] = tb[j], tb[i]
+}
+
+func (tb TarballDescriptionByName) Len() int {
+	return len(tb)
+}
+
+func (tb TarballDescriptionByName) Swap(i, j int) {
+	tb[i], tb[j] = tb[j], tb[i]
+}
+
+func (tb TarballDescriptionByName) Less(i, j int) bool {
+	return tb[i].Name < tb[j].Name
+}
+
+func (tb TarballDescriptionByVersion) Len() int {
+	return len(tb)
+}
+
+func (tb TarballDescriptionByVersion) Swap(i, j int) {
+	tb[i], tb[j] = tb[j], tb[i]
+
+}
+func (tb TarballDescriptionByVersion) Less(i, j int) bool {
+	iVersionList, _ := common.VersionToList(tb[i].Version)
+	jVersionList, _ := common.VersionToList(tb[j].Version)
+	greater, _ := common.GreaterOrEqualVersionList(iVersionList, jVersionList)
+	return !greater
+}
+
+func (tb TarballDescriptionByShortVersion) Len() int {
+	return len(tb)
+}
+
+func (tb TarballDescriptionByShortVersion) Swap(i, j int) {
+	tb[i], tb[j] = tb[j], tb[i]
+
+}
+
+func (tb TarballDescriptionByShortVersion) Less(i, j int) bool {
+	iVersionList, _ := common.VersionToList(tb[i].ShortVersion)
+	jVersionList, _ := common.VersionToList(tb[j].ShortVersion)
+	greater, _ := common.GreaterOrEqualVersionList(iVersionList, jVersionList)
+	return !greater
+}
+
 type TarballCollection struct {
 	DbdeployerVersion string
 	UpdatedOn         string `json:"updated_on,omitempty"`
 	Tarballs          []TarballDescription
+}
+
+func SortedTarballList(tbl []TarballDescription, ByField string) []TarballDescription {
+	switch ByField {
+	case "version":
+		sort.Stable(TarballDescriptionByVersion(tbl))
+	case "short":
+		sort.Stable(TarballDescriptionByShortVersion(tbl))
+	case "date":
+		sort.Stable(TarballDescriptionByDate(tbl))
+	case "name":
+		sort.Stable(TarballDescriptionByName(tbl))
+	default:
+		sort.Stable(TarballDescriptionByName(tbl))
+	}
+	return tbl
+}
+
+func TarballTree(tbl []TarballDescription) map[string][]TarballDescription {
+	tbl = SortedTarballList(tbl, "short")
+
+	var tarballTree = make(map[string][]TarballDescription)
+	for _, tb := range tbl {
+		_, seen := tarballTree[tb.ShortVersion]
+		if !seen {
+			tarballTree[tb.ShortVersion] = []TarballDescription{}
+		}
+		tarballTree[tb.ShortVersion] = append(tarballTree[tb.ShortVersion], tb)
+	}
+	return tarballTree
 }
 
 func FindTarballByUrl(tarballUrl string) (TarballDescription, error) {

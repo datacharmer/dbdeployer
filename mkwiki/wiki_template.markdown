@@ -375,6 +375,38 @@ Available tarballs
 ```
 The list is kept internally by dbdeployer, but it can be exported, edited, and reloaded (more on that later).
 
+You can also list by version, using the command `dbdeployer downloads tree`:
+
+```
+$ dbdeployer downloads  tree --flavor=mysql
+ Vers                   name                    version     size   minimal
+------ --------------------------------------- --------- -------- ---------
+ 5.0    mysql-5.0.96-osx10.5-x86_64.tar.gz       5.0.96    61 MB
+
+ 5.1    mysql-5.1.73-osx10.6-x86_64.tar.gz       5.1.73    82 MB
+
+ 5.5    mysql-5.5.53-osx10.9-x86_64.tar.gz       5.5.53   114 MB
+
+ 5.6    mysql-5.6.41-macos10.13-x86_64.tar.gz    5.6.41   176 MB
+
+ 5.7    mysql-5.7.29-macos10.14-x86_64.tar.gz    5.7.29   361 MB
+        mysql-5.7.30-macos10.14-x86_64.tar.gz    5.7.30   360 MB
+        mysql-5.7.31-macos10.14-x86_64.tar.gz    5.7.31   225 MB
+
+ 8.0    mysql-8.0.22-macos10.15-x86_64.tar.gz    8.0.22   168 MB
+        mysql-8.0.24-macos11-x86_64.tar.gz       8.0.24   169 MB
+        mysql-8.0.25-macos11-x86_64.tar.gz       8.0.25   169 MB
+
+$ dbdeployer downloads  tree --flavor=ndb
+ Vers                         name                          version     size   minimal
+------ --------------------------------------------------- --------- -------- ---------
+ 7.6    mysql-cluster-gpl-7.6.10-macos10.14-x86_64.tar.gz    7.6.10   482 MB
+        mysql-cluster-gpl-7.6.11-macos10.14-x86_64.tar.gz    7.6.11   482 MB
+
+ 8.0    mysql-cluster-8.0.20-macos10.15-x86_64.tar.gz        8.0.20   273 MB
+        mysql-cluster-8.0.22-macos10.15-x86_64.tar.gz        8.0.22   279 MB
+        mysql-cluster-8.0.25-macos11-x86_64.tar.gz           8.0.25   264 MB
+```
 
 ## Getting a tarball
 

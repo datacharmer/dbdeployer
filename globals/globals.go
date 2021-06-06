@@ -16,7 +16,7 @@ package globals
 
 import "strings"
 
-// This variable is changed to true when the "cmd" package is activated,
+// UsingDbDeployer is changed to true when the "cmd" package is activated,
 // meaning that we're using the command line interface of dbdeployer.
 // It is used to make decisions whether to write messages to the screen
 // when calling sandbox creation functions from other apps.
@@ -139,6 +139,7 @@ const (
 	NewestLabel            = "newest"
 	AddEmptyItemLabel      = "add-empty-item"
 	DeleteAfterUnpackLabel = "delete-after-unpack"
+	MaxItemsLabel          = "max-items"
 
 	// Instantiated in cmd/admin.go
 	VerboseLabel = "verbose"

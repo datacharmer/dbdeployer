@@ -1,11 +1,23 @@
+## 1.62.0	06-Jun-2021
+
+## NEW FEATURES
+
+* Add command `downloads tree` (shows tarballs by version)
+* Add option `--sort-by` to `downloads list`
+
+## DEPRECATION
+
+* Deprecated support for TiDB database. There is no interest in this flavor, and the TiDB community has developed its
+  own tool to achieve the same goal.
+
 ## 1.61.0	17-May-2021
 
 ## NEW FEATURES
 
-* Command "downloads get" can also use direct URL instead of tarball names
-* Add (hidden) command "downloads add-stdin"
-* Add command "downloads add-remote"
-* Add option `--version` to "downloads list"
+* Command `downloads get` can also use direct URL instead of tarball names
+* Add (hidden) command `downloads add-stdin`
+* Add command `downloads add-remote`
+* Add option `--version` to `downloads list`
 
 ## 1.60.0	01-May-2021
 

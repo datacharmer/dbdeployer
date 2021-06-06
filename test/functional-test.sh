@@ -1666,10 +1666,10 @@ if [ -z "$skip_main_deployment_methods" ]
 then
     main_deployment_methods
 fi
-if [ -z "$skip_tidb_deployment_methods" ]
-then
-    tidb_deployment_methods
-fi
+#if [ -z "$skip_tidb_deployment_methods" ]
+#then
+#    tidb_deployment_methods
+#fi
 if [ -z "$skip_skip_start_deployment" ]
 then
     skip_start_deployment
