@@ -1,3 +1,21 @@
+## 1.63.0	12-Sep-2021
+
+## BUGS FIXED
+
+* Fix Issue #137: missing check on .dbdeployer dir when no sandboxes were created
+
+## ADJUSTMENTS
+
+* Fix Issue #138 : Update data load URLs and CRCs
+
+### Code improvements
+
+* Update build directives to work with go 1.17
+
+## NEW FEATURES
+
+* Add downloads for MySQL 8.0.26
+
 ## 1.62.0	06-Jun-2021
 
 ## NEW FEATURES

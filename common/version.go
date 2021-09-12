@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build go1.16
 // +build go1.16
 
 package common
@@ -25,7 +26,7 @@ import (
 //go:embed VERSION
 var VersionDef string
 
-// Compatible version is the version used to mark compatible archives (templates, configuration).
+// CompatibleVersion is the version used to mark compatible archives (templates, configuration).
 // It is usually major.minor.0, except when we are at version 0.x, when
 // every revision may bring incompatibility
 //go:embed COMPATIBLE_VERSION
