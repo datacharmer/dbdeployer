@@ -396,12 +396,23 @@ func LoadTarballFileInfo() error {
 	return nil
 }
 
+func checkConfigurationDir() error {
+	if !common.DirExists(defaults.ConfigurationDir) {
+		return os.Mkdir(defaults.ConfigurationDir, globals.PublicDirectoryAttr)
+	}
+	return nil
+}
+
 func WriteTarballFileInfo(collection TarballCollection) error {
 	err := CheckTarballList(collection.Tarballs)
 	if err != nil {
 		return fmt.Errorf("[write tarball file info] tarball list check failed : %s", err)
 	}
 	text, err := json.MarshalIndent(collection, " ", " ")
+	if err != nil {
+		return err
+	}
+	err = checkConfigurationDir()
 	if err != nil {
 		return err
 	}

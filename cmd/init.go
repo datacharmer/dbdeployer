@@ -153,7 +153,12 @@ func initEnvironment(cmd *cobra.Command, args []string) error {
 			return err
 		}
 	}
-
+	if !common.DirExists(defaults.ConfigurationDir) {
+		err = os.Mkdir(defaults.ConfigurationDir, globals.PublicDirectoryAttr)
+		if err != nil {
+			return err
+		}
+	}
 	if skipCompletion {
 		return nil
 	}
