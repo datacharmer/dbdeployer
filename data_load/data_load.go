@@ -46,12 +46,12 @@ type DataDefinition struct {
 var defaultArchives = map[string]DataDefinition{
 	"world": {
 		Description:       "world database",
-		Origin:            "https://downloads.mysql.com/docs/world.sql.gz",
-		FileName:          "world.sql.gz",
-		InternalDirectory: "",
-		LoadCommands:      []string{"$use < world.sql"},
+		Origin:            "https://downloads.mysql.com/docs/world-db.tar.gz",
+		FileName:          "world-db.tar.gz",
+		InternalDirectory: "world-db",
+		LoadCommands:      []string{"$use < world-db/world.sql"},
 		Size:              92707,
-		Sha256:            "", // the checksum for this file is not reliable
+		Sha256:            "9b047a27a1281e7b1b978842c09fcf854ce30f01da9b841d388c51a989f3eb9c",
 	},
 	"worldx": {
 		Description:       "world_X database",
@@ -60,7 +60,7 @@ var defaultArchives = map[string]DataDefinition{
 		InternalDirectory: "world_x-db",
 		LoadCommands:      []string{"$use < world_x-db/world_x.sql"},
 		Size:              99295,
-		Sha256:            "7fcdf77481e069575220f573600a553d8e6bea93984c6022edae163e3270dfb7",
+		Sha256:            "c0aab671bf0a87752cd36b47ae368f3bb4d8c96debf31f0196b91ea09770dcbb",
 	},
 	"sakila": {
 		Description:       "Sakila database",
@@ -72,7 +72,7 @@ var defaultArchives = map[string]DataDefinition{
 			"$use < sakila-db/sakila-data.sql",
 		},
 		Size:   732126,
-		Sha256: "9152dd031cf8d95eba8f6f4340117641894874268df6216a6dfc159ea9115a20",
+		Sha256: "f738d278dbccf2bdede8a38aec71e435c7110a782977fe30bdfc3439cbf75e0f",
 	},
 	"employees": {
 		Description:       "employee data (large dataset, includes data and test/verification suite)",
@@ -101,7 +101,7 @@ var defaultArchives = map[string]DataDefinition{
 			"$my sqlimport --local menagerie menagerie-db/event.txt",
 		},
 		Size:   1990,
-		Sha256: "f330902364d82431ad88aff1e8ad5e27fd7fc61d4722c86e9e9b86f7969e49c4",
+		Sha256: "eeaea3dd1c9dd495b47945772c321417d61ed850414be9eb76bb77fba5e15b56",
 	},
 }
 
