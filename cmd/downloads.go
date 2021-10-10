@@ -354,7 +354,7 @@ func getRemoteTarballByVersion(cmd *cobra.Command, args []string) {
 	if err != nil {
 		common.Exit(1, fmt.Sprintf("Error getting version %s (%s-%s)[minimal: %v - newest: %v - guess: %v]: %s",
 			version, flavor, OS, minimal, newest, guessLatest, err),
-			fmt.Sprintf("Try using 'dbdeployer downloads get-remote mysql %s %s'", version, OS))
+			fmt.Sprintf("Try using 'dbdeployer downloads add-remote mysql %s %s'", version, OS))
 	}
 
 	fileName = tarball.Name
