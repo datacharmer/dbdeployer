@@ -1207,6 +1207,97 @@
       "version": "8.0.26",
       "notes": "added with version 1.62.0",
       "date_added": "2021-07-27 08:47"
+    },
+    {
+      "name": "mysql-8.0.27-linux-glibc2.12-x86_64.tar.xz",
+      "checksum": "MD5:0bdd171cb8464ba32f65f7bf58bc9533",
+      "OS": "Linux",
+      "url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.27-linux-glibc2.12-x86_64.tar.xz",
+      "flavor": "mysql",
+      "minimal": false,
+      "size": 1196633756,
+      "short_version": "8.0",
+      "version": "8.0.27",
+      "notes": "added with version 1.63.1",
+      "date_added": "2021-10-24 09:15"
+    },
+    {
+      "name": "mysql-8.0.27-linux-glibc2.17-x86_64-minimal.tar.xz",
+      "checksum": "MD5:19aeabf7135649159c109e46781dc5c5",
+      "OS": "Linux",
+      "url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.27-linux-glibc2.17-x86_64-minimal.tar.xz",
+      "flavor": "mysql",
+      "minimal": true,
+      "size": 52156212,
+      "short_version": "8.0",
+      "version": "8.0.27",
+      "notes": "added with version 1.63.1",
+      "date_added": "2021-10-24 09:15"
+    },
+    {
+      "name": "mysql-8.0.27-macos11-x86_64.tar.gz",
+      "checksum": "MD5:e2d8bd704cd8e31110eea35b71f9f9ea",
+      "OS": "Darwin",
+      "url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.27-macos11-x86_64.tar.gz",
+      "flavor": "mysql",
+      "minimal": false,
+      "size": 174480594,
+      "short_version": "8.0",
+      "version": "8.0.27",
+      "notes": "added with version 1.63.1",
+      "date_added": "2021-10-24 09:15"
+    },
+    {
+      "name": "mysql-cluster-8.0.27-macos11-x86_64.tar.gz",
+      "checksum": "MD5:0f7bb94703aacd71e7884aa64d146f3f",
+      "OS": "Darwin",
+      "url": "https://dev.mysql.com/get/Downloads/MySQL-Cluster-8.0/mysql-cluster-8.0.27-macos11-x86_64.tar.gz",
+      "flavor": "ndb",
+      "minimal": false,
+      "size": 270235158,
+      "short_version": "8.0",
+      "version": "8.0.27",
+      "notes": "added with version 1.63.1",
+      "date_added": "2021-10-24 09:15"
+    },
+    {
+      "name": "mysql-shell-8.0.27-macos11-x86-64bit.tar.gz",
+      "checksum": "MD5:fc055972a57c81c39ecb36ace4124081",
+      "OS": "Darwin",
+      "url": "https://dev.mysql.com/get/Downloads/MySQL-Shell-8.0/mysql-shell-8.0.27-macos11-x86-64bit.tar.gz",
+      "flavor": "shell",
+      "minimal": false,
+      "size": 41986892,
+      "short_version": "8.0",
+      "version": "8.0.27",
+      "notes": "added with version 1.63.1",
+      "date_added": "2021-10-24 09:15"
+    },
+    {
+      "name": "mysql-shell-8.0.27-linux-glibc2.12-x86-64bit.tar.gz",
+      "checksum": "MD5:a3e1bd3b53a5fb65c9bbb20d1576b024",
+      "OS": "Linux",
+      "url": "https://dev.mysql.com/get/Downloads/MySQL-Shell-8.0/mysql-shell-8.0.27-linux-glibc2.12-x86-64bit.tar.gz",
+      "flavor": "shell",
+      "minimal": false,
+      "size": 44047938,
+      "short_version": "8.0",
+      "version": "8.0.27",
+      "notes": "added with version 1.63.1",
+      "date_added": "2021-10-24 09:16"
+    },
+    {
+      "name": "mysql-cluster-8.0.27-linux-glibc2.12-x86_64.tar.gz",
+      "checksum": "MD5:0b21ba77f1b9f3ac4f0d28c20e6ed01d",
+      "OS": "Linux",
+      "url": "https://dev.mysql.com/get/Downloads/MySQL-Cluster-8.0/mysql-cluster-8.0.27-linux-glibc2.12-x86_64.tar.gz",
+      "flavor": "ndb",
+      "minimal": false,
+      "size": 1860443684,
+      "short_version": "8.0",
+      "version": "8.0.27",
+      "notes": "added with version 1.63.1",
+      "date_added": "2021-10-24 09:16"
     }
   ]
 }
