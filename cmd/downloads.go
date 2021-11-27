@@ -445,7 +445,7 @@ func exportTarballList(cmd *cobra.Command, args []string) {
 	if err != nil {
 		common.Exitf(1, "error encoding tarball list")
 	}
-	jsonString := fmt.Sprintf("%s", b)
+	jsonString := string(b)
 
 	err = common.WriteString(jsonString, fileName)
 	if err != nil {

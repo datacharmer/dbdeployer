@@ -17,7 +17,6 @@ package defaults
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path"
 	"time"
@@ -178,7 +177,7 @@ func WriteDefaultsFile(filename string, defaults DbdeployerDefaults) {
 	}
 	b, err := json.MarshalIndent(defaults, " ", "\t")
 	common.ErrCheckExitf(err, 1, globals.ErrEncodingDefaults, err)
-	jsonString := fmt.Sprintf("%s", b)
+	jsonString := string(b)
 	err = common.WriteString(jsonString, filename)
 	common.ErrCheckExitf(err, 1, "error writing defaults file")
 }

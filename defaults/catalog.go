@@ -58,7 +58,7 @@ func writeCatalog(sc SandboxCatalog) error {
 	}
 	byteBuf, err := json.MarshalIndent(sc, " ", "\t")
 	common.ErrCheckExitf(err, 1, "error encoding sandbox catalog: %s", err)
-	jsonString := fmt.Sprintf("%s", byteBuf)
+	jsonString := string(byteBuf)
 	filename := SandboxRegistry
 	return common.WriteString(jsonString, filename)
 }

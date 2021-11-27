@@ -165,7 +165,7 @@ func WriteSandboxDescription(destination string, sd SandboxDescription) error {
 	if err != nil {
 		return errors.Wrapf(err, "error encoding sandbox description")
 	}
-	jsonString := fmt.Sprintf("%s", b)
+	jsonString := string(b)
 	filename := path.Join(destination, globals.SandboxDescriptionName)
 	return WriteString(jsonString, filename)
 }

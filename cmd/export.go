@@ -18,9 +18,10 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+
 	"github.com/datacharmer/dbdeployer/globals"
 	"golang.org/x/crypto/ssh/terminal"
-	"os"
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/spf13/cobra"
@@ -125,7 +126,7 @@ func ExportAnnotationToJson(ea ExportAnnotation) string {
 	if err != nil {
 		return ""
 	}
-	return fmt.Sprintf("%s", b)
+	return string(b)
 }
 
 // Converts cobra.Command annotations intended for export into the
@@ -209,7 +210,7 @@ func CommandToJson(c Command) string {
 	if err != nil {
 		return "unencoded structure"
 	}
-	return fmt.Sprintf("%s", b)
+	return string(b)
 }
 
 // Exports the whole dbdeployer structure to JSON

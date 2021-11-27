@@ -159,7 +159,7 @@ func sandboxDefToJson(sd SandboxDef) string {
 	if err != nil {
 		return "Sandbox definition could not be encoded\n"
 	}
-	return fmt.Sprintf("%s", b)
+	return string(b)
 }
 
 func stringMapToJson(data common.StringMap) string {
@@ -170,7 +170,7 @@ func stringMapToJson(data common.StringMap) string {
 	if err != nil {
 		return "String map could not be encoded"
 	}
-	return fmt.Sprintf("%s", b)
+	return string(b)
 }
 
 func isLocked(sbDir string) bool {
