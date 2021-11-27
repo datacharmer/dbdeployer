@@ -22,6 +22,7 @@ import (
 )
 
 func TestDownloadFile(t *testing.T) {
+	t.Skip("Test superseded by the ones in 'downloads' package")
 	compare.SkipOnDemand("SKIP_REST_TEST", t)
 
 	fileName := "mysql-5.1.72.tar.xz"
