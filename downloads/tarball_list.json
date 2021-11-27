@@ -1298,6 +1298,58 @@
       "version": "8.0.27",
       "notes": "added with version 1.63.1",
       "date_added": "2021-10-24 09:16"
+    },
+    {
+      "name": "mysql-8.0.23-macos10.15-x86_64.tar.gz",
+      "checksum": "SHA512:ac2d7e4c3173b305f4fa2d5daca901eecaa9f9b9c2569d061d54ddf9fa69094f145188a0ec7df088897556e3cc73178ca4faf9784f2b587332201a3d376cdf9a",
+      "OS": "Darwin",
+      "url": "https://downloads.mysql.com/archives/get/p/23/file/mysql-8.0.23-macos10.15-x86_64.tar.gz",
+      "flavor": "mysql",
+      "minimal": false,
+      "size": 169525251,
+      "short_version": "8.0",
+      "version": "8.0.23",
+      "notes": "added with version 1.64.0",
+      "date_added": "2021-11-25 09:53"
+    },
+    {
+      "name": "mysql-cluster-8.0.23-macos10.15-x86_64.tar.gz",
+      "checksum": "SHA512:dfb83492e0060c41f5c581a5a0accca566740c64a9d6117bf6ea729b2a3889759e9327fec6904390f5e38260ff8cd55f20638a0ed2a24e379099edf9f56bbe55",
+      "OS": "Darwin",
+      "url": "https://downloads.mysql.com/archives/get/p/14/file/mysql-cluster-8.0.23-macos10.15-x86_64.tar.gz",
+      "flavor": "cluster",
+      "minimal": false,
+      "size": 266740865,
+      "short_version": "8.0",
+      "version": "8.0.23",
+      "notes": "added with version 1.64.0",
+      "date_added": "2021-11-25 15:08"
+    },
+    {
+      "name": "mysql-shell-8.0.23-macos10.15-x86-64bit.tar.gz",
+      "checksum": "SHA512:87ff4ae366edc4d7e6e4c296b40b69069bf8a5d110f467ba09eb9efb4fc297b67c2a52ba26269bf867bcf84c12462b3d1c7911fcfb79f3af3923a989e9118ea6",
+      "OS": "Darwin",
+      "url": "https://downloads.mysql.com/archives/get/p/43/file/mysql-shell-8.0.23-macos10.15-x86-64bit.tar.gz",
+      "flavor": "shell",
+      "minimal": false,
+      "size": 40189254,
+      "short_version": "8.0",
+      "version": "8.0.23",
+      "notes": "added with version 1.64.0",
+      "date_added": "2021-11-25 15:10"
+    },
+    {
+      "name": "Percona-Server-8.0.26-16-Linux.x86_64.glibc2.12-minimal.tar.gz",
+      "checksum": "SHA512:0cd36ba23f2012488763eabee109278ccfd9e0a7f8adb6f4d32cb6f6b5189122addde8101fee921f94559e3eb38ee8c1ec68727f3dd15dfb8493259243347748",
+      "OS": "linux",
+      "url": "https://downloads.percona.com/downloads/Percona-Server-LATEST/Percona-Server-8.0.26-16/binary/tarball/Percona-Server-8.0.26-16-Linux.x86_64.glibc2.12-minimal.tar.gz",
+      "flavor": "percona",
+      "minimal": true,
+      "size": 103592525,
+      "short_version": "8.0",
+      "version": "8.0.26",
+      "notes": "added with version 1.64.0",
+      "date_added": "2021-11-25 15:55"
     }
   ]
 }
