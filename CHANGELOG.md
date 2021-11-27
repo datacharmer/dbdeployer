@@ -1,3 +1,18 @@
+## 1.64.0	27-Nov-2021
+
+## NEW FEATURES
+
+* Add downloads for MySQL 8.0.27
+* Add downloads for MySQL 8.0.23 (Issue #144)
+
+## ADJUSTMENTS
+
+* Removed CRC from sample databases provided by MySQL.com: the CRC are not reliable, as they change often.
+
+### Code improvements
+
+* Fixed staticcheck warnings
+
 ## 1.63.1	10-Oct-2021
 
 ## BUGS FIXED
