@@ -17,7 +17,6 @@
 package compare
 
 import (
-	"fmt"
 	"os"
 	"regexp"
 	"testing"
@@ -25,7 +24,7 @@ import (
 
 func SkipOnDemand(envVar string, t *testing.T) {
 	if os.Getenv(envVar) != "" {
-		t.Skip(fmt.Sprintf("Skipped on user request: environment variable '%s' was set ", envVar))
+		t.Skipf("Skipped on user request: environment variable '%s' was set ", envVar)
 	}
 }
 
