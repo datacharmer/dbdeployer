@@ -78,8 +78,7 @@ This script is created only if the X plugin was enabled (5.7.12+ with --enable-m
 or 8.0.11+ without --disable-mysqlx)
 
 "./use_admin" is created when the sandbox is deployed with --enable-admin-address (8.0.14+)
-and allows using the database as administrator, with a dedicated port.
-`
+and allows using the database as administrator, with a dedicated port.`
 	const multipleUsage string = ` USING MULTIPLE SERVER SANDBOX
 On a replication sandbox, you have the same commands (run "dbdeployer usage single"), 
 with an "_all" suffix, meaning that you propagate the command to all the members. 
@@ -107,8 +106,7 @@ are also created:
 
 ma                    > invokes the MySQL client in the master as admin
 sa1, sa2, na1, na2    > invokes MySQL client as admin in slave 1, 2, node 1, 2
-use_all_admin "SQL"   > runs a SQL statement in all nodes as admin
-`
+use_all_admin "SQL"   > runs a SQL statement in all nodes as admin`
 	request := ""
 	if len(args) > 0 {
 		request = args[0]
@@ -120,6 +118,7 @@ use_all_admin "SQL"   > runs a SQL statement in all nodes as admin
 		fmt.Println(multipleUsage)
 	default:
 		fmt.Println(basicUsage)
+		fmt.Println()
 		fmt.Println(multipleUsage)
 	}
 }

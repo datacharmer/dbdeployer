@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2020 Giuseppe Maxia
+// Copyright © 2006-2022 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -136,6 +136,8 @@ func TestBeginsWith(t *testing.T) {
 		want bool
 	}{
 		{"batman", args{"batman", "bat"}, true},
+		{"batman-re", args{"batman", "[Bb]at"}, true},
+		{"Batman-re", args{"Batman", "[Bb]at"}, true},
 		{"non-batman", args{"superman", "bat"}, false},
 	}
 	for _, tt := range tests {
@@ -158,7 +160,11 @@ func TestEndsWith(t *testing.T) {
 		want bool
 	}{
 		{"batman", args{"batman", "man"}, true},
+		{"batman2", args{"batMan", "man"}, false},
+		{"batman-re", args{"batman", "[mM]an"}, true},
 		{"superman", args{"superman", "man"}, true},
+		{"superman2", args{"superMan", "man"}, false},
+		{"superman-re", args{"superMan", "[Mm]an"}, true},
 		{"the flash", args{"the flash", "man"}, false},
 	}
 	for _, tt := range tests {

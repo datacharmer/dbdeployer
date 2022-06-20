@@ -112,12 +112,12 @@ func UnpackXzTar(filename string, destination string, verbosityLevel int) (err e
 	if err != nil {
 		return errors.Wrapf(err, "error changing directory to %s", destination)
 	}
-	// #nosec G304
-	f, err := os.Open(filename)
+
+	f, err := os.Open(filename) // #nosec G304
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer f.Close() // #nosec G307
 	// Create an xz Reader
 	r, err := xz.NewReader(f, 0)
 	if err != nil {
@@ -146,7 +146,7 @@ func UnpackTar(filename string, destination string, verbosityLevel int) (err err
 	if file, err = os.Open(filename); err != nil {
 		return err
 	}
-	defer file.Close()
+	defer file.Close() // #nosec G307
 	err = os.Chdir(destination)
 	if err != nil {
 		return errors.Wrapf(err, "error changing directory to %s", destination)
@@ -317,10 +317,11 @@ func pathDepth(s string) int {
 func unpackTarFile(filename string,
 	reader *tar.Reader) (err error) {
 	var writer *os.File
+	// #nosec G304
 	if writer, err = os.Create(filename); err != nil {
 		return err
 	}
-	defer writer.Close()
+	defer writer.Close() // #nosec G307
 	if _, err = io.Copy(writer, reader); err != nil {
 		return err
 	}
@@ -346,7 +347,7 @@ func VerifyTarFile(fileName string) error {
 	if file, err = os.Open(fileName); err != nil {
 		return fmt.Errorf("[open file Validation] %s", err)
 	}
-	defer file.Close()
+	defer file.Close() // #nosec G307
 	var fileReader io.Reader = file
 	var decompressor *gzip.Reader
 	var xzDecompressor *xz.Reader

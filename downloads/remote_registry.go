@@ -30,6 +30,8 @@ import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type TarballDescription struct {
@@ -486,7 +488,9 @@ func GetTarballInfo(fileName string, description TarballDescription) (TarballDes
 		description.Flavor = flavor
 	}
 	if description.OperatingSystem == "" {
-		description.OperatingSystem = strings.Title(runtime.GOOS)
+		op := cases.Title(language.Und)
+		//description.OperatingSystem = strings.Title(runtime.GOOS)
+		description.OperatingSystem = op.String(runtime.GOOS)
 	}
 	description.Name = common.BaseName(fileName)
 

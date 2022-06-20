@@ -17,8 +17,6 @@ package common
 
 import (
 	"fmt"
-	"github.com/datacharmer/dbdeployer/compare"
-	"github.com/datacharmer/dbdeployer/globals"
 	"os"
 	"path"
 	"path/filepath"
@@ -26,6 +24,9 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/datacharmer/dbdeployer/compare"
+	"github.com/datacharmer/dbdeployer/globals"
 )
 
 func TestLogDirName(t *testing.T) {
@@ -133,7 +134,7 @@ func TestExists(t *testing.T) {
 	upperDir := path.Join(".", "..")
 	upperDirAbs, err := AbsolutePath(upperDir)
 	if err != nil {
-		t.Skip(fmt.Sprintf("Could not get absolute directory for %s", upperDir))
+		t.Skipf("Could not get absolute directory for %s", upperDir)
 	}
 
 	calculatedUpperDirAbs := filepath.Dir(dir)
@@ -167,18 +168,18 @@ func TestSandboxDescription(t *testing.T) {
 	if !DirExists(descriptionDir) {
 		err := os.Mkdir(descriptionDir, globals.PublicDirectoryAttr)
 		if err != nil {
-			t.Skip(fmt.Sprintf("could not create directory %s", descriptionDir))
+			t.Skipf("could not create directory %s", descriptionDir)
 		}
 	}
 	err := WriteSandboxDescription(descriptionDir, sd)
 	compare.OkIsNil("err for write sandbox description", err, t)
 	if err != nil {
-		t.Skip(fmt.Sprintf("Can't write sandbox description into %s", descriptionDir))
+		t.Skipf("Can't write sandbox description into %s", descriptionDir)
 	}
 	newSd, err := ReadSandboxDescription(descriptionDir)
 	compare.OkIsNil("err for read sandbox description", err, t)
 	if err != nil {
-		t.Skip(fmt.Sprintf("Can't read sandbox description from %s", descriptionDir))
+		t.Skipf("Can't read sandbox description from %s", descriptionDir)
 	}
 	compare.OkEqualString("basedir", newSd.Basedir, sd.Basedir, t)
 	compare.OkEqualString("sb type", newSd.SBType, sd.SBType, t)
@@ -213,17 +214,17 @@ func TestWriteStrings(t *testing.T) {
 		err := WriteStrings(lines, textFile, d.termination)
 		compare.OkIsNil(fmt.Sprintf("[%d] err writing lines text file", I), err, t)
 		if err != nil {
-			t.Skip(fmt.Sprintf("[%d] error writing lines to file %s", I, textFile))
+			t.Skipf("[%d] error writing lines to file %s", I, textFile)
 		}
 		err = CopyFile(textFile, copiedFile)
 		compare.OkIsNil(fmt.Sprintf("[%d] err copying text file", I), err, t)
 		if err != nil {
-			t.Skip(fmt.Sprintf("[%d] error copying text file %s", I, textFile))
+			t.Skipf("[%d] error copying text file %s", I, textFile)
 		}
 		newLines, err := SlurpAsLines(copiedFile)
 		compare.OkIsNil(fmt.Sprintf("[%d] err reading lines from text file", I), err, t)
 		if err != nil {
-			t.Skip(fmt.Sprintf("[ %d] error reading lines from file %s", I, copiedFile))
+			t.Skipf("[ %d] error reading lines from file %s", I, copiedFile)
 		}
 		compare.OkEqualInt(fmt.Sprintf("[%d] read elements same as written elements", I), d.elements, len(newLines), t)
 		compare.OkEqualStringSlices(t, newLines, d.expected)
@@ -231,12 +232,12 @@ func TestWriteStrings(t *testing.T) {
 		err = AppendStrings([]string{appendLine}, textFile, d.termination)
 		compare.OkIsNil(fmt.Sprintf("[%d] err appending lines to text file", I), err, t)
 		if err != nil {
-			t.Skip(fmt.Sprintf("[ %d] error appending lines to text file %s: %+v", I, textFile, err))
+			t.Skipf("[ %d] error appending lines to text file %s: %+v", I, textFile, err)
 		}
 		newLines, err = SlurpAsLines(textFile)
 		compare.OkIsNil(fmt.Sprintf("[%d] err reading lines from appended text file", I), err, t)
 		if err != nil {
-			t.Skip(fmt.Sprintf("[ %d] error reading lines from appended file %s", I, textFile))
+			t.Skipf("[ %d] error reading lines from appended file %s", I, textFile)
 		}
 		compare.OkEqualInt(fmt.Sprintf("[%d] read appended elements same as written elements", I), d.elements2, len(newLines), t)
 		compare.OkEqualStringSlices(t, newLines, d.expected2)
@@ -245,12 +246,12 @@ func TestWriteStrings(t *testing.T) {
 		err = WriteString(allInOne, textFile)
 		compare.OkIsNil(fmt.Sprintf("[%d] err writing string to text file", I), err, t)
 		if err != nil {
-			t.Skip(fmt.Sprintf("[%d] error writing string to file %s", I, textFile))
+			t.Skipf("[%d] error writing string to file %s", I, textFile)
 		}
 		newText, err := SlurpAsString(textFile)
 		compare.OkIsNil(fmt.Sprintf("[%d] err reading string from text file", I), err, t)
 		if err != nil {
-			t.Skip(fmt.Sprintf("[ %d] error reading string from file %s", I, textFile))
+			t.Skipf("[ %d] error reading string from file %s", I, textFile)
 		}
 
 		compare.OkEqualString(fmt.Sprintf("[%d] write/read string", I), allInOne, newText, t)
@@ -289,7 +290,7 @@ echo -n "You asked for $value, didn't you?"
 	err := createCommand(scriptName, "#!/bin/bash\nexit 1")
 	compare.OkIsNil("command creation err", err, t)
 	if err != nil {
-		t.Skip(fmt.Sprintf("error creating command: %s", err))
+		t.Skipf("error creating command: %s", err)
 	}
 	_, err = RunCmd(scriptName)
 	compare.OkIsNotNil("[RunCmd] command execution expected err", err, t)
@@ -301,7 +302,7 @@ echo -n "You asked for $value, didn't you?"
 	err = createCommand(scriptName, scriptText)
 	compare.OkIsNil("command creation err", err, t)
 	if err != nil {
-		t.Skip(fmt.Sprintf("error creating command: %s", err))
+		t.Skipf("error creating command: %s", err)
 	}
 
 	out, err := RunCmd(scriptName)

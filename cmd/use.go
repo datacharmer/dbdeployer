@@ -88,6 +88,14 @@ func useSandbox(cmd *cobra.Command, args []string) error {
 			executable = "use"
 		}
 	}
+	skipStartOut := func(s string) bool {
+		alreadyStarted := strings.Contains(s, "already")
+		startScriptIsNoOp := strings.Contains(s, "No start functionality")
+		if alreadyStarted || startScriptIsNoOp {
+			return true
+		}
+		return false
+	}
 	for _, sb := range sandboxList {
 		if sb.SandboxName == sandbox {
 			//sandboxDir := path.Join(sandboxHome, sandbox)
@@ -99,15 +107,13 @@ func useSandbox(cmd *cobra.Command, args []string) error {
 			if common.ExecExists(useSingle) {
 				fmt.Printf("%s\n", useSingle)
 				out, _ := common.RunCmdCtrl(startSingle, true)
-				if !strings.Contains(out, "already") {
-					// The server was not already started
+				if !skipStartOut(out) {
 					fmt.Printf("%s\n", out)
 				}
 				return runInteractiveCmd(useSingle)
 			} else if common.ExecExists(useMulti) && !flags.Changed(globals.RunLabel) {
 				out, _ := common.RunCmdCtrl(startMulti, true)
-				if !strings.Contains(out, "already") {
-					// The server was not already started
+				if !skipStartOut(out) {
 					fmt.Printf("%s\n", out)
 				}
 				return runInteractiveCmd(useMulti)

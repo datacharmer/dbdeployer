@@ -202,7 +202,7 @@ func SlurpAsLines(filename string) ([]string, error) {
 	if err != nil {
 		return globals.EmptyStrings, errors.Wrapf(err, "error opening file %s", filename)
 	}
-	defer f.Close()
+	defer f.Close() // #nosec G307
 
 	var lines []string
 	scanner := bufio.NewScanner(f)
@@ -238,11 +238,11 @@ func SlurpAsBytes(filename string) ([]byte, error) {
 // Writes a string slice into a file
 // The file is created
 func WriteStrings(lines []string, filename string, termination string) error {
-	file, err := os.Create(filename)
+	file, err := os.Create(filename) // #nosec G304
 	if err != nil {
 		return errors.Wrapf(err, "error creating file %s", filename)
 	}
-	defer file.Close()
+	defer file.Close() // #nosec G307
 
 	w := bufio.NewWriter(file)
 	for _, line := range lines {
@@ -281,7 +281,7 @@ func GetFileChecksum(fileName, crcType string) (string, error) {
 	if err != nil {
 		return globals.EmptyString, err
 	}
-	defer f.Close()
+	defer f.Close() // #nosec G307
 	_, err = io.Copy(hasher, f)
 	if err != nil {
 		return globals.EmptyString, err
@@ -307,12 +307,11 @@ func GetFileMd5(fileName string) (string, error) {
 
 // append a string slice into an existing file
 func AppendStrings(lines []string, filename string, termination string) error {
-	// file, err := os.Open(filename) // #nosec G304
-	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend) // #nosec G304
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer file.Close() // #nosec G307
 
 	w := bufio.NewWriter(file)
 	for _, line := range lines {
@@ -583,13 +582,13 @@ func CopyFile(source, destination string) error {
 	if err != nil {
 		return errors.Wrapf(err, "error opening source file %s", source)
 	}
-	defer from.Close()
+	defer from.Close() // #nosec G307
 
-	to, err := os.OpenFile(destination, os.O_RDWR|os.O_CREATE, fileMode) // 0666)
+	to, err := os.OpenFile(destination, os.O_RDWR|os.O_CREATE, fileMode) // #nosec G304
 	if err != nil {
 		return errors.Wrapf(err, "error opening destination file %s", destination)
 	}
-	defer to.Close()
+	defer to.Close() // #nosec G307
 
 	_, err = io.Copy(to, from)
 	if err != nil {
