@@ -1350,6 +1350,71 @@
       "version": "8.0.26",
       "notes": "added with version 1.64.0",
       "date_added": "2021-11-25 15:55"
+    },
+    {
+      "name": "mysql-8.0.28-linux-glibc2.12-x86_64.tar.xz",
+      "checksum": "MD5:5be32f68d6859aace1eb61cea1d00bff",
+      "OS": "Linux",
+      "url": "https://downloads.mysql.com/archives/get/p/23/file/mysql-8.0.28-linux-glibc2.12-x86_64.tar.xz",
+      "flavor": "mysql",
+      "minimal": false,
+      "size": 1204277208,
+      "short_version": "8.0",
+      "version": "8.0.28",
+      "notes": "added with version 1.64.1",
+      "date_added": "2022-06-20 11:50"
+    },
+    {
+      "name": "mysql-8.0.28-linux-glibc2.17-x86_64-minimal.tar.xz",
+      "checksum": "MD5:55a7759e25cc527416150c8181ce3f6d",
+      "OS": "Linux",
+      "url": "https://downloads.mysql.com/archives/get/p/23/file/mysql-8.0.28-linux-glibc2.17-x86_64-minimal.tar.xz",
+      "flavor": "mysql",
+      "minimal": true,
+      "size": 54089904,
+      "short_version": "8.0",
+      "version": "8.0.28",
+      "notes": "added with version 1.64.1",
+      "date_added": "2021-06-20 11:50"
+    },
+    {
+      "name": "mysql-8.0.29-linux-glibc2.12-x86_64.tar.xz",
+      "checksum": "MD5:13bb219c9ab74b3c8ea8c41c204cbef4",
+      "OS": "Linux",
+      "url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.29-linux-glibc2.12-x86_64.tar.xz",
+      "flavor": "mysql",
+      "minimal": false,
+      "size": 540173160,
+      "short_version": "8.0",
+      "version": "8.0.29",
+      "notes": "added with version 1.64.1",
+      "date_added": "2022-06-20 11:50"
+    },
+    {
+      "name": "mysql-8.0.28-macos11-x86_64.tar.gz",
+      "checksum": "MD5:b2d5b57edb92811040fd61c84f1c9d6f",
+      "OS": "Darwin",
+      "url": "https://downloads.mysql.com/archives/get/p/23/file/mysql-8.0.28-macos11-x86_64.tar.gz",
+      "flavor": "mysql",
+      "minimal": false,
+      "size": 177077525,
+      "short_version": "8.0",
+      "version": "8.0.28",
+      "notes": "added with version 1.64.1",
+      "date_added": "2022-06-20 11:50"
+    },
+    {
+      "name": "mysql-8.0.29-macos12-x86_64.tar.gz",
+      "checksum": "MD5:c39041762d08775f5ac62c03b1a07f07",
+      "OS": "Darwin",
+      "url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.29-macos12-x86_64.tar.gz",
+      "flavor": "mysql",
+      "minimal": false,
+      "size": 176860182,
+      "short_version": "8.0",
+      "version": "8.0.29",
+      "notes": "added with version 1.64.1",
+      "date_added": "2022-06-20 11:50"
     }
   ]
 }
