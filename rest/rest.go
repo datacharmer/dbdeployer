@@ -146,11 +146,11 @@ func DownloadFile(filepath string, url string, progress bool, progressStep int64
 	}
 
 	// Create the file
-	out, err := os.Create(filepath)
+	out, err := os.Create(filepath) // #nosec G304
 	if err != nil {
 		return fmt.Errorf("[DownloadFile] error creating file %s", filepath)
 	}
-	defer out.Close()
+	defer out.Close() // #nosec G307
 
 	progressMark := progressStep * 10
 	if progressStep <= 0 {
