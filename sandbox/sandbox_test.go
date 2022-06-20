@@ -17,14 +17,15 @@ package sandbox
 
 import (
 	"fmt"
-	"github.com/datacharmer/dbdeployer/common"
-	"github.com/datacharmer/dbdeployer/compare"
-	"github.com/datacharmer/dbdeployer/defaults"
-	"github.com/datacharmer/dbdeployer/globals"
 	"os"
 	"path"
 	"strings"
 	"testing"
+
+	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/compare"
+	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
 )
 
 func okPortExists(t *testing.T, dirName string, port int) {
@@ -324,11 +325,11 @@ func testCreateTidbMockSandbox(t *testing.T) {
 
 		_, err = RemoveCustomSandbox(mockSandboxHome, sandboxDef.DirName, false, true)
 		if err != nil {
-			t.Fatal(fmt.Sprintf(globals.ErrWhileRemoving, sandboxDir, err))
+			t.Fatalf(globals.ErrWhileRemoving, sandboxDir, err)
 		}
 		err = defaults.DeleteFromCatalog(sandboxDir)
 		if err != nil {
-			t.Fatal(fmt.Sprintf(globals.ErrRemovingFromCatalog, sandboxDir))
+			t.Fatalf(globals.ErrRemovingFromCatalog, sandboxDir)
 		}
 
 	}
@@ -546,7 +547,7 @@ func testCreateStandaloneSandbox(t *testing.T) {
 
 	err = CreateStandaloneSandbox(sandboxDef)
 	if err != nil {
-		t.Fatal(fmt.Sprintf(globals.ErrCreatingSandbox, err))
+		t.Fatalf(globals.ErrCreatingSandbox, err)
 	}
 
 	sandboxDir := path.Join(sandboxDef.SandboxDir, defaults.Defaults().SandboxPrefix+pathVersion)
@@ -559,11 +560,11 @@ func testCreateStandaloneSandbox(t *testing.T) {
 	okPortExists(t, sandboxDir, sandboxDef.Port)
 	_, err = RemoveCustomSandbox(defaults.Defaults().SandboxHome, sandboxDef.DirName, false, false)
 	if err != nil {
-		t.Fatal(fmt.Sprint(globals.ErrWhileRemoving, sandboxDef.SandboxDir, err))
+		t.Fatalf(globals.ErrWhileRemoving, sandboxDef.SandboxDir, err)
 	}
 	err = defaults.DeleteFromCatalog(sandboxDir)
 	if err != nil {
-		t.Fatal(fmt.Sprintf(globals.ErrRemovingFromCatalog, sandboxDef.SandboxDir))
+		t.Fatalf(globals.ErrRemovingFromCatalog, sandboxDef.SandboxDir)
 	}
 }
 
@@ -622,7 +623,7 @@ func testCreateReplicationSandbox(t *testing.T) {
 	err := CreateReplicationSandbox(sandboxDef, latestVersion, ReplicationData{
 		Topology: globals.MasterSlaveLabel, Nodes: 3, MasterIp: "127.0.0.1", MasterList: "1", SlaveList: "2,3"})
 	if err != nil {
-		t.Fatal(fmt.Sprintf(globals.ErrCreatingSandbox, err))
+		t.Fatalf(globals.ErrCreatingSandbox, err)
 	}
 
 	sandboxDir := path.Join(sandboxDef.SandboxDir, defaults.Defaults().MasterSlavePrefix+pathVersion)
@@ -645,12 +646,12 @@ func testCreateReplicationSandbox(t *testing.T) {
 	}
 	_, err = RemoveCustomSandbox(defaults.Defaults().SandboxHome, sandboxDef.DirName, false, false)
 	if err != nil {
-		t.Fatal(fmt.Sprint(globals.ErrWhileRemoving, sandboxDef.SandboxDir, err))
+		t.Fatalf(globals.ErrWhileRemoving, sandboxDef.SandboxDir, err)
 	}
 	t.Logf("sandbox to delete: %s\n", sandboxDef.SandboxDir)
 	err = defaults.DeleteFromCatalog(sandboxDir)
 	if err != nil {
-		t.Fatal(fmt.Sprintf(globals.ErrRemovingFromCatalog, sandboxDef.SandboxDir))
+		t.Fatalf(globals.ErrRemovingFromCatalog, sandboxDef.SandboxDir)
 	}
 }
 
