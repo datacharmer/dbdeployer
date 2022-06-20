@@ -81,7 +81,7 @@ func NewLogger(logDir, logFileName string) (*Logger, string, error) {
 	var logFileFullName string = path.Join(fullLogDir, logFileName+".log")
 	var err error
 	var logFile *os.File
-	logFile, err = os.OpenFile(logFileFullName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
+	logFile, err = os.OpenFile(logFileFullName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600) // #nosec G304
 	if err != nil {
 		return noLogger, "", fmt.Errorf("error opening log file %s : %v", logFileFullName, err)
 	}
