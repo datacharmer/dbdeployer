@@ -40,7 +40,7 @@ type DataDefinition struct {
 	ChangeDirectory   bool     `json:"change-dir,omitempty"`         // Whether we need to operate within the internal directory
 	LoadCommands      []string `json:"load-commands"`                // [Required] Set of commands used to load the archive
 	Size              uint64   `json:"size,omitempty"`               // Size of original archive
-	Sha256            string   `json:"sha256,omitempty`              // SHA 256 checksum of the compressed archive
+	Sha256            string   `json:"sha256,omitempty"`             // SHA 256 checksum of the compressed archive
 }
 
 var defaultArchives = map[string]DataDefinition{
