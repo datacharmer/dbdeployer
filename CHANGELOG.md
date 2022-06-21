@@ -1,11 +1,27 @@
+## 1.65.0	21-Jun-2022
+
+### NEW FEATURES
+
+* Add downloads for MySQL 8.0.28 and 8.0.29 (PR #146 bt @isotopp)
+
+### BUGS FIXED
+
+* Fix JSON label missing quote in `data_load.go`
+
+### Code improvements
+
+* Improve comments and tests for `regexp_util`
+* Skip `gosecure` warnings in in ternally used functions.
+* Improve testing code using `t.Fatal` and `t.Skip`
+
 ## 1.64.0	27-Nov-2021
 
-## NEW FEATURES
+### NEW FEATURES
 
 * Add downloads for MySQL 8.0.27
 * Add downloads for MySQL 8.0.23 (Issue #144)
 
-## ADJUSTMENTS
+### ADJUSTMENTS
 
 * Removed CRC from sample databases provided by MySQL.com: the CRC are not reliable, as they change often.
 
