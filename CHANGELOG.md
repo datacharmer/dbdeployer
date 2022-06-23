@@ -1,3 +1,9 @@
+## 1.65.1	23-Jun-2022
+
+### BUGS FIXED
+
+* Fix issue #147: `sysbench_ready run` does not use env variable
+
 ## 1.65.0	21-Jun-2022
 
 ### NEW FEATURES
