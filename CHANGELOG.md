@@ -1,3 +1,9 @@
+## 1.65.2	24-Jun-2022
+
+### BUGS FIXED
+
+* Fix issue #148: incorrect default value listed for option `--OS`
+
 ## 1.65.1	23-Jun-2022
 
 ### BUGS FIXED

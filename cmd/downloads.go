@@ -886,7 +886,7 @@ func init() {
 	downloadsGetUnpackCmd.Flags().BoolP(globals.DeleteAfterUnpackLabel, "", false, "Delete the tarball after successful unpack")
 	downloadsGetUnpackCmd.Flags().Bool(globals.DryRunLabel, false, "Show Get operations, but do not run them")
 
-	downloadsAddCmd.Flags().String(globals.OSLabel, "", "Define the tarball OS (default: current OS)")
+	downloadsAddCmd.Flags().String(globals.OSLabel, "", "Define the tarball OS")
 	downloadsAddCmd.Flags().String(globals.FlavorLabel, "", "Define the tarball flavor")
 	downloadsAddCmd.Flags().String(globals.VersionLabel, "", "Define the tarball version")
 	downloadsAddCmd.Flags().String(globals.ShortVersionLabel, "", "Define the tarball short version")
