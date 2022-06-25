@@ -7,7 +7,6 @@ import (
 	"io/fs"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -134,10 +133,10 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 		return fmt.Errorf("[buildTests] temp directory '%s' not found", tmpDir)
 	}
 
-	_, err := exec.LookPath("dbdeployer")
-	if err != nil {
-		return fmt.Errorf("[buildTests] executable 'dbdeployer' not found in PATH: %s", err)
-	}
+	//_, err := exec.LookPath("dbdeployer")
+	//if err != nil {
+	//	return fmt.Errorf("[buildTests] executable 'dbdeployer' not found in PATH: %s", err)
+	//}
 
 	if !dirExists(dataDir) {
 		err := os.Mkdir(dataDir, 0755)

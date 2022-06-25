@@ -2,6 +2,7 @@ env HOME={{.Home}}
 env TMPDIR={{.TmpDir}}
 env sb_dir=$HOME/sandboxes/rsandbox_{{.DbPathVer}}
 
+[!exec:dbdeployer] skip 'dbdeployer executable not found'
 ! exists $sb_dir
 
 exec dbdeployer deploy replication --concurrent {{.DbVersion}}
