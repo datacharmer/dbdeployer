@@ -191,3 +191,24 @@ fileLoop:
 	}
 	return nil
 }
+
+func defineCommands() map[string]func(ts *testscript.TestScript, neg bool, args []string) {
+	return map[string]func(ts *testscript.TestScript, neg bool, args []string){
+		// find_errors will check that the error log in a sandbox contains the string ERROR
+		// invoke as "find_errors /path/to/sandbox"
+		// The command can be negated, i.e. it will succeed if the log does not contain the string ERROR
+		// "! find_errors /path/to/sandbox"
+		"find_errors": findErrorsInLogFile,
+
+		// check_file will check that a given list of files exists
+		// invoke as "check_file /path/to/sandbox file1 [file2 [file3 [file4]]]"
+		// The command can be negated, i.e. it will succeed if the given files do not exist
+		// "! check_file /path/to/sandbox file1 [file2 [file3 [file4]]]"
+		"check_file": checkFile,
+
+		// sleep will pause execution for the required number of seconds
+		// Invoke as "sleep 3"
+		// If no number is passed, it pauses for 1 second
+		"sleep": sleep,
+	}
+}
