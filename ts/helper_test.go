@@ -14,6 +14,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/datacharmer/dbdeployer/common"
 	"github.com/rogpeppe/go-internal/testscript"
 )
 
@@ -55,6 +56,56 @@ func checkFile(ts *testscript.TestScript, neg bool, args []string) {
 			ts.Fatalf("file %s not found", f)
 		}
 	}
+}
+
+// checkPorts is a testscript command that checks that the sandbox ports are as expected
+func checkPorts(ts *testscript.TestScript, neg bool, args []string) {
+
+	portAdjustment80 := map[string]int{
+		"single":               1,
+		"master-slave":         3,
+		"multiple":             3,
+		"group-multi-primary":  3,
+		"group-single-primary": 3,
+	}
+	if len(args) < 2 {
+		ts.Fatalf("no sandbox path provided and number of ports provided")
+		return
+	}
+	sbDir := args[0]
+	numPorts, err := strconv.Atoi(args[1])
+	if err != nil {
+		ts.Fatalf("error converting text '%s' to number: %s", args[1], err)
+		return
+	}
+	//sbDesc := path.Join(sbDir, "sbdescription.json")
+	//if !fileExists(sbDesc) {
+	//	ts.Fatalf("file %s not found", sbDesc)
+	//	return
+	//}
+	sbDescription, err := common.ReadSandboxDescription(sbDir)
+	if err != nil {
+		ts.Fatalf("error reading description file from %s: %s", sbDir, err)
+		return
+	}
+	isGreater, err := common.GreaterOrEqualVersion(sbDescription.Version, []int{8, 0, 11})
+	if err != nil {
+		ts.Fatalf("error comparing version '%s': %s", sbDescription.Version, err)
+		return
+	}
+	if isGreater {
+		morePorts, ok := portAdjustment80[sbDescription.SBType]
+		if !ok {
+			ts.Fatalf("error recognizing the type of sandbox '%s': %s", path.Base(sbDir), sbDescription.SBType)
+			return
+		}
+		numPorts += morePorts
+	}
+	if len(sbDescription.Port) != numPorts {
+		ts.Fatalf("sandbox '%s': wanted %d ports - got %d", path.Base(sbDir), numPorts, len(sbDescription.Port))
+		return
+	}
+
 }
 
 // findErrorsInLogFile is a testscript command that finds ERROR strings inside a sandbox data directory
@@ -210,5 +261,10 @@ func defineCommands() map[string]func(ts *testscript.TestScript, neg bool, args 
 		// Invoke as "sleep 3"
 		// If no number is passed, it pauses for 1 second
 		"sleep": sleep,
+
+		// check_ports will check that the number of ports expected for a given sandbox correspond to the ones
+		// found in sbDescription.json
+		// Invoke as "check_ports /path/to/sandbox 3"
+		"check_ports": checkPorts,
 	}
 }
