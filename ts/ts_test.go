@@ -3,6 +3,8 @@ package ts
 import (
 	"fmt"
 	"os"
+	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -11,34 +13,20 @@ import (
 
 func TestSandboxes(t *testing.T) {
 
-	t.Run("single", func(t *testing.T) {
-		testscript.Run(t, testscript.Params{
-			Dir:      "testdata/single",
-			TestWork: true,
-			Cmds:     defineCommands(),
+	dirs, err := filepath.Glob("testdata/*")
+	if err != nil {
+		t.Skip("no directories found in testdata")
+	}
+	for _, dir := range dirs {
+		t.Run(path.Base(dir), func(t *testing.T) {
+			testscript.Run(t, testscript.Params{
+				Dir:      dir,
+				TestWork: true,
+				Cmds:     defineCommands(),
+			})
 		})
-	})
-	t.Run("replication", func(t *testing.T) {
-		testscript.Run(t, testscript.Params{
-			Dir:      "testdata/replication",
-			TestWork: true,
-			Cmds:     defineCommands(),
-		})
-	})
-	t.Run("group", func(t *testing.T) {
-		testscript.Run(t, testscript.Params{
-			Dir:      "testdata/group",
-			TestWork: true,
-			Cmds:     defineCommands(),
-		})
-	})
-	t.Run("group_sp", func(t *testing.T) {
-		testscript.Run(t, testscript.Params{
-			Dir:      "testdata/group_sp",
-			TestWork: true,
-			Cmds:     defineCommands(),
-		})
-	})
+	}
+
 }
 
 func TestMain(m *testing.M) {
@@ -51,6 +39,7 @@ func TestMain(m *testing.M) {
 	// and use that list instead of the one provided here.
 
 	versions := []string{"5.0.96", "5.1.73", "5.5.53", "5.6.41", "5.7.30", "8.0.29"}
+	//versions := []string{"5.6.41"}
 	for _, v := range versions {
 		label := strings.Replace(v, ".", "_", -1)
 		err := buildTests("templates", "testdata", label, map[string]string{
