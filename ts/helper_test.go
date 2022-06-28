@@ -9,12 +9,14 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"text/template"
 	"time"
 
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/downloads"
 	"github.com/rogpeppe/go-internal/testscript"
 )
 
@@ -184,9 +186,9 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 		return fmt.Errorf("[buildTests] temp directory '%s' not found", tmpDir)
 	}
 
-	//_, err := exec.LookPath("dbdeployer")
+	//err := setEnvironment(data["DbVersion"])
 	//if err != nil {
-	//	return fmt.Errorf("[buildTests] executable 'dbdeployer' not found in PATH: %s", err)
+	//	return fmt.Errorf("[buildTests] error setting environment for  %s: %s", data["DbVersion"], err)
 	//}
 
 	if !dirExists(dataDir) {
@@ -220,14 +222,14 @@ fileLoop:
 			return fmt.Errorf("[buildTests] error reading file %s: %s", f, err)
 		}
 
-		subDataDir := path.Join(dataDir, fName)
+		subDataDir := path.Join(dataDir, label)
 		if !dirExists(subDataDir) {
 			err := os.Mkdir(subDataDir, 0755)
 			if err != nil {
 				return fmt.Errorf("[buildTests] error creating directory %s: %s", subDataDir, err)
 			}
 		}
-		processTemplate := template.Must(template.New(fName).Parse(string(contents)))
+		processTemplate := template.Must(template.New(label).Parse(string(contents)))
 		buf := &bytes.Buffer{}
 
 		if err := processTemplate.Execute(buf, data); err != nil {
@@ -240,6 +242,41 @@ fileLoop:
 		}
 
 	}
+	return nil
+}
+
+func setEnvironment(version string) error {
+
+	curDir := os.Getenv("PWD")
+	homeDir := os.Getenv("HOME")
+	if !dirExists(homeDir) {
+		return fmt.Errorf("home directory '%s' not found", homeDir)
+	}
+	sandboxDir := path.Join(homeDir, "sandboxes")
+	binaryDir := path.Join(homeDir, "opt", "mysql")
+	for _, dir := range []string{sandboxDir, binaryDir} {
+		if !dirExists(dir) {
+			err := os.Mkdir(dir, 0755)
+			if err != nil {
+				return fmt.Errorf("error creating directory '%s': %s", dir, err)
+			}
+		}
+	}
+	minimal := false
+	if strings.EqualFold(runtime.GOOS, "linux") {
+		minimal = true
+	}
+	os.Chdir(homeDir)
+	defer os.Chdir(curDir)
+	tarball, err := downloads.FindOrGuessTarballByVersionFlavorOS(version, common.MySQLFlavor, runtime.GOOS, minimal, true, false)
+	if err != nil {
+		return fmt.Errorf("error getting version %s (%s-%s)[minimal: %v - newest: true - guess: false]: %s",
+			version, common.MySQLFlavor, runtime.GOOS, minimal, err)
+	}
+	if !fileExists(tarball.Name) {
+		return fmt.Errorf("downloaded file %s not found", tarball.Name)
+	}
+
 	return nil
 }
 
@@ -263,7 +300,7 @@ func defineCommands() map[string]func(ts *testscript.TestScript, neg bool, args 
 		"sleep": sleep,
 
 		// check_ports will check that the number of ports expected for a given sandbox correspond to the ones
-		// found in sbDescription.json
+		// found in sbdescription.json
 		// Invoke as "check_ports /path/to/sandbox 3"
 		"check_ports": checkPorts,
 	}
