@@ -61,6 +61,11 @@ function make_dir {
 # dbdeployer.
 function create_mock_version {
     version_label=$1
+    if [ -z "$version_label" ]
+    then
+        echo "version_label is mandatory"
+        exit 1
+    fi
     if [ -z "$SANDBOX_BINARY" ]
     then
         echo "SANDBOX_BINARY not set"
@@ -139,6 +144,12 @@ function create_mock_tarball {
     version_label=$1
     tarball_dir=$2
     save_sandbox_binary=$SANDBOX_BINARY
+
+    if [ -z "$tarball_dir" ]
+    then
+        echo "version_label and tarball_dir are mandatory"
+        exit 1
+    fi
     # Changes SANDBOX_BINARY so that create_mock_version
     # will create the mock directory in the tarball place.
     SANDBOX_BINARY=$tarball_dir
