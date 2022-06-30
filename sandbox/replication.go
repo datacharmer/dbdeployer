@@ -95,6 +95,13 @@ func setServerId(sandboxDef SandboxDef, increment int) int {
 	return sandboxDef.BaseServerId + increment
 }
 
+func computeBaseport(proposed int) int {
+	if proposed > globals.MaxAllowedPort {
+		return proposed - globals.ReductionOnPortNumberOverflow
+	}
+	return proposed
+}
+
 func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes int, masterIp string) error {
 
 	var execLists []concurrent.ExecutionList
@@ -118,7 +125,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 		return err
 	}
 	rev := vList[2]
-	basePort := sandboxDef.Port + defaults.Defaults().MasterSlaveBasePort + (rev * 100)
+	basePort := computeBaseport(sandboxDef.Port + defaults.Defaults().MasterSlaveBasePort + (rev * 100))
 	if sandboxDef.BasePort > 0 {
 		basePort = sandboxDef.BasePort
 	}

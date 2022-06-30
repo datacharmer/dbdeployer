@@ -61,7 +61,7 @@ func CreatePxcReplication(sandboxDef SandboxDef, origin string, nodes int, maste
 		return err
 	}
 	rev := vList[2]
-	basePort := sandboxDef.Port + defaults.Defaults().PxcBasePort + (rev * 100)
+	basePort := computeBaseport(sandboxDef.Port + defaults.Defaults().PxcBasePort + (rev * 100))
 	if sandboxDef.BasePort > 0 {
 		basePort = sandboxDef.BasePort
 	}

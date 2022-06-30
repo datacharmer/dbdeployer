@@ -617,8 +617,10 @@ func VersionToName(version string) string {
 	return name
 }
 
-// Converts a version string into a port number
+// VersionToPort converts a version string into a port number
 // e.g. "5.6.33" -> 5633
+// Note that if the conversion exceeds the maximum port (65,535), such as 10.10.x,
+// the actual number will be reduced by 50,000
 func VersionToPort(version string) (int, error) {
 	verList, err := VersionToList(version)
 	if err != nil {
@@ -627,14 +629,14 @@ func VersionToPort(version string) (int, error) {
 	major := verList[0]
 	minor := verList[1]
 	rev := verList[2]
-	//if major < 0 || minor < 0 || rev < 0 {
-	//	return -1
-	//}
+
 	completeVersion := fmt.Sprintf("%d%d%02d", major, minor, rev)
-	// fmt.Println(completeVersion)
 	i, err := strconv.Atoi(completeVersion)
 	if err != nil {
 		return -1, fmt.Errorf("error converting %d%d%02d to version", major, minor, rev)
+	}
+	if i > globals.MaxAllowedPort {
+		i -= globals.ReductionOnPortNumberOverflow
 	}
 	return i, nil
 }

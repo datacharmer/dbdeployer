@@ -74,7 +74,7 @@ type DbdeployerDefaults struct {
 }
 
 const (
-	minPortValue            int    = 11000
+	minPortValue            int    = 1100
 	maxPortValue            int    = 30000
 	ConfigurationDirName    string = ".dbdeployer"
 	ConfigurationFileName   string = "config.json"

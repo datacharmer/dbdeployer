@@ -125,7 +125,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 		return err
 	}
 	rev := vList[2]
-	basePort := sandboxDef.Port + defaults.Defaults().GroupReplicationBasePort + (rev * 100)
+	basePort := computeBaseport(sandboxDef.Port + defaults.Defaults().GroupReplicationBasePort + (rev * 100))
 	if sandboxDef.SinglePrimary {
 		basePort = sandboxDef.Port + defaults.Defaults().GroupReplicationSpBasePort + (rev * 100)
 	}

@@ -1,8 +1,9 @@
-## 1.65.2	24-Jun-2022
+## 1.65.2	30-Jun-2022
 
 ### BUGS FIXED
 
 * Fix issue #148: incorrect default value listed for option `--OS`
+* Fix isste #149: port calculation exceeds 64K
 
 ## 1.65.1	23-Jun-2022
 

@@ -76,7 +76,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 		return emptyStringMap, err
 	}
 	rev := vList[2]
-	basePort := sandboxDef.Port + defaults.Defaults().MultipleBasePort + (rev * 100)
+	basePort := computeBaseport(sandboxDef.Port + defaults.Defaults().MultipleBasePort + (rev * 100))
 	if sandboxDef.BasePort > 0 {
 		basePort = sandboxDef.BasePort
 	}

@@ -60,7 +60,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 		return err
 	}
 	rev := vList[2]
-	basePort := sandboxDef.Port + defaults.Defaults().NdbBasePort + (rev * 100)
+	basePort := computeBaseport(sandboxDef.Port + defaults.Defaults().NdbBasePort + (rev * 100))
 	if sandboxDef.BasePort > 0 {
 		basePort = sandboxDef.BasePort
 	}
