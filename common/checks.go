@@ -620,7 +620,7 @@ func VersionToName(version string) string {
 // VersionToPort converts a version string into a port number
 // e.g. "5.6.33" -> 5633
 // Note that if the conversion exceeds the maximum port (65,535), such as 10.10.x,
-// the actual number will be reduced by 50,000
+// the actual number will be reduced by 60,000
 func VersionToPort(version string) (int, error) {
 	verList, err := VersionToList(version)
 	if err != nil {
