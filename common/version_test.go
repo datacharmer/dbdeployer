@@ -62,11 +62,23 @@ func TestVersionToPort(t *testing.T) {
 		{"5.7.21", 5721},      // OK: 5.7
 		{"8.0.0", 8000},       // OK: 8.0
 		{"8.0.4", 8004},       // OK: 8.0
-		{"8.0.04", 8004},      // OK: 8.0
+		{"8.0.4", 8004},       // OK: 8.0
+		{"8.9.4", 8904},       // OK: 8.9
+		{"8.10.4", 21004},     // OK: 8.10
+		{"9.0.4", 9004},       // OK: 9.0
+		{"9.10.04", 31004},    // OK: 9.10
+		{"22.0.0", 22000},     // OK: 22.0
+		{"22.1.0", 22100},     // OK: 22.1
+		{"22.10.0", 41000},    // OK: 22.10
 		{"ma10.2.1", 10201},   // OK: 10.2 with prefix
 		{"ma10.9.10", 10910},  // OK: 10.9 with prefix
 		{"ma10.10.10", 41010}, // OK: 10.10 with prefix and port reduction
 		{"ma10.20.10", 42010}, // OK: 10.20 with prefix and port reduction
+		{"ma11.15.10", 51510}, // OK: 13.15.10
+		{"ma12.15.10", 61510}, // OK: 12.15.10 with port reduction
+		{"ma13.5.10", 13510},  // OK: 13.10.10
+		{"ma13.10.10", 11010}, // OK: 13.10.10 with port reduction
+		{"ma13.15.10", 11510}, // OK: 13.15.10 with port reduction
 	}
 	for _, vp := range versions {
 		version := vp.version
@@ -91,31 +103,32 @@ func TestVersionToPort(t *testing.T) {
 
 func TestVersionToList(t *testing.T) {
 	var versions = []versionList{
-		{"", []int{-1}},               // FAIL: Empty string
-		{"5.0.A", []int{-1}},          // FAIL: Hexadecimal number
-		{"5.0.-9", []int{-1}},         // FAIL: Negative revision
-		{"-5.0.9", []int{-1}},         // FAIL: Negative major version
-		{"5.-1.9", []int{-1}},         // FAIL: Negative minor version
-		{"5096", []int{-1}},           // FAIL: No separators
-		{"50.96", []int{-1}},          // FAIL: Not enough separators
-		{"dummy", []int{-1}},          // FAIL: Not numbers
-		{"5.0.96.2", []int{-1}},       // FAIL: Too many components
-		{"5.0.96", []int{5, 0, 96}},   // OK: 5.0
-		{"5.1.72", []int{5, 1, 72}},   // OK: 5.1
-		{"5.5.55", []int{5, 5, 55}},   // OK: 5.5
-		{"ps5.7.20", []int{5, 7, 20}}, // OK: 5.7 with prefix
-		{"5.7.21", []int{5, 7, 21}},   // OK: 5.7
-		{"8.0.0", []int{8, 0, 0}},     // OK: 8.0
-		{"8.0.4", []int{8, 0, 4}},     // OK: 8.0
-		{"8.0.04", []int{8, 0, 4}},    // OK: 8.0
-		{"ma10.2.1", []int{10, 2, 1}}, // OK: 10.2 with prefix
+		{"", []int{-1}},                 // FAIL: Empty string
+		{"5.0.A", []int{-1}},            // FAIL: Hexadecimal number
+		{"5.0.-9", []int{-1}},           // FAIL: Negative revision
+		{"-5.0.9", []int{-1}},           // FAIL: Negative major version
+		{"5.-1.9", []int{-1}},           // FAIL: Negative minor version
+		{"5096", []int{-1}},             // FAIL: No separators
+		{"50.96", []int{-1}},            // FAIL: Not enough separators
+		{"dummy", []int{-1}},            // FAIL: Not numbers
+		{"5.0.96.2", []int{-1}},         // FAIL: Too many components
+		{"5.0.96", []int{5, 0, 96}},     // OK: 5.0
+		{"5.1.72", []int{5, 1, 72}},     // OK: 5.1
+		{"5.5.55", []int{5, 5, 55}},     // OK: 5.5
+		{"ps5.7.20", []int{5, 7, 20}},   // OK: 5.7 with prefix
+		{"5.7.21", []int{5, 7, 21}},     // OK: 5.7
+		{"8.0.0", []int{8, 0, 0}},       // OK: 8.0
+		{"8.0.4", []int{8, 0, 4}},       // OK: 8.0
+		{"8.0.04", []int{8, 0, 4}},      // OK: 8.0
+		{"ma10.2.1", []int{10, 2, 1}},   // OK: 10.2 with prefix
+		{"ma10.10.1", []int{10, 10, 1}}, // OK: 10.10 with prefix
+		{"ma15.15.1", []int{15, 15, 1}}, // OK: 15.15 with prefix
+		{"22.12.2", []int{22, 12, 2}},   // OK: 12.12
 	}
-	//t.Logf("Name: %s\n", t.Name())
 	for _, vl := range versions {
 		version := vl.version
 		expected := vl.list
 		list, err := VersionToList(version)
-		// t.Logf("+%s\n", version)
 		if err != nil && expected[0] != -1 {
 			t.Logf("%+v %s", expected, err)
 			t.Fail()
@@ -131,6 +144,8 @@ func TestGreaterOrEqualVersion(t *testing.T) {
 		{"8.0.0", []int{5, 6, 0}, true},
 		{"ps5.7.5", []int{5, 7, 0}, true},
 		{"10.0.1", []int{5, 6, 0}, false},
+		{"22.0.0", []int{22, 0, 0}, true},
+		{"22.10.2", []int{22, 10, 2}, true},
 	}
 	for _, v := range versions {
 		result, err := GreaterOrEqualVersion(v.version, v.versionList)

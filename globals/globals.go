@@ -346,6 +346,7 @@ const (
 type NumericVersion []int
 
 const MaxAllowedPort int = 65535
+const MinAllowedPort int = 1100
 const ReductionOnPortNumberOverflow = 60000
 
 // Go doesn't allow constants to be compound types. Thus we use variables here.

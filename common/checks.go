@@ -635,8 +635,12 @@ func VersionToPort(version string) (int, error) {
 	if err != nil {
 		return -1, fmt.Errorf("error converting %d%d%02d to version", major, minor, rev)
 	}
-	if i > globals.MaxAllowedPort {
+	for i > globals.MaxAllowedPort {
 		i -= globals.ReductionOnPortNumberOverflow
+	}
+
+	if i < globals.MinAllowedPort {
+		i += globals.MinAllowedPort
 	}
 	return i, nil
 }
