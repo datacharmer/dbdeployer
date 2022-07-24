@@ -44,7 +44,7 @@ Runs single, multiple, and replicated sandboxes.`,
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
+func Execute() int {
 	// If the command line was not set in the abbreviations module,
 	// we save it here, before it is processed by Cobra
 	if len(common.CommandLineArgs) == 0 {
@@ -63,8 +63,10 @@ func Execute() {
 		customizeFlags(c, c.Name())
 	}
 	if err := rootCmd.Execute(); err != nil {
-		common.Exitf(1, "%s", err)
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		return 1
 	}
+	return 0
 }
 
 func setPflag(cmd *cobra.Command, key string, abbr string, envVar string, defaultVar string, helpStr string, isArray bool) {

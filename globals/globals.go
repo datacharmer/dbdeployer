@@ -134,6 +134,7 @@ const (
 	ShowUrlLabel           = "show-url"
 	UrlLabel               = "url"
 	QuietLabel             = "quiet"
+	UnpackLabel            = "unpack"
 	GuessLatestLabel       = "guess-latest"
 	MinimalLabel           = "minimal"
 	NewestLabel            = "newest"
