@@ -139,10 +139,10 @@ func initializeEnv(versionList []string) error {
 			DeleteAfterUnpack: true,
 		})
 		if err != nil {
-			fmt.Printf("error getting tarball for version %s\n", latest)
+			fmt.Printf("error getting tarball for version %s\n", v)
 			return err
 		}
-		fmt.Printf("retrieved tarball for version %s\n", latest)
+		fmt.Printf("retrieved tarball for version %s\n", v)
 	}
 	return nil
 }
@@ -219,6 +219,9 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 			return fmt.Errorf("[buildTests] error creating directory %s: %s", dataDir, err)
 		}
 	}
+	if !common.DirExists(dataDir) {
+		return fmt.Errorf("datadir %s not found after creation", dataDir)
+	}
 	files, err := filepath.Glob(templateDir + "/*.tmpl")
 
 	if err != nil {
@@ -227,6 +230,7 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 	for _, f := range files {
 		fName := strings.Replace(path.Base(f), ".tmpl", "", 1)
 
+		fmt.Printf("processing file %s\n", fName)
 		contents, err := ioutil.ReadFile(f)
 		if err != nil {
 			return fmt.Errorf("[buildTests] error reading file %s: %s", f, err)
@@ -263,6 +267,9 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 		err = ioutil.WriteFile(testName, buf.Bytes(), 0644)
 		if err != nil {
 			return fmt.Errorf("[buildTests] error writing text file %s: %s", testName, err)
+		}
+		if !common.FileExists(testName) {
+			return fmt.Errorf("file %s not found after creation", testName)
 		}
 	}
 	return nil
