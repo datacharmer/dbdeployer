@@ -29,18 +29,18 @@ export RUN_CONCURRENTLY=1
 export EXIT_ON_FAILURE=1
 run ./scripts/sanity_check.sh
 run ./test/go-unit-tests.sh
-run ./scripts/build.sh linux
+#run ./scripts/build.sh linux
 
-executable=dbdeployer-${dbdeployer_version}.linux
-if [ ! -f $executable ]
-then
-    echo "executable $executable not found"
-    exit 1
-fi
-cp $executable dbdeployer
-export PATH=$PWD:$PATH
-
-run ./test/run-mock-tests.sh
-run ./test/docker-test.sh $dbdeployer_version
-run ./test/test-linux-init.sh $dbdeployer_version
+#executable=dbdeployer-${dbdeployer_version}.linux
+#if [ ! -f $executable ]
+#then
+#    echo "executable $executable not found"
+#    exit 1
+#fi
+#cp $executable dbdeployer
+#export PATH=$PWD:$PATH
+#
+#run ./test/run-mock-tests.sh
+#run ./test/docker-test.sh $dbdeployer_version
+#run ./test/test-linux-init.sh $dbdeployer_version
 

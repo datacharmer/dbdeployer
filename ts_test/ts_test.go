@@ -39,6 +39,7 @@ import (
 var dryRun bool
 
 func TestDbDeployer(t *testing.T) {
+	t.Logf("entering TestDbDeployer")
 	if dryRun {
 		t.Skip("Dry Run")
 	}
@@ -50,7 +51,9 @@ func TestDbDeployer(t *testing.T) {
 	if err != nil {
 		t.Skip("no directories found in testdata")
 	}
+	t.Logf("Directories: %v\n", dirs)
 	for _, dir := range dirs {
+		t.Logf("entering TestDbDeployer/%s",dir)
 		t.Run(path.Base(dir), func(t *testing.T) {
 			testscript.Run(t, testscript.Params{
 				Dir:       dir,
