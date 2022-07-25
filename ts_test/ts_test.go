@@ -31,6 +31,7 @@ import (
 	"github.com/datacharmer/dbdeployer/cmd"
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/ops"
 
 	"github.com/rogpeppe/go-internal/testscript"
@@ -123,7 +124,8 @@ func initializeEnv(versionList []string) error {
 	}
 	for _, v := range versionList {
 		latest := common.GetLatestVersion(sandboxBinary, v, common.MySQLFlavor)
-		if latest != "" {
+
+		if latest != "" && !strings.Contains(latest, globals.VersionNotFound) {
 			fmt.Printf("found latest %s: %s\n", v, latest)
 			continue
 		}
