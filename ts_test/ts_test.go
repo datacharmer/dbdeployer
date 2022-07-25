@@ -53,7 +53,7 @@ func TestDbDeployer(t *testing.T) {
 	}
 	t.Logf("Directories: %v\n", dirs)
 	for _, dir := range dirs {
-		t.Logf("entering TestDbDeployer/%s",dir)
+		t.Logf("entering TestDbDeployer/%s", dir)
 		t.Run(path.Base(dir), func(t *testing.T) {
 			testscript.Run(t, testscript.Params{
 				Dir:       dir,
