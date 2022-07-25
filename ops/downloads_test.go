@@ -38,6 +38,9 @@ func TestGetTarball(t *testing.T) {
 			if !strings.EqualFold(tb.Flavor, common.MySQLFlavor) {
 				return
 			}
+			if strings.EqualFold(tb.OperatingSystem, "linux") && !tb.Minimal {
+				return
+			}
 			latestTb, ok := newestList[tb.ShortVersion]
 			if ok {
 				latestVersionList, err := common.VersionToList(latestTb.Version)
@@ -66,25 +69,12 @@ func TestGetTarball(t *testing.T) {
 		}
 		t.Run("latest "+v, func(t *testing.T) {
 			err := GetRemoteTarball(DownloadsOptions{
-				SandboxBinary:     sandboxBinary,
-				TarballName:       "",
-				TarballUrl:        "",
-				TarballOS:         tb.OperatingSystem,
-				Flavor:            tb.Flavor,
-				TargetServer:      "",
-				Prefix:            "",
-				Version:           v,
-				Newest:            true,
-				Minimal:           strings.EqualFold(tb.OperatingSystem, "linux"),
-				GuessLatest:       false,
-				Unpack:            false,
-				Overwrite:         false,
-				DeleteAfterUnpack: false,
-				DryRun:            false,
-				IsShell:           false,
-				Quiet:             false,
-				VerbosityLevel:    0,
-				ProgressStep:      0,
+				SandboxBinary: sandboxBinary,
+				TarballOS:     tb.OperatingSystem,
+				Flavor:        tb.Flavor,
+				Version:       v,
+				Newest:        true,
+				Minimal:       strings.EqualFold(tb.OperatingSystem, "linux"),
 			})
 			if err != nil {
 				t.Fatalf("error  retrieving tarball for latest %s: %s", v, err)
@@ -98,9 +88,9 @@ func TestGetTarball(t *testing.T) {
 		})
 		t.Run("by-name-"+tb.Name, func(t *testing.T) {
 			err := GetRemoteTarball(DownloadsOptions{
-				TarballName:       tb.Name,
-				TarballUrl:        "",
-				TarballOS:         tb.OperatingSystem,
+				TarballName: tb.Name,
+				TarballUrl:  "",
+				TarballOS:   tb.OperatingSystem,
 			})
 			if err != nil {
 				t.Fatalf("error  retrieving tarball for %s: %s", tb.Name, err)
@@ -114,9 +104,8 @@ func TestGetTarball(t *testing.T) {
 		})
 		t.Run("by-URL-"+tb.Name, func(t *testing.T) {
 			err := GetRemoteTarball(DownloadsOptions{
-				TarballName:       "",
-				TarballUrl:        tb.Url,
-				//TarballOS:         tb.OperatingSystem,
+				TarballName: "",
+				TarballUrl:  tb.Url,
 			})
 			if err != nil {
 				t.Fatalf("error  retrieving tarball (by URL) for %s: %s", tb.Name, err)
