@@ -68,7 +68,7 @@ func TestDbDeployer(t *testing.T) {
 func getFlavor(version string) string {
 	sandboxBinary := os.Getenv("SANDBOX_BINARY")
 	if sandboxBinary == "" {
-		sandboxBinary = path.Join(os.Getenv("HOME"), "opt", "mysql")
+		sandboxBinary = defaults.Defaults().SandboxBinary
 	}
 	filePath := path.Join(sandboxBinary, version, "FLAVOR")
 	if !common.FileExists(filePath) {
@@ -124,21 +124,24 @@ func initializeEnv(versionList []string) error {
 	for _, v := range versionList {
 		latest := common.GetLatestVersion(sandboxBinary, v, common.MySQLFlavor)
 		if latest != "" {
+			fmt.Printf("found latest %s: %s\n", v, latest)
 			continue
 		}
 		err := ops.GetRemoteTarball(ops.DownloadsOptions{
 			SandboxBinary:     sandboxBinary,
 			TarballOS:         runtime.GOOS,
 			Flavor:            common.MySQLFlavor,
-			Version:           v,
+			Version:           latest,
 			Newest:            true,
 			Minimal:           strings.EqualFold(runtime.GOOS, "linux"),
 			Unpack:            true,
 			DeleteAfterUnpack: true,
 		})
 		if err != nil {
+			fmt.Printf("error getting tarball for version %s\n", latest)
 			return err
 		}
+		fmt.Printf("retrieved tarball for version %s\n", latest)
 	}
 	return nil
 }
@@ -148,6 +151,7 @@ func TestMain(m *testing.M) {
 
 	//shortVersions := []string{"5.0", "5.1", "5.5", "5.6", "5.7", "8.0"}
 	shortVersions := []string{"5.7", "8.0"}
+	fmt.Printf("short versions: %v\n", shortVersions)
 	err := initializeEnv(shortVersions)
 	if err != nil {
 		fmt.Printf("error initializing the environment - Skipping tests: %s\n", err)
@@ -155,8 +159,10 @@ func TestMain(m *testing.M) {
 	}
 	versions := getVersionList(shortVersions)
 
+	fmt.Printf("versions: %v\n", versions)
 	for _, v := range versions {
 		label := strings.Replace(v, ".", "_", -1)
+		fmt.Printf("building test: %s\n", label)
 		err := buildTests("templates", "testdata", label, map[string]string{
 			"DbVersion": v,
 			"DbFlavor":  getFlavor(v),
@@ -169,6 +175,7 @@ func TestMain(m *testing.M) {
 			os.Exit(1)
 		}
 	}
+	fmt.Printf("TestMain: starting tests\n")
 	exitCode := testscript.RunMain(m, map[string]func() int{
 		"dbdeployer": cmd.Execute,
 	})
