@@ -19,12 +19,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path"
+	"testing"
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/rogpeppe/go-internal/testscript"
 )
 
-func attempt4Setup(dir string) func(env *testscript.Env) error {
+func dbdeployerSetup(t *testing.T, dir string) func(env *testscript.Env) error {
 	return func(env *testscript.Env) error {
 		readFile := func(fileName string) (string, error) {
 			wantedFile := path.Join(dir, fileName)
@@ -48,22 +49,13 @@ func attempt4Setup(dir string) func(env *testscript.Env) error {
 		if err != nil {
 			return fmt.Errorf("error reading flavor file in %s", dir)
 		}
-		//fmt.Printf("<<BEFORE>>: %s\n", time.Now())
-		//fmt.Println("VARIABLES")
 		env.Setenv("db_version", versionText)
 		env.Setenv("db_flavor", flavorText)
-		//for _, v := range env.Vars {
-		//	fmt.Printf("VAR %s\n", v)
-		//}
 
 		env.Values["db_version"] = versionText
 		env.Values["db_flavor"] = flavorText
-		//fmt.Println("Values")
-		//for k, v := range env.Values {
-		//	fmt.Printf("%s -> %s\n", k, v)
-		//}
+		env.Values["testingT"] = t
 
-		//env.Defer(func() { fmt.Printf("<<AFTER>> %s\n", time.Now()) })
 		return nil
 	}
 }

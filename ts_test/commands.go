@@ -16,59 +16,67 @@
 package ts
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os/exec"
 	"path"
 	"strconv"
 	"strings"
+	"testing"
 	"time"
 
 	"github.com/datacharmer/dbdeployer/common"
+	qt "github.com/frankban/quicktest"
 	"github.com/rogpeppe/go-internal/testscript"
 )
+
+func getTestingT(ts *testscript.TestScript) (*qt.C, error) {
+	rawT := ts.Value("testingT")
+	if rawT == nil {
+		return nil, fmt.Errorf("error fetching T argument from setup")
+	}
+	t, ok := rawT.(*testing.T)
+	if !ok {
+		return nil, fmt.Errorf("error converting interface{} to *testing.T")
+	}
+	return qt.New(t), nil
+}
 
 // checkPorts is a testscript command that checks that the sandbox ports are as expected
 func checkPorts(ts *testscript.TestScript, neg bool, args []string) {
 
+	c, err := getTestingT(ts)
+	ts.Check(err)
 	if len(args) < 2 {
 		ts.Fatalf("no sandbox path and number of ports provided")
 	}
 	sbDir := args[0]
 	numPorts, err := strconv.Atoi(args[1])
-	if err != nil {
-		ts.Fatalf("error converting text '%s' to number: %s", args[1], err)
-	}
+	ts.Check(err)
 
 	sbDescription, err := common.ReadSandboxDescription(sbDir)
-	if err != nil {
-		ts.Fatalf("error reading description file from %s: %s", sbDir, err)
-	}
+	ts.Check(err)
 
-	if len(sbDescription.Port) != numPorts {
-		ts.Fatalf("sandbox '%s': wanted %d ports - got %d", path.Base(sbDir), numPorts, len(sbDescription.Port))
-	}
-
+	c.Assert(len(sbDescription.Port), qt.Equals, numPorts)
 }
 
 // findErrorsInLogFile is a testscript command that finds ERROR strings inside a sandbox data directory
 func findErrorsInLogFile(ts *testscript.TestScript, neg bool, args []string) {
+
+	c, err := getTestingT(ts)
+	ts.Check(err)
 	if len(args) < 1 {
 		ts.Fatalf("no sandbox path provided")
 	}
 	sbDir := args[0]
 	dataDir := path.Join(sbDir, "data")
 	logFile := path.Join(dataDir, "msandbox.err")
-	if !common.DirExists(dataDir) {
-		ts.Fatalf("sandbox data dir %s not found", dataDir)
-	}
-	if !common.FileExists(logFile) {
-		ts.Fatalf("file %s not found", logFile)
-	}
+	c.Assert(common.DirExists(dataDir), qt.Equals, true)
+
+	c.Assert(common.FileExists(logFile), qt.Equals, true)
 
 	contents, err := ioutil.ReadFile(logFile) // #nosec G304
-	if err != nil {
-		ts.Fatalf("%s", err)
-	}
+	ts.Check(err)
 	hasError := strings.Contains(string(contents), "ERROR")
 	if neg && hasError {
 		ts.Fatalf("ERRORs found in %s\n", logFile)

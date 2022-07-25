@@ -56,7 +56,7 @@ func TestDbDeployer(t *testing.T) {
 				Dir:       dir,
 				Cmds:      customCommands(),
 				Condition: customConditions,
-				Setup:     attempt4Setup(dir),
+				Setup:     dbdeployerSetup(t, dir),
 			})
 		})
 	}
@@ -143,7 +143,8 @@ func initializeEnv(versionList []string) error {
 func TestMain(m *testing.M) {
 	flag.BoolVar(&dryRun, "dry", false, "creates testdata without running tests")
 
-	shortVersions := []string{"5.0", "5.1", "5.5", "5.6", "5.7", "8.0"}
+	//shortVersions := []string{"5.0", "5.1", "5.5", "5.6", "5.7", "8.0"}
+	shortVersions := []string{"5.7", "8.0"}
 	err := initializeEnv(shortVersions)
 	if err != nil {
 		fmt.Printf("error initializing the environment - Skipping tests: %s\n", err)
