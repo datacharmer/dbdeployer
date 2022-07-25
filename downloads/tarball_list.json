@@ -1415,6 +1415,19 @@
       "version": "8.0.29",
       "notes": "added with version 1.64.1",
       "date_added": "2022-06-20 11:50"
+    },
+    {
+      "name": "mysql-8.0.29-linux-glibc2.17-x86_64-minimal.tar.xz",
+      "checksum": "MD5:f01b187ac4d6961d5ac0fb380ad56d59",
+      "OS": "Linux",
+      "url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.29-linux-glibc2.17-x86_64-minimal.tar.xz",
+      "flavor": "mysql",
+      "minimal": true,
+      "size": 54767572,
+      "short_version": "8.0",
+      "version": "8.0.29",
+      "notes": "added with version 1.66.0",
+      "date_added": "2022-07-25 12:25"
     }
   ]
 }
