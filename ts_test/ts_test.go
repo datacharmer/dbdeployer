@@ -31,7 +31,6 @@ import (
 	"github.com/datacharmer/dbdeployer/cmd"
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
-	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/ops"
 
 	"github.com/rogpeppe/go-internal/testscript"
@@ -91,7 +90,7 @@ func getVersionList(shortVersions []string) []string {
 	var versionList []string
 	for _, sv := range shortVersions {
 		latest := common.GetLatestVersion(sandboxBinary, sv, common.MySQLFlavor)
-		if latest != "" {
+		if latest != "" && strings.HasPrefix(latest, sv) {
 			versionList = append(versionList, latest)
 		}
 	}
@@ -125,7 +124,7 @@ func initializeEnv(versionList []string) error {
 	for _, v := range versionList {
 		latest := common.GetLatestVersion(sandboxBinary, v, common.MySQLFlavor)
 
-		if latest != "" && !strings.Contains(latest, globals.VersionNotFound) {
+		if latest != "" && strings.HasPrefix(latest, v) {
 			fmt.Printf("found latest %s: %s\n", v, latest)
 			continue
 		}
@@ -133,7 +132,7 @@ func initializeEnv(versionList []string) error {
 			SandboxBinary:     sandboxBinary,
 			TarballOS:         runtime.GOOS,
 			Flavor:            common.MySQLFlavor,
-			Version:           latest,
+			Version:           v,
 			Newest:            true,
 			Minimal:           strings.EqualFold(runtime.GOOS, "linux"),
 			Unpack:            true,
