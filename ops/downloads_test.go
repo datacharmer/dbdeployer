@@ -43,9 +43,7 @@ func TestGetTarball(t *testing.T) {
 		t.Run(tb.Name, func(t *testing.T) {
 			c := qt.New(t)
 			retrieved, err := findRemoteTarballByNameOrUrl(tb.Name, tb.OperatingSystem)
-			if err != nil {
-				t.Fatalf("error getting tarball for %s", tb.Name)
-			}
+			c.Assert(err, qt.IsNil)
 			c.Assert(retrieved, qt.DeepEquals, tb)
 			if !strings.EqualFold(tb.OperatingSystem, runtime.GOOS) {
 				return
@@ -59,13 +57,9 @@ func TestGetTarball(t *testing.T) {
 			latestTb, ok := newestList[tb.ShortVersion]
 			if ok {
 				latestVersionList, err := common.VersionToList(latestTb.Version)
-				if err != nil {
-					t.Fatalf("error validating version of %s", tb.Name)
-				}
+				c.Assert(err, qt.IsNil)
 				isGreater, err := common.GreaterOrEqualVersion(tb.Version, latestVersionList)
-				if err != nil {
-					t.Fatalf("error comparing version (%s) of %s with %v", tb.Version, tb.Name, latestVersionList)
-				}
+				c.Assert(err, qt.IsNil)
 				if isGreater {
 					newestList[tb.ShortVersion] = tb
 				}
@@ -76,6 +70,7 @@ func TestGetTarball(t *testing.T) {
 	}
 	curDir := os.Getenv("PWD")
 	for v, tb := range newestList {
+		c := qt.New(t)
 		if tb.Flavor != common.MySQLFlavor {
 			continue
 		}
@@ -91,9 +86,8 @@ func TestGetTarball(t *testing.T) {
 				Newest:        true,
 				Minimal:       strings.EqualFold(tb.OperatingSystem, "linux"),
 			})
-			if err != nil {
-				t.Fatalf("error  retrieving tarball for latest %s: %s", v, err)
-			}
+
+			c.Assert(err, qt.IsNil)
 			downloaded := path.Join(curDir, tb.Name)
 			if common.FileExists(downloaded) {
 				_ = os.Remove(downloaded)
@@ -102,14 +96,13 @@ func TestGetTarball(t *testing.T) {
 			}
 		})
 		t.Run("by-name-"+tb.Name, func(t *testing.T) {
+			c := qt.New(t)
 			err := GetRemoteTarball(DownloadsOptions{
 				TarballName: tb.Name,
 				TarballUrl:  "",
 				TarballOS:   tb.OperatingSystem,
 			})
-			if err != nil {
-				t.Fatalf("error  retrieving tarball for %s: %s", tb.Name, err)
-			}
+			c.Assert(err, qt.IsNil)
 			downloaded := path.Join(curDir, tb.Name)
 			if common.FileExists(downloaded) {
 				_ = os.Remove(downloaded)
@@ -118,13 +111,12 @@ func TestGetTarball(t *testing.T) {
 			}
 		})
 		t.Run("by-URL-"+tb.Name, func(t *testing.T) {
+			c := qt.New(t)
 			err := GetRemoteTarball(DownloadsOptions{
 				TarballName: "",
 				TarballUrl:  tb.Url,
 			})
-			if err != nil {
-				t.Fatalf("error  retrieving tarball (by URL) for %s: %s", tb.Name, err)
-			}
+			c.Assert(err, qt.IsNil)
 			downloaded := path.Join(curDir, tb.Name)
 			if common.FileExists(downloaded) {
 				_ = os.Remove(downloaded)
