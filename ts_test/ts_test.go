@@ -20,6 +20,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -39,7 +40,7 @@ import (
 var dryRun bool
 
 func TestDbDeployer(t *testing.T) {
-	t.Logf("entering TestDbDeployer")
+	conditionalPrint("entering TestDbDeployer\n")
 	if dryRun {
 		t.Skip("Dry Run")
 	}
@@ -51,9 +52,9 @@ func TestDbDeployer(t *testing.T) {
 	if err != nil {
 		t.Skip("no directories found in testdata")
 	}
-	t.Logf("Directories: %v\n", dirs)
+	conditionalPrint("Directories: %v\n", dirs)
 	for _, dir := range dirs {
-		t.Logf("entering TestDbDeployer/%s", dir)
+		conditionalPrint("entering TestDbDeployer/%s", dir)
 		t.Run(path.Base(dir), func(t *testing.T) {
 			testscript.Run(t, testscript.Params{
 				Dir:       dir,
@@ -125,7 +126,7 @@ func initializeEnv(versionList []string) error {
 		latest := common.GetLatestVersion(sandboxBinary, v, common.MySQLFlavor)
 
 		if latest != "" && strings.HasPrefix(latest, v) {
-			fmt.Printf("found latest %s: %s\n", v, latest)
+			conditionalPrint("found latest %s: %s\n", v, latest)
 			continue
 		}
 		err := ops.GetRemoteTarball(ops.DownloadsOptions{
@@ -139,10 +140,10 @@ func initializeEnv(versionList []string) error {
 			DeleteAfterUnpack: true,
 		})
 		if err != nil {
-			fmt.Printf("error getting tarball for version %s\n", v)
+			conditionalPrint("error getting tarball for version %s\n", v)
 			return err
 		}
-		fmt.Printf("retrieved tarball for version %s\n", v)
+		conditionalPrint("retrieved tarball for version %s\n", v)
 	}
 	return nil
 }
@@ -150,20 +151,26 @@ func initializeEnv(versionList []string) error {
 func TestMain(m *testing.M) {
 	flag.BoolVar(&dryRun, "dry", false, "creates testdata without running tests")
 
+	currentDir, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("Error determining current directory\n")
+		os.Exit(1)
+	}
 	//shortVersions := []string{"5.0", "5.1", "5.5", "5.6", "5.7", "8.0"}
 	shortVersions := []string{"5.7", "8.0"}
-	fmt.Printf("short versions: %v\n", shortVersions)
-	err := initializeEnv(shortVersions)
+	conditionalPrint("short versions: %v\n", shortVersions)
+	err = initializeEnv(shortVersions)
 	if err != nil {
-		fmt.Printf("error initializing the environment - Skipping tests: %s\n", err)
+		conditionalPrint("error initializing the environment - Skipping tests: %s\n", err)
 		os.Exit(0)
 	}
 	versions := getVersionList(shortVersions)
 
-	fmt.Printf("versions: %v\n", versions)
+	conditionalPrint("versions: %v\n", versions)
 	for _, v := range versions {
+		_ = os.Chdir(currentDir)
 		label := strings.Replace(v, ".", "_", -1)
-		fmt.Printf("building test: %s\n", label)
+		conditionalPrint("building test: %s\n", label)
 		err := buildTests("templates", "testdata", label, map[string]string{
 			"DbVersion": v,
 			"DbFlavor":  getFlavor(v),
@@ -176,7 +183,7 @@ func TestMain(m *testing.M) {
 			os.Exit(1)
 		}
 	}
-	fmt.Printf("TestMain: starting tests\n")
+	conditionalPrint("TestMain: starting tests\n")
 	exitCode := testscript.RunMain(m, map[string]func() int{
 		"dbdeployer": cmd.Execute,
 	})
@@ -230,7 +237,7 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 	for _, f := range files {
 		fName := strings.Replace(path.Base(f), ".tmpl", "", 1)
 
-		fmt.Printf("processing file %s\n", fName)
+		conditionalPrint("processing file %s\n", fName)
 		contents, err := ioutil.ReadFile(f)
 		if err != nil {
 			return fmt.Errorf("[buildTests] error reading file %s: %s", f, err)
@@ -273,4 +280,10 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 		}
 	}
 	return nil
+}
+
+func conditionalPrint(format string, args ...interface{}) {
+	if os.Getenv("TEST_DEBUG") != "" {
+		log.Printf(format, args...)
+	}
 }
