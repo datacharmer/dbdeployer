@@ -6,10 +6,12 @@ require (
 	github.com/alexeyco/simpletable v0.0.0-20180729223640-1fa9009f1080
 	github.com/araddon/dateparse v0.0.0-20190622164848-0fb0a474d195
 	github.com/dustin/go-humanize v1.0.0
+	github.com/frankban/quicktest v1.14.3
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/nightlyone/lockfile v0.0.0-20180618180623-0ad87eef1443
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pkg/errors v0.9.1
+	github.com/rogpeppe/go-internal v1.8.2-0.20220706194532-9d15b660d1d6
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect

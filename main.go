@@ -16,11 +16,13 @@
 package main
 
 import (
+	"os"
+
 	"github.com/datacharmer/dbdeployer/abbreviations"
 	"github.com/datacharmer/dbdeployer/cmd"
 )
 
 func main() {
 	abbreviations.LoadAbbreviations()
-	cmd.Execute()
+	os.Exit(cmd.Execute())
 }

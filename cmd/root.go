@@ -1,5 +1,5 @@
 // DBDeployer - The MySQL Sandbox
-// Copyright © 2006-2020 Giuseppe Maxia
+// Copyright © 2006-2022 Giuseppe Maxia
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ Runs single, multiple, and replicated sandboxes.`,
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
+func Execute() int {
 	// If the command line was not set in the abbreviations module,
 	// we save it here, before it is processed by Cobra
 	if len(common.CommandLineArgs) == 0 {
@@ -63,8 +63,10 @@ func Execute() {
 		customizeFlags(c, c.Name())
 	}
 	if err := rootCmd.Execute(); err != nil {
-		common.Exitf(1, "%s", err)
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		return 1
 	}
+	return 0
 }
 
 func setPflag(cmd *cobra.Command, key string, abbr string, envVar string, defaultVar string, helpStr string, isArray bool) {
@@ -142,6 +144,7 @@ func customizeFlags(cmd *cobra.Command, cmdName string) {
 
 func init() {
 	cobra.OnInitialize(checkDefaultsFile)
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	rootCmd.PersistentFlags().StringVar(&defaults.CustomConfigurationFile, globals.ConfigLabel, defaults.ConfigurationFile, "configuration file")
 	setPflag(rootCmd, globals.SandboxHomeLabel, "", "SANDBOX_HOME", defaults.Defaults().SandboxHome, "Sandbox deployment directory", false)
 	setPflag(rootCmd, globals.SandboxBinaryLabel, "", "SANDBOX_BINARY", defaults.Defaults().SandboxBinary, "Binary repository", false)

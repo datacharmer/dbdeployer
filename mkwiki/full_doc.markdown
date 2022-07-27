@@ -2,7 +2,7 @@
 [DBdeployer](https://github.com/datacharmer/dbdeployer) is a tool that deploys MySQL database servers easily.
 This is a port of [MySQL-Sandbox](https://github.com/datacharmer/mysql-sandbox), originally written in Perl, and re-designed from the ground up in [Go](https://golang.org). See the [features comparison](https://github.com/datacharmer/dbdeployer/blob/master/docs/features.md) for more detail.
 
-Documentation updated for version 1.62.0 (06-Jun-2021 13:54 UTC)
+Documentation updated for version 1.66.0 (26-Jul-2022 13:24 UTC)
 
 ![Build Status](https://github.com/datacharmer/dbdeployer/workflows/.github/workflows/all_tests.yml/badge.svg)
 
@@ -80,7 +80,7 @@ Get the one for your O.S. from [dbdeployer releases](https://github.com/datachar
 
 For example:
 
-    $ VERSION=1.62.0
+    $ VERSION=1.66.0
     $ OS=linux
     $ origin=https://github.com/datacharmer/dbdeployer/releases/download/v$VERSION
     $ wget $origin/dbdeployer-$VERSION.$OS.tar.gz
@@ -245,7 +245,7 @@ For example:
 The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
 
     $ dbdeployer --version
-    dbdeployer version 1.62.0
+    dbdeployer version 1.66.0
     
 
     $ dbdeployer -h
@@ -852,11 +852,18 @@ Size:          1.1 GB
       dbdeployer downloads get tarball_name [options] [flags]
     
     Flags:
-          --OS string           Set the OS of the tarball
-          --dry-run             Show what would be downloaded, but don't run it
-      -h, --help                help for get
-          --progress-step int   Progress interval (default 10485760)
-          --quiet               Do not show download progress
+          --delete-after-unpack     Delete the tarball after successful unpack
+          --dry-run                 Show unpack operations, but do not run them
+      -h, --help                    help for get
+          --overwrite               Overwrite the destination directory if already exists
+          --prefix string           Prefix for the final expanded directory
+          --progress-step int       Progress interval (default 10485760)
+          --quiet                   Do not show download progress
+          --shell                   Unpack a shell tarball into the corresponding server directory
+          --target-server string    Uses a different server to unpack a shell tarball
+          --unpack                  Unpack after downloading
+          --unpack-version string   which version is contained in the tarball
+          --verbosity int           Level of verbosity during unpack (0=none, 2=maximum) (default 1)
     
     
     $ dbdeployer downloads get-by-flavor --help
@@ -1596,7 +1603,6 @@ The command "usage" shows how to use the scripts that were installed with each s
     ma                    > invokes the MySQL client in the master as admin
     sa1, sa2, na1, na2    > invokes MySQL client as admin in slave 1, 2, node 1, 2
     use_all_admin "SQL"   > runs a SQL statement in all nodes as admin
-    
     
 
 Every sandbox has a file named ``sbdescription.json``, containing important information on the sandbox. It is useful to determine where the binaries come from and on which conditions it was installed.
@@ -2428,10 +2434,10 @@ Should you need to compile your own binaries for dbdeployer, follow these steps:
 Between this file and [the API API list](https://github.com/datacharmer/dbdeployer/blob/master/docs/API/API-1.1.md), you have all the existing documentation for dbdeployer.
 Should you need additional formats, though, dbdeployer is able to generate them on-the-fly. Tou will need the docs-enabled binaries: in the distribution list, you will find:
 
-* dbdeployer-1.62.0-docs.linux.tar.gz
-* dbdeployer-1.62.0-docs.osx.tar.gz
-* dbdeployer-1.62.0.linux.tar.gz
-* dbdeployer-1.62.0.osx.tar.gz
+* dbdeployer-1.66.0-docs.linux.tar.gz
+* dbdeployer-1.66.0-docs.osx.tar.gz
+* dbdeployer-1.66.0.linux.tar.gz
+* dbdeployer-1.66.0.osx.tar.gz
 
 The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
 

@@ -1,3 +1,21 @@
+## 1.66.0	27-Jul-2022
+
+### NEW FEATURES
+
+* Add unpack capability to `downloads get` and `downloads get-by-version`.
+  These commands can use all the options allowed to `get-unpack`.
+* Add downloads for MySQL 8.0.29 minimal (was skipped in 1.65.0).
+* Add downloads for MySQL 8.0.30.
+
+### Code improvements
+    Isolate functions for several commands
+
+    These changes move the main functionality from the cmd package
+    (using cobra.Command and args) to the ops package (using a structure)
+
+    This change makes it easier to test, and to use dbdeployer as a library from other
+    packages.
+
 ## 1.65.2	30-Jun-2022
 
 ### BUGS FIXED
