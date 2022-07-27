@@ -2,7 +2,7 @@
 
 __dbdeployer_debug()
 {
-    if [[ -n ${BASH_COMP_DEBUG_FILE} ]]; then
+    if [[ -n ${BASH_COMP_DEBUG_FILE:-} ]]; then
         echo "$*" >> "${BASH_COMP_DEBUG_FILE}"
     fi
 }
@@ -112,7 +112,7 @@ __dbdeployer_handle_go_custom_completion()
         $filteringCmd
     elif [ $((directive & shellCompDirectiveFilterDirs)) -ne 0 ]; then
         # File completion for directories only
-        local subDir
+        local subdir
         # Use printf to strip any trailing newline
         subdir=$(printf "%s" "${out[0]}")
         if [ -n "$subdir" ]; then
@@ -165,13 +165,19 @@ __dbdeployer_handle_reply()
                     PREFIX=""
                     cur="${cur#*=}"
                     ${flags_completion[${index}]}
-                    if [ -n "${ZSH_VERSION}" ]; then
+                    if [ -n "${ZSH_VERSION:-}" ]; then
                         # zsh completion needs --flag= prefix
                         eval "COMPREPLY=( \"\${COMPREPLY[@]/#/${flag}=}\" )"
                     fi
                 fi
             fi
-            return 0;
+
+            if [[ -z "${flag_parsing_disabled}" ]]; then
+                # If flag parsing is enabled, we have completed the flags and can return.
+                # If flag parsing is disabled, we may not know all (or any) of the flags, so we fallthrough
+                # to possibly call handle_go_custom_completion.
+                return 0;
+            fi
             ;;
     esac
 
@@ -210,13 +216,13 @@ __dbdeployer_handle_reply()
     fi
 
     if [[ ${#COMPREPLY[@]} -eq 0 ]]; then
-		if declare -F __dbdeployer_custom_func >/dev/null; then
-			# try command name qualified custom func
-			__dbdeployer_custom_func
-		else
-			# otherwise fall back to unqualified for compatibility
-			declare -F __custom_func >/dev/null && __custom_func
-		fi
+        if declare -F __dbdeployer_custom_func >/dev/null; then
+            # try command name qualified custom func
+            __dbdeployer_custom_func
+        else
+            # otherwise fall back to unqualified for compatibility
+            declare -F __custom_func >/dev/null && __custom_func
+        fi
     fi
 
     # available in bash-completion >= 2, not always present on macOS
@@ -250,7 +256,7 @@ __dbdeployer_handle_flag()
 
     # if a command required a flag, and we found it, unset must_have_one_flag()
     local flagname=${words[c]}
-    local flagvalue
+    local flagvalue=""
     # if the word contained an =
     if [[ ${words[c]} == *"="* ]]; then
         flagvalue=${flagname#*=} # take in as flagvalue after the =
@@ -269,7 +275,7 @@ __dbdeployer_handle_flag()
 
     # keep flag value with flagname as flaghash
     # flaghash variable is an associative array which is only supported in bash > 3.
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         if [ -n "${flagvalue}" ] ; then
             flaghash[${flagname}]=${flagvalue}
         elif [ -n "${words[ $((c+1)) ]}" ] ; then
@@ -281,7 +287,7 @@ __dbdeployer_handle_flag()
 
     # skip the argument to a two word flag
     if [[ ${words[c]} != *"="* ]] && __dbdeployer_contains_word "${words[c]}" "${two_word_flags[@]}"; then
-			  __dbdeployer_debug "${FUNCNAME[0]}: found a flag ${words[c]}, skip the next argument"
+        __dbdeployer_debug "${FUNCNAME[0]}: found a flag ${words[c]}, skip the next argument"
         c=$((c+1))
         # if we are looking for a flags value, don't show commands
         if [[ $c -eq $cword ]]; then
@@ -341,7 +347,7 @@ __dbdeployer_handle_word()
         __dbdeployer_handle_command
     elif __dbdeployer_contains_word "${words[c]}" "${command_aliases[@]}"; then
         # aliashash variable is an associative array which is only supported in bash > 3.
-        if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+        if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
             words[c]=${aliashash[${words[c]}]}
             __dbdeployer_handle_command
         else
@@ -544,14 +550,14 @@ _dbdeployer_admin()
     commands=()
     commands+=("capabilities")
     commands+=("lock")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("preserve")
         aliashash["preserve"]="lock"
     fi
     commands+=("remove-default")
     commands+=("set-default")
     commands+=("unlock")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("unpreserve")
         aliashash["unpreserve"]="unlock"
     fi
@@ -575,6 +581,168 @@ _dbdeployer_admin()
 
     must_have_one_flag=()
     must_have_one_noun=()
+    noun_aliases=()
+}
+
+_dbdeployer_completion_bash()
+{
+    last_command="dbdeployer_completion_bash"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--no-descriptions")
+    local_nonpersistent_flags+=("--no-descriptions")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--sandbox-binary=")
+    two_word_flags+=("--sandbox-binary")
+    flags+=("--sandbox-home=")
+    two_word_flags+=("--sandbox-home")
+    flags+=("--shell-path=")
+    two_word_flags+=("--shell-path")
+    flags+=("--skip-library-check")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    has_completion_function=1
+    noun_aliases=()
+}
+
+_dbdeployer_completion_fish()
+{
+    last_command="dbdeployer_completion_fish"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--no-descriptions")
+    local_nonpersistent_flags+=("--no-descriptions")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--sandbox-binary=")
+    two_word_flags+=("--sandbox-binary")
+    flags+=("--sandbox-home=")
+    two_word_flags+=("--sandbox-home")
+    flags+=("--shell-path=")
+    two_word_flags+=("--shell-path")
+    flags+=("--skip-library-check")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    has_completion_function=1
+    noun_aliases=()
+}
+
+_dbdeployer_completion_powershell()
+{
+    last_command="dbdeployer_completion_powershell"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--no-descriptions")
+    local_nonpersistent_flags+=("--no-descriptions")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--sandbox-binary=")
+    two_word_flags+=("--sandbox-binary")
+    flags+=("--sandbox-home=")
+    two_word_flags+=("--sandbox-home")
+    flags+=("--shell-path=")
+    two_word_flags+=("--shell-path")
+    flags+=("--skip-library-check")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    has_completion_function=1
+    noun_aliases=()
+}
+
+_dbdeployer_completion_zsh()
+{
+    last_command="dbdeployer_completion_zsh"
+
+    command_aliases=()
+
+    commands=()
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--no-descriptions")
+    local_nonpersistent_flags+=("--no-descriptions")
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--sandbox-binary=")
+    two_word_flags+=("--sandbox-binary")
+    flags+=("--sandbox-home=")
+    two_word_flags+=("--sandbox-home")
+    flags+=("--shell-path=")
+    two_word_flags+=("--shell-path")
+    flags+=("--skip-library-check")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    has_completion_function=1
+    noun_aliases=()
+}
+
+_dbdeployer_completion()
+{
+    last_command="dbdeployer_completion"
+
+    command_aliases=()
+
+    commands=()
+    commands+=("bash")
+    commands+=("fish")
+    commands+=("powershell")
+    commands+=("zsh")
+
+    flags=()
+    two_word_flags=()
+    local_nonpersistent_flags=()
+    flags_with_completion=()
+    flags_completion=()
+
+    flags+=("--config=")
+    two_word_flags+=("--config")
+    flags+=("--sandbox-binary=")
+    two_word_flags+=("--sandbox-binary")
+    flags+=("--sandbox-home=")
+    two_word_flags+=("--sandbox-home")
+    flags+=("--shell-path=")
+    two_word_flags+=("--shell-path")
+    flags+=("--skip-library-check")
+
+    must_have_one_flag=()
+    must_have_one_noun=()
+    has_completion_function=1
     noun_aliases=()
 }
 
@@ -683,7 +851,7 @@ _dbdeployer_cookbook()
 
     commands=()
     commands+=("create")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("make")
         aliashash["make"]="create"
     fi
@@ -1326,7 +1494,7 @@ _dbdeployer_defaults_templates()
 
     commands=()
     commands+=("describe")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("descr")
         aliashash["descr"]="describe"
         command_aliases+=("struct")
@@ -1338,7 +1506,7 @@ _dbdeployer_defaults_templates()
     commands+=("import")
     commands+=("list")
     commands+=("reset")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("remove")
         aliashash["remove"]="reset"
     fi
@@ -1404,30 +1572,30 @@ _dbdeployer_defaults()
     commands+=("enable-bash-completion")
     commands+=("export")
     commands+=("flag-aliases")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("aliases")
         aliashash["aliases"]="flag-aliases"
         command_aliases+=("option-aliases")
         aliashash["option-aliases"]="flag-aliases"
     fi
     commands+=("load")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("import")
         aliashash["import"]="load"
     fi
     commands+=("reset")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("remove")
         aliashash["remove"]="reset"
     fi
     commands+=("show")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("list")
         aliashash["list"]="show"
     fi
     commands+=("store")
     commands+=("templates")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("templ")
         aliashash["templ"]="templates"
         command_aliases+=("template")
@@ -2159,18 +2327,27 @@ _dbdeployer_downloads_get()
     flags_with_completion=()
     flags_completion=()
 
-    flags+=("--OS=")
-    two_word_flags+=("--OS")
-    local_nonpersistent_flags+=("--OS")
-    local_nonpersistent_flags+=("--OS=")
+    flags+=("--delete-after-unpack")
+    local_nonpersistent_flags+=("--delete-after-unpack")
     flags+=("--dry-run")
-    local_nonpersistent_flags+=("--dry-run")
+    flags+=("--overwrite")
+    flags+=("--prefix=")
+    two_word_flags+=("--prefix")
     flags+=("--progress-step=")
     two_word_flags+=("--progress-step")
     local_nonpersistent_flags+=("--progress-step")
     local_nonpersistent_flags+=("--progress-step=")
     flags+=("--quiet")
     local_nonpersistent_flags+=("--quiet")
+    flags+=("--shell")
+    flags+=("--target-server=")
+    two_word_flags+=("--target-server")
+    flags+=("--unpack")
+    local_nonpersistent_flags+=("--unpack")
+    flags+=("--unpack-version=")
+    two_word_flags+=("--unpack-version")
+    flags+=("--verbosity=")
+    two_word_flags+=("--verbosity")
     flags+=("--config=")
     two_word_flags+=("--config")
     flags+=("--sandbox-binary=")
@@ -2204,8 +2381,9 @@ _dbdeployer_downloads_get-by-version()
     two_word_flags+=("--OS")
     local_nonpersistent_flags+=("--OS")
     local_nonpersistent_flags+=("--OS=")
+    flags+=("--delete-after-unpack")
+    local_nonpersistent_flags+=("--delete-after-unpack")
     flags+=("--dry-run")
-    local_nonpersistent_flags+=("--dry-run")
     flags+=("--flavor=")
     two_word_flags+=("--flavor")
     local_nonpersistent_flags+=("--flavor")
@@ -2216,12 +2394,24 @@ _dbdeployer_downloads_get-by-version()
     local_nonpersistent_flags+=("--minimal")
     flags+=("--newest")
     local_nonpersistent_flags+=("--newest")
+    flags+=("--overwrite")
+    flags+=("--prefix=")
+    two_word_flags+=("--prefix")
     flags+=("--progress-step=")
     two_word_flags+=("--progress-step")
     local_nonpersistent_flags+=("--progress-step")
     local_nonpersistent_flags+=("--progress-step=")
     flags+=("--quiet")
     local_nonpersistent_flags+=("--quiet")
+    flags+=("--shell")
+    flags+=("--target-server=")
+    two_word_flags+=("--target-server")
+    flags+=("--unpack")
+    local_nonpersistent_flags+=("--unpack")
+    flags+=("--unpack-version=")
+    two_word_flags+=("--unpack-version")
+    flags+=("--verbosity=")
+    two_word_flags+=("--verbosity")
     flags+=("--config=")
     two_word_flags+=("--config")
     flags+=("--sandbox-binary=")
@@ -2254,7 +2444,6 @@ _dbdeployer_downloads_get-unpack()
     flags+=("--delete-after-unpack")
     local_nonpersistent_flags+=("--delete-after-unpack")
     flags+=("--dry-run")
-    local_nonpersistent_flags+=("--dry-run")
     flags+=("--flavor=")
     two_word_flags+=("--flavor")
     flags+=("--overwrite")
@@ -2264,6 +2453,8 @@ _dbdeployer_downloads_get-unpack()
     two_word_flags+=("--progress-step")
     local_nonpersistent_flags+=("--progress-step")
     local_nonpersistent_flags+=("--progress-step=")
+    flags+=("--quiet")
+    local_nonpersistent_flags+=("--quiet")
     flags+=("--shell")
     flags+=("--target-server=")
     two_word_flags+=("--target-server")
@@ -2483,13 +2674,13 @@ _dbdeployer_downloads()
     commands+=("get-unpack")
     commands+=("import")
     commands+=("list")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("index")
         aliashash["index"]="list"
     fi
     commands+=("reset")
     commands+=("show")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("display")
         aliashash["display"]="show"
     fi
@@ -2965,14 +3156,14 @@ _dbdeployer_global()
     commands+=("status")
     commands+=("stop")
     commands+=("test")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("test-sb")
         aliashash["test-sb"]="test"
         command_aliases+=("test_sb")
         aliashash["test_sb"]="test"
     fi
     commands+=("test-replication")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("test_replication")
         aliashash["test_replication"]="test-replication"
     fi
@@ -3515,29 +3706,30 @@ _dbdeployer_root_command()
 
     commands=()
     commands+=("admin")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("manage")
         aliashash["manage"]="admin"
     fi
+    commands+=("completion")
     commands+=("cookbook")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("recipes")
         aliashash["recipes"]="cookbook"
         command_aliases+=("samples")
         aliashash["samples"]="cookbook"
     fi
     commands+=("data-load")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("load-data")
         aliashash["load-data"]="data-load"
     fi
     commands+=("defaults")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("config")
         aliashash["config"]="defaults"
     fi
     commands+=("delete")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("destroy")
         aliashash["destroy"]="delete"
         command_aliases+=("remove")
@@ -3547,7 +3739,7 @@ _dbdeployer_root_command()
     commands+=("deploy")
     commands+=("downloads")
     commands+=("export")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("dump")
         aliashash["dump"]="export"
     fi
@@ -3557,14 +3749,14 @@ _dbdeployer_root_command()
     commands+=("info")
     commands+=("init")
     commands+=("sandboxes")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("deployed")
         aliashash["deployed"]="sandboxes"
         command_aliases+=("installed")
         aliashash["installed"]="sandboxes"
     fi
     commands+=("unpack")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("expand")
         aliashash["expand"]="unpack"
         command_aliases+=("extract")
@@ -3580,7 +3772,7 @@ _dbdeployer_root_command()
     commands+=("usage")
     commands+=("use")
     commands+=("versions")
-    if [[ -z "${BASH_VERSION}" || "${BASH_VERSINFO[0]}" -gt 3 ]]; then
+    if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("available")
         aliashash["available"]="versions"
     fi
@@ -3612,7 +3804,7 @@ _dbdeployer_root_command()
 
 __start_dbdeployer()
 {
-    local cur prev words cword
+    local cur prev words cword split
     declare -A flaghash 2>/dev/null || :
     declare -A aliashash 2>/dev/null || :
     if declare -F _init_completion >/dev/null 2>&1; then
@@ -3622,17 +3814,20 @@ __start_dbdeployer()
     fi
 
     local c=0
+    local flag_parsing_disabled=
     local flags=()
     local two_word_flags=()
     local local_nonpersistent_flags=()
     local flags_with_completion=()
     local flags_completion=()
     local commands=("dbdeployer")
+    local command_aliases=()
     local must_have_one_flag=()
     local must_have_one_noun=()
-    local has_completion_function
-    local last_command
+    local has_completion_function=""
+    local last_command=""
     local nouns=()
+    local noun_aliases=()
 
     __dbdeployer_handle_word
 }
