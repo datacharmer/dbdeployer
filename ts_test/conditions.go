@@ -49,6 +49,12 @@ func customConditions(condition string) (bool, error) {
 	case "minimum_version_for_semisync":
 		return minimumVersionForFeature(name, common.SemiSynch, elements)
 
+	// minimum_version_for_multi_source checks that the current version supports multi-source replication
+	// example:
+	// [!minimum_version_for_multi_source:$db_version:$db_flavor] skip 'minimum requirements for multi-source not met'
+	case "minimum_version_for_multi_source":
+		return minimumVersionForFeature(name, common.MultiSource, elements)
+
 	// version_is_at_least checks that the current version is at least equal or greater than a given version
 	// example:
 	// [version_is_at_least:$db_version:8.0.21] conditional_command
@@ -60,12 +66,6 @@ func customConditions(condition string) (bool, error) {
 	// [version_is:$db_version:8.0.21] conditional_command
 	case "version_is":
 		return twoVersionsCondition(name, elements)
-
-	// exists checks that the given file exists
-	// example:
-	// [exists:file_name] conditional_command
-	case "exists":
-		return exists(elements)
 
 	// exists_within_seconds checks that the given file exists within the request number of seconds
 	// example
@@ -125,14 +125,8 @@ func existsWithinSeconds(elements []string) (bool, error) {
 		}
 		elapsed++
 	}
+	fmt.Printf("file %s not found within %d seconds\n", fileName, delay)
 	return false, nil
-}
-
-func exists(elements []string) (bool, error) {
-	if len(elements) < 2 || elements[1] == "" {
-		return false, fmt.Errorf("condition 'exists' requires a file name")
-	}
-	return common.FileExists(elements[2]), nil
 }
 
 func twoVersionList(s1, s2 string) ([]int, []int, error) {
