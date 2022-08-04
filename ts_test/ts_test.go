@@ -200,7 +200,9 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 	shortVersions := []string{"4.1", "5.0", "5.1", "5.5", "5.6", "5.7", "8.0"}
-	//shortVersions := []string{"5.7", "8.0"}
+	if os.Getenv("GITHUB_ACTIONS") != "" {
+		shortVersions = []string{"5.6", "5.7", "8.0"}
+	}
 	conditionalPrint("short versions: %v\n", shortVersions)
 	err = initializeEnv(shortVersions)
 	if err != nil {
