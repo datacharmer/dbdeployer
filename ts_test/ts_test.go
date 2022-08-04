@@ -25,6 +25,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 	"text/template"
@@ -37,10 +38,13 @@ import (
 	"github.com/rogpeppe/go-internal/testscript"
 )
 
-var dryRun bool
+var (
+	dryRun    bool
+	testDebug bool
+)
 
-func TestDbDeployer(t *testing.T) {
-	conditionalPrint("entering TestDbDeployer\n")
+func preTest(t *testing.T, dirName string) []string {
+	conditionalPrint("entering %s\n", t.Name())
 	if dryRun {
 		t.Skip("Dry Run")
 	}
@@ -48,14 +52,23 @@ func TestDbDeployer(t *testing.T) {
 		t.Skip("no testdata found")
 	}
 	// Directories in testdata are created by the setup code in TestMain
-	dirs, err := filepath.Glob("testdata/*")
+	dirs, err := filepath.Glob("testdata/" + dirName + "/*")
 	if err != nil {
-		t.Skip("no directories found in testdata")
+		t.Skipf("no directories found in testdata/%s", dirName)
 	}
 	conditionalPrint("Directories: %v\n", dirs)
+	return dirs
+}
+
+func testDbDeployer(t *testing.T, name string, parallel bool) {
+	if parallel {
+		t.Parallel()
+	}
+	dirs := preTest(t, name)
 	for _, dir := range dirs {
-		conditionalPrint("entering TestDbDeployer/%s", dir)
-		t.Run(path.Base(dir), func(t *testing.T) {
+		subTestName := path.Base(dir)
+		conditionalPrint("entering %s/%s", t.Name(), subTestName)
+		t.Run(subTestName, func(t *testing.T) {
 			testscript.Run(t, testscript.Params{
 				Dir:       dir,
 				Cmds:      customCommands(),
@@ -64,6 +77,35 @@ func TestDbDeployer(t *testing.T) {
 			})
 		})
 	}
+}
+
+func TestFeature(t *testing.T) {
+	testDbDeployer(t, "feature", true)
+}
+
+func TestReplication(t *testing.T) {
+	testDbDeployer(t, "replication", true)
+}
+
+func TestMultiSource(t *testing.T) {
+	testDbDeployer(t, "multi-source", false)
+}
+
+func TestGroup(t *testing.T) {
+	testDbDeployer(t, "group", false)
+}
+
+func TestStaticScripts(t *testing.T) {
+	t.Parallel()
+	testscript.Run(t, testscript.Params{
+		Dir:       "static_scripts",
+		Cmds:      customCommands(),
+		Condition: customConditions,
+		Setup: func(env *testscript.Env) error {
+			env.Setenv("HOME", os.Getenv("HOME"))
+			return nil
+		},
+	})
 }
 
 func getFlavor(version string) string {
@@ -140,8 +182,8 @@ func initializeEnv(versionList []string) error {
 			DeleteAfterUnpack: true,
 		})
 		if err != nil {
-			conditionalPrint("error getting tarball for version %s\n", v)
-			return err
+			conditionalPrint("no tarball retrieved for version %s\n", v)
+			return nil
 		}
 		conditionalPrint("retrieved tarball for version %s\n", v)
 	}
@@ -150,14 +192,15 @@ func initializeEnv(versionList []string) error {
 
 func TestMain(m *testing.M) {
 	flag.BoolVar(&dryRun, "dry", false, "creates testdata without running tests")
+	flag.BoolVar(&testDebug, "debug", false, "reports more information about test run")
 
 	currentDir, err := os.Getwd()
 	if err != nil {
 		fmt.Printf("Error determining current directory\n")
 		os.Exit(1)
 	}
-	//shortVersions := []string{"5.0", "5.1", "5.5", "5.6", "5.7", "8.0"}
-	shortVersions := []string{"5.7", "8.0"}
+	shortVersions := []string{"4.1", "5.0", "5.1", "5.5", "5.6", "5.7", "8.0"}
+	//shortVersions := []string{"5.7", "8.0"}
 	conditionalPrint("short versions: %v\n", shortVersions)
 	err = initializeEnv(shortVersions)
 	if err != nil {
@@ -170,13 +213,20 @@ func TestMain(m *testing.M) {
 	for _, v := range versions {
 		_ = os.Chdir(currentDir)
 		label := strings.Replace(v, ".", "_", -1)
+		intendedPort := strings.Replace(v, ".", "", -1)
+		increasedPort, err := strconv.Atoi(intendedPort)
+		if err != nil {
+			fmt.Printf("error converting version %s to number", intendedPort)
+			os.Exit(1)
+		}
 		conditionalPrint("building test: %s\n", label)
-		err := buildTests("templates", "testdata", label, map[string]string{
-			"DbVersion": v,
-			"DbFlavor":  getFlavor(v),
-			"DbPathVer": label,
-			"Home":      os.Getenv("HOME"),
-			"TmpDir":    "/tmp",
+		err = buildTests("templates", "testdata", label, map[string]string{
+			"DbVersion":       v,
+			"DbFlavor":        getFlavor(v),
+			"DbPathVer":       label,
+			"Home":            os.Getenv("HOME"),
+			"TmpDir":          "/tmp",
+			"DbIncreasedPort": fmt.Sprintf("%d", increasedPort+101),
 		})
 		if err != nil {
 			fmt.Printf("error creating the tests for %s :%s\n", label, err)
@@ -197,9 +247,21 @@ func TestMain(m *testing.M) {
 // buildTests takes all the files from templateDir and populates several data directories
 // Each directory is named with the combination of the bare name of the template file + the label
 // for example, from the data directory "testdata", file "single.tmpl", and label "8_0_29" we get the file
-// "single_8_0_29.txt" under "testdata/8_0_29"
+// "single_8_0_29.txtar" under "testdata/8_0_29"
 func buildTests(templateDir, dataDir, label string, data map[string]string) error {
 
+	var templateNameToFeature = map[string]string{
+		"single":                    "",
+		"single-custom-credentials": "",
+		"replication":               "",
+		"multiple":                  "",
+		"replication-gtid":          common.GTID,
+		"group":                     common.GroupReplication,
+		"group_sp":                  common.GroupReplication,
+		"semisync":                  common.SemiSynch,
+		"fan-in":                    common.MultiSource,
+		"all-masters":               common.MultiSource,
+	}
 	for _, needed := range []string{"DbVersion", "DbFlavor", "DbPathVer", "Home", "TmpDir"} {
 		neededTxt, ok := data[needed]
 		if !ok {
@@ -229,25 +291,54 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 	if !common.DirExists(dataDir) {
 		return fmt.Errorf("datadir %s not found after creation", dataDir)
 	}
-	files, err := filepath.Glob(templateDir + "/*.tmpl")
+	files, err := filepath.Glob(templateDir + "/*/*.tmpl")
 
 	if err != nil {
 		return fmt.Errorf("[buildTests] error retrieving template files: %s", err)
 	}
+
 	for _, f := range files {
+		dirName := common.DirName(f)
+		sectionName := common.BaseName(dirName)
+
+		//fmt.Printf("File %s (%s)\n", f, sectionName)
 		fName := strings.Replace(path.Base(f), ".tmpl", "", 1)
 
+		feature, known := templateNameToFeature[fName]
+		if !known {
+			return fmt.Errorf("file %s.tmpl has no recognized feature", fName)
+		}
+		var valid = false
+		if feature == "" {
+			valid = true
+		} else {
+			valid, err = common.HasCapability(data["DbFlavor"], feature, data["DbVersion"])
+			if err != nil {
+				return fmt.Errorf("error determining the validity of feature %s for version %s", feature, data["DbVersion"])
+			}
+		}
+		if !valid {
+			conditionalPrint("skipping file %s: feature %s is not available for version %s", fName, feature, data["DbVersion"])
+			continue
+		}
 		conditionalPrint("processing file %s\n", fName)
 		contents, err := ioutil.ReadFile(f)
 		if err != nil {
 			return fmt.Errorf("[buildTests] error reading file %s: %s", f, err)
 		}
 
-		subDataDir := path.Join(dataDir, label)
+		subDataDir := path.Join(dataDir, sectionName)
 		if !common.DirExists(subDataDir) {
 			err := os.Mkdir(subDataDir, 0755)
 			if err != nil {
 				return fmt.Errorf("[buildTests] error creating directory %s: %s", subDataDir, err)
+			}
+		}
+		endDataDir := path.Join(subDataDir, label)
+		if !common.DirExists(endDataDir) {
+			err := os.Mkdir(endDataDir, 0755)
+			if err != nil {
+				return fmt.Errorf("[buildTests] error creating directory %s: %s", endDataDir, err)
 			}
 		}
 		processTemplate := template.Must(template.New(label).Parse(string(contents)))
@@ -256,21 +347,21 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 		if err := processTemplate.Execute(buf, data); err != nil {
 			return fmt.Errorf("[buildTests] error processing template from %s: %s", f, err)
 		}
-		versionFile := path.Join(subDataDir, "DB_VERSION")
+		versionFile := path.Join(endDataDir, "DB_VERSION")
 		if !common.FileExists(versionFile) {
 			err = ioutil.WriteFile(versionFile, []byte(data["DbVersion"]), 0644)
 			if err != nil {
 				return fmt.Errorf("[buildTests] error writing version file %s: %s", versionFile, err)
 			}
 		}
-		flavorFile := path.Join(subDataDir, "DB_FLAVOR")
+		flavorFile := path.Join(endDataDir, "DB_FLAVOR")
 		if !common.FileExists(flavorFile) {
 			err = ioutil.WriteFile(flavorFile, []byte(data["DbFlavor"]), 0644)
 			if err != nil {
 				return fmt.Errorf("[buildTests] error writing flavor file %s: %s", flavorFile, err)
 			}
 		}
-		testName := path.Join(subDataDir, fName+"_"+label+".txt")
+		testName := path.Join(endDataDir, fName+"_"+label+".txtar")
 		err = ioutil.WriteFile(testName, buf.Bytes(), 0644)
 		if err != nil {
 			return fmt.Errorf("[buildTests] error writing text file %s: %s", testName, err)
@@ -283,7 +374,7 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 }
 
 func conditionalPrint(format string, args ...interface{}) {
-	if os.Getenv("TEST_DEBUG") != "" {
+	if testDebug || os.Getenv("TEST_DEBUG") != "" {
 		log.Printf(format, args...)
 	}
 }
