@@ -22,34 +22,17 @@ import (
 	"path"
 	"strconv"
 	"strings"
-	"testing"
 	"time"
 
 	"github.com/datacharmer/dbdeployer/common"
-	qt "github.com/frankban/quicktest"
+	"github.com/datacharmer/dbdeployer/globals"
+	"github.com/datacharmer/dbdeployer/ops"
 	"github.com/rogpeppe/go-internal/testscript"
 )
 
-func getTestingT(ts *testscript.TestScript) (*qt.C, error) {
-	rawT := ts.Value("testingT")
-	if rawT == nil {
-		return nil, fmt.Errorf("error fetching T argument from setup")
-	}
-	t, ok := rawT.(*testing.T)
-	if !ok {
-		return nil, fmt.Errorf("error converting interface{} to *testing.T")
-	}
-	return qt.New(t), nil
-}
-
 // checkPorts is a testscript command that checks that the sandbox ports are as expected
 func checkPorts(ts *testscript.TestScript, neg bool, args []string) {
-
-	c, err := getTestingT(ts)
-	ts.Check(err)
-	if len(args) < 2 {
-		ts.Fatalf("no sandbox path and number of ports provided")
-	}
+	assertEqual[int](ts, len(args), 2, "no sandbox path and number of ports provided")
 	sbDir := args[0]
 	numPorts, err := strconv.Atoi(args[1])
 	ts.Check(err)
@@ -57,23 +40,19 @@ func checkPorts(ts *testscript.TestScript, neg bool, args []string) {
 	sbDescription, err := common.ReadSandboxDescription(sbDir)
 	ts.Check(err)
 
-	c.Assert(len(sbDescription.Port), qt.Equals, numPorts)
+	assertEqual[int](ts, len(sbDescription.Port), numPorts, "want ports: %d - got: %d", numPorts, len(sbDescription.Port))
 }
 
 // findErrorsInLogFile is a testscript command that finds ERROR strings inside a sandbox data directory
 func findErrorsInLogFile(ts *testscript.TestScript, neg bool, args []string) {
 
-	c, err := getTestingT(ts)
-	ts.Check(err)
-	if len(args) < 1 {
-		ts.Fatalf("no sandbox path provided")
-	}
+	assertEqual[int](ts, len(args), 1, "no sandbox path provided")
 	sbDir := args[0]
 	dataDir := path.Join(sbDir, "data")
 	logFile := path.Join(dataDir, "msandbox.err")
-	c.Assert(common.DirExists(dataDir), qt.Equals, true)
+	assertDirExists(ts, dataDir, globals.ErrDirectoryNotFound, dataDir)
 
-	c.Assert(common.FileExists(logFile), qt.Equals, true)
+	assertFileExists(ts, logFile, globals.ErrFileNotFound, logFile)
 
 	contents, err := ioutil.ReadFile(logFile) // #nosec G304
 	ts.Check(err)
@@ -89,21 +68,15 @@ func findErrorsInLogFile(ts *testscript.TestScript, neg bool, args []string) {
 // checkFile is a testscript command that checks the existence of a list of files
 // inside a directory
 func checkFile(ts *testscript.TestScript, neg bool, args []string) {
-	if len(args) < 1 {
-		ts.Fatalf("no sandbox path provided")
-	}
+	assertGreater[int](ts, len(args), 1, "syntax: check_file directory_name file_name [file_name ...]")
 	sbDir := args[0]
 
 	for i := 1; i < len(args); i++ {
 		f := path.Join(sbDir, args[i])
-		exists := common.FileExists(f)
-
-		if neg && exists {
-			ts.Fatalf("file %s found", f)
+		if neg {
+			assertFileNotExists(ts, f, "file %s found", f)
 		}
-		if !exists {
-			ts.Fatalf("file %s not found", f)
-		}
+		assertFileExists(ts, f, globals.ErrFileNotFound, f)
 	}
 }
 
@@ -115,9 +88,7 @@ func sleep(ts *testscript.TestScript, neg bool, args []string) {
 		duration = 1
 	} else {
 		duration, err = strconv.Atoi(args[0])
-		if err != nil {
-			ts.Fatalf("invalid number provided: '%s'", args[0])
-		}
+		ts.Check(err)
 	}
 	time.Sleep(time.Duration(duration) * time.Second)
 }
@@ -144,16 +115,23 @@ func customCommands() map[string]func(ts *testscript.TestScript, neg bool, args 
 		// check_ports will check that the number of ports expected for a given sandbox correspond to the ones
 		// found in sbdescription.json
 		// Invoke as "check_ports /path/to/sandbox 3"
-		"check_ports":    checkPorts,
+		"check_ports": checkPorts,
+
+		// cleanup_at_end deletes a sandbox at the end of the test if it exists
+		// invoke as:"cleanup_at_end /path/to/sandbox"
 		"cleanup_at_end": cleanupAtEnd,
+
+		// run_sql_in_sandbox runs a SQL query in a sandbox, and compares the result with an expected value
+		// invoke as "run_sql_in_sandbox $sb_dir 'SQL query' value_to_compare"
+		// Notice that the query must return a single value
+		"run_sql_in_sandbox": runInSandbox,
 	}
 }
 
 // cleanupAtEnd is a testscript command that deletes a sandbox at the end of the test if it exists
+// use as "cleanup_at_end sandbox_dir_path"
 func cleanupAtEnd(ts *testscript.TestScript, neg bool, args []string) {
-	if len(args) < 1 {
-		return
-	}
+	assertEqual[int](ts, len(args), 1, "no sandbox path provided")
 	sandboxDir := args[0]
 	sandboxName := path.Base(sandboxDir)
 	// testscript.Defer runs at the end of the current test
@@ -170,4 +148,28 @@ func cleanupAtEnd(ts *testscript.TestScript, neg bool, args []string) {
 			ts.Logf("error deleting sandbox '%s': %s - %s", sandboxName, msg, err)
 		}
 	})
+}
+
+// runInSandbox is a testscript command that runs a SQL query in a sandbox
+// use as:
+// run_sql_in_sandbox "query" wanted
+func runInSandbox(ts *testscript.TestScript, neg bool, args []string) {
+	assertEqual[int](ts, len(args), 3, "syntax: run_sql_in_sandbox sandbox_dir 'query' wanted_value")
+	sbDir := args[0]
+	query := args[1]
+	wanted := args[2]
+	assertDirExists(ts, sbDir, globals.ErrDirectoryNotFound, sbDir)
+
+	var strResult string
+	if isANumber(wanted) {
+		result, err := ops.RunSandboxQuery[int](sbDir, query)
+		ts.Check(err)
+		strResult = fmt.Sprintf("%d", result.(int))
+	} else {
+		result, err := ops.RunSandboxQuery[string](sbDir, query)
+		ts.Check(err)
+		strResult = result.(string)
+	}
+
+	assertEqual[string](ts, strResult, wanted, "got %s - want: %s", strResult, wanted)
 }
