@@ -1,13 +1,13 @@
 env HOME={{.Home}}
 env TMPDIR={{.TmpDir}}
-env sb_dir=$HOME/sandboxes/rsandbox_{{.DbPathVer}}
+env sb_dir=$HOME/sandboxes/rsandbox_{{.DbPathVer}}_gtid
 
-# [!exec:dbdeployer] skip 'dbdeployer executable not found'
 ! exists $sb_dir
 
-#exec dbdeployer deploy replication --concurrent {{.DbVersion}}
-exec dbdeployer deploy replication --concurrent $db_version
-stdout 'Replication directory installed in .*/sandboxes/rsandbox_{{.DbPathVer}}'
+# deployment
+
+exec dbdeployer deploy replication --concurrent --gtid {{.DbVersion}} --base-port=18500 --sandbox-directory=rsandbox_{{.DbPathVer}}_gtid
+stdout 'Replication directory installed in .*/sandboxes/rsandbox_{{.DbPathVer}}_gtid'
 stdout 'initializing slave 1'
 stdout 'initializing slave 2'
 ! stderr .
@@ -15,6 +15,8 @@ stdout 'initializing slave 2'
 exists $sb_dir
 
 cleanup_at_end $sb_dir
+
+# check files and ports
 
 check_file $sb_dir check_slaves exec_all_slaves metadata_all s1 start_all sysbench_ready use_all_masters
 check_file $sb_dir clear_all initialize_slaves n1 s2 status_all test_replication use_all_slaves
@@ -49,7 +51,9 @@ env required_ports=3
 [version_is_at_least:$db_version:8.0.0] env required_ports=6
 check_ports $sb_dir $required_ports
 
-exec $HOME/sandboxes/rsandbox_{{.DbPathVer}}/test_replication
+# test replication
+
+exec $sb_dir/test_replication
 stdout '# failed:     0'
 ! stderr .
 
@@ -57,7 +61,42 @@ stdout '# failed:     0'
 ! find_errors $sb_dir/node1
 ! find_errors $sb_dir/node2
 
-exec dbdeployer delete rsandbox_{{.DbPathVer}}
-stdout 'sandboxes/rsandbox_{{.DbPathVer}}'
+# test GTID
+
+exec $sb_dir/check_slaves
+stdout -count=3 'Executed_Gtid_Set: [0-9]{8}-1111-1111-1111-111111111111'
+stdout -count=2 'Retrieved_Gtid_Set: [0-9]{8}-1111-1111-1111-111111111111'
+
+# Test restart sandbox
+
+exec $sb_dir/restart_all --max-connections=66
+stdout 'stop .*/rsandbox_{{.DbPathVer}}_gtid'
+stdout -count=3 'sandbox server started'
+! stderr .
+
+exec $sb_dir/use_all 'select @@max_connections'
+stdout -count=3 66
+
+run_sql_in_sandbox $sb_dir/master 'select @@max_connections' 66
+run_sql_in_sandbox $sb_dir/node1 'select @@max_connections' 66
+run_sql_in_sandbox $sb_dir/node2 'select @@max_connections' 66
+[version_is_at_least:$db_version:5.6.0] ! find_errors $sb_dir/master
+[version_is_at_least:$db_version:5.6.0] ! find_errors $sb_dir/node1
+[version_is_at_least:$db_version:5.6.0] ! find_errors $sb_dir/node2
+
+
+# test use_* commands
+
+exec $sb_dir/use_all 'select @@server_id'
+stdout -count=3 '^[0-9]+$'
+exec $sb_dir/use_all_masters 'select @@server_id'
+stdout -count=1 '^[0-9]+$'
+exec $sb_dir/use_all_slaves 'select @@server_id'
+stdout -count=2 '^[0-9]+$'
+
+# sandbox cleanup
+
+exec dbdeployer delete rsandbox_{{.DbPathVer}}_gtid
+stdout 'sandboxes/rsandbox_{{.DbPathVer}}_gtid'
 ! stderr .
 ! exists $sb_dir

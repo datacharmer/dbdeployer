@@ -3,8 +3,9 @@ env TMPDIR={{.TmpDir}}
 env sb_dir=$HOME/sandboxes/rsandbox_{{.DbPathVer}}_semi
 
 [!minimum_version_for_semisync:$db_version:{{.DbFlavor}}] skip 'minimum version for Semi synchronous not met'
-# [!exec:dbdeployer] skip 'dbdeployer executable not found'
 ! exists $sb_dir
+
+#deployment
 
 exec dbdeployer deploy replication --concurrent {{.DbVersion}} --semi-sync --base-port=17000 --sandbox-directory=rsandbox_{{.DbPathVer}}_semi
 stdout 'Replication directory installed in .*/sandboxes/rsandbox_{{.DbPathVer}}_semi'
@@ -15,6 +16,8 @@ stdout 'initializing slave 2'
 exists $sb_dir
 
 cleanup_at_end $sb_dir
+
+# check files and ports
 
 check_file $sb_dir check_slaves exec_all_slaves metadata_all s1 start_all sysbench_ready use_all_masters
 check_file $sb_dir clear_all initialize_slaves n1 s2 status_all test_replication use_all_slaves
@@ -49,9 +52,13 @@ env required_ports=3
 [version_is_at_least:$db_version:8.0.0] env required_ports=6
 check_ports $sb_dir $required_ports
 
+# test replication
+
 exec $sb_dir/test_replication
 stdout '# failed:     0'
 ! stderr .
+
+# test semi-synchronous operations
 
 exec $sb_dir/m -e 'show global status like "Rpl_semi_sync_master_status" '
 stdout 'Rpl_semi_sync_master_status.*ON'
@@ -74,6 +81,7 @@ stdout 'Rpl_semi_sync_master_no_tx[^0-9]+0'
 [version_is_at_least:$db_version:5.6.0] ! find_errors $sb_dir/node1
 [version_is_at_least:$db_version:5.6.0] ! find_errors $sb_dir/node2
 
+# sandbox cleanup
 exec dbdeployer delete rsandbox_{{.DbPathVer}}_semi
 stdout 'sandboxes/rsandbox_{{.DbPathVer}}_semi'
 ! stderr .

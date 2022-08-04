@@ -2,7 +2,6 @@ env HOME={{.Home}}
 env TMPDIR={{.TmpDir}}
 env sb_dir=$HOME/sandboxes/multi_msb_{{.DbPathVer}}
 
-# [!exec:dbdeployer] skip 'dbdeployer executable not found'
 ! exists $sb_dir
 
 exec dbdeployer deploy multiple --concurrent {{.DbVersion}}
@@ -53,6 +52,24 @@ stdout -count=3 '# fail  :     0'
 ! find_errors $sb_dir/node2
 ! find_errors $sb_dir/node3
 
+
+# Test restart sandbox
+exec $sb_dir/restart_all --max-connections=77
+stdout 'stop .*/multi_msb_{{.DbPathVer}}'
+stdout -count=3 'sandbox server started'
+! stderr .
+
+exec $sb_dir/use_all 'select @@max_connections'
+stdout -count=3 77
+
+run_sql_in_sandbox $sb_dir/node1 'select @@max_connections' 77
+run_sql_in_sandbox $sb_dir/node2 'select @@max_connections' 77
+run_sql_in_sandbox $sb_dir/node3 'select @@max_connections' 77
+! find_errors $sb_dir/node1
+! find_errors $sb_dir/node2
+! find_errors $sb_dir/node3
+
+# sandbox cleanup
 exec dbdeployer delete multi_msb_{{.DbPathVer}}
 stdout 'sandboxes/multi_msb_{{.DbPathVer}}'
 ! stderr .
