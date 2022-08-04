@@ -20,12 +20,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/datacharmer/dbdeployer/globals"
-	"golang.org/x/crypto/ssh/terminal"
-
 	"github.com/datacharmer/dbdeployer/common"
+	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"golang.org/x/term"
 )
 
 // Describes the parameters needed after a known parameter
@@ -246,7 +245,7 @@ func ExportJsonNamed(name string, subCommand string) string {
 
 func runExport(c *cobra.Command, args []string) {
 	// Detects if output goes to terminal and warns about usage
-	outputGoesToTerminal := terminal.IsTerminal(int(os.Stdout.Fd()))
+	outputGoesToTerminal := term.IsTerminal(int(os.Stdout.Fd()))
 	forceOutputToTerminal, _ := c.Flags().GetBool(globals.ForceOutputToTermLabel)
 	if outputGoesToTerminal && !forceOutputToTerminal {
 		fmt.Println("No pager or pipe is used.")
