@@ -1,0 +1,28 @@
+
+
+# downloads
+! exec dbdeployer downloads get
+stderr 'Usage'
+stderr 'dbdeployer downloads get tarball_name'
+stderr 'command .get. requires a remote tarball name'
+! stdout .
+
+# deploy single
+! exec dbdeployer deploy single
+stdout 'this command requires the MySQL version .x.xx..xx.. as argument'
+
+# deploy replication
+! exec dbdeployer deploy replication
+stdout 'this command requires the MySQL version .x.xx..xx.. as argument'
+
+# deploy multiple
+! exec dbdeployer deploy multiple
+stdout 'this command requires the MySQL version .x.xx..xx.. as argument'
+
+# deploy - no valid version
+! exec dbdeployer deploy single 9.9.9
+stdout 'basedir .*9.9.9. not found'
+
+# deploy - no valid version
+! exec dbdeployer deploy single dummy
+stdout 'can''t convert ''dummy'' into port number'

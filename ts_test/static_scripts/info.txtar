@@ -1,0 +1,20 @@
+# help
+exec dbdeployer --help
+stdout 'Usage'
+stdout 'Available Commands'
+! stderr .
+
+# info version
+exec dbdeployer info version
+stdout '\d+\.\d+\.\d+'
+! stderr .
+
+# info release default
+exec dbdeployer info releases
+stdout -count=3 'Remote version: v\d+\.\d+\.\d+'
+! stderr .
+
+# info release 2
+exec dbdeployer info releases --limit=2
+stdout -count=2 'Remote version: v\d+\.\d+\.\d+'
+! stderr .
