@@ -25,7 +25,7 @@ import (
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/downloads"
-	qt "github.com/frankban/quicktest"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetTarball(t *testing.T) {
@@ -41,10 +41,9 @@ func TestGetTarball(t *testing.T) {
 
 	for _, tb := range downloads.DefaultTarballRegistry.Tarballs {
 		t.Run(tb.Name, func(t *testing.T) {
-			c := qt.New(t)
 			retrieved, err := findRemoteTarballByNameOrUrl(tb.Name, tb.OperatingSystem)
-			c.Assert(err, qt.IsNil)
-			c.Assert(retrieved, qt.DeepEquals, tb)
+			require.NoError(t, err)
+			require.Equal(t, retrieved, tb)
 			if !strings.EqualFold(tb.OperatingSystem, runtime.GOOS) {
 				return
 			}
@@ -57,9 +56,9 @@ func TestGetTarball(t *testing.T) {
 			latestTb, ok := newestList[tb.ShortVersion]
 			if ok {
 				latestVersionList, err := common.VersionToList(latestTb.Version)
-				c.Assert(err, qt.IsNil)
+				require.NoError(t, err)
 				isGreater, err := common.GreaterOrEqualVersion(tb.Version, latestVersionList)
-				c.Assert(err, qt.IsNil)
+				require.NoError(t, err)
 				if isGreater {
 					newestList[tb.ShortVersion] = tb
 				}
@@ -70,7 +69,6 @@ func TestGetTarball(t *testing.T) {
 	}
 	curDir := os.Getenv("PWD")
 	for v, tb := range newestList {
-		c := qt.New(t)
 		if tb.Flavor != common.MySQLFlavor {
 			continue
 		}
@@ -87,42 +85,31 @@ func TestGetTarball(t *testing.T) {
 				Minimal:       strings.EqualFold(tb.OperatingSystem, "linux"),
 			})
 
-			c.Assert(err, qt.IsNil)
+			require.NoError(t, err)
 			downloaded := path.Join(curDir, tb.Name)
-			if common.FileExists(downloaded) {
-				_ = os.Remove(downloaded)
-			} else {
-				t.Fatalf("downloaded tarball %s not found", downloaded)
-			}
+			require.FileExists(t, downloaded, "downloaded tarball %s not found", downloaded)
+			_ = os.Remove(downloaded)
 		})
 		t.Run("by-name-"+tb.Name, func(t *testing.T) {
-			c := qt.New(t)
 			err := GetRemoteTarball(DownloadsOptions{
 				TarballName: tb.Name,
 				TarballUrl:  "",
 				TarballOS:   tb.OperatingSystem,
 			})
-			c.Assert(err, qt.IsNil)
+			require.NoError(t, err)
 			downloaded := path.Join(curDir, tb.Name)
-			if common.FileExists(downloaded) {
-				_ = os.Remove(downloaded)
-			} else {
-				t.Fatalf("downloaded tarball %s not found", downloaded)
-			}
+			require.FileExists(t, downloaded, "downloaded tarball %s not found", downloaded)
+			_ = os.Remove(downloaded)
 		})
 		t.Run("by-URL-"+tb.Name, func(t *testing.T) {
-			c := qt.New(t)
 			err := GetRemoteTarball(DownloadsOptions{
 				TarballName: "",
 				TarballUrl:  tb.Url,
 			})
-			c.Assert(err, qt.IsNil)
+			require.NoError(t, err)
 			downloaded := path.Join(curDir, tb.Name)
-			if common.FileExists(downloaded) {
-				_ = os.Remove(downloaded)
-			} else {
-				t.Fatalf("downloaded tarball %s not found", downloaded)
-			}
+			require.FileExists(t, downloaded, "downloaded tarball %s not found", downloaded)
+			_ = os.Remove(downloaded)
 		})
 	}
 }
