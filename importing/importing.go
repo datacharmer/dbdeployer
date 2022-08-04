@@ -50,7 +50,7 @@ func Connect(config *mysql.Config) (*DB, error) {
 func (db *DB) GetSingleResult(config *mysql.Config, query string, result interface{}) error {
 	err := db.QueryRow(query).Scan(result)
 	if err != nil {
-		return fmt.Errorf("error getting version from server %s: - %s", config.Addr, err)
+		return fmt.Errorf("error getting query result from server %s: - %s", config.Addr, err)
 	}
 
 	return nil
