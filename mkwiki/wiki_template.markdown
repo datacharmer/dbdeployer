@@ -115,9 +115,9 @@ You can also see the details of a release using `dbdeployer info releases latest
 
 With dbdeployer, you can deploy a single sandbox, or many sandboxes  at once, with or without replication.
 
-The main command is ``deploy`` with its subcommands ``single``, ``replication``, and ``multiple``, which work with MySQL tarball that have been unpacked into the _sandbox-binary_ directory (by default, $HOME/opt/mysql.)
+The main command is `deploy` with its subcommands `single`, `replication`, and `multiple`, which work with MySQL tarball that have been unpacked into the _sandbox-binary_ directory (by default, $HOME/opt/mysql.)
 
-To use a tarball, you must first run the ``unpack`` command, which will unpack the tarball into the right directory.
+To use a tarball, you must first run the `unpack` command, which will unpack the tarball into the right directory.
 
 For example:
 
@@ -130,24 +130,24 @@ For example:
     . sandbox server started
 
 
-The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with ``--help`` will show the main help screen.
+The program doesn't have any dependencies. Everything is included in the binary. Calling *dbdeployer* without arguments or with `--help` will show the main help screen.
 
     {{dbdeployer --version}}
 
     {{dbdeployer -h}}
 
 The flags listed in the main screen can be used with any commands.
-The flags ``--my-cnf-options`` and ``--init-options`` can be used several times.
+The flags `--my-cnf-options` and `--init-options` can be used several times.
 
 ## Unpack
 
-If you don't have any tarballs installed in your system, you should first ``unpack`` it (see an example above).
+If you don't have any tarballs installed in your system, you should first `unpack` it (see an example above).
 
 	{{dbdeployer unpack -h}}
 
 ## Deploy single
 
-The easiest command is ``deploy single``, which installs a single sandbox.
+The easiest command is `deploy single`, which installs a single sandbox.
 
 	{{dbdeployer deploy -h}}
 
@@ -155,13 +155,13 @@ The easiest command is ``deploy single``, which installs a single sandbox.
 
 ## Deploy multiple
 
-If you want more than one sandbox of the same version, without any replication relationship, use the ``deploy multiple`` command with an optional ``--nodes`` flag (default: 3).
+If you want more than one sandbox of the same version, without any replication relationship, use the `deploy multiple` command with an optional `--nodes` flag (default: 3).
 
 	{{dbdeployer deploy multiple -h}}
 
 ## Deploy replication
 
-The ``deploy replication`` command will install a master and two or more slaves, with replication started. You can change the topology to *group* and get three nodes in peer replication, or compose multi-source topologies with *all-masters* or *fan-in*.
+The `deploy replication` command will install a master and two or more slaves, with replication started. You can change the topology to *group* and get three nodes in peer replication, or compose multi-source topologies with *all-masters* or *fan-in*.
 
 	{{dbdeployer deploy replication -h}}
 
@@ -636,7 +636,7 @@ you can download from the enhanced list.
 
 # Practical examples
 
-Several examples of dbdeployer usages are avaibale with the command ``dbdeployer cookbook``
+Several examples of dbdeployer usages are avaibale with the command `dbdeployer cookbook`
 
 
     {{dbdeployer cookbook list}}
@@ -685,7 +685,7 @@ dbdeployer will detect the latest versions available in you system. If you don't
 
 # Standard and non-standard basedir names
 
-dbdeployer expects to get the binaries from ``$HOME/opt/mysql/x.x.xx``. For example, when you run the command ``dbdeployer deploy single 8.0.11``, you must have the binaries for MySQL 8.0.11 expanded into a directory named ``$HOME/opt/mysql/8.0.11``.
+dbdeployer expects to get the binaries from `$HOME/opt/mysql/x.x.xx`. For example, when you run the command `dbdeployer deploy single 8.0.11`, you must have the binaries for MySQL 8.0.11 expanded into a directory named `$HOME/opt/mysql/8.0.11`.
 
 If you want to keep several directories with the same version, you can differentiate them using a **prefix**:
 
@@ -695,28 +695,28 @@ If you want to keep several directories with the same version, you can different
                 ps_8.0.11
                 myown_8.0.11
 
-In the above cases, running ``dbdeployer deploy single lab_8.0.11`` will do what you expect, i.e. dbdeployer will use the binaries in ``lab_8.0.11`` and recognize ``8.0.11`` as the version for the database.
+In the above cases, running `dbdeployer deploy single lab_8.0.11` will do what you expect, i.e. dbdeployer will use the binaries in `lab_8.0.11` and recognize `8.0.11` as the version for the database.
 
-When the extracted tarball directory name that you want to use doesn't contain the full version number (such as ``/home/dbuser/build/path/5.7-extra``) you need to provide the version using the option ``--binary-version``. For example:
+When the extracted tarball directory name that you want to use doesn't contain the full version number (such as `/home/dbuser/build/path/5.7-extra`) you need to provide the version using the option `--binary-version`. For example:
 
     dbdeployer deploy single 5.7-extra \
         --sandbox-binary=/home/dbuser/build/path \
         --binary-version=5.7.22
 
-In the above command, ``--sandbox-binary`` indicates where to search for the binaries, ``5.7-extra`` is where the binaries are, and ``--binary-version`` indicates which version should be used.
+In the above command, `--sandbox-binary` indicates where to search for the binaries, `5.7-extra` is where the binaries are, and `--binary-version` indicates which version should be used.
 
-Just to be clear, dbdeployer will recognize the directory as containing a version if it is only "x.x.x" or if it **ends** with "x.x.x" (as in ``lab_8.0.11``.)
+Just to be clear, dbdeployer will recognize the directory as containing a version if it is only "x.x.x" or if it **ends** with "x.x.x" (as in `lab_8.0.11`.)
 
 # Using short version numbers
 
-You can use, instead of a full version number (e.g. ``8.0.11``,) a short one, such as ``8.0``. This shortcut works starting with version 1.6.0.
+You can use, instead of a full version number (e.g. `8.0.11`,) a short one, such as `8.0`. This shortcut works starting with version 1.6.0.
 When you invoke dbdeployer with a short number, it will look for the highest revision number within that version, and use it for deployment.
 
 For example, if your sandbox binary directory contains the following:
 
     5.7.19    5.7.20    5.7.22    8.0.1    8.0.11    8.0.4
 
-You can issue the command ``dbdeployer deploy single 8.0``, and it will use 8.0.11 for a single deployment. Or ``dbdeployer deploy replication 5.7`` and it will result in a replication system using 5.7.22 (the latest one.)
+You can issue the command `dbdeployer deploy single 8.0`, and it will use 8.0.11 for a single deployment. Or `dbdeployer deploy replication 5.7` and it will result in a replication system using 5.7.22 (the latest one.)
 
 
 # Multiple sandboxes, same version and type
@@ -740,7 +740,7 @@ If you want to deploy several instances of the same version and the same type (f
 
 # Using the direct path to the expanded tarball
 
-If you have a custom organization of expanded tarballs, you may want to use the direct path to the binaries, instead of a combination of ``--sandbox-binary`` and the version name.
+If you have a custom organization of expanded tarballs, you may want to use the direct path to the binaries, instead of a combination of `--sandbox-binary` and the version name.
 
 For example, let's assume your binaries are organized as follows:
 
@@ -774,12 +774,12 @@ Methods #1 and #2 are equivalent. They set the sandbox binary directory temporar
 
 Methods #3 and #4  will set the sandbox binary directory permanently, with the difference that #3 is set for any invocation of dbdeployer system-wide (in a different terminal window, it will use the new value,) while #4 is set only for the current session (in a different terminal window, it will still use the default.)
 
-Be aware that, using this kind of organization may see conflicts during deployment. For example, after installing Percona Server 5.7.22, if you want to install MySQL 5.7.22 you will need to specify a ``--sandbox-directory`` explicitly.
+Be aware that, using this kind of organization may see conflicts during deployment. For example, after installing Percona Server 5.7.22, if you want to install MySQL 5.7.22 you will need to specify a `--sandbox-directory` explicitly.
 Instead, if you use the prefix approach defined in the "standard and non-standard basedir names," conflicts should be avoided.
 
 # Ports management
 
-dbdeployer will try using the default port for each sandbox whenever possible. For single sandboxes, the port will be the version number without dots: 5.7.22 will deploy on port 5722. For multiple sandboxes, the port number is defined by using a prefix number (visible in the defaults: ``dbdeployer defaults list``) + the port number + the revision number (for some topologies multiplied by 100.)
+dbdeployer will try using the default port for each sandbox whenever possible. For single sandboxes, the port will be the version number without dots: 5.7.22 will deploy on port 5722. For multiple sandboxes, the port number is defined by using a prefix number (visible in the defaults: `dbdeployer defaults list`) + the port number + the revision number (for some topologies multiplied by 100.)
 For example, single-primary group replication with MySQL 8.0.11 will compute the ports like this:
 
     base port = 8011 (version number) + 13000 (prefix) + 11 (revision) * 100  = 22111
@@ -787,13 +787,13 @@ For example, single-primary group replication with MySQL 8.0.11 will compute the
     node2 port = base port + 2 = 22113
     node3 port = base port + 2 = 22114
 
-For group replication we need to calculate the group port, and we use the ``group-port-delta`` (= 125) to obtain it from the regular port:
+For group replication we need to calculate the group port, and we use the `group-port-delta` (= 125) to obtain it from the regular port:
 
     node1 group port = 22112 + 125 = 22237
     node2 group port = 22113 + 125 = 22238
     node3 group port = 22114 + 125 = 22239
 
-For MySQL 8.0.11+, we also need to assign a port for the XPlugin, and we compute that using the regular port + the ``mysqlx-port-delta`` (=10000).
+For MySQL 8.0.11+, we also need to assign a port for the XPlugin, and we compute that using the regular port + the `mysqlx-port-delta` (=10000).
 
 Thus, for MySQL 8.0.11 group replication deployments, you would see this listing:
 
@@ -806,7 +806,7 @@ Thus, for MySQL 8.0.11 group replication deployments, you would see this listing
 This method makes port clashes unlikely when using the same version in different deployments, but there is a risk of port clashes when deploying many multiple sandboxes of close-by versions.
 Furthermore, dbdeployer doesn't let the clash happen. Thanks to its central catalog of sandboxes, it knows which ports were already used, and will search for free ones whenever a potential clash is detected.
 Bear in mind that the concept of "used" is only related to sandboxes. dbdeployer does not know if ports may be used by other applications.
-You can minimize risks by telling dbdeployer which ports may be occupied. The defaults have a field ``reserved-ports``, containing the ports that should not be used. You can add to that list by modifying the defaults. For example, if you want to exclude port 7001, 10000, and 15000 from being used, you can run
+You can minimize risks by telling dbdeployer which ports may be occupied. The defaults have a field `reserved-ports`, containing the ports that should not be used. You can add to that list by modifying the defaults. For example, if you want to exclude port 7001, 10000, and 15000 from being used, you can run
 
     dbdeployer defaults update reserved-ports '7001,10000,15000'
 
@@ -816,16 +816,16 @@ or, if you want to preserve the ones that are reserved by default:
 
 # Concurrent deployment and deletion
 
-Starting with version 0.3.0, dbdeployer can deploy groups of sandboxes (``deploy replication``, ``deploy multiple``) with the flag ``--concurrent``. When this flag is used, dbdeployer will run operations concurrently.
-The same flag can be used with the ``delete`` command. It is useful when there are several sandboxes to be deleted at once.
+Starting with version 0.3.0, dbdeployer can deploy groups of sandboxes (`deploy replication`, `deploy multiple`) with the flag `--concurrent`. When this flag is used, dbdeployer will run operations concurrently.
+The same flag can be used with the `delete` command. It is useful when there are several sandboxes to be deleted at once.
 Concurrent operations run from 2 to 5 times faster than sequential ones, depending on the version of the server and the number of nodes.
 
 # Replication topologies
 
-Multiple sandboxes can be deployed using replication with several topologies (using ``dbdeployer deploy replication --topology=xxxxx``:
+Multiple sandboxes can be deployed using replication with several topologies (using `dbdeployer deploy replication --topology=xxxxx`:
 
-* **master-slave** is the default topology. It will install one master and two slaves. More slaves can be added with the option ``--nodes``.
-* **group** will deploy three peer nodes in group replication. If you want to use a single primary deployment, add the option ``--single-primary``. Available for MySQL 5.7 and later.
+* **master-slave** is the default topology. It will install one master and two slaves. More slaves can be added with the option `--nodes`.
+* **group** will deploy three peer nodes in group replication. If you want to use a single primary deployment, add the option `--single-primary`. Available for MySQL 5.7 and later.
 * **fan-in** is the opposite of master-slave. Here we have one slave and several masters. This topology requires MySQL 5.7 or higher.
 * **all-masters** is a special case of fan-in, where all nodes are masters and are also slaves of all nodes.
 
@@ -835,7 +835,7 @@ It is possible to tune the flow of data in multi-source topologies. The default 
         --nodes=5 --master-list="1,2 3" \
         --slave-list="4,5" 8.0.4 \
         --concurrent
-In the above example, we get 5 nodes instead of 3. The first three are master (``--master-list="1,2,3"``) and the last two are slaves (``--slave-list="4,5"``) which will receive data from all the masters. There is a test automatically generated to check the replication flow. In our case it shows the following:
+In the above example, we get 5 nodes instead of 3. The first three are master (`--master-list="1,2,3"`) and the last two are slaves (`--slave-list="4,5"`) which will receive data from all the masters. There is a test automatically generated to check the replication flow. In our case it shows the following:
 
     $ ~/sandboxes/fan_in_msb_8_0_4/test_replication
     # master 1
@@ -854,9 +854,9 @@ Two more topologies, **ndb** and **pxc** require binaries of dedicated flavors, 
 
 # Skip server start
 
-By default, when sandboxes are deployed, the servers start and additional operations to complete the topology are executed automatically. It is possible to skip the server start, using the ``--skip-start`` option. When this option is used, the server is initialized, but not started. Consequently, the default users are not created, and the database, when started manually, is only accessible with user ``root`` without password.
+By default, when sandboxes are deployed, the servers start and additional operations to complete the topology are executed automatically. It is possible to skip the server start, using the `--skip-start` option. When this option is used, the server is initialized, but not started. Consequently, the default users are not created, and the database, when started manually, is only accessible with user `root` without password.
 
-If you deploy with ``--skip-start``, you can run the rest of the operations manually:
+If you deploy with `--skip-start`, you can run the rest of the operations manually:
 
     $ dbdeployer deploy single --skip-start 5.7.21
     $ $HOME/sandboxes/msb_5_7_21/start
@@ -879,19 +879,19 @@ Similarly, for group replication
     $ $HOME/sandboxes/group_msb_5_7_21/node3/load_grants
     $ $HOME/sandboxes/rsandbox_5_7_21/initialize_nodes
 
-WARNING: running sandboxes with ``--skip-start`` is provided for advanced users and is not recommended.
-If the purpose of skipping the start is to inspect the server before the sandbox granting operations, you may consider using ``--pre-grants-sql`` and ``--pre-grants-sql-file`` to run the necessary SQL commands (see _Sandbox customization_ below.)
+WARNING: running sandboxes with `--skip-start` is provided for advanced users and is not recommended.
+If the purpose of skipping the start is to inspect the server before the sandbox granting operations, you may consider using `--pre-grants-sql` and `--pre-grants-sql-file` to run the necessary SQL commands (see _Sandbox customization_ below.)
 
 # MySQL Document store, mysqlsh, and defaults.
 
 MySQL 5.7.12+ introduces the XPlugin (a.k.a. _mysqlx_) which enables operations using a separate port (33060 by default) on special tables that can be treated as NoSQL collections.
-In MySQL 8.0.11+ the XPlugin is enabled by default, giving dbdeployer the task of defining an additional port and socket for this service. When you deploy MySQL 8.0.11 or later, dbdeployer sets the ``mysqlx-port`` to the value of the regular port + ``mysqlx-delta-port`` (= 10000).
+In MySQL 8.0.11+ the XPlugin is enabled by default, giving dbdeployer the task of defining an additional port and socket for this service. When you deploy MySQL 8.0.11 or later, dbdeployer sets the `mysqlx-port` to the value of the regular port + `mysqlx-delta-port` (= 10000).
 
-If you want to avoid having the XPlugin enabled, you can deploy the sandbox with the option ``--disable-mysqlx``.
+If you want to avoid having the XPlugin enabled, you can deploy the sandbox with the option `--disable-mysqlx`.
 
-For MySQL between 5.7.12 and 8.0.4, the approach is the opposite. By default, the XPlugin is disabled, and if you want to use it you will run the deployment using ``--enable-mysqlx``. In both cases the port and socket will be computed by dbdeployer.
+For MySQL between 5.7.12 and 8.0.4, the approach is the opposite. By default, the XPlugin is disabled, and if you want to use it you will run the deployment using `--enable-mysqlx`. In both cases the port and socket will be computed by dbdeployer.
 
-When the XPlugin is enabled, it makes sense to use [the MySQL shell](https://dev.mysql.com/doc/refman/8.0/en/mysql-shell.html) and dbdeployer will create a ``mysqlsh`` script for the sandboxes that use the plugin. Unfortunately, as of today (late April 2018) the MySQL shell is not released with the server tarball, and therefore we have to fix things manually (see next section.) dbdeployer will look for ``mysqlsh`` in the same directory where the other clients are, so if you manually merge the mysql shell and the server tarballs, you will get the appropriate version of MySQL shell. If not, you will use the version of the shell that is available in ``$PATH``. If there is no MySQL shell available, you will get an error.
+When the XPlugin is enabled, it makes sense to use [the MySQL shell](https://dev.mysql.com/doc/refman/8.0/en/mysql-shell.html) and dbdeployer will create a `mysqlsh` script for the sandboxes that use the plugin. Unfortunately, as of today (late April 2018) the MySQL shell is not released with the server tarball, and therefore we have to fix things manually (see next section.) dbdeployer will look for `mysqlsh` in the same directory where the other clients are, so if you manually merge the mysql shell and the server tarballs, you will get the appropriate version of MySQL shell. If not, you will use the version of the shell that is available in `$PATH`. If there is no MySQL shell available, you will get an error.
 
 # Installing MySQL shell
 
@@ -902,7 +902,7 @@ The simplest operation is:
     $ dbdeployer unpack --shell \
         mysql-shell-8.0.12-$YOUR_OS.tar.gz
 
-This command will work if MySQL 8.0.12 was already unpacked in ``$SANDBOX_BINARY/8.0.12``. dbdeployer recognizes the version (from the tarball name) and looks for the corresponding server. If it is found, the shell package will be temporarily expanded, and the necessary files moved into the server directory tree.
+This command will work if MySQL 8.0.12 was already unpacked in `$SANDBOX_BINARY/8.0.12`. dbdeployer recognizes the version (from the tarball name) and looks for the corresponding server. If it is found, the shell package will be temporarily expanded, and the necessary files moved into the server directory tree.
 
 If the corresponding server directory does not exist, you can specify the wanted target:
 
@@ -911,31 +911,31 @@ If the corresponding server directory does not exist, you can specify the wanted
         --target-server=5.7.23
 
 Since the MySQL team recommends using the latest shell even for older versions of MySQL, we can insert the shell from 8.0.12 into the 5.7 server, and it will work as expected, as the shell brings with it all needed files.
-Using the option ``--verbosity=2`` we can see which files were extracted and where each component was copied or moved. Notice that the unpacked MySQL shell directory is deleted after the operation is completed.
+Using the option `--verbosity=2` we can see which files were extracted and where each component was copied or moved. Notice that the unpacked MySQL shell directory is deleted after the operation is completed.
 
 # Database logs management.
 
-Sometimes, when using sandboxes for testing, it makes sense to enable the general log, either during initialization or for regular operation. While you can do that with ``--my-cnf-options=general-log=1`` or ``--my-init-options=--general-log=1``, as of version 1.4.0 you have two simple boolean shortcuts: ``--init-general-log`` and ``--enable-general-log`` that will start the general log when requested.
+Sometimes, when using sandboxes for testing, it makes sense to enable the general log, either during initialization or for regular operation. While you can do that with `--my-cnf-options=general-log=1` or `--my-init-options=--general-log=1`, as of version 1.4.0 you have two simple boolean shortcuts: `--init-general-log` and `--enable-general-log` that will start the general log when requested.
 
-Additionally, each sandbox has a convenience script named ``show_log`` that can easily display either the error log or the general log. Run `./show_log -h` for usage info.
+Additionally, each sandbox has a convenience script named `show_log` that can easily display either the error log or the general log. Run `./show_log -h` for usage info.
 
-For replication, you also have ``show_binlog`` and ``show_relaylog`` in every sandbox as a shortcut to display replication logs easily.
+For replication, you also have `show_binlog` and `show_relaylog` in every sandbox as a shortcut to display replication logs easily.
 
 # dbdeployer operations logging
 
 In addition to enabling database logs, you can also have logs of the operations performed by dbdeployer when building and activating sandboxes.
-The logs are disabled by default. You can enable them for a given operation using ``--log-sb-operations``. When the logs are enabled, dbdeployer will create one or more log files in a directory under ``$HOME/sandboxes/logs``.
-For a single sandbox, the log directory will be named ``single_v_v_vv-xxxx``, where ``v_v_vv`` is the version number and ``xxxx`` is dbdeployer Process ID. Inside the directory, there will be a file names ``single.log``.
+The logs are disabled by default. You can enable them for a given operation using `--log-sb-operations`. When the logs are enabled, dbdeployer will create one or more log files in a directory under `$HOME/sandboxes/logs`.
+For a single sandbox, the log directory will be named `single_v_v_vv-xxxx`, where `v_v_vv` is the version number and `xxxx` is dbdeployer Process ID. Inside the directory, there will be a file names `single.log`.
 
-For a replication sandbox, the directory will be named ``replication_v_v_vv-xxxx`` and it will contain at least 3 files: ``master-slave-replication.log`` with replication operations, and two single sandbox (one for master and one for a slave) logs named ``replication-node-x.log``. If there is more than one slave, each one will have its own log.
+For a replication sandbox, the directory will be named `replication_v_v_vv-xxxx` and it will contain at least 3 files: `master-slave-replication.log` with replication operations, and two single sandbox (one for master and one for a slave) logs named `replication-node-x.log`. If there is more than one slave, each one will have its own log.
 
 dbdeployer logs will record which function ran which operation, with the data used for single and compound sandboxes.
 
-The name of the log is available inside the file ``sbdescription.json`` in each sandbox. If logging is disabled, the log field is not listed.
+The name of the log is available inside the file `sbdescription.json` in each sandbox. If logging is disabled, the log field is not listed.
 
 The logs are preserved until the corresponding sandbox is deleted.
 
-Logging can be enabled permanently using the defaults: ``dbdeployer defaults update log-sb-operations true``. Similarly, you can change the log-directory either for a single operation (``--log-directory=...``) or permanently (``dbdeployer defaults update log-directory /my/path/to/logs``)
+Logging can be enabled permanently using the defaults: `dbdeployer defaults update log-sb-operations true`. Similarly, you can change the log-directory either for a single operation (`--log-directory=...`) or permanently (`dbdeployer defaults update log-directory /my/path/to/logs`)
 
 What kind of information is in the logs? The most important things found in there is the data used to fill the templates. If something goes wrong, the data should give us a lead in the right direction. The logs also record the result of several choices that dbdeployer makes, such as enebling a given port or adding such and such option to the configuration file. Even if nothing is wrong, the logs can give the inquisitive user some insight on what happens when we deploy a less than usual configuration, and which templates and options can be used to alter the result.
 
@@ -943,10 +943,10 @@ What kind of information is in the logs? The most important things found in ther
 
 There are several ways of changing the default behavior of a sandbox.
 
-1. You can add options to the sandbox being deployed using ``--my-cnf-options="some mysqld directive"``. This option can be used many times. The supplied options are added to my.sandbox.cnf
-2. You can specify a my.cnf template (``--my-cnf-file=filename``) instead of defining options line by line. dbdeployer will skip all the options that are needed for the sandbox functioning.
-3. You can run SQL statements or SQL files before or after the grants were loaded (``--pre-grants-sql``, ``--pre-grants-sql-file``, etc). You can also use these options to peek into the state of the sandbox and see what is happening at every stage.
-4. For more advanced needs, you can look at the templates being used for the deployment, and load your own instead of the original s(``--use-template=TemplateName:FileName``.)
+1. You can add options to the sandbox being deployed using `--my-cnf-options="some mysqld directive"`. This option can be used many times. The supplied options are added to my.sandbox.cnf
+2. You can specify a my.cnf template (`--my-cnf-file=filename`) instead of defining options line by line. dbdeployer will skip all the options that are needed for the sandbox functioning.
+3. You can run SQL statements or SQL files before or after the grants were loaded (`--pre-grants-sql`, `--pre-grants-sql-file`, etc). You can also use these options to peek into the state of the sandbox and see what is happening at every stage.
+4. For more advanced needs, you can look at the templates being used for the deployment, and load your own instead of the original s(`--use-template=TemplateName:FileName`.)
 
 For example:
 
@@ -1054,12 +1054,12 @@ Here's how:
 }
 ```
 
-Another way of modifying the defaults, which does not store the new values in dbdeployer's configuration file, is through the ``--defaults`` flag. The above change could be done like this:
+Another way of modifying the defaults, which does not store the new values in dbdeployer's configuration file, is through the `--defaults` flag. The above change could be done like this:
 
     $ dbdeployer --defaults=master-slave-base-port:15000 \
         deploy replication 5.7.21
 
-The difference is that using ``dbdeployer defaults update`` the value is changed permanently for the next commands, or until you run a ``dbdeployer defaults reset``. Using the ``--defaults`` flag, instead, will modify the defaults only for the active command.
+The difference is that using `dbdeployer defaults update` the value is changed permanently for the next commands, or until you run a `dbdeployer defaults reset`. Using the `--defaults` flag, instead, will modify the defaults only for the active command.
 
 # Sandbox management
 
@@ -1077,7 +1077,7 @@ The command "usage" shows how to use the scripts that were installed with each s
 
     {{dbdeployer usage}}
 
-Every sandbox has a file named ``sbdescription.json``, containing important information on the sandbox. It is useful to determine where the binaries come from and on which conditions it was installed.
+Every sandbox has a file named `sbdescription.json`, containing important information on the sandbox. It is useful to determine where the binaries come from and on which conditions it was installed.
 
 For example, a description file for a single sandbox would show:
 
@@ -1119,7 +1119,7 @@ And for replication:
 
 # Sandbox macro operations
 
-You can run a command in several sandboxes at once, using the ``global`` command, which propagates your command to all the installed sandboxes.
+You can run a command in several sandboxes at once, using the `global` command, which propagates your command to all the installed sandboxes.
 
     {{dbdeployer global -h }}
 
@@ -1173,7 +1173,7 @@ You can lock one or more sandboxes to prevent deletion. Use this command to make
 
     $ dbdeployer admin lock sandbox_name
 
-A locked sandbox will not be deleted, even when running ``dbdeployer delete ALL``.
+A locked sandbox will not be deleted, even when running `dbdeployer delete ALL`.
 
 The lock can also be reverted using
 
@@ -1251,7 +1251,7 @@ dbdeployer checks all the conditions, then
 2. renames the data directory of the newer version;
 3. moves the data directory of the older version under the newer sandbox;
 4. restarts the newer version;
-5. runs ``mysql_upgrade`` (except with MySQL 8.0.16+, where [the server does the upgrade on its own](https://mysqlserverteam.com/mysql-8-0-16-mysql_upgrade-is-going-away/)).
+5. runs `mysql_upgrade` (except with MySQL 8.0.16+, where [the server does the upgrade on its own](https://mysqlserverteam.com/mysql-8-0-16-mysql_upgrade-is-going-away/)).
 
 The older version is, at this point, not operational anymore, and can be deleted.
 
@@ -1765,13 +1765,13 @@ Should you need additional formats, though, dbdeployer is able to generate them 
 * dbdeployer-{{.Version}}.linux.tar.gz
 * dbdeployer-{{.Version}}.osx.tar.gz
 
-The executables containing ``-docs`` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command ``tree``, with alias ``docs``.
+The executables containing `-docs` in their name have the same capabilities of the regular ones, but in addition they can run the *hidden* command `tree`, with alias `docs`.
 
 This is the command used to help generating the API documentation.
 
 {{dbdeployer-docs tree -h}}
 
-In addition to the API template, the ``tree`` command can produce:
+In addition to the API template, the `tree` command can produce:
 
 * man pages;
 * Markdown documentation;
@@ -1780,7 +1780,7 @@ In addition to the API template, the ``tree`` command can produce:
 
 # Command line completion
 
-There is a file ``./docs/dbdeployer_completion.sh``, which is automatically generated with dbdeployer API documentation. If you want to use bash completion on the command line, copy the file to the bash completion directory. For example:
+There is a file `./docs/dbdeployer_completion.sh`, which is automatically generated with dbdeployer API documentation. If you want to use bash completion on the command line, copy the file to the bash completion directory. For example:
 
     # Linux
     $ sudo cp ./docs/dbdeployer_completion.sh /etc/bash_completion.d
