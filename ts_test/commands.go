@@ -124,7 +124,7 @@ func customCommands() map[string]func(ts *testscript.TestScript, neg bool, args 
 		// run_sql_in_sandbox runs a SQL query in a sandbox, and compares the result with an expected value
 		// invoke as "run_sql_in_sandbox $sb_dir 'SQL query' value_to_compare"
 		// Notice that the query must return a single value
-		"run_sql_in_sandbox": runInSandbox,
+		"run_sql_in_sandbox": runSqlInSandbox,
 	}
 }
 
@@ -150,10 +150,10 @@ func cleanupAtEnd(ts *testscript.TestScript, neg bool, args []string) {
 	})
 }
 
-// runInSandbox is a testscript command that runs a SQL query in a sandbox
+// runSqlInSandbox is a testscript command that runs a SQL query in a sandbox
 // use as:
 // run_sql_in_sandbox "query" wanted
-func runInSandbox(ts *testscript.TestScript, neg bool, args []string) {
+func runSqlInSandbox(ts *testscript.TestScript, neg bool, args []string) {
 	assertEqual[int](ts, len(args), 3, "syntax: run_sql_in_sandbox sandbox_dir 'query' wanted_value")
 	sbDir := args[0]
 	query := args[1]
