@@ -17,7 +17,6 @@ package ts
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -39,8 +38,9 @@ import (
 )
 
 var (
-	dryRun    bool
-	testDebug bool
+	dryRun     bool = os.Getenv("DRY_RUN") != ""
+	testDebug  bool = os.Getenv("TEST_DEBUG") != ""
+	onlyLatest bool = os.Getenv("ONLY_LATEST") != ""
 )
 
 func preTest(t *testing.T, dirName string) []string {
@@ -97,6 +97,7 @@ func TestGroup(t *testing.T) {
 
 func TestStaticScripts(t *testing.T) {
 	t.Parallel()
+	conditionalPrint("entering %s", t.Name())
 	testscript.Run(t, testscript.Params{
 		Dir:       "static_scripts",
 		Cmds:      customCommands(),
@@ -191,9 +192,6 @@ func initializeEnv(versionList []string) error {
 }
 
 func TestMain(m *testing.M) {
-	flag.BoolVar(&dryRun, "dry", false, "creates testdata without running tests")
-	flag.BoolVar(&testDebug, "debug", false, "reports more information about test run")
-
 	currentDir, err := os.Getwd()
 	if err != nil {
 		fmt.Printf("Error determining current directory\n")
@@ -202,6 +200,13 @@ func TestMain(m *testing.M) {
 	shortVersions := []string{"4.1", "5.0", "5.1", "5.5", "5.6", "5.7", "8.0"}
 	if os.Getenv("GITHUB_ACTIONS") != "" {
 		shortVersions = []string{"5.6", "5.7", "8.0"}
+	}
+	customShortVersions := os.Getenv("TEST_SHORT_VERSIONS")
+	if customShortVersions != "" {
+		shortVersions = strings.Split(customShortVersions, ",")
+	}
+	if onlyLatest {
+		shortVersions = []string{"8.0"}
 	}
 	conditionalPrint("short versions: %v\n", shortVersions)
 	err = initializeEnv(shortVersions)
