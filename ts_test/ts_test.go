@@ -262,6 +262,7 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 		"single-custom-credentials": "",
 		"replication":               "",
 		"multiple":                  "",
+		"dd-expose-tables":          common.DataDict,
 		"replication-gtid":          common.GTID,
 		"group":                     common.GroupReplication,
 		"group_sp":                  common.GroupReplication,
