@@ -20,9 +20,15 @@ stdout 'this command requires the MySQL version .x.xx..xx.. as argument'
 stdout 'this command requires the MySQL version .x.xx..xx.. as argument'
 
 # deploy - no valid version
-! exec dbdeployer deploy single 9.9.9
-stdout 'basedir .*9.9.9. not found'
+env dummy_version=9.9.9
+! exec dbdeployer deploy single $dummy_version
+cmpenv stdout no-valid-version.txt
 
-# deploy - no valid version
+# deploy - no valid version string
 ! exec dbdeployer deploy single dummy
-stdout 'can''t convert ''dummy'' into port number'
+cmp stdout no-valid-version-string.txt
+
+-- no-valid-version.txt --
+basedir '$HOME/opt/mysql/$dummy_version' not found
+-- no-valid-version-string.txt --
+can't convert 'dummy' into port number
