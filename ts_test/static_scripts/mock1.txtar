@@ -77,7 +77,7 @@ stdout 'rsandbox_8_0_98          :   master-slave           8.0.98   .28899 3889
 -- home/opt/mysql/5.7.98/FLAVOR --
 mysql
 -- home/opt/mysql/5.7.98/bin/mysql --
-#!/usr/local/bin/bash
+#!/usr/bin/env bash
 # The purpose of this script is to run mock tests with a
 # command that returns a wanted exit code
 exit_code=0
@@ -102,7 +102,7 @@ fi
 exit $exit_code
 
 -- home/opt/mysql/5.7.98/bin/mysqld --
-#!/usr/local/bin/bash
+#!/usr/bin/env bash
 # The purpose of this script is to run mock tests with a
 # command that returns a wanted exit code
 exit_code=0
@@ -127,7 +127,7 @@ fi
 exit $exit_code
 
 -- home/opt/mysql/5.7.98/bin/mysqld_safe --
-#!/usr/local/bin/bash
+#!/usr/bin/env bash
 # This script mimics the minimal behavior of mysqld_safe
 # so that we can run tests for dbdeployer without using the real
 # MySQL binaries.
@@ -165,7 +165,7 @@ touch $pid_file
 exit 0
 
 -- home/opt/mysql/5.7.98/lib/libmysqlclient.so --
-#!/usr/local/bin/bash
+#!/usr/bin/env bash
 # The purpose of this script is to run mock tests with a
 # command that returns a wanted exit code
 exit_code=0
@@ -190,7 +190,7 @@ fi
 exit $exit_code
 
 -- home/opt/mysql/5.7.98/scripts/mysql_install_db --
-#!/usr/local/bin/bash
+#!/usr/bin/env bash
 # The purpose of this script is to run mock tests with a
 # command that returns a wanted exit code
 exit_code=0
@@ -217,7 +217,7 @@ exit $exit_code
 -- home/opt/mysql/8.0.98/FLAVOR --
 mysql
 -- home/opt/mysql/8.0.98/bin/mysql --
-#!/usr/local/bin/bash
+#!/usr/bin/env bash
 # The purpose of this script is to run mock tests with a
 # command that returns a wanted exit code
 exit_code=0
@@ -242,7 +242,7 @@ fi
 exit $exit_code
 
 -- home/opt/mysql/8.0.98/bin/mysqld --
-#!/usr/local/bin/bash
+#!/usr/bin/env bash
 # The purpose of this script is to run mock tests with a
 # command that returns a wanted exit code
 exit_code=0
@@ -267,7 +267,7 @@ fi
 exit $exit_code
 
 -- home/opt/mysql/8.0.98/bin/mysqld_safe --
-#!/usr/local/bin/bash
+#!/usr/bin/env bash
 # This script mimics the minimal behavior of mysqld_safe
 # so that we can run tests for dbdeployer without using the real
 # MySQL binaries.
@@ -305,7 +305,7 @@ touch $pid_file
 exit 0
 
 -- home/opt/mysql/8.0.98/lib/libmysqlclient.so --
-#!/usr/local/bin/bash
+#!/usr/bin/env bash
 # The purpose of this script is to run mock tests with a
 # command that returns a wanted exit code
 exit_code=0
