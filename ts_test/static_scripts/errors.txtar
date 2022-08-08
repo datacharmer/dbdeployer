@@ -1,5 +1,4 @@
-
-
+[!unix] stop 'this procedure can only work on Unix systems'
 # downloads
 ! exec dbdeployer downloads get
 stderr 'Usage'

@@ -1,3 +1,4 @@
+[!unix] stop 'this procedure can only work on Unix systems'
 # help
 exec dbdeployer --help
 stdout 'Usage'
