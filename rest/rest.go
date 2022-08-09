@@ -19,7 +19,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -215,7 +214,7 @@ func getReleaseText(tag string) ([]byte, error) {
 		return globals.EmptyBytes, fmt.Errorf("[GetReleaseText] received code %d ", resp.StatusCode)
 	}
 
-	htmlData, err := ioutil.ReadAll(resp.Body)
+	htmlData, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return globals.EmptyBytes, err
 	}

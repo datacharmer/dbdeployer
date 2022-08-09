@@ -17,7 +17,6 @@ package ops
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"runtime"
@@ -98,7 +97,7 @@ func InitEnvironment(options InitOptions) error {
 	fmt.Printf("\n%s\n", globals.DashLine)
 	if common.DirExists(sandboxBinary) {
 		fmt.Printf("Directory %s ($SANDBOX_BINARY) already exists\n", sandboxBinary)
-		files, err := ioutil.ReadDir(sandboxBinary)
+		files, err := os.ReadDir(sandboxBinary)
 		if err != nil {
 			return fmt.Errorf("error reading sandbox binary directory %s: %s", sandboxBinary, err)
 		}

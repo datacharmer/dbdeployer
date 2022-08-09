@@ -17,7 +17,6 @@ package common
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"sort"
@@ -364,7 +363,7 @@ func Exit(exitCode int, messages ...string) {
 
 // Returns the latest version among the ones found in a Sandbox binary directory
 func LatestVersion(searchDir, pattern string) string {
-	files, err := ioutil.ReadDir(searchDir)
+	files, err := os.ReadDir(searchDir)
 	ErrCheckExitf(err, 1, "ERROR reading directory %s: %s", searchDir, err)
 	var matchingList []string
 	validPattern := regexp.MustCompile(`\d+\.\d+$`)
@@ -373,8 +372,7 @@ func LatestVersion(searchDir, pattern string) string {
 	}
 	re := regexp.MustCompile(fmt.Sprintf(`^%s\.\d+$`, pattern))
 	for _, f := range files {
-		fmode := f.Mode()
-		if fmode.IsDir() && re.MatchString(f.Name()) {
+		if f.IsDir() && re.MatchString(f.Name()) {
 			matchingList = append(matchingList, f.Name())
 		}
 	}

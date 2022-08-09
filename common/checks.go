@@ -17,7 +17,6 @@ package common
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path"
@@ -199,16 +198,13 @@ func GetCompatibleClientVersion(basedir, serverVersion string) (string, error) {
 // Returns the list of versions available for deployment
 func GetVersionsFromDir(basedir string) ([]string, error) {
 	var dirs []string
-	files, err := ioutil.ReadDir(basedir)
+	files, err := os.ReadDir(basedir)
 	if err != nil {
 		return dirs, fmt.Errorf("error reading directory %s: %s", basedir, err)
 	}
 	for _, f := range files {
 		fname := f.Name()
-		fmode := f.Mode()
-		//CondPrintf("%#v\n", fmode)
-		if fmode.IsDir() {
-			//fmt.Println(fname)
+		if f.IsDir() {
 			mysqld := path.Join(basedir, fname, "bin", "mysqld")
 			mysqldDebug := path.Join(basedir, fname, "bin", "mysqld-debug")
 			tidb := path.Join(basedir, fname, "bin", "tidb-server")
@@ -301,14 +297,13 @@ func GetInstalledSandboxes(sandboxHome string) (installedSandboxes SandboxInfoLi
 	if !DirExists(sandboxHome) {
 		return installedSandboxes, fmt.Errorf("directory SandboxHome not found")
 	}
-	files, err := ioutil.ReadDir(sandboxHome)
+	files, err := os.ReadDir(sandboxHome)
 	if err != nil {
 		return installedSandboxes, err
 	}
 	for _, f := range files {
 		fname := f.Name()
-		fmode := f.Mode()
-		if fmode.IsDir() {
+		if f.IsDir() {
 			if fname == globals.ForbiddenDirName {
 				continue
 			}

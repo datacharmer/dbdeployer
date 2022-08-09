@@ -17,7 +17,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -64,7 +63,7 @@ func useSandbox(cmd *cobra.Command, args []string) error {
 
 	sandboxDir := path.Join(sandboxHome, sandbox)
 	if wantList {
-		files, err := ioutil.ReadDir(sandboxDir)
+		files, err := os.ReadDir(sandboxDir)
 		if err != nil {
 			return err
 		}
@@ -74,10 +73,14 @@ func useSandbox(cmd *cobra.Command, args []string) error {
 			if common.ExecExists(fPath) {
 				perms = "{EXEC}"
 			}
-			if f.Mode().IsDir() {
+			if f.IsDir() {
 				perms = "<DIR>"
 			}
-			fmt.Printf("%-30s %8s %s\n", f.Name(), humanize.Bytes(uint64(f.Size())), perms)
+			info, err := f.Info()
+			if err != nil {
+				return err
+			}
+			fmt.Printf("%-30s %8s %s\n", f.Name(), humanize.Bytes(uint64(info.Size())), perms)
 		}
 		return nil
 	}

@@ -18,7 +18,6 @@ package ts
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -104,7 +103,7 @@ func getFlavor(version string) string {
 	if !common.FileExists(filePath) {
 		return common.MySQLFlavor
 	}
-	flavor, err := ioutil.ReadFile(filePath)
+	flavor, err := os.ReadFile(filePath)
 	if err != nil || string(flavor) == "" {
 		return common.MySQLFlavor
 	}
@@ -316,7 +315,7 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 			continue
 		}
 		conditionalPrint("processing file %s\n", fName)
-		contents, err := ioutil.ReadFile(f)
+		contents, err := os.ReadFile(f)
 		if err != nil {
 			return fmt.Errorf("[buildTests] error reading file %s: %s", f, err)
 		}
@@ -343,20 +342,20 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 		}
 		versionFile := path.Join(endDataDir, "DB_VERSION")
 		if !common.FileExists(versionFile) {
-			err = ioutil.WriteFile(versionFile, []byte(data["DbVersion"]), 0644)
+			err = os.WriteFile(versionFile, []byte(data["DbVersion"]), 0644)
 			if err != nil {
 				return fmt.Errorf("[buildTests] error writing version file %s: %s", versionFile, err)
 			}
 		}
 		flavorFile := path.Join(endDataDir, "DB_FLAVOR")
 		if !common.FileExists(flavorFile) {
-			err = ioutil.WriteFile(flavorFile, []byte(data["DbFlavor"]), 0644)
+			err = os.WriteFile(flavorFile, []byte(data["DbFlavor"]), 0644)
 			if err != nil {
 				return fmt.Errorf("[buildTests] error writing flavor file %s: %s", flavorFile, err)
 			}
 		}
 		testName := path.Join(endDataDir, fName+"_"+label+".txtar")
-		err = ioutil.WriteFile(testName, buf.Bytes(), 0644)
+		err = os.WriteFile(testName, buf.Bytes(), 0644)
 		if err != nil {
 			return fmt.Errorf("[buildTests] error writing text file %s: %s", testName, err)
 		}

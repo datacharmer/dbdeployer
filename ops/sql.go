@@ -18,7 +18,7 @@ package ops
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 
 	"github.com/datacharmer/dbdeployer/common"
@@ -44,7 +44,7 @@ func getSandboxConnection(sandboxPath string) (sandboxConnection, error) {
 		return sc, fmt.Errorf(globals.ErrFileNotFound, connectionFile)
 	}
 
-	text, err := ioutil.ReadFile(connectionFile) // #nosec 304
+	text, err := os.ReadFile(connectionFile) // #nosec 304
 	if err != nil {
 		return sc, err
 	}

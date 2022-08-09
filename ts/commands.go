@@ -17,7 +17,7 @@ package ts
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"os/exec"
 	"path"
 	"strconv"
@@ -54,7 +54,7 @@ func findErrorsInLogFile(ts *testscript.TestScript, neg bool, args []string) {
 
 	assertFileExists(ts, logFile, globals.ErrFileNotFound, logFile)
 
-	contents, err := ioutil.ReadFile(logFile) // #nosec G304
+	contents, err := os.ReadFile(logFile) // #nosec G304
 	ts.Check(err)
 	hasError := strings.Contains(string(contents), "ERROR")
 	if neg && hasError {

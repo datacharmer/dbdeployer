@@ -18,13 +18,14 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/datacharmer/dbdeployer/common"
-	"io/ioutil"
+	"io"
 	"os"
 	"os/exec"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/datacharmer/dbdeployer/common"
 )
 
 func getCmdOutput(cmdText string) string {
@@ -42,20 +43,19 @@ func getCmdOutput(cmdText string) string {
 	if err = cmd.Start(); err != nil {
 		common.Exitf(1, "# ERROR: %s", err)
 	}
-	slurp, _ := ioutil.ReadAll(stdout)
+	slurp, _ := io.ReadAll(stdout)
 	_ = stdout.Close()
 	return fmt.Sprintf("%s", slurp)
 }
 
 /*
-	Reads the README template and replaces the commands indicated
-	as {{command argument}} with their output.
-	This allows us to produce a file README.md with the output
-	from the current release.
+Reads the README template and replaces the commands indicated
+as {{command argument}} with their output.
+This allows us to produce a file README.md with the output
+from the current release.
 
-	Use as:
-	./mkreadme/make_readme < ./mkreadme/readme_template.md > README.md
-
+Use as:
+./mkreadme/make_readme < ./mkreadme/readme_template.md > README.md
 */
 func main() {
 	// Gets input from stdin

@@ -18,7 +18,7 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"os/exec"
 	"regexp"
@@ -43,7 +43,7 @@ func getCmdOutput(cmdText string) string {
 	if err = cmd.Start(); err != nil {
 		common.Exitf(1, "# ERROR: %s", err)
 	}
-	slurp, _ := ioutil.ReadAll(stdout)
+	slurp, _ := io.ReadAll(stdout)
 	_ = stdout.Close()
 	return fmt.Sprintf("%s", slurp)
 }
@@ -129,7 +129,7 @@ func main() {
 				fmt.Printf("error opening %s : %s\n", header1Name, err)
 				os.Exit(1)
 			}
-			filesList = append(filesList, header1Name + ".md")
+			filesList = append(filesList, header1Name+".md")
 			fmt.Fprintf(homeFile, "- [%s](%s/%s)\n", header1, wikiBaseUrl, header1Name)
 			fmt.Fprintf(fullDoc, "- [%s](#%s)\n", header1, header1Name)
 			addHomeLink = true
@@ -140,7 +140,7 @@ func main() {
 			header2Name = strings.ReplaceAll(header2Name, " ", "-")
 			header2Name = strings.ToLower(header2Name)
 			fmt.Fprintf(homeFile, "    - [%s](%s/%s#%s)\n", header2, wikiBaseUrl, header1Name, header2Name)
-			fmt.Fprintf(fullDoc, "    - [%s](#%s)\n", header2,  header2Name)
+			fmt.Fprintf(fullDoc, "    - [%s](#%s)\n", header2, header2Name)
 		}
 
 		// Replacement for version and date must occur BEFORE
@@ -191,9 +191,9 @@ func main() {
 			fmt.Printf("error reading file %s: %s\n", fileName, err)
 			os.Exit(1)
 		}
-	    var cleanText []string
+		var cleanText []string
 		for _, line := range text {
-			if !strings.Contains(line, "[HOME]")	{
+			if !strings.Contains(line, "[HOME]") {
 				cleanText = append(cleanText, line)
 			}
 		}

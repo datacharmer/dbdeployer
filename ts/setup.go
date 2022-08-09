@@ -17,7 +17,7 @@ package ts
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 	"testing"
 
@@ -32,7 +32,7 @@ func dbdeployerSetup(t *testing.T, dir string) func(env *testscript.Env) error {
 			if !common.FileExists(wantedFile) {
 				return "", fmt.Errorf("no %s file found in %s", fileName, dir)
 			}
-			text, err := ioutil.ReadFile(wantedFile) // #nosec G304
+			text, err := os.ReadFile(wantedFile) // #nosec G304
 			if err != nil {
 				return "", fmt.Errorf("error reading file %s: %s", wantedFile, err)
 			}

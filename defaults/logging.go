@@ -16,7 +16,7 @@ package defaults
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"path"
@@ -61,7 +61,7 @@ func getOperationNumber(caller string) string {
 }
 
 func NewLogger(logDir, logFileName string) (*Logger, string, error) {
-	noLogger := &Logger{logger: log.New(ioutil.Discard, "", log.Ldate|log.Ltime)}
+	noLogger := &Logger{logger: log.New(io.Discard, "", log.Ldate|log.Ltime)}
 	if !LogSBOperations {
 		return noLogger, "", nil
 	}

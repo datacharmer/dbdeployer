@@ -16,7 +16,7 @@ package downloads
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -150,7 +150,7 @@ func GetRemoteTarballList(tarballType TarballType, version, OS string, withSize 
 		return nil, fmt.Errorf("GET %s: %s", pageUrl, err)
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	defer response.Body.Close()
 	if err != nil {
 		return nil, fmt.Errorf("error reading response body: %s", err)

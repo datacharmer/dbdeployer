@@ -16,7 +16,6 @@ package unpack
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 
@@ -71,7 +70,7 @@ func MergeShell(tarball, extension, basedir, destination, bareName string, verbo
 		}
 	}
 	bin := path.Join(extracted, "bin")
-	files, err := ioutil.ReadDir(bin)
+	files, err := os.ReadDir(bin)
 	if err != nil {
 		return err
 	}

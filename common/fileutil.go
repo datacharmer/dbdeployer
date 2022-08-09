@@ -26,7 +26,6 @@ import (
 	"fmt"
 	"hash"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -228,7 +227,7 @@ func SlurpAsString(filename string) (string, error) {
 // reads a file and returns its contents as a byte slice
 func SlurpAsBytes(filename string) ([]byte, error) {
 	// #nosec G304
-	b, err := ioutil.ReadFile(filename)
+	b, err := os.ReadFile(filename)
 	if err != nil {
 		return globals.EmptyBytes, errors.Wrapf(err, "error reading from file %s", filename)
 	}
@@ -540,8 +539,8 @@ func runCmdCtrlArgs(c string, silent bool, args ...string) (string, string, erro
 		return "", "", err
 	}
 
-	slurpErr, _ := ioutil.ReadAll(stderr)
-	slurpOut, _ := ioutil.ReadAll(stdout)
+	slurpErr, _ := io.ReadAll(stderr)
+	slurpOut, _ := io.ReadAll(stdout)
 	err = cmd.Wait()
 
 	if err != nil {
