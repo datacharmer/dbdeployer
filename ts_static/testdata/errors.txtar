@@ -1,4 +1,5 @@
 [!unix] stop 'this procedure can only work on Unix systems'
+env HOME=$WORK/home
 # downloads
 ! exec dbdeployer downloads get
 stderr 'Usage'
@@ -27,6 +28,8 @@ cmpenv stdout no-valid-version.txt
 ! exec dbdeployer deploy single dummy
 cmp stdout no-valid-version-string.txt
 
+-- home/.dummy --
+-- home/opt/mysql/.dummy --
 -- no-valid-version.txt --
 basedir '$HOME/opt/mysql/$dummy_version' not found
 -- no-valid-version-string.txt --

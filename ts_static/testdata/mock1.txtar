@@ -1,0 +1,207 @@
+[!unix] stop 'this procedure can only work on Unix systems'
+
+env HOME=$WORK/home
+
+cd home
+
+# prepare files
+cp opt/mysql/5.7.98/bin/mysql opt/mysql/8.0.98/bin/mysql
+cp opt/mysql/5.7.98/bin/mysql opt/mysql/5.7.98/bin/mysqld
+cp opt/mysql/5.7.98/bin/mysql opt/mysql/8.0.98/bin/mysqld
+cp opt/mysql/5.7.98/bin/mysqld_safe opt/mysql/8.0.98/bin/mysqld_safe
+
+chmod 744 opt/mysql/5.7.98/bin/mysql
+chmod 744 opt/mysql/5.7.98/bin/mysqld
+chmod 744 opt/mysql/5.7.98/bin/mysqld_safe
+chmod 744 opt/mysql/8.0.98/bin/mysql
+chmod 744 opt/mysql/8.0.98/bin/mysqld
+chmod 744 opt/mysql/8.0.98/bin/mysqld_safe
+
+[darwin] cp sandboxes/.dummy opt/mysql/8.0.98/lib/libmysqlclient.dylib
+[!darwin] cp sandboxes/.dummy opt/mysql/8.0.98/lib/libmysqlclient.so
+[darwin] cp sandboxes/.dummy opt/mysql/5.7.98/lib/libmysqlclient.dylib
+[!darwin] cp sandboxes/.dummy opt/mysql/5.7.98/lib/libmysqlclient.so
+
+# help
+exec dbdeployer --help
+stdout 'Usage'
+stdout 'Available Commands'
+! stderr .
+
+# info version
+exec dbdeployer info version
+stdout '\d+\.\d+\.\d+'
+! stderr .
+
+# info release default
+exec dbdeployer info releases
+stdout -count=3 'Remote version: v\d+\.\d+\.\d+'
+! stderr .
+
+# info release 2
+exec dbdeployer info releases --limit=2
+stdout -count=2 'Remote version: v\d+\.\d+\.\d+'
+! stderr .
+
+# create single sandboxes
+
+exec dbdeployer deploy single 5.7.98
+stdout 'Database installed in .*/sandboxes/msb_5.7.98'
+stdout 'sandbox server started'
+! stderr .
+
+exec dbdeployer deploy single 8.0.98
+stdout 'Database installed in .*/sandboxes/msb_8.0.98'
+stdout 'sandbox server started'
+! stderr .
+
+exec dbdeployer deploy single 8.0 --sandbox_directory=msb_8_0_98a
+stdout 'Database installed in .*/sandboxes/msb_8.0.98a'
+stdout 'sandbox server started'
+! stderr .
+
+exec dbdeployer deploy single 8.0 --sandbox_directory=msb_8_0_98b --disable-mysqlx
+stdout 'Database installed in .*/sandboxes/msb_8.0.98b'
+stdout 'sandbox server started'
+! stderr .
+
+# list single sandboxes
+exec dbdeployer sandboxes
+stdout 'msb_5_7_98\s+:\s+single\s+5.7.98\s+\[5798 \]'
+stdout 'msb_8_0_98\s+:\s+single\s+8.0.98\s+\[8098 18098 \]'
+stdout 'msb_8_0_98a\s+:\s+single\s+8.0.98\s+\[8099 18099 \]\s*$'
+stdout 'msb_8_0_98b\s+:\s+single\s+8.0.98\s+\[8100 \]'
+
+# lock sandbox
+exec dbdeployer admin lock msb_8_0_98a
+exec dbdeployer sandboxes
+stdout 'msb_8_0_98a\s+:\s+single\s+8.0.98\s+\[8099 18099 \] \(LOCKED\)'
+
+exists sandboxes/msb_8_0_98a/no_clear
+
+exec dbdeployer admin unlock msb_8_0_98a
+exec dbdeployer sandboxes
+stdout 'msb_8_0_98a\s+:\s+single\s+8.0.98\s+\[8099 18099 \]\s*$'
+! exists sandboxes/msb_8_0_98a/no_clear
+
+# set/unset default
+exec dbdeployer admin set-default msb_8_0_98b
+stdout 'sandboxes/default created with sandbox msb_8_0_98'
+exists sandboxes/default
+exec sandboxes/default metadata port
+stdout '8100'
+exec dbdeployer admin remove-default
+! exists sandboxes/default
+
+# deploy multiple and replication sandboxes
+exec dbdeployer deploy multiple 5.7 --concurrent
+exec dbdeployer deploy replication 5.7 --concurrent
+exec dbdeployer deploy replication 5.7 --concurrent --topology=group
+exec dbdeployer deploy replication 5.7 --concurrent --topology=group --single-primary
+exec dbdeployer deploy replication 5.7 --concurrent --topology=fan-in
+exec dbdeployer deploy replication 5.7 --concurrent --topology=all-masters
+exec dbdeployer deploy multiple 8.0 --concurrent
+exec dbdeployer deploy replication 8.0 --concurrent
+exec dbdeployer deploy replication 8.0 --concurrent --topology=group
+exec dbdeployer deploy replication 8.0 --concurrent --topology=group --single-primary
+exec dbdeployer deploy replication 8.0 --concurrent --topology=fan-in
+exec dbdeployer deploy replication 8.0 --concurrent --topology=all-masters
+
+# list all sandboxes
+exec dbdeployer sandboxes
+stdout 'all_masters_msb_5_7_98   :   all-masters            5.7.98   \[21299 21300 21301 \]'
+stdout 'all_masters_msb_8_0_98   :   all-masters            8.0.98   \[23899 33902 23900 33903 23901 33904 \]'
+stdout 'fan_in_msb_5_7_98        :   fan-in                 5.7.98   \[20299 20300 20301 \]'
+stdout 'fan_in_msb_8_0_98        :   fan-in                 8.0.98   \[22899 32899 22900 32900 22901 32901 \]'
+stdout 'group_msb_5_7_98         :   group-multi-primary    5.7.98   \[27599 27724 27600 27725 27601 27726 \]'
+stdout 'group_msb_8_0_98         :   group-multi-primary    8.0.98   \[29899 30024 39899 29900 30025 39900 29901 30026 39901 \]'
+stdout 'group_sp_msb_5_7_98      :   group-single-primary   5.7.98   \[28599 28724 28600 28725 28601 28726 \]'
+stdout 'group_sp_msb_8_0_98      :   group-single-primary   8.0.98   \[30899 31024 40899 30900 31025 40900 30901 31026 40901 \]'
+stdout 'msb_5_7_98               :   single                 5.7.98   \[5798 \]'
+stdout 'msb_8_0_98               :   single                 8.0.98   \[8098 18098 \]'
+stdout 'msb_8_0_98a              :   single                 8.0.98   \[8099 18099 \]'
+stdout 'msb_8_0_98b              :   single                 8.0.98   \[8100 \]'
+stdout 'multi_msb_5_7_98         :   multiple               5.7.98   \[31599 31600 31601 \]'
+stdout 'multi_msb_8_0_98         :   multiple               8.0.98   \[33899 43899 33900 43900 33901 43901 \]'
+stdout 'rsandbox_5_7_98          :   master-slave           5.7.98   \[26599 26600 26601 \]'
+stdout 'rsandbox_8_0_98          :   master-slave           8.0.98   \[28899 38899 28900 38900 28901 38901 \]'
+
+-- home/sandboxes/.dummy --
+-- home/opt/mysql/5.7.98/FLAVOR --
+mysql
+-- home/opt/mysql/5.7.98/bin/mysql --
+#!/usr/bin/env bash
+# The purpose of this script is to run mock tests with a
+# command that returns a wanted exit code
+exit_code=0
+ 
+# The calling procedure can set FAILMOCK to
+# force a failing result.
+if [ -n "$FAILMOCK" ]
+then
+    exit_code=$FAILMOCK
+fi
+# If MOCKMSG is set, the script will display its contents
+if [ -n "$MOCKMSG" ]
+then
+    echo $MOCKMSG
+fi
+
+# If MOCKARGS is set, the script will display its arguments
+if [ -n "$MOCKARGS" ]
+then
+    echo "[$exit_code] $0 $@"
+fi
+exit $exit_code
+
+-- home/opt/mysql/5.7.98/bin/mysqld --
+
+-- home/opt/mysql/5.7.98/bin/mysqld_safe --
+#!/usr/bin/env bash
+# This script mimics the minimal behavior of mysqld_safe
+# so that we can run tests for dbdeployer without using the real
+# MySQL binaries.
+defaults_file=$1
+no_defaults_error="No valid defaults file provided: use --defaults-file=filename"
+if [ -z "$defaults_file" ]
+then
+    echo "$no_defaults_error"
+    exit 1
+fi
+valid_defaults=$(echo "$defaults_file" | grep '\--defaults-file')
+if [ -z "$valid_defaults" ]
+then
+    echo "$no_defaults_error"
+    exit 1
+fi
+defaults_file=$(echo $defaults_file| sed 's/--defaults-file=//')
+
+if [ ! -f "$defaults_file" ]
+then
+    echo "defaults file $defaults_file not found"
+    exit 1
+fi
+
+pid_file=$(grep pid-file $defaults_file | awk '{print $3}')
+
+if [ -z "$pid_file" ]
+then
+    echo "PID file not found in  $defaults_file"
+    exit 1
+fi
+
+touch $pid_file
+
+exit 0
+
+-- home/opt/mysql/5.7.98/lib/libmysqlclient.so --
+
+-- home/opt/mysql/8.0.98/FLAVOR --
+mysql
+-- home/opt/mysql/8.0.98/bin/mysql --
+
+-- home/opt/mysql/8.0.98/bin/mysqld --
+
+-- home/opt/mysql/8.0.98/bin/mysqld_safe --
+
+-- home/opt/mysql/8.0.98/lib/libmysqlclient.so --

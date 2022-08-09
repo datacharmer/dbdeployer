@@ -95,20 +95,6 @@ func TestGroup(t *testing.T) {
 	testDbDeployer(t, "group", false)
 }
 
-func TestStaticScripts(t *testing.T) {
-	t.Parallel()
-	conditionalPrint("entering %s", t.Name())
-	testscript.Run(t, testscript.Params{
-		Dir:       "static_scripts",
-		Cmds:      customCommands(),
-		Condition: customConditions,
-		Setup: func(env *testscript.Env) error {
-			env.Setenv("HOME", os.Getenv("HOME"))
-			return nil
-		},
-	})
-}
-
 func getFlavor(version string) string {
 	sandboxBinary := os.Getenv("SANDBOX_BINARY")
 	if sandboxBinary == "" {
