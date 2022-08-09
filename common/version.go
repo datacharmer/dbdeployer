@@ -29,6 +29,7 @@ var VersionDef string
 // CompatibleVersion is the version used to mark compatible archives (templates, configuration).
 // It is usually major.minor.0, except when we are at version 0.x, when
 // every revision may bring incompatibility
+//
 //go:embed COMPATIBLE_VERSION
 var CompatibleVersion string
 

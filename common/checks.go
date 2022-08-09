@@ -424,12 +424,14 @@ func DetectBinaryFlavor(basedir string) string {
 	return MySQLFlavor
 }
 
-/* Checks that the extracted tarball directory
-   contains one or more files expected for the current
-   operating system.
-   It prevents simple errors like :
-   * using a Linux tarball on a Mac or vice-versa
-   * using a source or test tarball instead of a binaries one.
+/*
+Checks that the extracted tarball directory
+
+	contains one or more files expected for the current
+	operating system.
+	It prevents simple errors like :
+	* using a Linux tarball on a Mac or vice-versa
+	* using a source or test tarball instead of a binaries one.
 */
 func CheckTarballOperatingSystem(basedir string) error {
 	currentOs := runtime.GOOS

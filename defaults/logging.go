@@ -5,7 +5,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//	http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,9 +33,9 @@ type Logger struct {
 
 // Calling Logger.Printf will print what was requested,
 // with an additional prefix made of :
-// 		* dbdeployer Process ID
-// 		* the current operation number
-// 		* the name of the caller function
+//   - dbdeployer Process ID
+//   - the current operation number
+//   - the name of the caller function
 func (l *Logger) Printf(format string, args ...interface{}) {
 	var newArgs []interface{}
 	caller := CallFuncName()

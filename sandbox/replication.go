@@ -471,7 +471,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	return nil
 }
 
-//func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, nodes int, masterIp, masterList, slaveList string) error {
+// func CreateReplicationSandbox(sdef SandboxDef, origin string, topology string, nodes int, masterIp, masterList, slaveList string) error {
 func CreateReplicationSandbox(sdef SandboxDef, origin string, replData ReplicationData) error {
 	if !common.IsIPV4(replData.MasterIp) {
 		return fmt.Errorf("IP %s is not a valid IPV4", replData.MasterIp)

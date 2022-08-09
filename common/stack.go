@@ -57,9 +57,10 @@ func (stack *Stack) Push(item interface{}) {
 // Client calls will need to cast the object to the expected type.
 // The object is removed from the list
 // e.g.:
-//     type MyType struct { ... }
-//     var lastOne MyType
-//     lastOne = stack.Pop().(MyType)
+//
+//	type MyType struct { ... }
+//	var lastOne MyType
+//	lastOne = stack.Pop().(MyType)
 func (stack *Stack) Pop() interface{} {
 	// Locks so that it is safe to pop from concurrent goroutines
 	stack.mux.Lock()
