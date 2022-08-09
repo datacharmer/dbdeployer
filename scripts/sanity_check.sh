@@ -53,7 +53,7 @@ function exists_in_path {
 }
 
 
-local_items=(cmd defaults downloads common globals compare cookbook unpack abbreviations concurrent sandbox compare rest importing ops ts_test)
+local_items=(cmd defaults downloads common globals compare cookbook unpack abbreviations concurrent sandbox compare rest importing ops ts ts_static)
 exit_code=0
 spaces="        "
 function run {
