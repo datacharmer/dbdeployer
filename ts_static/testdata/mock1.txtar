@@ -1,4 +1,4 @@
-[!unix] stop 'this procedure can only work on Unix systems'
+[!unix] skip 'this procedure can only work on Unix systems'
 
 env HOME=$WORK/home
 
@@ -30,7 +30,19 @@ stdout 'Available Commands'
 
 # info version
 exec dbdeployer info version
-stdout '\d+\.\d+\.\d+'
+stdout '8.0.98'
+! stderr .
+
+exec dbdeployer info version 5.7
+stdout '5.7.98'
+! stderr .
+
+exec dbdeployer info version 8.0
+stdout '8.0.98'
+! stderr .
+
+exec dbdeployer info version all
+stdout '5.7.98 8.0.98'
 ! stderr .
 
 # info release default
