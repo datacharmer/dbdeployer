@@ -1,10 +1,14 @@
-## 1.67.0	09-Aug-2022
+## 1.67.0	10-Aug-2022
 
 ### Code improvements
 
 * Reformat code using go 1.19 (some tiny differences are found within comments)
 * Remove deprecated usage of `io/ioutil` (replaced with either `os` or `io`)
 * Add testscript tests (`ts` and `ts_static`)
+
+### ADJUSTMENTS
+
+* Remove from downloads list all 8.0.29 tarballs, after they were removed from MySQL downloads archives.
 
 ## 1.66.0	27-Jul-2022
 
