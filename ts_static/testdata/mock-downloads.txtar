@@ -64,6 +64,59 @@ stdout '8.0.97'
 exec sandboxes/msb_8_0_97/metadata port
 stdout '8097'
 
+exec dbdeployer deploy multiple --concurrent 5.0
+exec dbdeployer deploy multiple --concurrent 5.1
+exec dbdeployer deploy multiple --concurrent 5.5
+exec dbdeployer deploy multiple --concurrent 5.6
+exec dbdeployer deploy multiple --concurrent 5.7
+exec dbdeployer deploy multiple --concurrent 8.0
+
+exec dbdeployer deploy replication --concurrent 5.0
+exec dbdeployer deploy replication --concurrent 5.1
+exec dbdeployer deploy replication --concurrent 5.5
+exec dbdeployer deploy replication --concurrent 5.6
+exec dbdeployer deploy replication --concurrent 5.7
+exec dbdeployer deploy replication --concurrent 5.7 --topology=group
+exec dbdeployer deploy replication --concurrent 5.7 --topology=group --single-primary
+exec dbdeployer deploy replication --concurrent 5.7 --topology=fan-in
+exec dbdeployer deploy replication --concurrent 5.7 --topology=all-masters
+exec dbdeployer deploy replication --concurrent 8.0
+exec dbdeployer deploy replication --concurrent 8.0 --topology=group
+exec dbdeployer deploy replication --concurrent 8.0 --topology=group --single-primary
+exec dbdeployer deploy replication --concurrent 8.0 --topology=fan-in
+exec dbdeployer deploy replication --concurrent 8.0 --topology=all-masters
+
+exec dbdeployer sandboxes --full-info
+stdout '          name          .         type         . version .   host    .                           port                           . flavor . nodes '
+stdout '------------------------.----------------------.---------.-----------.----------------------------------------------------------.--------.-------.'
+stdout ' all_masters_msb_5_7_97 . all-masters          . 5.7.97  . 127.0.0.1 . .21298 21299 21300 .                                     . mysql  .     3 '
+stdout ' all_masters_msb_8_0_97 . all-masters          . 8.0.97  . 127.0.0.1 . .23898 33898 23899 33899 23900 33900 .                   . mysql  .     3 '
+stdout ' fan_in_msb_5_7_97      . fan-in               . 5.7.97  . 127.0.0.1 . .20298 20299 20300 .                                     . mysql  .     3 '
+stdout ' fan_in_msb_8_0_97      . fan-in               . 8.0.97  . 127.0.0.1 . .22898 32898 22899 32899 22900 32900 .                   . mysql  .     3 '
+stdout ' group_msb_5_7_97       . group-multi-primary  . 5.7.97  . 127.0.0.1 . .27498 27623 27499 27624 27500 27625 .                   . mysql  .     3 '
+stdout ' group_msb_8_0_97       . group-multi-primary  . 8.0.97  . 127.0.0.1 . .29798 29923 39798 29799 29924 39799 29800 29925 39800 . . mysql  .     3 '
+stdout ' group_sp_msb_5_7_97    . group-single-primary . 5.7.97  . 127.0.0.1 . .28498 28623 28499 28624 28500 28625 .                   . mysql  .     3 '
+stdout ' group_sp_msb_8_0_97    . group-single-primary . 8.0.97  . 127.0.0.1 . .30801 30926 40801 30802 30927 40802 30803 30928 40803 . . mysql  .     3 '
+stdout ' msb_4_1_97             . single               . 4.1.97  . 127.0.0.1 . .4197 .                                                  . mysql  .     0 '
+stdout ' msb_5_0_97             . single               . 5.0.97  . 127.0.0.1 . .5097 .                                                  . mysql  .     0 '
+stdout ' msb_5_1_97             . single               . 5.1.97  . 127.0.0.1 . .5197 .                                                  . mysql  .     0 '
+stdout ' msb_5_5_97             . single               . 5.5.97  . 127.0.0.1 . .5597 .                                                  . mysql  .     0 '
+stdout ' msb_5_6_97             . single               . 5.6.97  . 127.0.0.1 . .5697 .                                                  . mysql  .     0 '
+stdout ' msb_5_7_97             . single               . 5.7.97  . 127.0.0.1 . .5797 .                                                  . mysql  .     0 '
+stdout ' msb_8_0_97             . single               . 8.0.97  . 127.0.0.1 . .8097 18097 .                                            . mysql  .     0 '
+stdout ' multi_msb_5_0_97       . multiple             . 5.0.97  . 127.0.0.1 . .30798 30799 30800 .                                     . mysql  .     3 '
+stdout ' multi_msb_5_1_97       . multiple             . 5.1.97  . 127.0.0.1 . .30898 30899 30900 .                                     . mysql  .     3 '
+stdout ' multi_msb_5_5_97       . multiple             . 5.5.97  . 127.0.0.1 . .31298 31299 31300 .                                     . mysql  .     3 '
+stdout ' multi_msb_5_6_97       . multiple             . 5.6.97  . 127.0.0.1 . .31398 31399 31400 .                                     . mysql  .     3 '
+stdout ' multi_msb_5_7_97       . multiple             . 5.7.97  . 127.0.0.1 . .31498 31499 31500 .                                     . mysql  .     3 '
+stdout ' multi_msb_8_0_97       . multiple             . 8.0.97  . 127.0.0.1 . .33798 43798 33799 43799 33800 43800 .                   . mysql  .     3 '
+stdout ' rsandbox_5_0_97        . master-slave         . 5.0.97  . 127.0.0.1 . .25798 25799 25800 .                                     . mysql  .     2 '
+stdout ' rsandbox_5_1_97        . master-slave         . 5.1.97  . 127.0.0.1 . .25898 25899 25900 .                                     . mysql  .     2 '
+stdout ' rsandbox_5_5_97        . master-slave         . 5.5.97  . 127.0.0.1 . .26298 26299 26300 .                                     . mysql  .     2 '
+stdout ' rsandbox_5_6_97        . master-slave         . 5.6.97  . 127.0.0.1 . .26398 26399 26400 .                                     . mysql  .     2 '
+stdout ' rsandbox_5_7_97        . master-slave         . 5.7.97  . 127.0.0.1 . .26498 26499 26500 .                                     . mysql  .     2 '
+stdout ' rsandbox_8_0_97        . master-slave         . 8.0.97  . 127.0.0.1 . .28798 38798 28799 38799 28800 38800 .                   . mysql  .     2 '
+
 -- home/.dbdeployer/.dummy --
 -- home/sandboxes/.dummy --
 -- home/opt/mysql/.dummy --
