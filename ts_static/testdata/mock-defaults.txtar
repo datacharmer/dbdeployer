@@ -1,0 +1,27 @@
+[!unix] skip 'this procedure can only work on Unix systems'
+env HOME=$WORK/home
+
+cd home
+
+# templates
+
+dbdeployer defaults templates export single my_dir
+
+exists my_dir/single
+exists my_dir/version.txt
+exists my_dir/single/after_start
+
+exec dbdeployer defaults templates show after_start
+stdout 'ShellPath'
+stdout 'Copyright'
+
+cp .dummy-template.txt my_dir/single/after_start
+
+exec dbdeployer defaults template import single my_dir after_start
+
+exec dbdeployer defaults templates show after_start
+stdout 'Lorem ipsum'
+
+-- home/sandboxes/.dummy --
+-- home/.dummy-template.txt --
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.

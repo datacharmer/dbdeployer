@@ -22,39 +22,6 @@ chmod 744 opt/mysql/8.0.98/bin/mysqld_safe
 [darwin] cp sandboxes/.dummy opt/mysql/5.7.98/lib/libmysqlclient.dylib
 [!darwin] cp sandboxes/.dummy opt/mysql/5.7.98/lib/libmysqlclient.so
 
-# help
-exec dbdeployer --help
-stdout 'Usage'
-stdout 'Available Commands'
-! stderr .
-
-# info version
-exec dbdeployer info version
-stdout '8.0.98'
-! stderr .
-
-exec dbdeployer info version 5.7
-stdout '5.7.98'
-! stderr .
-
-exec dbdeployer info version 8.0
-stdout '8.0.98'
-! stderr .
-
-exec dbdeployer info version all
-stdout '5.7.98 8.0.98'
-! stderr .
-
-# info release default
-exec dbdeployer info releases
-stdout -count=3 'Remote version: v\d+\.\d+\.\d+'
-! stderr .
-
-# info release 2
-exec dbdeployer info releases --limit=2
-stdout -count=2 'Remote version: v\d+\.\d+\.\d+'
-! stderr .
-
 # create single sandboxes
 
 exec dbdeployer deploy single 5.7.98

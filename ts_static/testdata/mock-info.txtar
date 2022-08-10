@@ -1,0 +1,72 @@
+[!unix] skip 'this procedure can only work on Unix systems'
+[!net] skip 'this test requires network connection'
+env HOME=$WORK/home
+
+cd home
+
+# help
+exec dbdeployer --help
+stdout 'Usage'
+stdout 'Available Commands'
+! stderr .
+
+# info version
+exec dbdeployer info version
+stdout '8.0.98'
+! stderr .
+
+exec dbdeployer info version 5.7
+stdout '5.7.98'
+! stderr .
+
+exec dbdeployer info version 8.0
+stdout '8.0.98'
+! stderr .
+
+exec dbdeployer info version 8.0 all
+stdout '8.0.97 8.0.98'
+! stderr .
+
+exec dbdeployer info version all
+stdout '5.7.98 8.0.98'
+! stderr .
+
+# info release default
+exec dbdeployer info releases
+stdout -count=3 'Remote version: v\d+\.\d+\.\d+'
+! stderr .
+
+# info release 2
+exec dbdeployer info releases --limit=2
+stdout -count=2 'Remote version: v\d+\.\d+\.\d+'
+! stderr .
+
+# defaults
+
+dbdeployer info defaults fan-in-prefix
+stdout 'fan_in_msb_'
+
+dbdeployer defaults update fan-in-prefix fan-in-msb-
+
+exists .dbdeployer/config.json
+
+dbdeployer info defaults fan-in-prefix
+stdout 'fan-in-msb-'
+
+dbdeployer defaults reset
+
+! exists .dbdeployer/config.json
+
+dbdeployer info defaults fan-in-prefix
+stdout 'fan_in_msb_'
+
+-- home/sandboxes/.dummy --
+-- home/opt/mysql/5.7.98/FLAVOR --
+mysql
+-- home/opt/mysql/5.7.98/bin/mysqld --
+-- home/opt/mysql/8.0.97/FLAVOR --
+mysql
+-- home/opt/mysql/8.0.97/bin/mysqld --
+-- home/opt/mysql/8.0.98/FLAVOR --
+mysql
+-- home/opt/mysql/8.0.98/bin/mysqld --
