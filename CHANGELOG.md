@@ -1,3 +1,9 @@
+## 1.68.0	12-Aug-2022
+
+### NEW FEATURES
+
+* Add file `connection_super_user.conf` and `connection_super_user.json` to each sandbox
+
 ## 1.67.0	10-Aug-2022
 
 ### Code improvements

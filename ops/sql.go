@@ -34,12 +34,15 @@ type sandboxConnection struct {
 }
 
 // getSandboxConnection finds the connection credentials in a given sandbox directory
-func getSandboxConnection(sandboxPath string) (sandboxConnection, error) {
+func getSandboxConnection(sandboxPath string, asSuperUser bool) (sandboxConnection, error) {
 	var sc sandboxConnection
 	if !common.DirExists(sandboxPath) {
 		return sc, fmt.Errorf(globals.ErrDirectoryNotFound, sandboxPath)
 	}
 	connectionFile := path.Join(sandboxPath, globals.ScriptConnectionJson)
+	if asSuperUser {
+		connectionFile = path.Join(sandboxPath, globals.ScriptConnectionSuperJson)
+	}
 	if !common.FileExists(connectionFile) {
 		return sc, fmt.Errorf(globals.ErrFileNotFound, connectionFile)
 	}
@@ -53,9 +56,9 @@ func getSandboxConnection(sandboxPath string) (sandboxConnection, error) {
 }
 
 // RunSandboxQuery runs a SQL query in a given sandbox directory
-func RunSandboxQuery[T comparable](sandboxPath, query string) (interface{}, error) {
+func RunSandboxQuery[T comparable](sandboxPath, query string, asSuperUser bool) (interface{}, error) {
 
-	credentials, err := getSandboxConnection(sandboxPath)
+	credentials, err := getSandboxConnection(sandboxPath, asSuperUser)
 	if err != nil {
 		return "", err
 	}

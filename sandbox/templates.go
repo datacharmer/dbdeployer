@@ -161,8 +161,14 @@ var (
 	//go:embed templates/single/connection_info_json.gotxt
 	ConnectionInfoJson string
 
+	//go:embed templates/single/connection_info_super_json.gotxt
+	ConnectionInfoSuperJson string
+
 	//go:embed templates/single/connection_info_conf.gotxt
 	ConnectionInfoConf string
+
+	//go:embed templates/single/connection_info_super_conf.gotxt
+	ConnectionInfoSuperConf string
 
 	//go:embed templates/single/clone_connection_sql.gotxt
 	cloneConnectionSql string
@@ -362,10 +368,20 @@ var (
 			Notes:       "",
 			Contents:    ConnectionInfoConf,
 		},
+		globals.TmplConnectionInfoSuperConf: TemplateDesc{
+			Description: "connection info use this sandbox as super user (.conf)",
+			Notes:       "",
+			Contents:    ConnectionInfoSuperConf,
+		},
 		globals.TmplConnectionInfoJson: TemplateDesc{
 			Description: "connection info to replicate from this sandbox (.json)",
 			Notes:       "",
 			Contents:    ConnectionInfoJson,
+		},
+		globals.TmplConnectionInfoSuperJson: TemplateDesc{
+			Description: "connection info to use this sandbox as super user (.json)",
+			Notes:       "",
+			Contents:    ConnectionInfoSuperJson,
 		},
 		globals.TmplReplicateFrom: TemplateDesc{
 			Description: "starts replication from another sandbox",

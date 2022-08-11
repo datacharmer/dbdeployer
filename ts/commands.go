@@ -162,11 +162,11 @@ func runSqlInSandbox(ts *testscript.TestScript, neg bool, args []string) {
 
 	var strResult string
 	if isANumber(wanted) {
-		result, err := ops.RunSandboxQuery[int](sbDir, query)
+		result, err := ops.RunSandboxQuery[int](sbDir, query, true)
 		ts.Check(err)
 		strResult = fmt.Sprintf("%d", result.(int))
 	} else {
-		result, err := ops.RunSandboxQuery[string](sbDir, query)
+		result, err := ops.RunSandboxQuery[string](sbDir, query, true)
 		ts.Check(err)
 		strResult = result.(string)
 	}
