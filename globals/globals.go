@@ -136,6 +136,7 @@ const (
 	QuietLabel             = "quiet"
 	UnpackLabel            = "unpack"
 	GuessLatestLabel       = "guess-latest"
+	RetriesOnFailure       = "retries-on-failure"
 	MinimalLabel           = "minimal"
 	NewestLabel            = "newest"
 	AddEmptyItemLabel      = "add-empty-item"

@@ -5,10 +5,12 @@ env HOME=$WORK/home
 
 cd home
 
-exec dbdeployer downloads import https://github.com/datacharmer/dbdeployer/raw/master/test/mock/downloads/dl.json
+env retries=2
+
+exec dbdeployer downloads import --retries-on-failure=$retries https://github.com/datacharmer/dbdeployer/raw/master/test/mock/downloads/dl.json
 exists .dbdeployer/tarball-list.json
 
-exec dbdeployer downloads get-by-version 4.1 --newest --minimal --unpack
+exec dbdeployer downloads get-by-version 4.1 --newest --minimal --unpack --retries-on-failure=$retries
 exec dbdeployer deploy single 4.1
 
 exec sandboxes/msb_4_1_97/metadata version
@@ -16,7 +18,7 @@ stdout '4.1.97'
 exec sandboxes/msb_4_1_97/metadata port
 stdout '4197'
 
-exec dbdeployer downloads get-by-version 5.0 --newest --minimal --unpack
+exec dbdeployer downloads get-by-version 5.0 --newest --minimal --unpack --retries-on-failure=$retries
 exec dbdeployer deploy single 5.0
 
 exec sandboxes/msb_5_0_97/metadata version
@@ -24,7 +26,7 @@ stdout '5.0.97'
 exec sandboxes/msb_5_0_97/metadata port
 stdout '5097'
 
-exec dbdeployer downloads get-by-version 5.1 --newest --minimal --unpack
+exec dbdeployer downloads get-by-version 5.1 --newest --minimal --unpack --retries-on-failure=$retries
 exec dbdeployer deploy single 5.1
 
 exec sandboxes/msb_5_1_97/metadata version
@@ -32,7 +34,7 @@ stdout '5.1.97'
 exec sandboxes/msb_5_1_97/metadata port
 stdout '5197'
 
-exec dbdeployer downloads get-by-version 5.5 --newest --minimal --unpack
+exec dbdeployer downloads get-by-version 5.5 --newest --minimal --unpack --retries-on-failure=$retries
 exec dbdeployer deploy single 5.5
 
 exec sandboxes/msb_5_5_97/metadata version
@@ -40,7 +42,7 @@ stdout '5.5.97'
 exec sandboxes/msb_5_5_97/metadata port
 stdout '5597'
 
-exec dbdeployer downloads get-by-version 5.6 --newest --minimal --unpack
+exec dbdeployer downloads get-by-version 5.6 --newest --minimal --unpack --retries-on-failure=$retries
 exec dbdeployer deploy single 5.6
 
 exec sandboxes/msb_5_6_97/metadata version
@@ -48,7 +50,7 @@ stdout '5.6.97'
 exec sandboxes/msb_5_6_97/metadata port
 stdout '5697'
 
-exec dbdeployer downloads get-by-version 5.7 --newest --minimal --unpack
+exec dbdeployer downloads get-by-version 5.7 --newest --minimal --unpack --retries-on-failure=$retries
 exec dbdeployer deploy single 5.7
 
 exec sandboxes/msb_5_7_97/metadata version
@@ -56,7 +58,7 @@ stdout '5.7.97'
 exec sandboxes/msb_5_7_97/metadata port
 stdout '5797'
 
-exec dbdeployer downloads get-by-version 8.0 --newest --minimal --unpack
+exec dbdeployer downloads get-by-version 8.0 --newest --minimal --unpack --retries-on-failure=$retries
 exec dbdeployer deploy single 8.0
 
 exec sandboxes/msb_8_0_97/metadata version

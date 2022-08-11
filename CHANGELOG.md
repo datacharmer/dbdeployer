@@ -2,6 +2,7 @@
 
 ### NEW FEATURES
 
+* Add option `--retries-on-failure` to downloads `get*` and `import` commands
 * Add file `connection_super_user.conf` and `connection_super_user.json` to each sandbox
 
 ## 1.67.0	10-Aug-2022

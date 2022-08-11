@@ -269,6 +269,7 @@ func getCommonFlags(cmd *cobra.Command) ops.DownloadsOptions {
 	options.ProgressStep, _ = cmd.Flags().GetInt64(globals.ProgressStepLabel)
 	options.VerbosityLevel, _ = cmd.Flags().GetInt(globals.VerbosityLabel)
 	options.Version, _ = cmd.Flags().GetString(globals.UnpackVersionLabel)
+	options.Retries, _ = cmd.Flags().GetInt64(globals.RetriesOnFailure)
 	return options
 }
 
@@ -332,9 +333,9 @@ func resetTarballCollection(cmd *cobra.Command, args []string) {
 	}
 }
 
-func importTarballCollection(cmd *cobra.Command, args []string) {
+func importTarballCollection(cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
-		common.Exit(1, "command 'import' requires a file name")
+		return fmt.Errorf("command 'import' requires a file name")
 	}
 	fileName := args[0]
 
@@ -342,43 +343,46 @@ func importTarballCollection(cmd *cobra.Command, args []string) {
 		fileName = defaults.Defaults().RemoteTarballUrl
 	}
 
+	retries, _ := cmd.Flags().GetInt64(globals.RetriesOnFailure)
+
 	if common.IsUrl(fileName) {
 		fileUrl := fileName
 		re := regexp.MustCompile(`^(http|https)://`)
 		fileName = common.BaseName(re.ReplaceAllString(fileUrl, ""))
 		if common.FileExists(fileName) {
-			common.Exitf(1, "file %s already exists", fileName)
+			return fmt.Errorf("file %s already exists", fileName)
 		}
 		fmt.Printf("Downloading tarball list from %s\n", fileUrl)
-		err := rest.DownloadFile(fileName, fileUrl, true, globals.ProgressStepValue)
+		err := rest.DownloadFileWithRetry(fileName, fileUrl, true, globals.ProgressStepValue, retries)
 		if err != nil {
-			common.Exitf(1, "error downloading tarball list to JSON file")
+			return fmt.Errorf("error downloading tarball list to JSON file")
 		}
 	}
 	if !common.FileExists(fileName) {
-		common.Exitf(1, globals.ErrFileNotFound, fileName)
+		return fmt.Errorf(globals.ErrFileNotFound, fileName)
 	}
 	var tarballCollection downloads.TarballCollection
 
 	jsonText, err := common.SlurpAsBytes(fileName)
 	if err != nil {
-		common.Exitf(1, "error reading tarball list from %s", fileName)
+		return fmt.Errorf("error reading tarball list from %s", fileName)
 	}
 
 	err = json.Unmarshal(jsonText, &tarballCollection)
 	if err != nil {
-		common.Exitf(1, "error decoding tarball list from %s", fileName)
+		return fmt.Errorf("error decoding tarball list from %s", fileName)
 	}
 
 	err = downloads.TarballFileInfoValidation(tarballCollection)
 	if err != nil {
-		common.Exitf(1, "error validating tarball list from %s\n %s", fileName, err)
+		return fmt.Errorf("error validating tarball list from %s\n %s", fileName, err)
 	}
 	err = downloads.WriteTarballFileInfo(tarballCollection)
 	if err != nil {
-		common.Exitf(1, "error writing tarball list: %s", err)
+		return fmt.Errorf("error writing tarball list: %s", err)
 	}
 	fmt.Printf("Tarball list imported from %s to %s\n", fileName, downloads.TarballFileRegistry)
+	return nil
 }
 
 func addRemoteTarballToCollection(cmd *cobra.Command, args []string) {
@@ -652,7 +656,7 @@ its Github repository.
 (See: dbdeployer info defaults remote-tarball-url)
 `,
 
-	Run: importTarballCollection,
+	RunE: importTarballCollection,
 }
 
 var downloadsResetCmd = &cobra.Command{
@@ -717,6 +721,7 @@ func addCommonDownloadsFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolP(globals.QuietLabel, "", false, "Do not show download progress")
 	cmd.Flags().Int64P(globals.ProgressStepLabel, "", globals.ProgressStepValue, "Progress interval")
 	cmd.Flags().BoolP(globals.DeleteAfterUnpackLabel, "", false, "Delete the tarball after successful unpack")
+	cmd.Flags().Int64P(globals.RetriesOnFailure, "", 0, "How many times retry a download if a failure occurs on first try")
 }
 
 func init() {
@@ -749,25 +754,16 @@ func init() {
 	_ = downloadsTreeCmd.MarkFlagRequired(globals.FlavorLabel)
 
 	downloadsGetByVersionCmd.Flags().BoolP(globals.NewestLabel, "", false, "Choose only the newest tarballs not yet downloaded")
-	//downloadsGetByVersionCmd.Flags().BoolP(globals.DryRunLabel, "", false, "Show what would be downloaded, but don't run it")
 	downloadsGetByVersionCmd.Flags().BoolP(globals.MinimalLabel, "", false, "Choose only minimal tarballs")
 	downloadsGetByVersionCmd.Flags().String(globals.FlavorLabel, "", "Choose only the given flavor")
 	downloadsGetByVersionCmd.Flags().String(globals.OSLabel, "", "Choose only the given OS")
-	//downloadsGetByVersionCmd.Flags().BoolP(globals.QuietLabel, "", false, "Do not show download progress")
 	downloadsGetByVersionCmd.Flags().BoolP(globals.GuessLatestLabel, "", false, "Guess the latest version (highest version w/ increased revision number)")
 	downloadsGetByVersionCmd.Flags().BoolP(globals.UnpackLabel, "", false, "Unpack after downloading")
-	//downloadsGetByVersionCmd.Flags().Int64P(globals.ProgressStepLabel, "", globals.ProgressStepValue, "Progress interval")
 	addCommonDownloadsFlags(downloadsGetByVersionCmd)
 
-	//downloadsGetCmd.Flags().BoolP(globals.QuietLabel, "", false, "Do not show download progress")
-	//downloadsGetCmd.Flags().Int64P(globals.ProgressStepLabel, "", globals.ProgressStepValue, "Progress interval")
-	//downloadsGetCmd.Flags().BoolP(globals.DryRunLabel, "", false, "Show what would be downloaded, but don't run it")
-	//downloadsGetCmd.Flags().String(globals.OSLabel, "", "Set the OS of the tarball")
 	downloadsGetCmd.Flags().BoolP(globals.UnpackLabel, "", false, "Unpack after downloading")
 	addCommonDownloadsFlags(downloadsGetCmd)
 
-	//downloadsGetUnpackCmd.Flags().BoolP(globals.DeleteAfterUnpackLabel, "", false, "Delete the tarball after successful unpack")
-	//downloadsGetUnpackCmd.Flags().Bool(globals.DryRunLabel, false, "Show Get operations, but do not run them")
 	downloadsGetUnpackCmd.PersistentFlags().String(globals.FlavorLabel, "", "Defines the tarball flavor (MySQL, NDB, Percona Server, etc)")
 	addCommonDownloadsFlags(downloadsGetUnpackCmd)
 
@@ -786,15 +782,7 @@ func init() {
 
 	downloadsAddStdinCmd.Flags().BoolP(globals.OverwriteLabel, "", false, "Overwrite existing entry")
 
-	// downloadsGetUnpack needs the same flags that cmdUnpack has
-	//downloadsGetUnpackCmd.Flags().Int64P(globals.ProgressStepLabel, "", globals.ProgressStepValue, "Progress interval")
-	//downloadsGetUnpackCmd.PersistentFlags().Int(globals.VerbosityLabel, 1, "Level of verbosity during unpack (0=none, 2=maximum)")
-	//downloadsGetUnpackCmd.PersistentFlags().String(globals.UnpackVersionLabel, "", "which version is contained in the tarball")
-	//downloadsGetUnpackCmd.PersistentFlags().String(globals.PrefixLabel, "", "Prefix for the final expanded directory")
-	//downloadsGetUnpackCmd.PersistentFlags().Bool(globals.ShellLabel, false, "Unpack a shell tarball into the corresponding server directory")
-	//downloadsGetUnpackCmd.PersistentFlags().Bool(globals.OverwriteLabel, false, "Overwrite the destination directory if already exists")
-	//downloadsGetUnpackCmd.PersistentFlags().String(globals.TargetServerLabel, "", "Uses a different server to unpack a shell tarball")
-	//downloadsGetUnpackCmd.PersistentFlags().String(globals.FlavorLabel, "", "Defines the tarball flavor (MySQL, NDB, Percona Server, etc)")
-
 	downloadsExportCmd.Flags().BoolP(globals.AddEmptyItemLabel, "", false, "Add an empty item to the tarballs list")
+
+	downloadsImportCmd.Flags().Int64P(globals.RetriesOnFailure, "", 0, "How many times retry a download if a failure occurs on first try")
 }

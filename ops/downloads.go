@@ -48,6 +48,7 @@ type DownloadsOptions struct {
 	DryRun            bool
 	IsShell           bool
 	Quiet             bool
+	Retries           int64
 	VerbosityLevel    int
 	ProgressStep      int64
 }
@@ -102,7 +103,7 @@ func GetRemoteTarball(options DownloadsOptions) error {
 		if !options.Quiet {
 			fmt.Printf("Downloading %s\n", tarball.Name)
 		}
-		err = rest.DownloadFile(absPath, tarball.Url, options.Quiet, options.ProgressStep)
+		err = rest.DownloadFileWithRetry(absPath, tarball.Url, options.Quiet, options.ProgressStep, options.Retries)
 		if err != nil {
 			return fmt.Errorf("error getting remote file %s - %s", fileName, err)
 		}

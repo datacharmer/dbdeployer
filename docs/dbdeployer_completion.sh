@@ -584,168 +584,6 @@ _dbdeployer_admin()
     noun_aliases=()
 }
 
-_dbdeployer_completion_bash()
-{
-    last_command="dbdeployer_completion_bash"
-
-    command_aliases=()
-
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-    flags+=("--no-descriptions")
-    local_nonpersistent_flags+=("--no-descriptions")
-    flags+=("--config=")
-    two_word_flags+=("--config")
-    flags+=("--sandbox-binary=")
-    two_word_flags+=("--sandbox-binary")
-    flags+=("--sandbox-home=")
-    two_word_flags+=("--sandbox-home")
-    flags+=("--shell-path=")
-    two_word_flags+=("--shell-path")
-    flags+=("--skip-library-check")
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    has_completion_function=1
-    noun_aliases=()
-}
-
-_dbdeployer_completion_fish()
-{
-    last_command="dbdeployer_completion_fish"
-
-    command_aliases=()
-
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-    flags+=("--no-descriptions")
-    local_nonpersistent_flags+=("--no-descriptions")
-    flags+=("--config=")
-    two_word_flags+=("--config")
-    flags+=("--sandbox-binary=")
-    two_word_flags+=("--sandbox-binary")
-    flags+=("--sandbox-home=")
-    two_word_flags+=("--sandbox-home")
-    flags+=("--shell-path=")
-    two_word_flags+=("--shell-path")
-    flags+=("--skip-library-check")
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    has_completion_function=1
-    noun_aliases=()
-}
-
-_dbdeployer_completion_powershell()
-{
-    last_command="dbdeployer_completion_powershell"
-
-    command_aliases=()
-
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-    flags+=("--no-descriptions")
-    local_nonpersistent_flags+=("--no-descriptions")
-    flags+=("--config=")
-    two_word_flags+=("--config")
-    flags+=("--sandbox-binary=")
-    two_word_flags+=("--sandbox-binary")
-    flags+=("--sandbox-home=")
-    two_word_flags+=("--sandbox-home")
-    flags+=("--shell-path=")
-    two_word_flags+=("--shell-path")
-    flags+=("--skip-library-check")
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    has_completion_function=1
-    noun_aliases=()
-}
-
-_dbdeployer_completion_zsh()
-{
-    last_command="dbdeployer_completion_zsh"
-
-    command_aliases=()
-
-    commands=()
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-    flags+=("--no-descriptions")
-    local_nonpersistent_flags+=("--no-descriptions")
-    flags+=("--config=")
-    two_word_flags+=("--config")
-    flags+=("--sandbox-binary=")
-    two_word_flags+=("--sandbox-binary")
-    flags+=("--sandbox-home=")
-    two_word_flags+=("--sandbox-home")
-    flags+=("--shell-path=")
-    two_word_flags+=("--shell-path")
-    flags+=("--skip-library-check")
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    has_completion_function=1
-    noun_aliases=()
-}
-
-_dbdeployer_completion()
-{
-    last_command="dbdeployer_completion"
-
-    command_aliases=()
-
-    commands=()
-    commands+=("bash")
-    commands+=("fish")
-    commands+=("powershell")
-    commands+=("zsh")
-
-    flags=()
-    two_word_flags=()
-    local_nonpersistent_flags=()
-    flags_with_completion=()
-    flags_completion=()
-
-    flags+=("--config=")
-    two_word_flags+=("--config")
-    flags+=("--sandbox-binary=")
-    two_word_flags+=("--sandbox-binary")
-    flags+=("--sandbox-home=")
-    two_word_flags+=("--sandbox-home")
-    flags+=("--shell-path=")
-    two_word_flags+=("--shell-path")
-    flags+=("--skip-library-check")
-
-    must_have_one_flag=()
-    must_have_one_noun=()
-    has_completion_function=1
-    noun_aliases=()
-}
-
 _dbdeployer_cookbook_create()
 {
     last_command="dbdeployer_cookbook_create"
@@ -2339,6 +2177,10 @@ _dbdeployer_downloads_get()
     local_nonpersistent_flags+=("--progress-step=")
     flags+=("--quiet")
     local_nonpersistent_flags+=("--quiet")
+    flags+=("--retries-on-failure=")
+    two_word_flags+=("--retries-on-failure")
+    local_nonpersistent_flags+=("--retries-on-failure")
+    local_nonpersistent_flags+=("--retries-on-failure=")
     flags+=("--shell")
     flags+=("--target-server=")
     two_word_flags+=("--target-server")
@@ -2403,6 +2245,10 @@ _dbdeployer_downloads_get-by-version()
     local_nonpersistent_flags+=("--progress-step=")
     flags+=("--quiet")
     local_nonpersistent_flags+=("--quiet")
+    flags+=("--retries-on-failure=")
+    two_word_flags+=("--retries-on-failure")
+    local_nonpersistent_flags+=("--retries-on-failure")
+    local_nonpersistent_flags+=("--retries-on-failure=")
     flags+=("--shell")
     flags+=("--target-server=")
     two_word_flags+=("--target-server")
@@ -2455,6 +2301,10 @@ _dbdeployer_downloads_get-unpack()
     local_nonpersistent_flags+=("--progress-step=")
     flags+=("--quiet")
     local_nonpersistent_flags+=("--quiet")
+    flags+=("--retries-on-failure=")
+    two_word_flags+=("--retries-on-failure")
+    local_nonpersistent_flags+=("--retries-on-failure")
+    local_nonpersistent_flags+=("--retries-on-failure=")
     flags+=("--shell")
     flags+=("--target-server=")
     two_word_flags+=("--target-server")
@@ -2491,6 +2341,10 @@ _dbdeployer_downloads_import()
     flags_with_completion=()
     flags_completion=()
 
+    flags+=("--retries-on-failure=")
+    two_word_flags+=("--retries-on-failure")
+    local_nonpersistent_flags+=("--retries-on-failure")
+    local_nonpersistent_flags+=("--retries-on-failure=")
     flags+=("--config=")
     two_word_flags+=("--config")
     flags+=("--sandbox-binary=")
@@ -3710,7 +3564,6 @@ _dbdeployer_root_command()
         command_aliases+=("manage")
         aliashash["manage"]="admin"
     fi
-    commands+=("completion")
     commands+=("cookbook")
     if [[ -z "${BASH_VERSION:-}" || "${BASH_VERSINFO[0]:-}" -gt 3 ]]; then
         command_aliases+=("recipes")

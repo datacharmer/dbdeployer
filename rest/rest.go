@@ -21,6 +21,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/dustin/go-humanize"
 	"github.com/pkg/errors"
@@ -131,12 +132,30 @@ func (pt *PassThru) Read(p []byte) (int, error) {
 // DownloadFile will download a url to a local file. It's efficient because it will
 // write as it downloads and not load the whole file into memory.
 func DownloadFile(filepath string, url string, progress bool, progressStep int64) error {
+	return DownloadFileWithRetry(filepath, url, progress, progressStep, 0)
+}
+
+// DownloadFileWithRetry will download a url to a local file. It's efficient because it will
+// write as it downloads and not load the whole file into memory.
+func DownloadFileWithRetry(filepath string, url string, progress bool, progressStep, retriesOnFailure int64) error {
 
 	// Get the data
 	// #nosec G107
-	resp, err := http.Get(url)
+	var resp *http.Response
+	var err error
+	var attempts int64 = 1
+	if retriesOnFailure > 10 {
+		retriesOnFailure = 10
+	}
+	resp, err = http.Get(url)
+	for err != nil && attempts < retriesOnFailure {
+		time.Sleep(time.Second)
+		resp, err = http.Get(url)
+		attempts++
+		fmt.Println("==== ", attempts, " ====")
+	}
 	if err != nil {
-		return fmt.Errorf("[DownloadFile] error getting %s: %s", url, err)
+		return fmt.Errorf("[DownloadFile] error getting %s (attempts: %d): %s", url, attempts, err)
 	}
 	defer resp.Body.Close()
 
