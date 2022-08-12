@@ -140,19 +140,17 @@ func DownloadFile(filepath string, url string, progress bool, progressStep int64
 func DownloadFileWithRetry(filepath string, url string, progress bool, progressStep, retriesOnFailure int64) error {
 
 	// Get the data
-	// #nosec G107
 	var resp *http.Response
 	var err error
 	var attempts int64 = 1
 	if retriesOnFailure > 10 {
 		retriesOnFailure = 10
 	}
-	resp, err = http.Get(url)
+	resp, err = http.Get(url) // #nosec G107
 	for err != nil && attempts < retriesOnFailure {
 		time.Sleep(time.Second)
-		resp, err = http.Get(url)
+		resp, err = http.Get(url) // #nosec G107
 		attempts++
-		fmt.Println("==== ", attempts, " ====")
 	}
 	if err != nil {
 		return fmt.Errorf("[DownloadFile] error getting %s (attempts: %d): %s", url, attempts, err)
