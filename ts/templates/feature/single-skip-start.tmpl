@@ -1,0 +1,60 @@
+[!unix] skip 'this procedure can only work on Unix systems'
+env HOME={{.Home}}
+env TMPDIR={{.TmpDir}}
+env db_version={{.DbVersion}}
+env sb_dir=$HOME/sandboxes/msb_{{.DbPathVer}}_nostart
+env db_port={{.DbIncreasedPort}}
+
+! exists $sb_dir
+
+# deployment
+
+env db_dir=msb_{{.DbPathVer}}_nostart
+exec dbdeployer deploy single $db_version --sandbox-directory=$db_dir --skip-start --port=$db_port
+stdout 'Database installed in .*/sandboxes/msb_{{.DbPathVer}}_nostart'
+! stdout 'sandbox server started'
+! stderr .
+exists $sb_dir
+
+cleanup_at_end $sb_dir
+
+# check files and ports
+
+check_file $sb_dir start stop status clear
+check_file $sb_dir add_option connection.json init_db my.sandbox.cnf
+check_file $sb_dir sbdescription.json show_relaylog after_start connection.sql load_grants
+check_file $sb_dir replicate_from send_kill sysbench use
+check_file $sb_dir metadata restart show_binlog sysbench_ready wipe_and_restart
+check_file $sb_dir connection.conf grants.mysql my sb_include show_log test_sb
+! exists $sb_dir/data/msandbox.err
+
+exec $sb_dir/start
+stdout 'sandbox server started'
+exists $sb_dir/data/msandbox.err
+
+exec $sb_dir/load_grants
+exec $sb_dir/use -e 'select @@version'
+stdout '{{.DbVersion}}'
+! stderr .
+
+env required_ports=1
+[version_is_at_least:$db_version:8.0.0] env required_ports=2
+check_ports $sb_dir $required_ports
+
+exec $sb_dir/test_sb
+stdout '# fail  :     0'
+! stderr .
+
+! find_errors $sb_dir
+
+# test dbdeployer sandboxes
+
+exec dbdeployer sandboxes
+stdout 'msb_{{.DbPathVer}}_nostart.*single'
+! stderr .
+
+# sandbox cleanup
+exec dbdeployer delete msb_{{.DbPathVer}}_nostart
+stdout 'sandboxes/msb_{{.DbPathVer}}_nostart'
+! stderr .
+! exists $sb_dir
