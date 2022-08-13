@@ -69,10 +69,11 @@ func testDbDeployer(t *testing.T, name string, parallel bool) {
 		conditionalPrint("entering %s/%s", t.Name(), subTestName)
 		t.Run(subTestName, func(t *testing.T) {
 			testscript.Run(t, testscript.Params{
-				Dir:       dir,
-				Cmds:      customCommands(),
-				Condition: customConditions,
-				Setup:     dbdeployerSetup(t, dir),
+				Dir:                 dir,
+				Cmds:                customCommands(),
+				Condition:           customConditions,
+				Setup:               dbdeployerSetup(t, dir),
+				RequireExplicitExec: true,
 			})
 		})
 	}
@@ -166,6 +167,7 @@ func initializeEnv(versionList []string) error {
 			Minimal:           strings.EqualFold(runtime.GOOS, "linux"),
 			Unpack:            true,
 			DeleteAfterUnpack: true,
+			Retries:           2,
 		})
 		if err != nil {
 			conditionalPrint("no tarball retrieved for version %s\n", v)
@@ -236,6 +238,8 @@ func TestMain(m *testing.M) {
 	os.Exit(exitCode)
 }
 
+var deltaPort = 0
+
 // buildTests takes all the files from templateDir and populates several data directories
 // Each directory is named with the combination of the bare name of the template file + the label
 // for example, from the data directory "testdata", file "single.tmpl", and label "8_0_29" we get the file
@@ -244,9 +248,12 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 
 	var templateNameToFeature = map[string]string{
 		"single":                    "",
+		"single-skip-start":         "",
 		"single-custom-credentials": "",
 		"replication":               "",
+		"circular-replication":      "",
 		"multiple":                  "",
+		"use-admin":                 common.AdminAddress,
 		"dd-expose-tables":          common.DataDict,
 		"replication-gtid":          common.GTID,
 		"group":                     common.GroupReplication,
@@ -337,6 +344,13 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 		processTemplate := template.Must(template.New(label).Parse(string(contents)))
 		buf := &bytes.Buffer{}
 
+		dbPort, ok := data["DbIncreasedPort"]
+		if ok {
+			// make sure that the DbIncreasedPort is unique among the scripts
+			port, _ := strconv.Atoi(dbPort)
+			deltaPort++
+			data["DbIncreasedPort"] = fmt.Sprintf("%d", port+deltaPort)
+		}
 		if err := processTemplate.Execute(buf, data); err != nil {
 			return fmt.Errorf("[buildTests] error processing template from %s: %s", f, err)
 		}

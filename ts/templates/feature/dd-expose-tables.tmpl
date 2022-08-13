@@ -12,7 +12,7 @@ env db_port={{.DbIncreasedPort}}
 # deployment
 
 env db_dir=--sandbox-directory=msb_{{.DbPathVer}}_dd
-exec dbdeployer deploy single $db_version --expose-dd-tables --disable-mysqlx $db_dir --port=8001
+exec dbdeployer deploy single $db_version --expose-dd-tables --disable-mysqlx $db_dir --port=$db_port
 stdout 'Database installed in .*/sandboxes/msb_{{.DbPathVer}}_dd'
 stdout 'sandbox server started'
 ! stderr .
