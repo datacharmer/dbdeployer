@@ -1,0 +1,75 @@
+[!unix] skip 'this procedure can only work on Unix systems'
+env HOME={{.Home}}
+env TMPDIR={{.TmpDir}}
+env db_version={{.DbVersion}}
+env sb_dir=$HOME/sandboxes/circular_{{.DbPathVer}}
+
+! exists $sb_dir
+
+# deployment
+env multi=circular_{{.DbPathVer}}
+
+env c1=--my-cnf-options=auto-increment-increment=3
+env c2=--my-cnf-options=auto-increment-offset=10
+env c3=--my-cnf-options=log-slave-updates
+env c4=--base-port=13500
+
+exec dbdeployer deploy multiple $db_version --sandbox-directory=$multi --concurrent $c1 $c2 $c3 $c4
+
+stdout 'multiple directory installed in .*/sandboxes/circular_{{.DbPathVer}}'
+! stderr .
+
+exists $sb_dir
+cleanup_at_end $sb_dir
+
+# check ports
+env required_ports=3
+[version_is_at_least:$db_version:8.0.0] env required_ports=6
+check_ports $sb_dir $required_ports
+
+# set circular replication
+exec $sb_dir/node1/replicate_from $multi/node3
+exec $sb_dir/node2/replicate_from $multi/node1
+exec $sb_dir/node3/replicate_from $multi/node2
+
+# create table in each node
+exec $sb_dir/n1 -e 'create table test.t1(id int not null primary key)'
+exec $sb_dir/n2 -e 'create table test.t2(id int not null primary key)'
+exec $sb_dir/n3 -e 'create table test.t3(id int not null primary key)'
+
+# insert data in each node
+exec $sb_dir/n1 -e 'insert into test.t1 values (100)'
+exec $sb_dir/n1 -e 'insert into test.t2 values (100)'
+exec $sb_dir/n1 -e 'insert into test.t3 values (100)'
+exec $sb_dir/n2 -e 'insert into test.t1 values (200)'
+exec $sb_dir/n2 -e 'insert into test.t2 values (200)'
+exec $sb_dir/n2 -e 'insert into test.t3 values (200)'
+exec $sb_dir/n3 -e 'insert into test.t1 values (300)'
+exec $sb_dir/n3 -e 'insert into test.t2 values (300)'
+exec $sb_dir/n3 -e 'insert into test.t3 values (300)'
+
+sleep 3
+# retrieve data in each node
+exec $sb_dir/use_all 'select * from test.t1'
+stdout -count=3 '\b100\b'
+stdout -count=3 '\b200\b'
+stdout -count=3 '\b300\b'
+exec $sb_dir/use_all 'select * from test.t2'
+stdout -count=3 '\b100\b'
+stdout -count=3 '\b200\b'
+stdout -count=3 '\b300\b'
+exec $sb_dir/use_all 'select * from test.t3'
+stdout -count=3 '\b100\b'
+stdout -count=3 '\b200\b'
+stdout -count=3 '\b300\b'
+
+# check for errors
+! find_errors $sb_dir/node1
+! find_errors $sb_dir/node2
+! find_errors $sb_dir/node3
+
+# sandbox cleanup
+exec dbdeployer delete circular_{{.DbPathVer}}
+stdout 'sandboxes/circular_{{.DbPathVer}}'
+! stderr .
+! exists $sb_dir
