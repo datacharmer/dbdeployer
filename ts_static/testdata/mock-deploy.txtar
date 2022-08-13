@@ -105,6 +105,67 @@ stdout 'multi_msb_8_0_98         :   multiple               8.0.98   \[33899 438
 stdout 'rsandbox_5_7_98          :   master-slave           5.7.98   \[26599 26600 26601 \]'
 stdout 'rsandbox_8_0_98          :   master-slave           8.0.98   \[28899 38899 28900 38900 28901 38901 \]'
 
+exec dbdeployer delete all --concurrent --skip-confirm
+
+# custom replication names
+
+! exists .dbdeployer/config.json
+exec dbdeployer defaults show
+stdout '"master-slave-prefix": "rsandbox_",'
+stdout '"master-name": "master",'
+stdout '"slave-prefix": "slave",'
+stdout '"master-abbr": "m",'
+stdout '"slave-abbr": "s",'
+stdout '"node-prefix": "node",'
+
+exec dbdeployer defaults update master-slave-prefix ms_replication_
+exists .dbdeployer/config.json
+exec dbdeployer defaults update master-name primary
+exec dbdeployer defaults update master-abbr p
+exec dbdeployer defaults update slave-prefix replica
+exec dbdeployer defaults update slave-abbr r
+exec dbdeployer defaults update node-prefix branch
+exec dbdeployer defaults show
+
+stdout '"master-slave-prefix": "ms_replication_",'
+stdout '"master-name": "primary",'
+stdout '"slave-prefix": "replica",'
+stdout '"master-abbr": "p",'
+stdout '"slave-abbr": "r",'
+stdout '"node-prefix": "branch",'
+
+exec dbdeployer deploy replication 8.0.98 --concurrent
+exists sandboxes/ms_replication_8_0_98/p
+exists sandboxes/ms_replication_8_0_98/r1
+exists sandboxes/ms_replication_8_0_98/r2
+exists sandboxes/ms_replication_8_0_98/branch1/use
+
+env d1=--defaults=master-slave-prefix:masterslave_
+env d2=--defaults=master-name:batman
+env d3=--defaults=master-abbr:b
+env d4=--defaults=slave-prefix:robin
+env d5=--defaults=slave-abbr:rob
+env d6=--defaults=node-prefix:bat
+exec dbdeployer deploy replication 8.0.98 $d1 $d2 $d3 $d4 $d5 $d6 --concurrent
+exists sandboxes/masterslave_8_0_98/b
+exists sandboxes/masterslave_8_0_98/rob1
+exists sandboxes/masterslave_8_0_98/rob2
+exists sandboxes/masterslave_8_0_98/bat1/use
+
+exec dbdeployer delete masterslave_8_0_98
+exec dbdeployer delete ms_replication_8_0_98
+
+exec dbdeployer deploy replication 5.7.98 --concurrent
+exists sandboxes/ms_replication_5_7_98/p
+exists sandboxes/ms_replication_5_7_98/r1
+exists sandboxes/ms_replication_5_7_98/r2
+exists sandboxes/ms_replication_5_7_98/branch1/use
+
+exec dbdeployer defaults reset
+! exists .dbdeployer/config.json
+
+exec dbdeployer delete all --concurrent --skip-confirm
+
 -- home/sandboxes/.dummy --
 -- home/opt/mysql/5.7.98/FLAVOR --
 mysql

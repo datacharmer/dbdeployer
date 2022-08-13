@@ -26,7 +26,8 @@ import (
 func TestStaticScripts(t *testing.T) {
 	t.Parallel()
 	testscript.Run(t, testscript.Params{
-		Dir: "testdata",
+		Dir:                 "testdata",
+		RequireExplicitExec: true,
 	})
 }
 

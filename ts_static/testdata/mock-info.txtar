@@ -43,21 +43,21 @@ stdout -count=2 'Remote version: v\d+\.\d+\.\d+'
 
 # defaults
 
-dbdeployer info defaults fan-in-prefix
+exec dbdeployer info defaults fan-in-prefix
 stdout 'fan_in_msb_'
 
-dbdeployer defaults update fan-in-prefix fan-in-msb-
+exec dbdeployer defaults update fan-in-prefix fan-in-msb-
 
 exists .dbdeployer/config.json
 
-dbdeployer info defaults fan-in-prefix
+exec dbdeployer info defaults fan-in-prefix
 stdout 'fan-in-msb-'
 
-dbdeployer defaults reset
+exec dbdeployer defaults reset
 
 ! exists .dbdeployer/config.json
 
-dbdeployer info defaults fan-in-prefix
+exec dbdeployer info defaults fan-in-prefix
 stdout 'fan_in_msb_'
 
 -- home/sandboxes/.dummy --

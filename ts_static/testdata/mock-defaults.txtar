@@ -5,7 +5,7 @@ cd home
 
 # templates
 
-dbdeployer defaults templates export single my_dir
+exec dbdeployer defaults templates export single my_dir
 
 exists my_dir/single
 exists my_dir/version.txt
