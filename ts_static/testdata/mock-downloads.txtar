@@ -7,9 +7,12 @@ cd home
 
 env retries=2
 
+# import list of downloads
+
 exec dbdeployer downloads import --retries-on-failure=$retries https://github.com/datacharmer/dbdeployer/raw/master/test/mock/downloads/dl.json
 exists .dbdeployer/tarball-list.json
 
+# get and deploy mock databases from version 4.1 to 8.0
 exec dbdeployer downloads get-by-version 4.1 --newest --minimal --unpack --retries-on-failure=$retries
 exec dbdeployer deploy single 4.1
 
@@ -66,6 +69,8 @@ stdout '8.0.97'
 exec sandboxes/msb_8_0_97/metadata port
 stdout '8097'
 
+# deploy multi-node sandboxes
+
 exec dbdeployer deploy multiple --concurrent 5.0
 exec dbdeployer deploy multiple --concurrent 5.1
 exec dbdeployer deploy multiple --concurrent 5.5
@@ -88,6 +93,7 @@ exec dbdeployer deploy replication --concurrent 8.0 --topology=group --single-pr
 exec dbdeployer deploy replication --concurrent 8.0 --topology=fan-in
 exec dbdeployer deploy replication --concurrent 8.0 --topology=all-masters
 
+# display sandboxes list
 exec dbdeployer sandboxes --full-info
 stdout '          name          .         type         . version .   host    .                           port                           . flavor . nodes '
 stdout '------------------------.----------------------.---------.-----------.----------------------------------------------------------.--------.-------.'
@@ -118,6 +124,23 @@ stdout ' rsandbox_5_5_97        . master-slave         . 5.5.97  . 127.0.0.1 . .
 stdout ' rsandbox_5_6_97        . master-slave         . 5.6.97  . 127.0.0.1 . .26398 26399 26400 .                                     . mysql  .     2 '
 stdout ' rsandbox_5_7_97        . master-slave         . 5.7.97  . 127.0.0.1 . .26498 26499 26500 .                                     . mysql  .     2 '
 stdout ' rsandbox_8_0_97        . master-slave         . 8.0.97  . 127.0.0.1 . .28798 38798 28799 38799 28800 38800 .                   . mysql  .     2 '
+
+# run global commands
+
+exec dbdeployer global 'exec' 'grep' '[^-]version\|type' sbdescription.json
+stdout -count=27 '\d+\.\d+\.\d+'
+
+exec dbdeployer global  --type=group-multi-primary 'exec' 'grep' '[^-]version\|type' sbdescription.json
+stdout -count=2 '\d+\.\d+\.\d+'
+
+exec dbdeployer global  --port-range=4000-6000 'exec' 'grep' '[^-]version\|type' sbdescription.json
+stdout -count=6 '\d+\.\d+\.\d+'
+
+exec dbdeployer global  --short-version=5.0 'exec' 'grep' '[^-]version\|type' sbdescription.json
+stdout -count=3 '\d+\.\d+\.\d+'
+
+exec dbdeployer global  --name=msb_5_6_97 'exec' 'grep' '[^-]version\|type' sbdescription.json
+stdout -count=1 '\d+\.\d+\.\d+'
 
 -- home/.dbdeployer/.dummy --
 -- home/sandboxes/.dummy --
