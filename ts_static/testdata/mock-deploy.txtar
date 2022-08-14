@@ -105,6 +105,148 @@ stdout 'multi_msb_8_0_98         :   multiple               8.0.98   \[33899 438
 stdout 'rsandbox_5_7_98          :   master-slave           5.7.98   \[26599 26600 26601 \]'
 stdout 'rsandbox_8_0_98          :   master-slave           8.0.98   \[28899 38899 28900 38900 28901 38901 \]'
 
+# check use_all_* and exec_all_*
+
+exec sandboxes/fan_in_msb_8_0_98/exec_all pwd
+stdout '# server: 1'
+stdout '# server: 2'
+stdout '# server: 3'
+stdout -count=3 'node'
+exec sandboxes/fan_in_msb_8_0_98/exec_all_masters pwd
+stdout '# server: 1'
+stdout '# server: 2'
+stdout -count=2 'node'
+exec sandboxes/fan_in_msb_8_0_98/exec_all_slaves pwd
+stdout '# server: 3'
+stdout -count=1 'node'
+
+exec sandboxes/fan_in_msb_8_0_98/use_all 'select 1'
+stdout '# server: 1'
+stdout '# server: 2'
+stdout '# server: 3'
+exec sandboxes/fan_in_msb_8_0_98/use_all_masters 'select 1'
+stdout '# server: 1'
+stdout '# server: 2'
+exec sandboxes/fan_in_msb_8_0_98/use_all_slaves 'select 1'
+stdout '# server: 3'
+
+exec sandboxes/all_masters_msb_8_0_98/exec_all pwd
+stdout '# server: 1'
+stdout '# server: 2'
+stdout '# server: 3'
+stdout -count=3 'node'
+exec sandboxes/all_masters_msb_8_0_98/exec_all_masters pwd
+stdout '# server: 1'
+stdout '# server: 2'
+stdout '# server: 3'
+stdout -count=3 'node'
+exec sandboxes/all_masters_msb_8_0_98/exec_all_slaves pwd
+stdout '# server: 1'
+stdout '# server: 2'
+stdout '# server: 3'
+stdout -count=3 'node'
+
+exec sandboxes/all_masters_msb_8_0_98/use_all 'select 1'
+stdout '# server: 1'
+stdout '# server: 2'
+stdout '# server: 3'
+exec sandboxes/all_masters_msb_8_0_98/use_all_masters 'select 1'
+stdout '# server: 1'
+stdout '# server: 2'
+stdout '# server: 3'
+exec sandboxes/all_masters_msb_8_0_98/use_all_slaves 'select 1'
+stdout '# server: 1'
+stdout '# server: 2'
+stdout '# server: 3'
+
+exec sandboxes/rsandbox_8_0_98/exec_all pwd
+stdout '# master'
+stdout '# server: 1'
+stdout '# server: 2'
+stdout -count=2 'node'
+stdout -count=2 'master'
+exec sandboxes/rsandbox_8_0_98/exec_all_masters pwd
+stdout '# master'
+stdout -count=2 'master'
+! stdout 'node'
+exec sandboxes/rsandbox_8_0_98/exec_all_slaves pwd
+stdout '# server: 1'
+stdout '# server: 2'
+stdout -count=2 'node'
+! stdout 'master'
+
+exec sandboxes/rsandbox_8_0_98/use_all 'select 1'
+stdout '# master'
+stdout '# server: 1'
+stdout '# server: 2'
+exec sandboxes/rsandbox_8_0_98/use_all_masters 'select 1'
+stdout '# master'
+! stdout '# server'
+exec sandboxes/rsandbox_8_0_98/use_all_slaves 'select 1'
+stdout '# server: 1'
+stdout '# server: 2'
+! stdout '# master'
+
+exec sandboxes/group_sp_msb_8_0_98/exec_all pwd
+stdout '# server: 1'
+stdout '# server: 2'
+stdout '# server: 3'
+stdout -count=3 'node'
+exec sandboxes/group_sp_msb_8_0_98/exec_all_masters pwd
+stdout '# server: 1'
+stdout -count=1 'node'
+! stdout '# server: 2'
+! stdout '# server: 3'
+exec sandboxes/group_sp_msb_8_0_98/exec_all_slaves pwd
+stdout '# server: 2'
+stdout '# server: 3'
+stdout -count=2 'node'
+! stdout '# server: 1'
+
+exec sandboxes/group_sp_msb_8_0_98/use_all 'select 1'
+stdout '# server: 1'
+stdout '# server: 2'
+stdout '# server: 3'
+exec sandboxes/group_sp_msb_8_0_98/use_all_masters 'select 1'
+stdout '# server: 1'
+! stdout '# server 2'
+! stdout '# server 3'
+exec sandboxes/group_sp_msb_8_0_98/use_all_slaves 'select 1'
+stdout '# server: 2'
+stdout '# server: 3'
+! stdout '# server: 1'
+
+exec sandboxes/group_msb_8_0_98/exec_all pwd
+stdout '# server: 1'
+stdout '# server: 2'
+stdout '# server: 3'
+stdout -count=3 'node'
+exec sandboxes/group_msb_8_0_98/exec_all_masters pwd
+stdout '# server: 1'
+stdout '# server: 2'
+stdout '# server: 3'
+stdout -count=3 'node'
+exec sandboxes/group_msb_8_0_98/exec_all_slaves pwd
+stdout '# server: 1'
+stdout '# server: 2'
+stdout '# server: 3'
+stdout -count=3 'node'
+
+exec sandboxes/group_msb_8_0_98/use_all 'select 1'
+stdout '# server: 1'
+stdout '# server: 2'
+stdout '# server: 3'
+exec sandboxes/group_msb_8_0_98/use_all_masters 'select 1'
+stdout '# server: 1'
+stdout '# server: 2'
+stdout '# server: 3'
+exec sandboxes/group_msb_8_0_98/use_all_slaves 'select 1'
+stdout '# server: 1'
+stdout '# server: 2'
+stdout '# server: 3'
+
+# delete all sandboxes
+
 exec dbdeployer delete all --concurrent --skip-confirm
 
 # custom replication names
