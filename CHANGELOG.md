@@ -1,3 +1,12 @@
+## 1.69.0	15-Aug-2022
+
+## NEW FEATURES
+
+* Add downloads for arm64 (Issue #145)
+* **WARNING** potentially breaking feature:
+    * Add option `--arch` to  `downloads` commands: `get-by-version`, `add` (mandatory), `list`, `tree`
+
+
 ## 1.68.0	12-Aug-2022
 
 ### NEW FEATURES

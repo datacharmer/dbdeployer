@@ -131,6 +131,7 @@ const (
 
 	// Instantiated in cmd/downloads.go
 	OSLabel                = "OS"
+	ArchLabel              = "arch"
 	ShowUrlLabel           = "show-url"
 	UrlLabel               = "url"
 	QuietLabel             = "quiet"

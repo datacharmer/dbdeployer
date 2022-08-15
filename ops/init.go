@@ -194,11 +194,12 @@ func initDownloadTarball(options InitOptions) error {
 	if strings.EqualFold(OS, "linux") {
 		minimal = true
 	}
+	arch := runtime.GOARCH
 	tarball, err := downloads.FindOrGuessTarballByVersionFlavorOS(version, common.MySQLFlavor,
-		OS, minimal, true, false)
+		OS, arch, minimal, true, false)
 	if err != nil {
-		return fmt.Errorf("error getting version %s (%s-%s)[minimal: %v - newest: %v - guess: %v]: %s",
-			version, common.MySQLFlavor, OS, minimal, true, false, err)
+		return fmt.Errorf("error getting version %s (%s-%s-%s)[minimal: %v - newest: %v - guess: %v]: %s",
+			version, common.MySQLFlavor, OS, arch, minimal, true, false, err)
 	}
 	fmt.Println(globals.DashLine)
 	fmt.Printf("# dbdeployer downloads get %s\n", tarball.Name)
