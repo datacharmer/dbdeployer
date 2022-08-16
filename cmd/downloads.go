@@ -206,7 +206,11 @@ func listRemoteTarballs(cmd *cobra.Command, args []string) {
 		} else {
 			cells = append(cells, &simpletable.Cell{Text: tb.Name})
 		}
-		cells = append(cells, &simpletable.Cell{Text: tb.OperatingSystem + "-" + tb.Arch})
+		archText := tb.Arch
+		if archText == "arm64" {
+			archText = "x86_64"
+		}
+		cells = append(cells, &simpletable.Cell{Text: tb.OperatingSystem + "-" + archText})
 		cells = append(cells, &simpletable.Cell{Align: simpletable.AlignRight, Text: tb.Version})
 		cells = append(cells, &simpletable.Cell{Text: tb.Flavor})
 		cells = append(cells, &simpletable.Cell{Align: simpletable.AlignRight, Text: humanize.Bytes(uint64(tb.Size))})
