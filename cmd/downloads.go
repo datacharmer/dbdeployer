@@ -207,7 +207,7 @@ func listRemoteTarballs(cmd *cobra.Command, args []string) {
 			cells = append(cells, &simpletable.Cell{Text: tb.Name})
 		}
 		archText := tb.Arch
-		if archText == "arm64" {
+		if archText == "amd64" {
 			archText = "x86_64"
 		}
 		cells = append(cells, &simpletable.Cell{Text: tb.OperatingSystem + "-" + archText})
