@@ -785,7 +785,7 @@ func init() {
 	downloadsTreeCmd.Flags().String(globals.FlavorLabel, "", "Which flavor will be listed")
 	downloadsTreeCmd.Flags().BoolP(globals.ShowUrlLabel, "", false, "Show the URL")
 	downloadsTreeCmd.Flags().String(globals.OSLabel, "", "Which OS will be listed")
-	downloadsTreeCmd.Flags().String(globals.ArchLabel, "", "Which OS will be listed")
+	downloadsTreeCmd.Flags().String(globals.ArchLabel, "", "Which architecture will be listed")
 	downloadsTreeCmd.Flags().String(globals.VersionLabel, "", "Which version will be listed")
 	downloadsTreeCmd.Flags().IntP(globals.MaxItemsLabel, "", 3, "Show a maximum of items for each Short version (0 = ALL)")
 	_ = downloadsTreeCmd.MarkFlagRequired(globals.FlavorLabel)
