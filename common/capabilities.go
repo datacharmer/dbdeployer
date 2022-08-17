@@ -83,6 +83,7 @@ const (
 	AdminAddress                = "adminAddress"
 	EmbedMySQLShell             = "embed-mysql-shell"
 	CloneServer                 = "clone-server"
+	CircularReplication         = "circular-replication"
 )
 
 var MySQLCapabilities = Capabilities{
@@ -174,6 +175,10 @@ var MySQLCapabilities = Capabilities{
 		CloneServer: {
 			Description: "clone MySQL server",
 			Since:       globals.MinimumCloneMySQLServer,
+		},
+		CircularReplication: {
+			Description: "clone MySQL server",
+			Since:       globals.MinimumMySQLAutoIncrementIncrement,
 		},
 	},
 }

@@ -377,6 +377,7 @@ const ReductionOnPortNumberOverflow = 60000
 // MySQLX was enabled by default starting with 8.0.11
 var (
 	MinimumMySQLUpgradeTool                   = NumericVersion{5, 0, 0}
+	MinimumMySQLAutoIncrementIncrement        = NumericVersion{5, 0, 0}
 	MaximumMySQLUpgradeTool                   = NumericVersion{8, 0, 15}
 	MinimumMySQLUpgradeServer                 = NumericVersion{8, 0, 16}
 	MinimumCloneMySQLServer                   = NumericVersion{8, 0, 17}
