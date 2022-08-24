@@ -122,7 +122,7 @@ func customCommands() map[string]func(ts *testscript.TestScript, neg bool, args 
 		"cleanup_at_end": cleanupAtEnd,
 
 		// run_sql_in_sandbox runs a SQL query in a sandbox, and compares the result with an expected value
-		// invoke as "run_sql_in_sandbox $sb_dir 'SQL query' value_to_compare"
+		// invoke as "run_sql_in_sandbox $sb_dir 'SQL query' {eq|lt|le|gt|ge} value_to_compare "
 		// Notice that the query must return a single value
 		"run_sql_in_sandbox": runSqlInSandbox,
 	}
@@ -136,6 +136,9 @@ func cleanupAtEnd(ts *testscript.TestScript, neg bool, args []string) {
 	sandboxName := path.Base(sandboxDir)
 	// testscript.Defer runs at the end of the current test
 	ts.Defer(func() {
+		if os.Getenv("ts_preserve") != "" {
+			return
+		}
 		if !common.DirExists(sandboxDir) {
 			return
 		}
@@ -152,12 +155,13 @@ func cleanupAtEnd(ts *testscript.TestScript, neg bool, args []string) {
 
 // runSqlInSandbox is a testscript command that runs a SQL query in a sandbox
 // use as:
-// run_sql_in_sandbox "query" wanted
+// run_sql_in_sandbox "query" {eq|lt|le|gt|ge} wanted
 func runSqlInSandbox(ts *testscript.TestScript, neg bool, args []string) {
-	assertEqual[int](ts, len(args), 3, "syntax: run_sql_in_sandbox sandbox_dir 'query' wanted_value")
+	assertEqual[int](ts, len(args), 4, "syntax: run_sql_in_sandbox sandbox_dir 'query' {eq|lt|le|gt|ge} wanted_value")
 	sbDir := args[0]
 	query := args[1]
-	wanted := args[2]
+	operation := args[2]
+	wanted := args[3]
 	assertDirExists(ts, sbDir, globals.ErrDirectoryNotFound, sbDir)
 
 	var strResult string
@@ -171,5 +175,18 @@ func runSqlInSandbox(ts *testscript.TestScript, neg bool, args []string) {
 		strResult = result.(string)
 	}
 
-	assertEqual[string](ts, strResult, wanted, "got %s - want: %s", strResult, wanted)
+	switch strings.ToLower(operation) {
+	case "eq", "=", "==":
+		assertEqual[string](ts, strResult, wanted, "got %s - want: %s", strResult, wanted)
+	case "ge", ">=":
+		assertGreaterEqual[string](ts, strResult, wanted, "got %s - want: >= %s", strResult, wanted)
+	case "gt", ">":
+		assertGreater[string](ts, strResult, wanted, "got %s - want: > %s", strResult, wanted)
+	case "le", "<=":
+		assertGreaterEqual[string](ts, wanted, strResult, "got %s - want: <= %s", strResult, wanted)
+	case "lt", "<":
+		assertGreater[string](ts, wanted, strResult, "got %s - want: < %s", strResult, wanted)
+	default:
+		ts.Fatalf("unrecognized operation %s", operation)
+	}
 }

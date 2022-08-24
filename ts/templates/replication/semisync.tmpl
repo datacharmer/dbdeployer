@@ -55,6 +55,9 @@ check_ports $sb_dir $required_ports
 
 # test replication
 
+[version_is_at_least:$db_version:5.6.0] ! find_errors $sb_dir/master
+[version_is_at_least:$db_version:5.6.0] ! find_errors $sb_dir/node1
+[version_is_at_least:$db_version:5.6.0] ! find_errors $sb_dir/node2
 exec $sb_dir/test_replication
 stdout '# failed:     0'
 ! stderr .

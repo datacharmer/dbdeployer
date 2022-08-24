@@ -74,6 +74,7 @@ func testDbDeployer(t *testing.T, name string, parallel bool) {
 				Condition:           customConditions,
 				Setup:               dbdeployerSetup(t, dir),
 				RequireExplicitExec: true,
+				TestWork:            os.Getenv("ts_preserve") != "",
 			})
 		})
 	}

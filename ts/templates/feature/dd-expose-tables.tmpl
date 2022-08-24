@@ -41,10 +41,10 @@ stdout '# fail  :     0'
 
 # check dictionary tables
 
-run_sql_in_sandbox $sb_dir 'select VERSION()' {{.DbVersion}}-debug
-run_sql_in_sandbox $sb_dir 'select @@debug is not null' 1
-run_sql_in_sandbox $sb_dir  'select count(*) from mysql.tables where name =''tables'' and schema_id=1' 1
-run_sql_in_sandbox $sb_dir 'select count(*) from information_schema.tables where table_name =''tables'' and table_schema=''mysql''' 1
+run_sql_in_sandbox $sb_dir 'select VERSION()' eq {{.DbVersion}}-debug
+run_sql_in_sandbox $sb_dir 'select @@debug is not null' eq 1
+run_sql_in_sandbox $sb_dir  'select count(*) from mysql.tables where name =''tables'' and schema_id=1' gt 0
+run_sql_in_sandbox $sb_dir 'select count(*) from information_schema.tables where table_name =''tables'' and table_schema=''mysql''' gt 0
 
 # sandbox cleanup
 exec dbdeployer delete msb_{{.DbPathVer}}_dd
