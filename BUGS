@@ -1,0 +1,1 @@
+when a .dbdeployer/config.json exists from an older version, it's impossible to delete it using dbdeployer defaults reset (FIXED)
