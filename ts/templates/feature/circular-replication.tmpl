@@ -37,6 +37,7 @@ exec $sb_dir/n1 -e 'create table test.t1(id int not null primary key)'
 exec $sb_dir/n2 -e 'create table test.t2(id int not null primary key)'
 exec $sb_dir/n3 -e 'create table test.t3(id int not null primary key)'
 
+sleep 3
 # insert data in each node
 exec $sb_dir/n1 -e 'insert into test.t1 values (100)'
 exec $sb_dir/n1 -e 'insert into test.t2 values (100)'
@@ -49,7 +50,7 @@ exec $sb_dir/n3 -e 'insert into test.t2 values (300)'
 exec $sb_dir/n3 -e 'insert into test.t3 values (300)'
 
 sleep 3
-# retrieve data in each node
+# retrieve data from each node
 exec $sb_dir/use_all 'select * from test.t1'
 stdout -count=3 '\b100\b'
 stdout -count=3 '\b200\b'

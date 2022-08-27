@@ -124,7 +124,7 @@ func TestFindOrGuessTarballByVersionFlavorOS(t *testing.T) {
 			tb, _ := FindOrGuessTarballByVersionFlavorOS(
 				data.requestedShortVersion,
 				common.MySQLFlavor,
-				"linux", false, !guess, guess)
+				"linux", "amd64", false, !guess, guess)
 			label := fmt.Sprintf("versions %s - requested '%s' - guess '%v'",
 				data.foundVersions,
 				data.requestedShortVersion,

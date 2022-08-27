@@ -107,6 +107,47 @@ function make_signature {
     $sha_sum_cmd -a 256 -c ${binary_file}.sha256
 }
 
+function build_binary {
+    temp_binary=$1
+    OS=$2
+    arch=$3
+    echo "env GOOS=$OS GOARCH=$arch go build $docs_flags -o $temp_binary ."
+    env GOOS=$OS GOARCH=$arch go build $docs_flags -o $temp_binary .
+    if [ "$?" != "0" ]
+    then
+        echo "ERROR during OSX build! ($temp_binary)"
+        exit 1
+    fi
+}
+
+function pack_binary {
+    binary=$1
+    tar -c $binary | gzip -c > ${binary}.tar.gz
+    shrink $binary
+    make_signature $binary
+    make_signature ${binary}.tar.gz
+}
+
+function build_universal {
+    binary=$1
+    build_binary ${binary}-amd darwin amd64
+    build_binary ${binary}-arm darwin arm64
+    echo "lipo -create -output  $binary ${binary}-amd ${binary}-arm"
+    lipo -create -output  $binary ${binary}-amd ${binary}-arm
+    if [ "$?" != "0" ]
+    then
+        echo "ERROR during OSX build! ($temp_binary)"
+        exit 1
+    fi
+    if [ ! -x $binary ]
+    then
+        echo "universal binary $binary not created"
+        exit 1
+    fi
+    rm -f ${binary}-amd
+    rm -f ${binary}-arm
+}
+
 case $target in
     all)
         $build_script OSX $version
@@ -114,34 +155,23 @@ case $target in
         ;;
     OSX)
         binary=dbdeployer-${version}${docs_tag}.osx
-        echo "env GOOS=darwin GOARCH=amd64 go build $docs_flags -o $binary ."
-        env GOOS=darwin GOARCH=amd64 go build $docs_flags -o $binary .
-        if [ "$?" != "0" ]
+        has_lipo=$(find_in_path lipo)
+        if [ -n "$has_lipo" ]
         then
-            echo "ERROR during OSX build!"
-            exit 1
+            echo "'lipo' executable detected: building universal binary"
+            build_universal $binary
+        else
+            build_binary $binary darwin amd64
         fi
-        tar -c $binary | gzip -c > ${binary}.tar.gz
-        shrink $binary
-        make_signature $binary
-        make_signature ${binary}.tar.gz
+        pack_binary $binary
     ;;
     linux)
         binary=dbdeployer-${version}${docs_tag}.linux
-	    echo "env GOOS=linux GOARCH=amd64 go build $docs_flags -o $binary ."
-	    env GOOS=linux GOARCH=amd64 go build $docs_flags -o $binary .
-        if [ "$?" != "0" ]
-        then
-            echo "ERROR during linux build!"
-            exit 1
-        fi
-        tar -c $binary | gzip -c > ${binary}.tar.gz
-        shrink $binary
-        make_signature $binary
-        make_signature ${binary}.tar.gz
+        build_binary $binary linux amd64
+        pack_binary $binary
     ;;
     *)
-        echo unrecognized target.
+        echo "unrecognized target $target"
         exit 1
         ;;
 esac

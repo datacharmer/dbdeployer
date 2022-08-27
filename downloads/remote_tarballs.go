@@ -178,7 +178,8 @@ func GetRemoteTarballList(tarballType TarballType, version, OS string, withSize 
 				`\s*` +                              // optional spaces
 				`(\w+)`))                            // Capture a string of alphanumeric characters (the checksum)
 	*/
-	reLine := regexp.MustCompile(fmt.Sprintf(`\((%s-\d+\.\d+\.\d+[^\)]+x86.64[^\)]+z)\).*?MD5:\s*(\w+)`, downloadsSettings[tarballType].NameInFile))
+	//reLine := regexp.MustCompile(fmt.Sprintf(`\((%s-\d+\.\d+\.\d+[^\)]+x86.64[^\)]+z)\).*?MD5:\s*(\w+)`, downloadsSettings[tarballType].NameInFile))
+	reLine := regexp.MustCompile(fmt.Sprintf(`\((%s-\d+\.\d+\.\d+[^\)]+-(\w+64)[^\)]+z)\).*?MD5:\s*(\w+)`, downloadsSettings[tarballType].NameInFile))
 	matches := reLine.FindAllStringSubmatch(text, -1)
 	if len(matches) == 0 {
 		return nil, fmt.Errorf("no %s tarballs found for %s", tarballType, version)
@@ -195,8 +196,9 @@ func GetRemoteTarballList(tarballType TarballType, version, OS string, withSize 
 
 		tbd := TarballDescription{
 			Name:            m[1],
-			Checksum:        "MD5:" + m[2],
+			Checksum:        "MD5:" + m[3],
 			OperatingSystem: internalOsName[OS],
+			Arch:            archNormalize(m[2]),
 			ShortVersion:    shortVersion,
 			Version:         longVersion,
 			Flavor:          downloadsSettings[tarballType].Flavor,
@@ -214,4 +216,11 @@ func GetRemoteTarballList(tarballType TarballType, version, OS string, withSize 
 		return nil, fmt.Errorf("no tarballs found")
 	}
 	return result, nil
+}
+
+func archNormalize(s string) string {
+	if s == "x86_64" {
+		return "amd64"
+	}
+	return s
 }

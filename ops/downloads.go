@@ -35,6 +35,7 @@ type DownloadsOptions struct {
 	TarballName       string
 	TarballUrl        string
 	TarballOS         string
+	TarballArch       string
 	Flavor            string
 	TargetServer      string
 	Prefix            string
@@ -74,7 +75,7 @@ func GetRemoteTarball(options DownloadsOptions) error {
 		found = true
 	}
 	if !found && options.Version != "" {
-		tarball, err = findRemoteTarballByVersion(options.Version, options.Flavor, options.TarballOS, options.Minimal, options.Newest, options.GuessLatest)
+		tarball, err = findRemoteTarballByVersion(options.Version, options.Flavor, options.TarballOS, options.TarballArch, options.Minimal, options.Newest, options.GuessLatest)
 		if err != nil {
 			return err
 		}
@@ -173,9 +174,14 @@ func postDownloadOps(tarball downloads.TarballDescription, fileName, absPath str
 
 func getOSWarning(tarball downloads.TarballDescription) string {
 	currentOS := strings.ToLower(runtime.GOOS)
+	currentArch := strings.ToLower(runtime.GOARCH)
 	tarballOS := strings.ToLower(tarball.OperatingSystem)
+	tarballArch := strings.ToLower(tarball.Arch)
 	if currentOS != tarballOS {
 		return fmt.Sprintf("WARNING: Current OS is %s, but the tarball's OS is %s", currentOS, tarballOS)
+	}
+	if tarballArch != "" && currentArch != tarballArch {
+		return fmt.Sprintf("WARNING: current architecture is %s, but the tarball architecture is %s", currentArch, tarballArch)
 	}
 	return ""
 }
@@ -227,8 +233,11 @@ func findRemoteTarballByNameOrUrl(wanted, wantedOs string) (downloads.TarballDes
 	return tarball, nil
 }
 
-func findRemoteTarballByVersion(version, flavor, OS string, minimal, newest, guessLatest bool) (downloads.TarballDescription, error) {
+func findRemoteTarballByVersion(version, flavor, OS, arch string, minimal, newest, guessLatest bool) (downloads.TarballDescription, error) {
 
+	if arch == "" {
+		arch = runtime.GOARCH
+	}
 	if OS == "" {
 		OS = runtime.GOOS
 	}
@@ -238,7 +247,7 @@ func findRemoteTarballByVersion(version, flavor, OS string, minimal, newest, gue
 	var tarball downloads.TarballDescription
 	var err error
 
-	tarball, err = downloads.FindOrGuessTarballByVersionFlavorOS(version, flavor, OS, minimal, newest, guessLatest)
+	tarball, err = downloads.FindOrGuessTarballByVersionFlavorOS(version, flavor, OS, arch, minimal, newest, guessLatest)
 	if err != nil {
 		return downloads.TarballDescription{}, fmt.Errorf(fmt.Sprintf("Error getting version %s (%s-%s)[minimal: %v - newest: %v - guess: %v]: %s",
 			version, flavor, OS, minimal, newest, guessLatest, err))
@@ -251,7 +260,7 @@ func DisplayTarball(tarball downloads.TarballDescription) {
 	fmt.Printf("Short version: %s\n", tarball.ShortVersion)
 	fmt.Printf("Version:       %s\n", tarball.Version)
 	fmt.Printf("Flavor:        %s\n", tarball.Flavor)
-	fmt.Printf("OS:            %s\n", tarball.OperatingSystem)
+	fmt.Printf("OS:            %s-%s\n", tarball.OperatingSystem, tarball.Arch)
 	fmt.Printf("URL:           %s\n", tarball.Url)
 	fmt.Printf("Checksum:      %s\n", tarball.Checksum)
 	fmt.Printf("Size:          %s\n", humanize.Bytes(uint64(tarball.Size)))

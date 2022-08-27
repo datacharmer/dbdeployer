@@ -62,3 +62,9 @@ func assertGreater[T constraints.Ordered](ts *testscript.TestScript, a, b T, msg
 		ts.Fatalf(msg, args...)
 	}
 }
+
+func assertGreaterEqual[T constraints.Ordered](ts *testscript.TestScript, a, b T, msg string, args ...interface{}) {
+	if a < b {
+		ts.Fatalf(msg, args...)
+	}
+}

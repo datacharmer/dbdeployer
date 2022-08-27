@@ -1,3 +1,11 @@
+## 1.69.0	27-Aug-2022
+
+## NEW FEATURES
+
+* Add downloads for arm64 (Issue #145)
+* Add option `--arch` to  `downloads` commands: `get-by-version`, `add` (mandatory), `list`, `tree`
+* Released binaries for MacOS are now universal (`ARM64` and `X86_64`)
+
 ## 1.68.0	12-Aug-2022
 
 ### NEW FEATURES

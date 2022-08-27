@@ -38,6 +38,7 @@ type TarballDescription struct {
 	Name            string `json:"name"`
 	Checksum        string `json:"checksum,omitempty"`
 	OperatingSystem string `json:"OS"`
+	Arch            string `json:"arch"`
 	Url             string `json:"url"`
 	Flavor          string `json:"flavor"`
 	Minimal         bool   `json:"minimal"`
@@ -167,10 +168,10 @@ func FindTarballByName(tarballName string) (TarballDescription, error) {
 	}
 	return TarballDescription{}, fmt.Errorf("tarball with name %s not found", tarballName)
 }
-func DeleteTarball(tarballName string) ([]TarballDescription, error) {
+func DeleteTarball(tarballs []TarballDescription, tarballName string) ([]TarballDescription, error) {
 	var newList []TarballDescription
 	found := false
-	for _, tb := range DefaultTarballRegistry.Tarballs {
+	for _, tb := range tarballs {
 		if tb.Name == tarballName {
 			found = true
 		} else {
@@ -214,15 +215,19 @@ func CompareTarballChecksum(tarball TarballDescription, fileName string) error {
 	return nil
 }
 
-func FindTarballByVersionFlavorOS(version, flavor, OS string, minimal, newest bool) (TarballDescription, error) {
-	return FindOrGuessTarballByVersionFlavorOS(version, flavor, OS, minimal, newest, false)
+func FindTarballByVersionFlavorOS(version, flavor, OS, arch string, minimal, newest bool) (TarballDescription, error) {
+	return FindOrGuessTarballByVersionFlavorOS(version, flavor, OS, arch, minimal, newest, false)
 }
 
-func FindOrGuessTarballByVersionFlavorOS(version, flavor, OS string, minimal, newest, guess bool) (TarballDescription, error) {
+func FindOrGuessTarballByVersionFlavorOS(version, flavor, OS, arch string, minimal, newest, guess bool) (TarballDescription, error) {
 	flavor = strings.ToLower(flavor)
 	OS = strings.ToLower(OS)
+	arch = strings.ToLower(arch)
 	if OS == "osx" || OS == "macos" || OS == "os x" {
 		OS = "darwin"
+	}
+	if arch == "x86_64" || arch == "x86-64" {
+		arch = "amd64"
 	}
 	if guess {
 		minimal = false
@@ -230,9 +235,14 @@ func FindOrGuessTarballByVersionFlavorOS(version, flavor, OS string, minimal, ne
 	var tbd []TarballDescription
 	newestVersionList := []int{0, 0, 0}
 	for _, tb := range DefaultTarballRegistry.Tarballs {
+		archMatch := true
+		if tb.Arch != "" {
+			archMatch = strings.ToLower(tb.Arch) == arch
+		}
 		if (tb.Version == version || tb.ShortVersion == version) &&
 			strings.ToLower(tb.Flavor) == flavor &&
 			strings.ToLower(tb.OperatingSystem) == OS &&
+			archMatch &&
 			(!minimal || minimal == tb.Minimal) {
 
 			if guess {
@@ -521,7 +531,7 @@ func CheckTarballList(tarballList []TarballDescription) error {
 	uniqueNames := make(map[string]bool)
 	uniqueCombinations := make(map[string]bool)
 	for _, tb := range tarballList {
-		key := fmt.Sprintf("%s-%s-%s-%v", tb.OperatingSystem, tb.Flavor, tb.Version, tb.Minimal)
+		key := fmt.Sprintf("%s-%s-%s-%s-%v", tb.OperatingSystem, tb.Arch, tb.Flavor, tb.Version, tb.Minimal)
 
 		// Makes sure that we don't have duplicate names in the list
 		_, seen := uniqueNames[tb.Name]
@@ -530,11 +540,11 @@ func CheckTarballList(tarballList []TarballDescription) error {
 		}
 		uniqueNames[tb.Name] = true
 
-		// Makes sure that we don't have duplicate combinations of OS+Flavor+Version+Minimal in the list
+		// Makes sure that we don't have duplicate combinations of OS+arch+Flavor+Version+Minimal in the list
 		_, seen = uniqueCombinations[key]
 		if seen {
-			return fmt.Errorf("tarball with OS %s, flavor %s, version %s, and minimal %v listed more than once",
-				tb.OperatingSystem, tb.Flavor, tb.Version, tb.Minimal)
+			return fmt.Errorf("tarball with OS %s-%s, flavor %s, version %s, and minimal %v listed more than once",
+				tb.OperatingSystem, tb.Arch, tb.Flavor, tb.Version, tb.Minimal)
 		}
 		uniqueCombinations[key] = true
 	}

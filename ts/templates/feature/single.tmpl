@@ -48,7 +48,7 @@ stdout 'stop .*/msb_{{.DbPathVer}}'
 stdout 'sandbox server started'
 ! stderr .
 
-run_sql_in_sandbox $sb_dir 'select @@max_connections' 88
+run_sql_in_sandbox $sb_dir 'select @@max_connections' eq 88
 ! find_errors $sb_dir
 
 # sandbox cleanup

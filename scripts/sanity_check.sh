@@ -21,7 +21,6 @@ cd ..
 
 export GO111MODULE=on
 function check_latest_version {
-    echo "## version"
     git_version=$(git tag | tail -n 1 | tr -d 'v')
     dbdeployer_version=$(cat common/VERSION | tr -d '\n')
     if [ -z "$git_version" ]
@@ -31,12 +30,17 @@ function check_latest_version {
         echo "# --------------------------------------- #"
         return
     fi
-    if [[ $git_version > $dbdeployer_version ]]
+    is_beta=$(echo "$git_version" |grep -i beta)
+    if [ -z "$is_beta" ]
     then
-        echo "Git tag version '$git_version' is bigger than dbdeployer version '$dbdeployer_version'"
-        exit 1
+        echo "## version"
+        if [[ $git_version > $dbdeployer_version ]]
+        then
+            echo "Git tag version '$git_version' is bigger than dbdeployer version '$dbdeployer_version'"
+            exit 1
+        fi
+        echo "Current version '$dbdeployer_version' is compatible with git tag version '$git_version'"
     fi
-    echo "Current version '$dbdeployer_version' is compatible with git tag version '$git_version'"
 }
 
 function exists_in_path {

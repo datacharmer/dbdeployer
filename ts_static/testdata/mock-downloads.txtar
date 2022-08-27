@@ -1,5 +1,6 @@
 [!unix] skip 'this procedure can only work on Unix systems'
 [!net] skip 'this test requires network access'
+[!amd64] skip 'this test is only available for amd64 architecture'
 
 env HOME=$WORK/home
 

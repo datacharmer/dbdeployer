@@ -63,9 +63,9 @@ stdout -count=3 'sandbox server started'
 exec $sb_dir/use_all 'select @@max_connections'
 stdout -count=3 77
 
-run_sql_in_sandbox $sb_dir/node1 'select @@max_connections' 77
-run_sql_in_sandbox $sb_dir/node2 'select @@max_connections' 77
-run_sql_in_sandbox $sb_dir/node3 'select @@max_connections' 77
+run_sql_in_sandbox $sb_dir/node1 'select @@max_connections' eq 77
+run_sql_in_sandbox $sb_dir/node2 'select @@max_connections' eq 77
+run_sql_in_sandbox $sb_dir/node3 'select @@max_connections' eq 77
 ! find_errors $sb_dir/node1
 ! find_errors $sb_dir/node2
 ! find_errors $sb_dir/node3

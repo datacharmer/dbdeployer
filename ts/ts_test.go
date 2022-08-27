@@ -74,6 +74,7 @@ func testDbDeployer(t *testing.T, name string, parallel bool) {
 				Condition:           customConditions,
 				Setup:               dbdeployerSetup(t, dir),
 				RequireExplicitExec: true,
+				TestWork:            os.Getenv("ts_preserve") != "",
 			})
 		})
 	}
@@ -251,8 +252,8 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 		"single-skip-start":         "",
 		"single-custom-credentials": "",
 		"replication":               "",
-		"circular-replication":      "",
 		"multiple":                  "",
+		"circular-replication":      common.CircularReplication,
 		"use-admin":                 common.AdminAddress,
 		"dd-expose-tables":          common.DataDict,
 		"replication-gtid":          common.GTID,
