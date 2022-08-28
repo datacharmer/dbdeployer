@@ -177,7 +177,7 @@ var MySQLCapabilities = Capabilities{
 			Since:       globals.MinimumCloneMySQLServer,
 		},
 		CircularReplication: {
-			Description: "clone MySQL server",
+			Description: "Allow circular replication",
 			Since:       globals.MinimumMySQLAutoIncrementIncrement,
 		},
 	},
