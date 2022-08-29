@@ -32,7 +32,7 @@ import (
 
 // checkPorts is a testscript command that checks that the sandbox ports are as expected
 func checkPorts(ts *testscript.TestScript, neg bool, args []string) {
-	assertEqual[int](ts, len(args), 2, "no sandbox path and number of ports provided")
+	assertEqual(ts, len(args), 2, "no sandbox path and number of ports provided")
 	sbDir := args[0]
 	numPorts, err := strconv.Atoi(args[1])
 	ts.Check(err)
@@ -40,13 +40,13 @@ func checkPorts(ts *testscript.TestScript, neg bool, args []string) {
 	sbDescription, err := common.ReadSandboxDescription(sbDir)
 	ts.Check(err)
 
-	assertEqual[int](ts, len(sbDescription.Port), numPorts, "want ports: %d - got: %d", numPorts, len(sbDescription.Port))
+	assertEqual(ts, len(sbDescription.Port), numPorts, "want ports: %d - got: %d", numPorts, len(sbDescription.Port))
 }
 
 // findErrorsInLogFile is a testscript command that finds ERROR strings inside a sandbox data directory
 func findErrorsInLogFile(ts *testscript.TestScript, neg bool, args []string) {
 
-	assertEqual[int](ts, len(args), 1, "no sandbox path provided")
+	assertEqual(ts, len(args), 1, "no sandbox path provided")
 	sbDir := args[0]
 	dataDir := path.Join(sbDir, "data")
 	logFile := path.Join(dataDir, "msandbox.err")
@@ -68,7 +68,7 @@ func findErrorsInLogFile(ts *testscript.TestScript, neg bool, args []string) {
 // checkFile is a testscript command that checks the existence of a list of files
 // inside a directory
 func checkFile(ts *testscript.TestScript, neg bool, args []string) {
-	assertGreater[int](ts, len(args), 1, "syntax: check_file directory_name file_name [file_name ...]")
+	assertGreater(ts, len(args), 1, "syntax: check_file directory_name file_name [file_name ...]")
 	sbDir := args[0]
 
 	for i := 1; i < len(args); i++ {
@@ -131,7 +131,7 @@ func customCommands() map[string]func(ts *testscript.TestScript, neg bool, args 
 // cleanupAtEnd is a testscript command that deletes a sandbox at the end of the test if it exists
 // use as "cleanup_at_end sandbox_dir_path"
 func cleanupAtEnd(ts *testscript.TestScript, neg bool, args []string) {
-	assertEqual[int](ts, len(args), 1, "no sandbox path provided")
+	assertEqual(ts, len(args), 1, "no sandbox path provided")
 	sandboxDir := args[0]
 	sandboxName := path.Base(sandboxDir)
 	// testscript.Defer runs at the end of the current test
@@ -157,7 +157,7 @@ func cleanupAtEnd(ts *testscript.TestScript, neg bool, args []string) {
 // use as:
 // run_sql_in_sandbox "query" {eq|lt|le|gt|ge} wanted
 func runSqlInSandbox(ts *testscript.TestScript, neg bool, args []string) {
-	assertEqual[int](ts, len(args), 4, "syntax: run_sql_in_sandbox sandbox_dir 'query' {eq|lt|le|gt|ge} wanted_value")
+	assertEqual(ts, len(args), 4, "syntax: run_sql_in_sandbox sandbox_dir 'query' {eq|lt|le|gt|ge} wanted_value")
 	sbDir := args[0]
 	query := args[1]
 	operation := args[2]
@@ -177,15 +177,15 @@ func runSqlInSandbox(ts *testscript.TestScript, neg bool, args []string) {
 
 	switch strings.ToLower(operation) {
 	case "eq", "=", "==":
-		assertEqual[string](ts, strResult, wanted, "got %s - want: %s", strResult, wanted)
+		assertEqual(ts, strResult, wanted, "got %s - want: %s", strResult, wanted)
 	case "ge", ">=":
-		assertGreaterEqual[string](ts, strResult, wanted, "got %s - want: >= %s", strResult, wanted)
+		assertGreaterEqual(ts, strResult, wanted, "got %s - want: >= %s", strResult, wanted)
 	case "gt", ">":
-		assertGreater[string](ts, strResult, wanted, "got %s - want: > %s", strResult, wanted)
+		assertGreater(ts, strResult, wanted, "got %s - want: > %s", strResult, wanted)
 	case "le", "<=":
-		assertGreaterEqual[string](ts, wanted, strResult, "got %s - want: <= %s", strResult, wanted)
+		assertGreaterEqual(ts, wanted, strResult, "got %s - want: <= %s", strResult, wanted)
 	case "lt", "<":
-		assertGreater[string](ts, wanted, strResult, "got %s - want: < %s", strResult, wanted)
+		assertGreater(ts, wanted, strResult, "got %s - want: < %s", strResult, wanted)
 	default:
 		ts.Fatalf("unrecognized operation %s", operation)
 	}
