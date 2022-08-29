@@ -97,7 +97,7 @@ func TestConcurrency(t *testing.T) {
 	for _, item := range testData {
 		wantedIndex := item.expectedIndex
 		if len(results) < wantedIndex {
-			panic(fmt.Errorf("result does not have %d items", wantedIndex))
+			t.Fatalf("result does not have %d items", wantedIndex)
 		}
 		if results[wantedIndex] == item.ID {
 			t.Logf("ok - Item %-10s is at position %d in the results\n", item.ID, wantedIndex)
