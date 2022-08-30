@@ -19,34 +19,51 @@ cleanup_at_end $sb_dir
 
 # check files and ports
 
-check_file $sb_dir check_slaves exec_all_slaves metadata_all s1 start_all sysbench_ready use_all_masters
-check_file $sb_dir clear_all initialize_slaves n1 s2 status_all test_replication use_all_slaves
-check_file $sb_dir exec_all m n2 replicate_from sbdescription.json stop_all test_sb_all wipe_and_restart_all
-check_file $sb_dir exec_all_masters n3 restart_all send_kill_all sysbench use_all
+check_exec $sb_dir check_slaves exec_all_slaves metadata_all s1 start_all sysbench_ready use_all_masters
+check_exec $sb_dir clear_all initialize_slaves n1 s2 status_all test_replication use_all_slaves
+check_exec $sb_dir exec_all m n2 replicate_from stop_all test_sb_all wipe_and_restart_all
+check_exec $sb_dir exec_all_masters n3 restart_all send_kill_all sysbench use_all
 
-check_file $sb_dir/master start stop status clear
-check_file $sb_dir/master add_option connection.json init_db my.sandbox.cnf
-check_file $sb_dir/master sbdescription.json show_relaylog after_start connection.sql load_grants
-check_file $sb_dir/master replicate_from send_kill sysbench use
-check_file $sb_dir/master metadata restart show_binlog sysbench_ready wipe_and_restart
-check_file $sb_dir/master connection.conf grants.mysql my sb_include show_log test_sb
+check_file $sb_dir sbdescription.json
+
+check_exec $sb_dir/master start stop status clear
+check_exec $sb_dir/master add_option init_db
+check_exec $sb_dir/master show_relaylog after_start load_grants
+check_exec $sb_dir/master replicate_from send_kill sysbench use
+check_exec $sb_dir/master metadata restart show_binlog sysbench_ready wipe_and_restart
+check_exec $sb_dir/master my show_log test_sb
+
+check_file $sb_dir/master connection.json my.sandbox.cnf
+check_file $sb_dir/master sbdescription.json connection.sql
+check_file $sb_dir/master connection.conf grants.mysql connection_super_user.conf connection_super_user.json
 check_file $sb_dir/master/data msandbox.err
+[version_is_at_least:$db_version:8.0.17] check_file $sb_dir/master clone_connection.sql
 
-check_file $sb_dir/node1 start stop status clear
-check_file $sb_dir/node1 add_option connection.json init_db my.sandbox.cnf
-check_file $sb_dir/node1 sbdescription.json show_relaylog after_start connection.sql load_grants
-check_file $sb_dir/node1 replicate_from send_kill sysbench use
-check_file $sb_dir/node1 metadata restart show_binlog sysbench_ready wipe_and_restart
-check_file $sb_dir/node1 connection.conf grants.mysql my sb_include show_log test_sb
+check_exec $sb_dir/node1 start stop status clear
+check_exec $sb_dir/node1 add_option init_db
+check_exec $sb_dir/node1 show_relaylog after_start load_grants
+check_exec $sb_dir/node1 replicate_from send_kill sysbench use
+check_exec $sb_dir/node1 metadata restart show_binlog sysbench_ready wipe_and_restart
+check_exec $sb_dir/node1 my show_log test_sb
+
+check_file $sb_dir/node1 connection.json my.sandbox.cnf
+check_file $sb_dir/node1 sbdescription.json connection.sql
+check_file $sb_dir/node1 connection.conf grants.mysql connection_super_user.conf connection_super_user.json
 check_file $sb_dir/node1/data msandbox.err
+[version_is_at_least:$db_version:8.0.17] check_file $sb_dir/node1 clone_connection.sql
 
-check_file $sb_dir/node2 start stop status clear
-check_file $sb_dir/node2 add_option connection.json init_db my.sandbox.cnf
-check_file $sb_dir/node2 sbdescription.json show_relaylog after_start connection.sql load_grants
-check_file $sb_dir/node2 replicate_from send_kill sysbench use
-check_file $sb_dir/node2 metadata restart show_binlog sysbench_ready wipe_and_restart
-check_file $sb_dir/node2 connection.conf grants.mysql my sb_include show_log test_sb
+check_exec $sb_dir/node2 start stop status clear
+check_exec $sb_dir/node2 add_option init_db
+check_exec $sb_dir/node2 show_relaylog after_start load_grants
+check_exec $sb_dir/node2 replicate_from send_kill sysbench use
+check_exec $sb_dir/node2 metadata restart show_binlog sysbench_ready wipe_and_restart
+check_exec $sb_dir/node2 my show_log test_sb
+
+check_file $sb_dir/node2 connection.json my.sandbox.cnf
+check_file $sb_dir/node2 sbdescription.json connection.sql
+check_file $sb_dir/node2 connection.conf grants.mysql connection_super_user.conf connection_super_user.json
 check_file $sb_dir/node2/data msandbox.err
+[version_is_at_least:$db_version:8.0.17] check_file $sb_dir/node2 clone_connection.sql
 
 env required_ports=3
 [version_is_at_least:$db_version:8.0.0] env required_ports=6
