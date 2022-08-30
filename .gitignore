@@ -9,3 +9,4 @@ test/sort_versions.Darwin
 test/sort_versions.linux
 dbdeployer-*.osx*
 dbdeployer-*.linux*
+ts/testdata/
