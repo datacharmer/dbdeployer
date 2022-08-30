@@ -51,11 +51,11 @@ func assertDirExists(ts *testscript.TestScript, dir string, msg string, args ...
 	}
 }
 
-//func assertExecExists(ts *testscript.TestScript, dir string, msg string, args ...interface{}) {
-//	if !common.ExecExists(dir) {
-//		ts.Fatalf(msg, args...)
-//	}
-//}
+func assertExecExists(ts *testscript.TestScript, dir string, msg string, args ...interface{}) {
+	if !common.ExecExists(dir) {
+		ts.Fatalf(msg, args...)
+	}
+}
 
 func assertGreater[T constraints.Ordered](ts *testscript.TestScript, a, b T, msg string, args ...interface{}) {
 	if a <= b {

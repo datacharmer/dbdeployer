@@ -80,6 +80,21 @@ func checkFile(ts *testscript.TestScript, neg bool, args []string) {
 	}
 }
 
+// checkExecutable is a testscript command that checks the existence of a list of executable files
+// inside a directory
+func checkExecutable(ts *testscript.TestScript, neg bool, args []string) {
+	assertGreater(ts, len(args), 1, "syntax: check_exec directory_name file_name [file_name ...]")
+	sbDir := args[0]
+
+	for i := 1; i < len(args); i++ {
+		f := path.Join(sbDir, args[i])
+		if neg {
+			assertFileNotExists(ts, f, "file %s found", f)
+		}
+		assertExecExists(ts, f, globals.ErrExecutableNotFound, f)
+	}
+}
+
 // sleep is a testscript command that pauses the execution for the required number of seconds
 func sleep(ts *testscript.TestScript, neg bool, args []string) {
 	duration := 0
@@ -106,6 +121,12 @@ func customCommands() map[string]func(ts *testscript.TestScript, neg bool, args 
 		// The command can be negated, i.e. it will succeed if the given files do not exist
 		// "! check_file /path/to/sandbox file1 [file2 [file3 [file4]]]"
 		"check_file": checkFile,
+
+		// check_exec will check that a given list of executable files exists
+		// invoke as "check_exec /path/to/sandbox file1 [file2 [file3 [file4]]]"
+		// The command can be negated, i.e. it will succeed if the given files do not exist
+		// "! check_file /path/to/sandbox file1 [file2 [file3 [file4]]]"
+		"check_exec": checkExecutable,
 
 		// sleep will pause execution for the required number of seconds
 		// Invoke as "sleep 3"
