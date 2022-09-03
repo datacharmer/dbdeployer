@@ -22,6 +22,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"testing"
 	"time"
 
 	"github.com/datacharmer/dbdeployer/common"
@@ -146,6 +147,11 @@ func customCommands() map[string]func(ts *testscript.TestScript, neg bool, args 
 		// invoke as "run_sql_in_sandbox $sb_dir 'SQL query' {eq|lt|le|gt|ge} value_to_compare "
 		// Notice that the query must return a single value
 		"run_sql_in_sandbox": runSqlInSandbox,
+
+		// check_sandbox_manifest checks that all the files that should be in a sandbox are present
+		// invoke as "check_sandbox_manifest $sb_dir sandbox_type"
+		// sandbox_type is one of {single|replication|multiple|multi_source|group}
+		"check_sandbox_manifest": checkSandboxManifest,
 	}
 }
 
@@ -210,4 +216,173 @@ func runSqlInSandbox(ts *testscript.TestScript, neg bool, args []string) {
 	default:
 		ts.Fatalf("unrecognized operation %s", operation)
 	}
+}
+
+type manifest map[string][]string
+
+func checkSandboxManifest(ts *testscript.TestScript, neg bool, args []string) {
+
+	if len(args) < 2 {
+		ts.Fatalf("syntax: check_sandbox_manifest directory sandbox-type")
+	}
+	dir := args[0]
+	sbType := args[1]
+	var err error
+	manifest, ok := manifests[sbType]
+	if !ok {
+		ts.Fatalf("unrecognized sandbox type '%s'", sbType)
+	}
+	err = checkManifest(sbType, dir, manifest)
+	if err != nil {
+		ts.Fatalf("error checking sandbox manifest: %s", err)
+	}
+}
+
+func checkManifest(sbType, dir string, manifest map[string][]string) error {
+	sbDescription, err := common.ReadSandboxDescription(dir)
+
+	if err != nil {
+		return fmt.Errorf("error getting sandbox description from directory %s: %s", dir, err)
+	}
+	err = checkConditionalFiles(sbType, sbDescription.Version, dir)
+	if err != nil {
+		return fmt.Errorf("error checking conditional files in directory %s: %s", dir, err)
+	}
+	executables, ok := manifest["executable"]
+	if ok {
+		for _, fName := range executables {
+			if testing.Verbose() {
+				fmt.Printf("{manifest} ******[%s]**** %s\n", dir, fName)
+			}
+			if !common.ExecExists(path.Join(dir, fName)) {
+				return fmt.Errorf("executable file %s not found in %s", fName, dir)
+			}
+		}
+	}
+	regularFiles, ok := manifest["regular"]
+	if ok {
+		for _, fName := range regularFiles {
+			if !common.FileExists(path.Join(dir, fName)) {
+				return fmt.Errorf("regular file %s not found in %s", fName, dir)
+			}
+		}
+	}
+	dirs, ok := manifest["directory"]
+	if ok {
+		for _, d := range dirs {
+			if !common.DirExists(path.Join(dir, d)) {
+				return fmt.Errorf("directory %s not found in %s", d, dir)
+			}
+		}
+	}
+	nodes, found := manifest["nodes"]
+	if !found {
+		return nil
+	}
+	for _, node := range nodes {
+		err := checkManifest("single", path.Join(dir, node), manifests["single"])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+type conditionalFile struct {
+	sandboxType string
+	fileName    string
+	check       func(string) bool
+}
+
+var manifestByVersion = map[string][]conditionalFile{
+	"8.0.17": {
+		{"single", "clone_connection.sql", common.FileExists},
+		{"single", "clone_from", common.ExecExists},
+	},
+}
+
+func checkConditionalFiles(sbType, version, dir string) error {
+	for condVersion, condFile := range manifestByVersion {
+		condVersionList, _ := common.VersionToList(condVersion)
+		isAfter, _ := common.GreaterOrEqualVersion(version, condVersionList)
+		for _, f := range condFile {
+			if sbType != f.sandboxType {
+				continue
+			}
+			if isAfter {
+				if testing.Verbose() {
+					fmt.Printf("{conditional manifest} ******[%s]**** %s\n", dir, f.fileName)
+				}
+				exists := f.check(path.Join(dir, f.fileName))
+				if !exists {
+					return fmt.Errorf("[current version: %s] file %s (>=%s) not found in sandbox %s", version, f.fileName, condVersion, dir)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+var manifests = map[string]manifest{
+	"single": {
+		"executable": {
+			"add_option", "after_start", "clear", "init_db", "load_grants",
+			"metadata", "my", "replicate_from", "restart", "send_kill",
+			"show_binlog", "show_log", "show_relaylog", "start", "status", "stop",
+			"sysbench", "sysbench_ready", "test_sb", "use", "wipe_and_restart",
+		},
+		"regular": {
+			"start.log", "connection.conf", "connection.json",
+			"connection.sql", "connection_super_user.conf", "connection_super_user.json",
+			"grants.mysql", "my.sandbox.cnf", "sb_include", "sbdescription.json",
+			"data/msandbox.err",
+		},
+		"directory":  {"data", "tmp"},
+		"by_version": []string{"8.0.17", "clone_from", "clone_connection.sql"},
+	},
+	"replication": {
+		"executable": {
+			"check_slaves", "exec_all_slaves", "metadata_all",
+			"s1", "start_all", "sysbench_ready", "use_all_masters",
+			"clear_all", "initialize_slaves", "n1", "s2", "status_all", "test_replication", "use_all_slaves",
+			"exec_all", "m", "n2", "replicate_from", "stop_all", "test_sb_all", "wipe_and_restart_all",
+			"exec_all_masters", "n3", "restart_all", "send_kill_all", "sysbench", "use_all",
+		},
+		"directory": {"master", "node1", "node2"},
+		"regular":   {"sbdescription.json"},
+		"nodes":     []string{"master", "node1", "node2"},
+	},
+	"multiple": {
+		"executable": {
+			"metadata_all", "start_all", "sysbench_ready",
+			"clear_all", "n1", "status_all",
+			"exec_all", "n2", "replicate_from", "stop_all", "test_sb_all",
+			"n3", "restart_all", "send_kill_all", "sysbench", "use_all",
+		},
+		"directory": {"node1", "node2", "node3"},
+		"regular":   {"sbdescription.json"},
+		"nodes":     []string{"node1", "node2", "node3"},
+	},
+	"group": {
+		"executable": []string{
+			"check_nodes", "exec_all_slaves", "metadata_all", "start_all", "sysbench_ready", "use_all_masters",
+			"clear_all", "initialize_nodes", "n1", "status_all", "test_replication", "use_all_slaves",
+			"exec_all", "n2", "replicate_from", "stop_all", "test_sb_all", "wipe_and_restart_all",
+			"exec_all_masters", "n3", "restart_all", "send_kill_all", "sysbench", "use_all",
+		},
+		"directory": {"node1", "node2", "node3"},
+		"regular":   {"sbdescription.json"},
+		"nodes":     []string{"node1", "node2", "node3"},
+	},
+	"multi_source": {
+		"executable": []string{
+			"check_ms_nodes", "exec_all_slaves", "metadata_all", "start_all", "sysbench_ready", "use_all_masters",
+			"clear_all", "initialize_ms_nodes", "n1", "status_all", "test_replication", "use_all_slaves",
+			"exec_all", "n2", "replicate_from", "stop_all", "test_sb_all", "wipe_and_restart_all",
+			"exec_all_masters", "n3", "restart_all", "send_kill_all", "sysbench", "use_all",
+		},
+		"directory": {"node1", "node2", "node3"},
+		"regular":   {"sbdescription.json"},
+		"nodes":     []string{"node1", "node2", "node3"},
+	},
 }
