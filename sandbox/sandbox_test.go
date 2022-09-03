@@ -162,52 +162,52 @@ func testDetectFlavor(t *testing.T) {
 	}
 
 	var flavorDetectionSet = []FlavorDetection{
-		FlavorDetection{"5.0.0",
+		{"5.0.0",
 			MySQLMockSet(false),
 			common.MySQLFlavor,
 		},
-		FlavorDetection{"5.5.0",
+		{"5.5.0",
 			MySQLMockSet(true),
 			common.MySQLFlavor,
 		},
-		FlavorDetection{"3.0.0", []MockFileSet{
-			MockFileSet{"bin",
+		{"3.0.0", []MockFileSet{
+			{"bin",
 				[]ScriptDef{
 					{globals.FnTiDbServer, noOpMockTemplateName, true},
 				}},
 		},
 			common.TiDbFlavor,
 		},
-		FlavorDetection{"10.0.0", []MockFileSet{
-			MockFileSet{"bin",
+		{"10.0.0", []MockFileSet{
+			{"bin",
 				[]ScriptDef{
 					{"aria_chk", noOpMockTemplateName, true},
 				}},
 		},
 			common.MariaDbFlavor,
 		},
-		FlavorDetection{"10.3.0", []MockFileSet{
-			MockFileSet{"lib",
+		{"10.3.0", []MockFileSet{
+			{"lib",
 				[]ScriptDef{
 					{globals.FnLibMariadbClientA, noOpMockTemplateName, false},
 				}},
 		},
 			common.MariaDbFlavor,
 		},
-		FlavorDetection{"8.0.14", []MockFileSet{
-			MockFileSet{"lib",
+		{"8.0.14", []MockFileSet{
+			{"lib",
 				[]ScriptDef{
 					{globals.FnLibPerconaServerClientA, noOpMockTemplateName, false},
 				}},
 		},
 			common.PerconaServerFlavor,
 		},
-		FlavorDetection{"8.0.12", []MockFileSet{
-			MockFileSet{"bin",
+		{"8.0.12", []MockFileSet{
+			{"bin",
 				[]ScriptDef{
 					{globals.FnGarbd, noOpMockTemplateName, true},
 				}},
-			MockFileSet{"lib",
+			{"lib",
 				[]ScriptDef{
 					{globals.FnLibPerconaServerClientSo, noOpMockTemplateName, false},
 					{globals.FnLibGaleraSmmSo, noOpMockTemplateName, false},
@@ -215,12 +215,12 @@ func testDetectFlavor(t *testing.T) {
 		},
 			common.PxcFlavor,
 		},
-		FlavorDetection{"5.7.77", []MockFileSet{
-			MockFileSet{"bin",
+		{"5.7.77", []MockFileSet{
+			{"bin",
 				[]ScriptDef{
 					{globals.FnGarbd, noOpMockTemplateName, true},
 				}},
-			MockFileSet{"lib",
+			{"lib",
 				[]ScriptDef{
 					{globals.FnLibPerconaServerClientA, noOpMockTemplateName, false},
 					{globals.FnLibGaleraSmmA, noOpMockTemplateName, false},
@@ -228,15 +228,15 @@ func testDetectFlavor(t *testing.T) {
 		},
 			common.PxcFlavor,
 		},
-		FlavorDetection{"6.7.8", []MockFileSet{
-			MockFileSet{"bin",
+		{"6.7.8", []MockFileSet{
+			{"bin",
 				[]ScriptDef{
 					{globals.FnNdbdMgm, noOpMockTemplateName, true},
 					{globals.FnNdbdMgmd, noOpMockTemplateName, true},
 					{globals.FnNdbd, noOpMockTemplateName, true},
 					{globals.FnNdbdMtd, noOpMockTemplateName, true},
 				}},
-			MockFileSet{"lib",
+			{"lib",
 				[]ScriptDef{
 					{globals.FnLibMySQLClientA, noOpMockTemplateName, false},
 					{globals.FnNdbdEngineSo, noOpMockTemplateName, false},
