@@ -10,7 +10,7 @@ env db_port={{.DbIncreasedPort}}
 # deployment
 
 env db_dir=--sandbox-directory=msb_{{.DbPathVer}}_admin
-exec dbdeployer deploy single $db_version --enable-admin-address $db_dir --port=$db_port --disable-mysqlx
+exec dbdeployer deploy single $db_version --enable-admin-address $db_dir --port=$db_port
 stdout 'Database installed in .*/sandboxes/msb_{{.DbPathVer}}_admin'
 stdout 'sandbox server started'
 ! stderr .
@@ -20,15 +20,10 @@ cleanup_at_end $sb_dir
 
 # check files and ports
 
-check_file $sb_dir start stop status clear
-check_file $sb_dir add_option connection.json init_db my.sandbox.cnf
-check_file $sb_dir sbdescription.json show_relaylog after_start connection.sql load_grants
-check_file $sb_dir replicate_from send_kill sysbench use use_admin
-check_file $sb_dir metadata restart show_binlog sysbench_ready wipe_and_restart
-check_file $sb_dir connection.conf grants.mysql my sb_include show_log test_sb
-check_file $sb_dir/data msandbox.err
+check_sandbox_manifest $sb_dir single
+check_exec $sb_dir use_admin
 
-env required_ports=2
+env required_ports=3
 check_ports $sb_dir $required_ports
 
 exec $sb_dir/test_sb

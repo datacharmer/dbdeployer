@@ -1,3 +1,15 @@
+## 1.69.1	04-Sep-2022
+
+### BUGS FIXED
+
+* Fix error in cleanup procedure for composite sandbox
+  (The  cleanup was not able to delete a non-empty directory)
+
+### Code improvements
+
+* Add testing command `check_sandbox_manifest`.
+* Improve TestMain with a check that prevents double buildUp or early tearDown
+
 ## 1.69.0	27-Aug-2022
 
 ## NEW FEATURES

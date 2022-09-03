@@ -18,18 +18,7 @@ cleanup_at_end $sb_dir
 
 # check files and ports
 
-check_exec $sb_dir start stop status clear
-check_exec $sb_dir add_option init_db
-check_exec $sb_dir show_relaylog after_start load_grants
-check_exec $sb_dir replicate_from send_kill sysbench use
-check_exec $sb_dir metadata restart show_binlog sysbench_ready wipe_and_restart
-check_exec $sb_dir my show_log test_sb
-
-check_file $sb_dir connection.json connection_super_user.json connection_super_user.conf my.sandbox.cnf
-check_file $sb_dir sbdescription.json connection.sql
-check_file $sb_dir connection.conf grants.mysql sb_include
-check_file $sb_dir/data msandbox.err
-[version_is_at_least:$db_version:8.0.17] check_file $sb_dir clone_connection.sql
+check_sandbox_manifest $sb_dir single
 
 env required_ports=1
 [version_is_at_least:$db_version:8.0.0] env required_ports=2

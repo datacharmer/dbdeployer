@@ -32,24 +32,7 @@ stdout -count=9 'ONLINE'
 [version_is_at_least:{{.DbVersion}}:8.0.0] stdout -count=9 'PRIMARY'
 ! stderr .
 
-check_file $sb_dir check_nodes exec_all_slaves metadata_all start_all sysbench_ready use_all_masters
-check_file $sb_dir clear_all initialize_nodes n1 status_all test_replication use_all_slaves
-check_file $sb_dir exec_all n2 replicate_from sbdescription.json stop_all test_sb_all wipe_and_restart_all
-check_file $sb_dir exec_all_masters n3 restart_all send_kill_all sysbench use_all
-
-check_file $sb_dir/node1 start stop status clear
-check_file $sb_dir/node1 add_option connection.json init_db my.sandbox.cnf
-check_file $sb_dir/node1 sbdescription.json show_relaylog after_start connection.sql load_grants
-check_file $sb_dir/node1 replicate_from send_kill sysbench use
-check_file $sb_dir/node1 metadata restart show_binlog sysbench_ready wipe_and_restart
-check_file $sb_dir/node1 connection.conf grants.mysql my sb_include show_log test_sb
-
-check_file $sb_dir/node3 start stop status clear
-check_file $sb_dir/node3 add_option connection.json init_db my.sandbox.cnf
-check_file $sb_dir/node3 sbdescription.json show_relaylog after_start connection.sql load_grants
-check_file $sb_dir/node3 replicate_from send_kill sysbench use
-check_file $sb_dir/node3 metadata restart show_binlog sysbench_ready wipe_and_restart
-check_file $sb_dir/node3 connection.conf grants.mysql my sb_include show_log test_sb
+check_sandbox_manifest $sb_dir group
 
 env required_ports=6
 [version_is_at_least:$db_version:8.0.0] env required_ports=9
