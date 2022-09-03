@@ -180,63 +180,101 @@ func initializeEnv(versionList []string) error {
 }
 
 func TestMain(m *testing.M) {
+
+	identity := common.BaseName(os.Args[0])
 	currentDir, err := os.Getwd()
 	if err != nil {
 		fmt.Printf("Error determining current directory\n")
 		os.Exit(1)
 	}
-	shortVersions := []string{"4.1", "5.0", "5.1", "5.5", "5.6", "5.7", "8.0"}
-	if os.Getenv("GITHUB_ACTIONS") != "" {
-		shortVersions = []string{"5.6", "5.7", "8.0"}
-	}
-	customShortVersions := os.Getenv("TEST_SHORT_VERSIONS")
-	if customShortVersions != "" {
-		shortVersions = strings.Split(customShortVersions, ",")
-	}
-	if onlyLatest {
-		shortVersions = []string{"8.0"}
-	}
-	conditionalPrint("short versions: %v\n", shortVersions)
-	err = initializeEnv(shortVersions)
-	if err != nil {
-		conditionalPrint("error initializing the environment - Skipping tests: %s\n", err)
-		os.Exit(0)
-	}
-	versions := getVersionList(shortVersions)
 
-	conditionalPrint("versions: %v\n", versions)
-	for _, v := range versions {
-		_ = os.Chdir(currentDir)
-		label := strings.Replace(v, ".", "_", -1)
-		intendedPort := strings.Replace(v, ".", "", -1)
-		increasedPort, err := strconv.Atoi(intendedPort)
-		if err != nil {
-			fmt.Printf("error converting version %s to number", intendedPort)
+	preliminaryChecks := func() {
+		if common.FileExists(defaults.SandboxRegistry) {
+			sc, err := defaults.ReadCatalog()
+			if err != nil {
+				fmt.Printf("Error getting information on sandboxes file %s\n", defaults.SandboxRegistry)
+				os.Exit(1)
+			}
+			if len(sc) > 0 {
+				fmt.Printf("sandboxes file %s should be empty but it contains sandbox information\n", defaults.SandboxRegistry)
+				os.Exit(1)
+			}
+		}
+
+		if common.FileExists(defaults.ConfigurationFile) {
+			fmt.Printf("configuration file %s found. Tests may fail for non-standard configuration.\n", defaults.SandboxRegistry)
 			os.Exit(1)
 		}
-		conditionalPrint("building test: %s\n", label)
-		err = buildTests("templates", "testdata", label, map[string]string{
-			"DbVersion":       v,
-			"DbFlavor":        getFlavor(v),
-			"DbPathVer":       label,
-			"Home":            os.Getenv("HOME"),
-			"TmpDir":          "/tmp",
-			"DbIncreasedPort": fmt.Sprintf("%d", increasedPort+101),
-		})
+		sandboxHome := defaults.Defaults().SandboxHome
+		filesInSandboxHome, err := filepath.Glob(path.Join(sandboxHome, "*"))
 		if err != nil {
-			fmt.Printf("error creating the tests for %s :%s\n", label, err)
+			fmt.Printf("Error getting information on sandboxes: %s\n", err)
 			os.Exit(1)
 		}
+		if len(filesInSandboxHome) > 0 {
+			fmt.Printf("found files in $SANDBOX_HOME (%s) - The test needs a clean directory\n", sandboxHome)
+			fmt.Printf("%v\n", filesInSandboxHome)
+			os.Exit(1)
+		}
+
+		shortVersions := []string{"4.1", "5.0", "5.1", "5.5", "5.6", "5.7", "8.0"}
+		if os.Getenv("GITHUB_ACTIONS") != "" {
+			shortVersions = []string{"5.6", "5.7", "8.0"}
+		}
+		customShortVersions := os.Getenv("TEST_SHORT_VERSIONS")
+		if customShortVersions != "" {
+			shortVersions = strings.Split(customShortVersions, ",")
+		}
+		if onlyLatest {
+			shortVersions = []string{"8.0"}
+		}
+		conditionalPrint("short versions: %v\n", shortVersions)
+		err = initializeEnv(shortVersions)
+		if err != nil {
+			conditionalPrint("error initializing the environment - Skipping tests: %s\n", err)
+			os.Exit(0)
+		}
+		versions := getVersionList(shortVersions)
+
+		conditionalPrint("versions: %v\n", versions)
+		for _, v := range versions {
+			_ = os.Chdir(currentDir)
+			label := strings.Replace(v, ".", "_", -1)
+			intendedPort := strings.Replace(v, ".", "", -1)
+			increasedPort, err := strconv.Atoi(intendedPort)
+			if err != nil {
+				fmt.Printf("error converting version %s to number", intendedPort)
+				os.Exit(1)
+			}
+			conditionalPrint("building test: %s\n", label)
+			err = buildTests("templates", "testdata", label, map[string]string{
+				"DbVersion":       v,
+				"DbFlavor":        getFlavor(v),
+				"DbPathVer":       label,
+				"Home":            os.Getenv("HOME"),
+				"TmpDir":          "/tmp",
+				"DbIncreasedPort": fmt.Sprintf("%d", increasedPort+101),
+			})
+			if err != nil {
+				fmt.Printf("error creating the tests for %s :%s\n", label, err)
+				os.Exit(1)
+			}
+		}
+	}
+	if identity == "ts.test" {
+		preliminaryChecks()
 	}
 	conditionalPrint("TestMain: starting tests\n")
 	exitCode := testscript.RunMain(m, map[string]func() int{
 		"dbdeployer": cmd.Execute,
 	})
 
-	if common.DirExists("testdata") && !dryRun {
-		_ = os.RemoveAll("testdata")
+	if identity == "ts.test" {
+		if common.DirExists("testdata") && !dryRun {
+			_ = os.RemoveAll("testdata")
+		}
+		os.Exit(exitCode)
 	}
-	os.Exit(exitCode)
 }
 
 var deltaPort = 0
