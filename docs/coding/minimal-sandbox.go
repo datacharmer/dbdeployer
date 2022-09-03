@@ -16,6 +16,9 @@
 // This is a sample source file that shows how
 // to create a MySQL sandbox using dbdeployer code
 // from another Go program.
+
+//go:build example
+
 package main
 
 import (

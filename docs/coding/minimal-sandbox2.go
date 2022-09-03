@@ -16,15 +16,19 @@
 // This is a sample source file that shows how
 // to create two MySQL sandboxes using dbdeployer code
 // from another Go program.
+
+//go:build example
+
 package main
 
 import (
+	"os"
+	"path"
+
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
 	"github.com/datacharmer/dbdeployer/globals"
 	"github.com/datacharmer/dbdeployer/sandbox"
-	"os"
-	"path"
 )
 
 func main() {
