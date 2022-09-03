@@ -634,8 +634,27 @@ func Rmdir(dirName string) {
 	ErrCheckExitf(err, 1, "error removing directory %s\n%s\n", dirName, err)
 }
 
-// Removes a directory with its contents, and exits if an error occurs
+// RmDirAll removes a directory with its contents, and exits if an error occurs
+// Checks that the directory does not contain $HOME or $PWD
 func RmdirAll(dirName string) {
-	err := os.RemoveAll(dirName)
+	fullPath, err := AbsolutePath(dirName)
+	if err != nil {
+		Exitf(1, "error determining absolute path of %s", dirName)
+	}
+	fullHomePath, err := AbsolutePath(os.Getenv("HOME"))
+	if err != nil {
+		Exitf(1, "error determining absolute path of $HOME")
+	}
+	fullCurrentPath, err := AbsolutePath(os.Getenv("PWD"))
+	if err != nil {
+		Exitf(1, "error determining absolute path of $PWD")
+	}
+	if strings.HasPrefix(fullHomePath, fullPath) {
+		Exitf(1, "attempt to delete a directory that contains the $HOME directory (%s)", fullHomePath)
+	}
+	if strings.HasPrefix(fullCurrentPath, fullPath) {
+		Exitf(1, "attempt to delete a directory that contains the $PWD directory (%s)", fullCurrentPath)
+	}
+	err = os.RemoveAll(fullPath)
 	ErrCheckExitf(err, 1, "error deep-removing directory %s\n%s\n", dirName, err)
 }

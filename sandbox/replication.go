@@ -168,7 +168,7 @@ func CreateMasterSlaveReplication(sandboxDef SandboxDef, origin string, nodes in
 	}
 	logger.Printf("Created directory %s\n", sandboxDef.SandboxDir)
 	logger.Printf("Replication Sandbox Definition: %s\n", sandboxDefToJson(sandboxDef))
-	common.AddToCleanupStack(common.Rmdir, "Rmdir", sandboxDef.SandboxDir)
+	common.AddToCleanupStack(common.RmdirAll, "RmdirAll", sandboxDef.SandboxDir)
 	sandboxDef.Port = basePort + 1
 	//sandboxDef.ServerId = (baseServerId + 1) * 100
 	sandboxDef.ServerId = setServerId(sandboxDef, 1)

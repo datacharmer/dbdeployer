@@ -181,7 +181,7 @@ func CreateGroupReplication(sandboxDef SandboxDef, origin string, nodes int, mas
 	if err != nil {
 		return err
 	}
-	common.AddToCleanupStack(common.Rmdir, "Rmdir", sandboxDef.SandboxDir)
+	common.AddToCleanupStack(common.RmdirAll, "RmdirAll", sandboxDef.SandboxDir)
 	logger.Printf("Creating directory %s\n", sandboxDef.SandboxDir)
 	timestamp := time.Now()
 	slaveLabel := defaults.Defaults().SlavePrefix

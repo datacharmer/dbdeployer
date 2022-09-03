@@ -111,7 +111,7 @@ func CreateMultipleSandbox(sandboxDef SandboxDef, origin string, nodes int) (com
 	logger.Printf("Created directory %s\n", sandboxDef.SandboxDir)
 	logger.Printf("Multiple Sandbox Definition: %s\n", sandboxDefToJson(sandboxDef))
 
-	common.AddToCleanupStack(common.Rmdir, "Rmdir", sandboxDef.SandboxDir)
+	common.AddToCleanupStack(common.RmdirAll, "RmdirAll", sandboxDef.SandboxDir)
 
 	sandboxDef.ReplOptions = SingleTemplates[globals.TmplReplicationOptions].Contents
 	// baseServerId := sandboxDef.BaseServerId

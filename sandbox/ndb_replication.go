@@ -111,7 +111,7 @@ func CreateNdbReplication(sandboxDef SandboxDef, origin string, nodes int, ndbNo
 	if err != nil {
 		return err
 	}
-	common.AddToCleanupStack(common.Rmdir, "Rmdir", sandboxDef.SandboxDir)
+	common.AddToCleanupStack(common.RmdirAll, "RmdirAll", sandboxDef.SandboxDir)
 	logger.Printf("Creating directory %s\n", sandboxDef.SandboxDir)
 	for i := 1; i <= ndbNodes; i++ {
 		nodeName := fmt.Sprintf("ndb%s%d", defaults.Defaults().NodePrefix, i)
