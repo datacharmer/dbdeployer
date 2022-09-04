@@ -70,6 +70,17 @@ stdout '8.0.97'
 exec sandboxes/msb_8_0_97/metadata port
 stdout '8097'
 
+# checks versions
+
+exec dbdeployer versions
+stdout '8.0.97'
+stdout '5.7.97'
+stdout '5.6.97'
+stdout '5.5.97'
+stdout '5.1.97'
+stdout '5.0.97'
+stdout '4.1.97'
+
 # deploy multi-node sandboxes
 
 exec dbdeployer deploy multiple --concurrent 5.0
@@ -142,6 +153,23 @@ stdout -count=3 '\d+\.\d+\.\d+'
 
 exec dbdeployer global  --name=msb_5_6_97 'exec' 'grep' '[^-]version\|type' sbdescription.json
 stdout -count=1 '\d+\.\d+\.\d+'
+
+# checks delete-binaries
+
+exists opt/mysql/5.6.97
+! exec dbdeployer delete-binaries 5.6.97 --skip-confirm
+stdout 'used by the following deployments'
+stdout 'msb_5_6_97'
+stdout 'multi_msb_5_6_97'
+stdout 'rsandbox_5_6_97'
+
+exec dbdeployer delete msb_5_6_97
+exec dbdeployer delete multi_msb_5_6_97
+exec dbdeployer delete rsandbox_5_6_97
+
+exec dbdeployer delete-binaries 5.6.97 --skip-confirm
+
+! exists opt/mysql/5.6.97
 
 -- home/.dbdeployer/.dummy --
 -- home/sandboxes/.dummy --
