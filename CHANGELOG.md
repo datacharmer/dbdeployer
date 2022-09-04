@@ -1,3 +1,10 @@
+## 1.69.2	04-Sep-2022
+
+### BUGS FIXED
+
+* Fix error in data-load: getting 'menagerie' database into a replicated sandbox 
+  requires all nodes to set `local_infile=ON`
+
 ## 1.69.1	04-Sep-2022
 
 ### BUGS FIXED
