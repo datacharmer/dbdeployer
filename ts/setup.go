@@ -30,6 +30,7 @@ import (
 
 	"github.com/datacharmer/dbdeployer/common"
 	"github.com/datacharmer/dbdeployer/defaults"
+	"github.com/datacharmer/dbdeployer/downloads"
 	"github.com/datacharmer/dbdeployer/ops"
 	"github.com/rogpeppe/go-internal/testscript"
 )
@@ -92,9 +93,15 @@ func preliminaryChecks() {
 			os.Exit(1)
 		}
 	}
+	if common.FileExists(downloads.TarballFileRegistry) {
+		fmt.Printf("downloads file list %s found. Tests may fail for non-standard configuration\n", downloads.TarballFileRegistry)
+		fmt.Println("run 'dbdeployer downloads reset' to remove it")
+		os.Exit(1)
+	}
 
 	if common.FileExists(defaults.ConfigurationFile) {
 		fmt.Printf("configuration file %s found. Tests may fail for non-standard configuration.\n", defaults.SandboxRegistry)
+		fmt.Println("run 'dbdeployer defaults reset' to remove it")
 		os.Exit(1)
 	}
 	sandboxHome := defaults.Defaults().SandboxHome
