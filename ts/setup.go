@@ -258,6 +258,7 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 		"single-custom-credentials": "",
 		"replication":               "",
 		"multiple":                  "",
+		"data-load":                 common.EnhancedGTID,
 		"circular-replication":      common.CircularReplication,
 		"use-admin":                 common.AdminAddress,
 		"dd-expose-tables":          common.DataDict,

@@ -1,0 +1,110 @@
+[!unix] skip 'this procedure can only work on Unix systems'
+env HOME={{.Home}}
+env TMPDIR={{.TmpDir}}
+env db_version={{.DbVersion}}
+env sb_dir=$HOME/sandboxes/msb_{{.DbPathVer}}_dataload
+env db_port={{.DbIncreasedPort}}
+
+! exists $sb_dir
+
+# deployment
+
+exec dbdeployer deploy single $db_version --port=$db_port --sandbox-directory=msb_{{.DbPathVer}}_dataload
+stdout 'Database installed in .*/sandboxes/msb_{{.DbPathVer}}_dataload'
+stdout 'sandbox server started'
+! stderr .
+exists $sb_dir
+
+cleanup_at_end $sb_dir
+
+# check files and ports
+
+check_sandbox_manifest $sb_dir single
+
+env required_ports=1
+[version_is_at_least:$db_version:8.0.0] env required_ports=2
+check_ports $sb_dir $required_ports
+
+# test sandbox
+exec $sb_dir/test_sb
+stdout '# fail  :     0'
+! stderr .
+
+! find_errors $sb_dir
+
+# load data list
+
+exec dbdeployer data-load list
+stdout 'employees\s+36 MB employee data'
+stdout 'menagerie\s+2.0 kB menagerie database'
+stdout 'world\s+93 kB world database'
+stdout 'worldx\s+99 kB world_X database'
+stdout 'sakila\s+732 kB Sakila database'
+
+# load data menagerie
+
+exec dbdeployer data-load get menagerie msb_{{.DbPathVer}}_dataload
+stdout 'downloading https://.*/menagerie-db.tar.gz'
+stdout 'Unpacking .*/sandboxes/msb_{{.DbPathVer}}_dataload/menagerie-db.tar.gz'
+stdout 'Running .*/sandboxes/msb_{{.DbPathVer}}_dataload/load_db.sh'
+stdout 'menagerie.pet: Records: 8  Deleted: 0  Skipped: 0'
+stdout 'menagerie.event: Records: 10  Deleted: 0  Skipped: 0'
+
+# load data world
+
+exec dbdeployer data-load get world msb_{{.DbPathVer}}_dataload
+stdout 'downloading https://.*/world-db.tar.gz'
+stdout 'Unpacking .*/sandboxes/msb_{{.DbPathVer}}_dataload/world-db.tar.gz'
+stdout 'Running .*/sandboxes/msb_{{.DbPathVer}}_dataload/load_db.sh'
+
+# load data worldx
+
+exec dbdeployer data-load get worldx msb_{{.DbPathVer}}_dataload
+stdout 'downloading https://.*/world_x-db.tar.gz'
+stdout 'Unpacking .*/sandboxes/msb_{{.DbPathVer}}_dataload/world_x-db.tar.gz'
+stdout 'Running .*/sandboxes/msb_{{.DbPathVer}}_dataload/load_db.sh'
+
+# load data sakila
+
+exec dbdeployer data-load get sakila msb_{{.DbPathVer}}_dataload
+stdout 'downloading https://.*/sakila-db.tar.gz'
+stdout 'Unpacking .*/sandboxes/msb_{{.DbPathVer}}_dataload/sakila-db.tar.gz'
+stdout 'Running .*/sandboxes/msb_{{.DbPathVer}}_dataload/load_db.sh'
+
+# load data check schemas
+
+exec $sb_dir/use -e 'show schemas'
+stdout 'menagerie'
+stdout 'world\b'
+stdout 'world_x'
+stdout 'sakila'
+
+# load data check tables
+
+exec $sb_dir/use -e 'show tables from menagerie'
+stdout 'event'
+stdout 'pet'
+
+exec $sb_dir/use -e 'show tables from world'
+stdout 'city'
+stdout 'country'
+stdout 'countrylanguage'
+
+exec $sb_dir/use -e 'show tables from world_x'
+stdout 'city'
+stdout 'country'
+stdout 'countryinfo'
+stdout 'countrylanguage'
+
+exec $sb_dir/use -e 'show tables from sakila'
+stdout 'actor'
+stdout 'actor_info'
+stdout 'address'
+stdout 'category'
+stdout 'city'
+
+# sandbox cleanup
+exec dbdeployer delete msb_{{.DbPathVer}}_dataload
+stdout 'sandboxes/msb_{{.DbPathVer}}_dataload'
+! stderr .
+! exists $sb_dir
