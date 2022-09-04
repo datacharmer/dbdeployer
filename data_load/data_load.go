@@ -97,6 +97,7 @@ var defaultArchives = map[string]DataDefinition{
 			"$use menagerie < menagerie-db/cr_event_tbl.sql",
 			"$use menagerie < menagerie-db/ins_puff_rec.sql",
 			"$use menagerie -e 'set global local_infile=ON'",
+			"$use_all 'set global local_infile=ON'",
 			"$my sqlimport --local menagerie menagerie-db/pet.txt",
 			"$my sqlimport --local menagerie menagerie-db/event.txt",
 		},
@@ -178,6 +179,7 @@ func LoadArchive(archiveName, sandboxName string, overwrite bool) error {
 	}
 
 	useExecutable := path.Join(sandboxPath, "use")
+	useAllExecutable := path.Join(sandboxPath, "use_all")
 	useMultiExecutable := path.Join(sandboxPath, "n1")
 	myExecutable := path.Join(sandboxPath, "my")
 	myMultiExecutable := path.Join(sandboxPath, defaults.Defaults().NodePrefix+"1", "my")
@@ -189,6 +191,11 @@ func LoadArchive(archiveName, sandboxName string, overwrite bool) error {
 		} else {
 			return fmt.Errorf("executable %s not found", useExecutable)
 		}
+	}
+
+	// if use_all doesn't exist, we are in a single sandbox, and we skip it
+	if !common.ExecExists(useAllExecutable) {
+		useAllExecutable = "# use_all"
 	}
 	if !common.ExecExists(myExecutable) {
 		if common.ExecExists(myMultiExecutable) {
@@ -243,6 +250,7 @@ func LoadArchive(archiveName, sandboxName string, overwrite bool) error {
 		return fmt.Errorf("internal directory %s not found after unpacking %s", archive.InternalDirectory, archiveName)
 	}
 	reUse := regexp.MustCompile(`\$use\b`)
+	reUseAll := regexp.MustCompile(`\$use_all\b`)
 	reMy := regexp.MustCompile(`\$my\b`)
 
 	var loadCommands = []string{"#!/usr/bin/env bash", "set -x"}
@@ -253,6 +261,7 @@ func LoadArchive(archiveName, sandboxName string, overwrite bool) error {
 	}
 	for _, rawCommand := range archive.LoadCommands {
 		command := reUse.ReplaceAllString(rawCommand, useExecutable)
+		command = reUseAll.ReplaceAllString(command, useAllExecutable)
 		command = reMy.ReplaceAllString(command, myExecutable)
 		loadCommands = append(loadCommands, command)
 	}
