@@ -63,6 +63,77 @@ exec dbdeployer sandboxes
 stdout 'group_msb_{{.DbPathVer}}.*group-multi-primary'
 ! stderr .
 
+# load data world
+
+exec dbdeployer data-load get world group_msb_{{.DbPathVer}}
+stdout 'downloading https://.*/world-db.tar.gz'
+stdout 'Unpacking .*/sandboxes/group_msb_{{.DbPathVer}}/world-db.tar.gz'
+stdout 'Running .*/sandboxes/group_msb_{{.DbPathVer}}/load_db.sh'
+
+# load data worldx
+
+exec dbdeployer data-load get worldx group_msb_{{.DbPathVer}}
+stdout 'downloading https://.*/world_x-db.tar.gz'
+stdout 'Unpacking .*/sandboxes/group_msb_{{.DbPathVer}}/world_x-db.tar.gz'
+stdout 'Running .*/sandboxes/group_msb_{{.DbPathVer}}/load_db.sh'
+
+# load data sakila
+
+exec dbdeployer data-load get sakila group_msb_{{.DbPathVer}}
+stdout 'downloading https://.*/sakila-db.tar.gz'
+stdout 'Unpacking .*/sandboxes/group_msb_{{.DbPathVer}}/sakila-db.tar.gz'
+stdout 'Running .*/sandboxes/group_msb_{{.DbPathVer}}/load_db.sh'
+
+# load data check schemas
+
+exec $sb_dir/n1 -e 'show schemas'
+stdout 'world\b'
+stdout 'world_x'
+stdout 'sakila'
+
+exec $sb_dir/n2 -e 'show schemas'
+stdout 'world\b'
+stdout 'world_x'
+stdout 'sakila'
+
+# load data check tables
+
+exec $sb_dir/n1 -e 'show tables from world'
+stdout 'city'
+stdout 'country'
+stdout 'countrylanguage'
+
+exec $sb_dir/n2 -e 'show tables from world'
+stdout 'city'
+stdout 'country'
+stdout 'countrylanguage'
+
+exec $sb_dir/n1 -e 'show tables from world_x'
+stdout 'city'
+stdout 'country'
+stdout 'countryinfo'
+stdout 'countrylanguage'
+
+exec $sb_dir/n2 -e 'show tables from world_x'
+stdout 'city'
+stdout 'country'
+stdout 'countryinfo'
+stdout 'countrylanguage'
+
+exec $sb_dir/n1 -e 'show tables from sakila'
+stdout 'actor'
+stdout 'actor_info'
+stdout 'address'
+stdout 'category'
+stdout 'city'
+
+exec $sb_dir/n2 -e 'show tables from sakila'
+stdout 'actor'
+stdout 'actor_info'
+stdout 'address'
+stdout 'category'
+stdout 'city'
+
 # sandbox cleanup
 exec dbdeployer delete group_msb_{{.DbPathVer}}
 stdout 'sandboxes/group_msb_{{.DbPathVer}}'
