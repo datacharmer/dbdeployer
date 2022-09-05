@@ -41,15 +41,6 @@ stdout 'world\s+93 kB world database'
 stdout 'worldx\s+99 kB world_X database'
 stdout 'sakila\s+732 kB Sakila database'
 
-# load data menagerie
-
-exec dbdeployer data-load get menagerie msb_{{.DbPathVer}}_dataload
-stdout 'downloading https://.*/menagerie-db.tar.gz'
-stdout 'Unpacking .*/sandboxes/msb_{{.DbPathVer}}_dataload/menagerie-db.tar.gz'
-stdout 'Running .*/sandboxes/msb_{{.DbPathVer}}_dataload/load_db.sh'
-stdout 'menagerie.pet: Records: 8  Deleted: 0  Skipped: 0'
-stdout 'menagerie.event: Records: 10  Deleted: 0  Skipped: 0'
-
 # load data world
 
 exec dbdeployer data-load get world msb_{{.DbPathVer}}_dataload
@@ -74,16 +65,11 @@ stdout 'Running .*/sandboxes/msb_{{.DbPathVer}}_dataload/load_db.sh'
 # load data check schemas
 
 exec $sb_dir/use -e 'show schemas'
-stdout 'menagerie'
 stdout 'world\b'
 stdout 'world_x'
 stdout 'sakila'
 
 # load data check tables
-
-exec $sb_dir/use -e 'show tables from menagerie'
-stdout 'event'
-stdout 'pet'
 
 exec $sb_dir/use -e 'show tables from world'
 stdout 'city'
