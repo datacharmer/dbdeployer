@@ -11,7 +11,7 @@ fi
 if [ -z "$ONLY_SLAVES" -o -n "$ONLY_MASTER" ] 
 then
 	echo "# {{.MasterLabel}}  "
-	cd $SBDIR/{{.MasterLabel}}
+	cd "$SBDIR/{{.MasterLabel}}"
     $@
     cd - > /dev/null
 fi
@@ -20,7 +20,7 @@ if [ -z "$ONLY_MASTER" -o -n "$ONLY_SLAVES" ]
 then
 {{range .Slaves}}
 	echo "# server: {{.Node}} "
-	cd $SBDIR/{{.NodeLabel}}{{.Node}}
+	cd "$SBDIR/{{.NodeLabel}}{{.Node}}"
     $@
     cd - > /dev/null
 {{end}}

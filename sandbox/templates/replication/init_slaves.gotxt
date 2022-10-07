@@ -5,7 +5,7 @@
 # Don't use directly.
 # This script is called by 'start_all' when needed
 SBDIR={{.SandboxDir}}
-cd $SBDIR
+cd "$SBDIR"
 # workaround for Bug#89959
 $SBDIR/{{.MasterLabel}}/use -h {{.MasterIp}} -u {{.RplUser}} -p{{.RplPassword}} -e 'set @a=1'
 if [ ! -f needs_initialization ]

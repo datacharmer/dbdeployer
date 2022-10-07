@@ -34,7 +34,7 @@ then
     exit 1
 fi
 
-cd $SBDIR
+cd "$SBDIR"
 ./use -e "CREATE DATABASE IF NOT EXISTS $SB_DATABASE"
 case $option in
     prepare)

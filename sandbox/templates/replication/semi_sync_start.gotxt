@@ -6,7 +6,7 @@
 SBDIR={{.SandboxDir}}
 sleep 2
 set -x
-cd $SBDIR
+cd "$SBDIR"
 $SBDIR/{{.MasterLabel}}/use -u root -e 'set global rpl_semi_sync_master_enabled=1'
 echo "rpl_semi_sync_master_enabled=1" >> $SBDIR/{{.MasterLabel}}/my.sandbox.cnf
 {{ range .Slaves }}

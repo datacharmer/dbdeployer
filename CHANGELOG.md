@@ -1,3 +1,9 @@
+## 1.69.3	07-Oct-2022
+
+### BUGS FIXED
+
+* Fix Issue #156 : unquoted directory names in shell scripts cause failure
+
 ## 1.69.2	04-Sep-2022
 
 ### BUGS FIXED

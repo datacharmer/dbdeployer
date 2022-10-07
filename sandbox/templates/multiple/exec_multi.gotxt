@@ -10,7 +10,7 @@ fi
 
 {{range .Nodes}}
 echo "# server: {{.Node}} "
-  cd $SBDIR/{{.NodeLabel}}{{.Node}}
+  cd "$SBDIR/{{.NodeLabel}}{{.Node}}"
   $@
   cd - > /dev/null
 {{end}}

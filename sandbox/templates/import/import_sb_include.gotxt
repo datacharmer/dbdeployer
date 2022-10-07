@@ -32,7 +32,7 @@ export MYSQL_TEST_LOGIN_FILE=/tmp/dont_break_my_sandboxes$RANDOM
 
 function is_running
 {
-    cd $SBDIR
+    cd "$SBDIR"
     timeout=5
     elapsed=0
 

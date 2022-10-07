@@ -5,7 +5,7 @@ source {{.SandboxDir}}/sb_include
 
 [ -z "$SB_DATABASE" ] && SB_DATABASE=test
 
-cd $SBDIR
+cd "$SBDIR"
 ./use -e "CREATE DATABASE IF NOT EXISTS $SB_DATABASE"
 sysbench --db-driver=mysql \
 	--mysql-user={{.DbUser}} \

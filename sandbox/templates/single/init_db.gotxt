@@ -7,7 +7,7 @@ export DATADIR=$SBDIR/data
 export LD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$LD_LIBRARY_PATH
 export DYLD_LIBRARY_PATH=$BASEDIR/lib:$BASEDIR/lib/mysql:$DYLD_LIBRARY_PATH
 
-cd $SBDIR
+cd "$SBDIR"
 if [ -d $DATADIR/mysql ]
 then
     echo "Initialization already done."

@@ -6,7 +6,7 @@ SBDIR={{.SandboxDir}}
 BASEDIR={{.Basedir}}
 CLIENT_BASEDIR={{.ClientBasedir}}
 
-cd $SBDIR
+cd "$SBDIR"
 
 if [ -f cluster_initialized ]
 then

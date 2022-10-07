@@ -37,9 +37,9 @@ else
         rm -f $PIDFILE
     fi
     CURDIR=$(pwd)
-    cd $BASEDIR
+    cd "$BASEDIR"
     $MYSQLD_SAFE --defaults-file=$SBDIR/my.sandbox.cnf $CUSTOM_MYSQLD $@ > "$SBDIR/start.log" 2>&1 &
-    cd $CURDIR
+    cd "$CURDIR"
     ATTEMPTS=1
     while [ ! -f $PIDFILE ]
     do

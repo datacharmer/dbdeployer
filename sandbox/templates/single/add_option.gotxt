@@ -5,7 +5,7 @@ source {{.SandboxDir}}/sb_include
 export LD_LIBRARY_PATH=$CLIENT_LD_LIBRARY_PATH
 
 curdir=$SBDIR
-cd $curdir
+cd "$curdir"
 
 if [ -z "$*" ]
 then
