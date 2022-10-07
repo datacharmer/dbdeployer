@@ -1,5 +1,32 @@
 [!unix] skip 'this procedure can only work on Unix systems'
 env HOME=$WORK/home
+
+# no args
+
+exec dbdeployer
+stdout 'Available Commands:'
+stdout 'admin           sandbox management tasks'
+stdout 'cookbook        Shows dbdeployer samples'
+stdout 'data-load       tasks related to dbdeployer data loading'
+stdout 'defaults        tasks related to dbdeployer defaults'
+stdout 'delete          delete an installed sandbox'
+stdout 'delete-binaries delete an expanded tarball'
+stdout 'deploy          deploy sandboxes'
+stdout 'downloads       Manages remote tarballs'
+stdout 'export          Exports the command structure in JSON format'
+stdout 'global          Runs a given command in every sandbox'
+stdout 'help            Help about any command'
+stdout 'import          imports one or more MySQL servers into a sandbox'
+stdout 'info            Shows information about dbdeployer environment samples'
+stdout 'init            initializes dbdeployer environment'
+stdout 'sandboxes       List installed sandboxes'
+stdout 'unpack          unpack a tarball into the binary directory'
+stdout 'update          Gets dbdeployer newest version'
+stdout 'usage           Shows usage of installed sandboxes'
+stdout 'use             uses a sandbox'
+stdout 'versions        List available versions'
+! stderr .
+
 # downloads
 ! exec dbdeployer downloads get
 stderr 'Usage'
