@@ -170,7 +170,7 @@ func getFlavor(version string) string {
 	if !common.FileExists(filePath) {
 		return common.MySQLFlavor
 	}
-	flavor, err := os.ReadFile(filePath)
+	flavor, err := os.ReadFile(filePath) // #nosec G304
 	if err != nil || string(flavor) == "" {
 		return common.MySQLFlavor
 	}
@@ -290,7 +290,7 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 	}
 
 	if !common.DirExists(dataDir) {
-		err := os.Mkdir(dataDir, 0755)
+		err := os.Mkdir(dataDir, 0750)
 		if err != nil {
 			return fmt.Errorf("[buildTests] error creating directory %s: %s", dataDir, err)
 		}
@@ -329,21 +329,21 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 			continue
 		}
 		conditionalPrint("processing file %s\n", fName)
-		contents, err := os.ReadFile(f)
+		contents, err := os.ReadFile(f) // #nosec G304
 		if err != nil {
 			return fmt.Errorf("[buildTests] error reading file %s: %s", f, err)
 		}
 
 		subDataDir := path.Join(dataDir, sectionName)
 		if !common.DirExists(subDataDir) {
-			err := os.Mkdir(subDataDir, 0755)
+			err := os.Mkdir(subDataDir, 0750)
 			if err != nil {
 				return fmt.Errorf("[buildTests] error creating directory %s: %s", subDataDir, err)
 			}
 		}
 		endDataDir := path.Join(subDataDir, label)
 		if !common.DirExists(endDataDir) {
-			err := os.Mkdir(endDataDir, 0755)
+			err := os.Mkdir(endDataDir, 0750)
 			if err != nil {
 				return fmt.Errorf("[buildTests] error creating directory %s: %s", endDataDir, err)
 			}
@@ -363,20 +363,20 @@ func buildTests(templateDir, dataDir, label string, data map[string]string) erro
 		}
 		versionFile := path.Join(endDataDir, "DB_VERSION")
 		if !common.FileExists(versionFile) {
-			err = os.WriteFile(versionFile, []byte(data["DbVersion"]), 0644)
+			err = os.WriteFile(versionFile, []byte(data["DbVersion"]), 0600)
 			if err != nil {
 				return fmt.Errorf("[buildTests] error writing version file %s: %s", versionFile, err)
 			}
 		}
 		flavorFile := path.Join(endDataDir, "DB_FLAVOR")
 		if !common.FileExists(flavorFile) {
-			err = os.WriteFile(flavorFile, []byte(data["DbFlavor"]), 0644)
+			err = os.WriteFile(flavorFile, []byte(data["DbFlavor"]), 0600)
 			if err != nil {
 				return fmt.Errorf("[buildTests] error writing flavor file %s: %s", flavorFile, err)
 			}
 		}
 		testName := path.Join(endDataDir, fName+"_"+label+".txtar")
-		err = os.WriteFile(testName, buf.Bytes(), 0644)
+		err = os.WriteFile(testName, buf.Bytes(), 0600)
 		if err != nil {
 			return fmt.Errorf("[buildTests] error writing text file %s: %s", testName, err)
 		}
