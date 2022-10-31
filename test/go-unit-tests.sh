@@ -36,7 +36,7 @@ for dir in $test_dirs
 do
     cd $dir
     echo "# Testing $dir"
-    go test -v
+    go test -v -timeout 30m
     check_exit_code
     cd $maindir
 done
