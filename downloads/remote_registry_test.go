@@ -16,6 +16,7 @@ package downloads
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -152,5 +153,50 @@ func TestTarballRegistry(t *testing.T) {
 				t.Logf("not ok - size 0 for tarball %s", tarball.Name)
 			}
 		}
+	}
+}
+
+func TestMergeCollection(t *testing.T) {
+	type args struct {
+		oldest TarballCollection
+		newest TarballCollection
+	}
+	var (
+		oneItem         = TarballCollection{Tarballs: []TarballDescription{{Name: "one"}}}
+		anotherItem     = TarballCollection{Tarballs: []TarballDescription{{Name: "first"}}}
+		twoItems        = TarballCollection{Tarballs: []TarballDescription{{Name: "one"}, {Name: "two"}}}
+		anotherTwoItems = TarballCollection{Tarballs: []TarballDescription{{Name: "first"}, {Name: "second"}}}
+		threeItems      = TarballCollection{Tarballs: []TarballDescription{{Name: "one"}, {Name: "two"}, {Name: "three"}}}
+
+		twoItemsSameResult      = TarballCollection{DbdeployerVersion: common.VersionDef, Tarballs: []TarballDescription{{Name: "one"}}}
+		twoItemsDifferentResult = TarballCollection{DbdeployerVersion: common.VersionDef, Tarballs: []TarballDescription{{Name: "one"}, {Name: "first"}}}
+		threeItemsResult        = TarballCollection{DbdeployerVersion: common.VersionDef, Tarballs: []TarballDescription{{Name: "one"}, {Name: "two"}, {Name: "three"}}}
+		fiveItemsResult         = TarballCollection{DbdeployerVersion: common.VersionDef, Tarballs: []TarballDescription{{Name: "one"}, {Name: "two"}, {Name: "three"}, {Name: "first"}, {Name: "second"}}}
+	)
+	tests := []struct {
+		name    string
+		args    args
+		want    TarballCollection
+		wantErr bool
+	}{
+		{"both-empty", args{TarballCollection{}, TarballCollection{}}, TarballCollection{}, true},
+		{"origin-empty", args{TarballCollection{}, TarballCollection{}}, TarballCollection{Tarballs: []TarballDescription{{}}}, true},
+		{"additional-empty", args{TarballCollection{Tarballs: []TarballDescription{{}}}, TarballCollection{}}, TarballCollection{}, true},
+		{"one-item-same", args{oneItem, oneItem}, twoItemsSameResult, false},
+		{"one-item-different", args{oneItem, anotherItem}, twoItemsDifferentResult, false},
+		{"two-three-items-common", args{twoItems, threeItems}, threeItemsResult, false},
+		{"two-three-items-different", args{threeItems, anotherTwoItems}, fiveItemsResult, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := MergeTarballCollection(tt.args.oldest, tt.args.newest)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MergeCollection() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) && err == nil {
+				t.Errorf("MergeCollection() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

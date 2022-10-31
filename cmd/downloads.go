@@ -306,7 +306,7 @@ func getCommonFlags(cmd *cobra.Command) ops.DownloadsOptions {
 	options.ProgressStep, _ = cmd.Flags().GetInt64(globals.ProgressStepLabel)
 	options.VerbosityLevel, _ = cmd.Flags().GetInt(globals.VerbosityLabel)
 	options.Version, _ = cmd.Flags().GetString(globals.UnpackVersionLabel)
-	options.Retries, _ = cmd.Flags().GetInt64(globals.RetriesOnFailure)
+	options.Retries, _ = cmd.Flags().GetInt64(globals.RetriesOnFailureLabel)
 	return options
 }
 
@@ -380,8 +380,10 @@ func importTarballCollection(cmd *cobra.Command, args []string) error {
 		fileName = defaults.Defaults().RemoteTarballUrl
 	}
 
-	retries, _ := cmd.Flags().GetInt64(globals.RetriesOnFailure)
+	retries, _ := cmd.Flags().GetInt64(globals.RetriesOnFailureLabel)
+	mergeImported, _ := cmd.Flags().GetBool(globals.MergeImportedLabel)
 
+	originalLength := len(downloads.DefaultTarballRegistry.Tarballs)
 	if common.IsUrl(fileName) {
 		fileUrl := fileName
 		re := regexp.MustCompile(`^(http|https)://`)
@@ -410,6 +412,12 @@ func importTarballCollection(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error decoding tarball list from %s", fileName)
 	}
 
+	if mergeImported {
+		tarballCollection, err = downloads.MergeTarballCollection(downloads.DefaultTarballRegistry, tarballCollection)
+		if err != nil {
+			return err
+		}
+	}
 	err = downloads.TarballFileInfoValidation(tarballCollection)
 	if err != nil {
 		return fmt.Errorf("error validating tarball list from %s\n %s", fileName, err)
@@ -419,6 +427,7 @@ func importTarballCollection(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error writing tarball list: %s", err)
 	}
 	fmt.Printf("Tarball list imported from %s to %s\n", fileName, downloads.TarballFileRegistry)
+	fmt.Printf("Original number of tarballs: %d - After Import: %d\n", originalLength, len(tarballCollection.Tarballs))
 	return nil
 }
 
@@ -760,7 +769,7 @@ func addCommonDownloadsFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolP(globals.QuietLabel, "", false, "Do not show download progress")
 	cmd.Flags().Int64P(globals.ProgressStepLabel, "", globals.ProgressStepValue, "Progress interval")
 	cmd.Flags().BoolP(globals.DeleteAfterUnpackLabel, "", false, "Delete the tarball after successful unpack")
-	cmd.Flags().Int64P(globals.RetriesOnFailure, "", 0, "How many times retry a download if a failure occurs on first try")
+	cmd.Flags().Int64P(globals.RetriesOnFailureLabel, "", 0, "How many times retry a download if a failure occurs on first try")
 }
 
 func init() {
@@ -828,5 +837,6 @@ func init() {
 
 	downloadsExportCmd.Flags().BoolP(globals.AddEmptyItemLabel, "", false, "Add an empty item to the tarballs list")
 
-	downloadsImportCmd.Flags().Int64P(globals.RetriesOnFailure, "", 0, "How many times retry a download if a failure occurs on first try")
+	downloadsImportCmd.Flags().Int64P(globals.RetriesOnFailureLabel, "", 0, "How many times retry a download if a failure occurs on first try")
+	downloadsImportCmd.Flags().BoolP(globals.MergeImportedLabel, "", false, "Merge imported file instead of replacing current one")
 }

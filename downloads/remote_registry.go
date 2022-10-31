@@ -431,6 +431,29 @@ func WriteTarballFileInfo(collection TarballCollection) error {
 	return common.WriteString(string(text), TarballFileRegistry)
 }
 
+func MergeTarballCollection(oldest, newest TarballCollection) (TarballCollection, error) {
+	if len(oldest.Tarballs) == 0 {
+		return TarballCollection{}, fmt.Errorf("[MergeCollection] empty origin collection")
+	}
+	if len(newest.Tarballs) == 0 {
+		return TarballCollection{}, fmt.Errorf("[MergeCollection] empty additional collection")
+	}
+	newCollection := oldest
+	newCollection.DbdeployerVersion = common.VersionDef
+	seenItems := make(map[string]bool)
+	for _, oldItem := range oldest.Tarballs {
+		seenItems[oldItem.Name] = true
+	}
+	for _, newItem := range newest.Tarballs {
+		_, seen := seenItems[newItem.Name]
+		if !seen {
+			newCollection.Tarballs = append(newCollection.Tarballs, newItem)
+			seenItems[newItem.Name] = true
+		}
+	}
+	return newCollection, nil
+}
+
 func TarballFileInfoValidation(collection TarballCollection) error {
 	type tarballError struct {
 		Name  string
@@ -438,10 +461,15 @@ func TarballFileInfoValidation(collection TarballCollection) error {
 	}
 	var tarballErrorList []tarballError
 
+	var seenTarballs = make(map[string]bool)
 	if collection.DbdeployerVersion == "" {
 		tarballErrorList = append(tarballErrorList, tarballError{"collection version", "dbdeployer version not set"})
 	}
 	for _, tb := range collection.Tarballs {
+		_, seen := seenTarballs[tb.Name]
+		if seen {
+			return fmt.Errorf("tarball '%s' listed more than once", tb.Name)
+		}
 		if tb.Name == "" {
 			tarballErrorList = append(tarballErrorList, tarballError{"No Name", "name is missing"})
 		}

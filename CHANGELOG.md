@@ -1,3 +1,14 @@
+## 1.70.0	31-Oct-2022
+
+## NEW FEATURES
+
+* Add downloads for MySQL 8.0.31 and Percona Server 8.0.27, 8.0.28, 8.0.29
+* Add option `--merge-imported` to `dbdeployer downloads import`
+
+### Code improvements
+
+* Fix `gosec` complaints in tests
+
 ## 1.69.3	07-Oct-2022
 
 ### BUGS FIXED
