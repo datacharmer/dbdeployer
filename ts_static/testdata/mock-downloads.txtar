@@ -1,6 +1,5 @@
 [!unix] skip 'this procedure can only work on Unix systems'
-[!net] skip 'this test requires network access'
-[!amd64] skip 'this test is only available for amd64 architecture'
+# [!net] skip 'this test requires network access'
 
 env HOME=$WORK/home
 
@@ -10,8 +9,26 @@ env retries=2
 
 # import list of downloads
 
-exec dbdeployer downloads import --retries-on-failure=$retries https://github.com/datacharmer/dbdeployer/raw/master/test/mock/downloads/dl.json
+exec dbdeployer downloads import --retries-on-failure=$retries http://localhost:9000/dl.json
+stdout 'After Import: 28'
 exists .dbdeployer/tarball-list.json
+
+exec dbdeployer downloads list
+stdout -count=4 '4.1.97'
+stdout -count=4 '5.0.97'
+stdout -count=4 '5.1.97'
+stdout -count=4 '5.6.97'
+stdout -count=4 '5.7.97'
+stdout -count=4 '8.0.97'
+
+exec dbdeployer downloads list --flavor=mysql
+stdout -count=17 '\n'
+
+exec dbdeployer downloads list --flavor=ndb
+stdout -count=3 '\n'
+
+exec dbdeployer downloads list --flavor=shell
+stdout -count=3 '\n'
 
 # get and deploy mock databases from version 4.1 to 8.0
 exec dbdeployer downloads get-by-version 4.1 --newest --minimal --unpack --retries-on-failure=$retries
