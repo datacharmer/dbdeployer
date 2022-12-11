@@ -1,3 +1,11 @@
+## 1.71.0	11-Dec-2022
+
+## ADJUSTMENTS
+
+* Update code of `show_binlog` script to find the right binary log
+  with version 8.0.x, when used without `--master` outside replication.
+
+
 ## 1.70.0	31-Oct-2022
 
 ## NEW FEATURES
