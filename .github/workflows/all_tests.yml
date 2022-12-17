@@ -9,6 +9,10 @@ jobs:
 
       steps:
 
+        - name: Install libraries
+          run: |
+            sudo apt-get update
+            sudo apt-get install -y libncurses5 libaio1 libnuma1 bash-completion
         - name: Set up Go 1.x
           uses: actions/setup-go@v2
           with:
