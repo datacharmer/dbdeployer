@@ -21,7 +21,7 @@ fi
 
 categories=(mysql shell cluster)
 os="Linux"
-agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0" 
+agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:2023.0) Gecko/20100101 Firefox/2023.0" 
 
 if [[ $# -lt 2 ]]
 then

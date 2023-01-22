@@ -20,7 +20,9 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
+	"github.com/datacharmer/dbdeployer/common"
 	"jaytaylor.com/html2text"
 )
 
@@ -39,10 +41,12 @@ const (
 	OsLinux = "Linux"
 	OsMacOs = "MacOs"
 
-	userAgentLinux  = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0"
-	userAgentMacOs  = "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36 (K HTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
-	basePageUrl     = "https://dev.mysql.com/downloads"
-	baseDownloadUrl = "https://dev.mysql.com/get/Downloads"
+	preferredUserAgentLinux           = "dbdeployer/XXXX (X11; Linux; rv:XXXX) dbdeployer/XXXX"
+	preferredUserAgentMacOs           = "dbdeployer/XXXX (Macintosh; Mac OS; rv:XXXX) dbdeployer/XXXX"
+	alternativeUserAgentLinuxTemplate = "Mozilla/5.0 (X11; Linux ; rv:XXXX.0) Gecko/20100101 Firefox/XXXX.0"
+	alternativeUserAgentMacOsTemplate = "Mozilla/5.0 (Macintosh; Mac OS; rv:XXXX.0) Gecko/20100101 Firefox/XXXX.0"
+	basePageUrl                       = "https://dev.mysql.com/downloads"
+	baseDownloadUrl                   = "https://dev.mysql.com/get/Downloads"
 
 	// Tarball types
 
@@ -75,10 +79,21 @@ var downloadsSettings = map[TarballType]TarballDef{
 	},
 }
 
+var (
+	userAgentLinux = strings.Replace(preferredUserAgentLinux, "XXXX", common.VersionDef, -1)
+	userAgentMacOs = strings.Replace(preferredUserAgentMacOs, "XXXX", common.VersionDef, -1)
+
+	thisYear = fmt.Sprintf("%d", time.Now().Year())
+	// Alternative user agents
+	alternativeUserAgentMacOs = strings.Replace(alternativeUserAgentMacOsTemplate, "XXXX", thisYear, -1)
+	alternativeUserAgentLinux = strings.Replace(alternativeUserAgentLinuxTemplate, "XXXX", thisYear, -1)
+)
+
 var userAgents = map[string]string{
 	OsLinux: userAgentLinux,
 	OsMacOs: userAgentMacOs,
 }
+
 var internalOsName = map[string]string{
 	OsLinux: "Linux",
 	OsMacOs: "Darwin",
@@ -105,10 +120,10 @@ func validateTarballRequest(tarballType TarballType, version string, OS string) 
 		return "", fmt.Errorf("unrecognized OS %s: it must be one of [%s, %s] ", OS, OsMacOs, OsLinux)
 	}
 	OS = osText
-	_, foundOs := userAgents[OS]
-	if !foundOs {
+	if _, foundOs := userAgents[osText]; !foundOs {
 		return "", fmt.Errorf("unrecognized OS %s: it must be one of [%s, %s] ", OS, OsMacOs, OsLinux)
 	}
+
 	settings, foundSettings := downloadsSettings[tarballType]
 	if !foundSettings {
 		return "", fmt.Errorf("unrecognized tarball type %s: it must be one of [%s, %s, %s] ", OS, TtMysql, TtCluster, TtShell)
@@ -125,7 +140,7 @@ func validateTarballRequest(tarballType TarballType, version string, OS string) 
 	return OS, nil
 }
 
-func GetRemoteTarballList(tarballType TarballType, version, OS string, withSize bool) ([]TarballDescription, error) {
+func GetRemoteTarballList(tarballType TarballType, version, OS string, withSize, alternativeUserAgent bool) ([]TarballDescription, error) {
 	var err error
 	OS, err = validateTarballRequest(tarballType, version, OS)
 	if err != nil {
@@ -134,13 +149,40 @@ func GetRemoteTarballList(tarballType TarballType, version, OS string, withSize 
 
 	pageUrl := basePageUrl + "/" + downloadsSettings[tarballType].NameInUrl + "/" + version + ".html"
 
-	userAgent, found := userAgents[OS]
-	if !found {
+	if alternativeUserAgent {
+		userAgents[OsLinux] = alternativeUserAgentLinux
+		userAgents[OsMacOs] = alternativeUserAgentMacOs
+	}
+
+	userAgent, foundOs := userAgents[OS]
+	if !foundOs {
 		return nil, fmt.Errorf("unrecognized OS %s: it must be one of [%s, %s] ", OS, OsMacOs, OsLinux)
+	}
+	if common.IsEnvSet("SBDEBUG") {
+		fmt.Printf("user agent: %s\n", userAgent)
 	}
 
 	client := &http.Client{}
 
+	var matches [][]string
+	var result []TarballDescription
+	reVersions := regexp.MustCompile(`((\d+\.\d+)\.\d+)`)
+	/*
+		reLine := regexp.MustCompile(fmt.Sprintf(
+			`\(` +                                   // An open parenthesis
+				`(` +                                // start capture
+				downloads[tarballType].NameInFile +  // the tarball type (mysql | cluster | shell)
+				`-\d+\.\d+\.\d+` +                   // A version
+				`[^\)]+` +                           // more characters except a closed parenthesis
+				`\S+64`                             // x86-64 or x86_64 or amd64
+				`[^\)]+` +                           // more characters except a closed parenthesis
+				`z)` +                               // a "z" (as in .gz or .xz) followed by a end capture
+				`\)` +                               // a closed parenthesis
+				`.*?MD5:` +                          // any character up to "MD5:"
+				`\s*` +                              // optional spaces
+				`(\w+)`))                            // Capture a string of alphanumeric characters (the checksum)
+	*/
+	reLine := regexp.MustCompile(fmt.Sprintf(`\((%s-\d+\.\d+\.\d+[^\)]+-(\S+64)[^\)]+z)\).*?MD5:\s*(\w+)`, downloadsSettings[tarballType].NameInFile))
 	req, _ := http.NewRequest(http.MethodGet, pageUrl, nil)
 	req.Header.Add("User-Agent", userAgent)
 
@@ -162,30 +204,18 @@ func GetRemoteTarballList(tarballType TarballType, version, OS string, withSize 
 		return nil, err
 	}
 
-	var result []TarballDescription
-	/*
-		reLine := regexp.MustCompile(fmt.Sprintf(
-			`\(` +                                   // An open parenthesis
-				`(` +                                // start capture
-				downloads[tarballType].NameInFile +  // the tarball type (mysql | cluster | shell)
-				`-\d+\.\d+\.\d+` +                   // A version
-				`[^\)]+` +                           // more characters except a closed parenthesis
-				`x86.64`                             // x86-64 or x86_64
-				`[^\)]+` +                           // more characters except a closed parenthesis
-				`z)` +                               // a "z" (as in .gz or .xz) followed by a end capture
-				`\)` +                               // a closed parenthesis
-				`.*?MD5:` +                          // any character up to "MD5:"
-				`\s*` +                              // optional spaces
-				`(\w+)`))                            // Capture a string of alphanumeric characters (the checksum)
-	*/
-	//reLine := regexp.MustCompile(fmt.Sprintf(`\((%s-\d+\.\d+\.\d+[^\)]+x86.64[^\)]+z)\).*?MD5:\s*(\w+)`, downloadsSettings[tarballType].NameInFile))
-	reLine := regexp.MustCompile(fmt.Sprintf(`\((%s-\d+\.\d+\.\d+[^\)]+-(\w+64)[^\)]+z)\).*?MD5:\s*(\w+)`, downloadsSettings[tarballType].NameInFile))
-	matches := reLine.FindAllStringSubmatch(text, -1)
+	matches = reLine.FindAllStringSubmatch(text, -1)
 	if len(matches) == 0 {
+		if common.IsEnvSet("SBDEBUG") {
+			fmt.Printf("With user agent '%s'\n", userAgent)
+			fmt.Printf("Text retrieved from server: %s\n", basePageUrl)
+			fmt.Println(text)
+		} else {
+			return nil, fmt.Errorf("no %s tarballs found for %s - set environment variable 'SBDBUG' to see failure details", tarballType, version)
+		}
 		return nil, fmt.Errorf("no %s tarballs found for %s", tarballType, version)
 	}
 
-	reVersions := regexp.MustCompile(`((\d+\.\d+)\.\d+)`)
 	for _, m := range matches {
 		versionList := reVersions.FindAllStringSubmatch(m[1], 1)
 		if len(versionList) == 0 || len(versionList[0]) < 2 {
