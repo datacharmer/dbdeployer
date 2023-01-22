@@ -16,6 +16,11 @@
 testdir=$(dirname $0)
 cd $testdir
 cd ..
+source ./test/common.sh
+
+start_timer
+timestamp=$(date +%Y-%m-%d-%H.%M)
+
 maindir=$PWD
 
 unset DBDEPLOYER_LOGGING
@@ -34,18 +39,11 @@ test_dirs=$(find . -name '*_test.go' -exec dirname {} \; | tr -d './' | sort |un
 
 for dir in $test_dirs
 do
-  if [[ "$dir" == "ts" || "$dir" == "ts_static" ]]
-  then
-    # Temporary skip
-    # Tests on Github don't run well since they updated to ubuntu:22.04
-    if [ -n "$GITHUB_ACTIONS" ]
-    then
-      continue
-    fi
-  fi
     cd $dir
     echo "# Testing $dir"
-    echo go test -v -timeout 30m
+    go test -v -timeout 30m
     check_exit_code
     cd $maindir
 done
+
+stop_timer
