@@ -16,10 +16,6 @@
 testdir=$(dirname $0)
 cd $testdir
 cd ..
-source ./test/common.sh
-
-start_timer
-timestamp=$(date +%Y-%m-%d-%H.%M)
 
 maindir=$PWD
 
@@ -45,5 +41,3 @@ do
     check_exit_code
     cd $maindir
 done
-
-stop_timer
