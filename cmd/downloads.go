@@ -438,7 +438,8 @@ func addRemoteTarballToCollection(cmd *cobra.Command, args []string) {
 	}
 	tarballType := downloads.TarballType(args[0])
 
-	list, err := downloads.GetRemoteTarballList(tarballType, args[1], args[2], true)
+	alternativeUserAgent, _ := flags.GetBool(globals.ChangeUserAgentLabel)
+	list, err := downloads.GetRemoteTarballList(tarballType, args[1], args[2], true, alternativeUserAgent)
 
 	if err != nil {
 		common.Exitf(1, "error getting remote tarball description: %s", err)
@@ -832,6 +833,7 @@ func init() {
 
 	downloadsAddRemoteCmd.Flags().BoolP(globals.OverwriteLabel, "", false, "Overwrite existing entry")
 	downloadsAddRemoteCmd.Flags().BoolP(globals.MinimalLabel, "", false, "Define whether the wanted tarball is a minimal one")
+	downloadsAddRemoteCmd.Flags().BoolP(globals.ChangeUserAgentLabel, "", false, "Use alternative user agent ('Firefox' instead of 'dbdeployer')")
 
 	downloadsAddStdinCmd.Flags().BoolP(globals.OverwriteLabel, "", false, "Overwrite existing entry")
 

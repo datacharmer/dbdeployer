@@ -144,6 +144,7 @@ const (
 	AddEmptyItemLabel      = "add-empty-item"
 	DeleteAfterUnpackLabel = "delete-after-unpack"
 	MaxItemsLabel          = "max-items"
+	ChangeUserAgentLabel   = "change-user-agent"
 
 	// Instantiated in cmd/admin.go
 	VerboseLabel = "verbose"
