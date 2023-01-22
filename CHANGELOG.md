@@ -1,3 +1,17 @@
+## 1.72.0	22-Jan-2023
+
+## ADJUSTMENTS
+
+* Update user-agents used in `downloads add-remote` to fix failed recognition by MySQL.com downloads servers.
+  The new user agent identifies the request as coming from `dbdeployer`, instead of pretending to be a browser.
+
+## NEW FEATURES
+
+* Add option `--change-user-agent` for command `downloads add-remote` to use alternative user agent in case of failure.
+  If used, this option changes the user agent so that the request comes from  a fake Firefox browser with a very high
+  version number (i.e. the current year).
+* Add tarballs for MySQL 8.0.32 to downloads list
+
 ## 1.71.0	11-Dec-2022
 
 ## ADJUSTMENTS
