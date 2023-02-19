@@ -17,6 +17,7 @@ package downloads
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path"
@@ -541,7 +542,12 @@ func checkRemoteUrl(remoteUrl string) (int64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("[checkRemoteUrl] error getting %s: %s", remoteUrl, err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Printf("[checkRemoteUrl] error closing response body: %s", err)
+		}
+	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		return 0, fmt.Errorf("[checkRemoteUrl] received code %d ", resp.StatusCode)

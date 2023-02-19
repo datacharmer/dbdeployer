@@ -193,7 +193,12 @@ func GetRemoteTarballList(tarballType TarballType, version, OS string, withSize,
 	}
 
 	body, err := io.ReadAll(response.Body)
-	defer response.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Printf("[GetRemoteTarballList] error closing response body: %s", err)
+		}
+	}(response.Body)
 	if err != nil {
 		return nil, fmt.Errorf("error reading response body: %s", err)
 	}

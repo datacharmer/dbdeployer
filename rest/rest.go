@@ -153,18 +153,23 @@ func DownloadFileWithRetry(filepath string, url string, progress bool, progressS
 		attempts++
 	}
 	if err != nil {
-		return fmt.Errorf("[DownloadFile] error getting %s (attempts: %d): %s", url, attempts, err)
+		return fmt.Errorf("[DownloadFileWithRetry] error getting %s (attempts: %d): %s", url, attempts, err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Printf("[DownloadFileWithRetry] error closing response body: %s", err)
+		}
+	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("[DownloadFile] received code %d ", resp.StatusCode)
+		return fmt.Errorf("[DownloadFileWithRetry] received code %d ", resp.StatusCode)
 	}
 
 	// Create the file
 	out, err := os.Create(filepath) // #nosec G304
 	if err != nil {
-		return fmt.Errorf("[DownloadFile] error creating file %s", filepath)
+		return fmt.Errorf("[DownloadFileWithRetry] error creating file %s", filepath)
 	}
 	defer out.Close() // #nosec G307
 
@@ -182,7 +187,7 @@ func DownloadFileWithRetry(filepath string, url string, progress bool, progressS
 	// Write the body to file
 	_, err = io.Copy(out, newBody)
 	if err != nil {
-		return fmt.Errorf("[DownloadFile] error during data writing to file %s: %s", filepath, err)
+		return fmt.Errorf("[DownloadFileWithRetry] error during data writing to file %s: %s", filepath, err)
 	}
 
 	return nil
@@ -223,12 +228,17 @@ func getReleaseText(tag string) ([]byte, error) {
 	// #nosec G107
 	resp, err := http.Get(releaseUrl)
 	if err != nil {
-		return globals.EmptyBytes, fmt.Errorf("[GetReleaseText] error getting %s: %s", releaseUrl, err)
+		return globals.EmptyBytes, fmt.Errorf("[getReleaseText] error getting %s: %s", releaseUrl, err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Printf("[getReleaseText] error closing response body: %s", err)
+		}
+	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
-		return globals.EmptyBytes, fmt.Errorf("[GetReleaseText] received code %d ", resp.StatusCode)
+		return globals.EmptyBytes, fmt.Errorf("[getReleaseText] received code %d ", resp.StatusCode)
 	}
 
 	htmlData, err := io.ReadAll(resp.Body)
