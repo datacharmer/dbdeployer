@@ -1994,6 +1994,34 @@
       "version": "8.0.32",
       "notes": "added with version 1.72.0",
       "date_added": "2023-01-21 22:42"
+    },
+    {
+      "name": "mysql-8.0.33-linux-glibc2.17-x86_64-minimal.tar.xz",
+      "checksum": "MD5:377b6ae9c88a698438a19d67efa03252",
+      "OS": "Linux",
+      "arch": "amd64",
+      "url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.33-linux-glibc2.17-x86_64-minimal.tar.xz",
+      "flavor": "mysql",
+      "minimal": true,
+      "size": 60181648,
+      "short_version": "8.0",
+      "version": "8.0.33",
+      "notes": "added with version 1.72.0",
+      "date_added": "2023-06-28 15:55"
+    },
+    {
+      "name": "mysql-8.0.33-linux-glibc2.17-aarch64-minimal.tar.xz",
+      "checksum": "MD5:f5e01242975453ec6db02727848975c9",
+      "OS": "Linux",
+      "arch": "aarch64",
+      "url": "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.33-linux-glibc2.17-aarch64-minimal.tar.xz",
+      "flavor": "mysql",
+      "minimal": true,
+      "size": 58393312,
+      "short_version": "8.0",
+      "version": "8.0.33",
+      "notes": "added with version 1.72.0",
+      "date_added": "2023-06-28 15:55"
     }
   ]
 }
