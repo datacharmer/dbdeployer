@@ -1,3 +1,8 @@
+## 1.72.1	24-Feb-2023
+
+## ADJUSTMENTS
+* Fix security vulnerability in dependency (golang.org/x/text)
+
 ## 1.72.0	22-Jan-2023
 
 ## ADJUSTMENTS
