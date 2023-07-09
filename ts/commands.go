@@ -20,6 +20,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -59,7 +60,9 @@ func findErrorsInLogFile(ts *testscript.TestScript, neg bool, args []string) {
 	ts.Check(err)
 	hasError := strings.Contains(string(contents), "ERROR")
 	if neg && hasError {
-		ts.Fatalf("ERRORs found in %s\n", logFile)
+		reLines := regexp.MustCompile(`(?sg)(^.*ERROR.*)`)
+		errorLines := reLines.FindAll(contents, -1)
+		ts.Fatalf("ERRORs found in %s (%s)\n", logFile, errorLines)
 	}
 	if !neg && !hasError {
 		ts.Fatalf("ERRORs not found in %s\n", logFile)
