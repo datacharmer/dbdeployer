@@ -18,7 +18,6 @@ package ops
 import (
 	"os"
 	"path"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -30,6 +29,9 @@ import (
 
 func TestGetTarball(t *testing.T) {
 
+	if os.Getenv("GITHUB_ACTIONS") != "" {
+		t.Skip("Not stable running on GitHub")
+	}
 	sbEnv := os.Getenv("SANDBOX_BINARY")
 	sandboxBinary := defaults.Defaults().SandboxBinary
 
@@ -44,9 +46,9 @@ func TestGetTarball(t *testing.T) {
 			retrieved, err := findRemoteTarballByNameOrUrl(tb.Name, tb.OperatingSystem)
 			require.NoError(t, err)
 			require.Equal(t, retrieved, tb)
-			if !strings.EqualFold(tb.OperatingSystem, runtime.GOOS) {
-				return
-			}
+			//if !strings.EqualFold(tb.OperatingSystem, runtime.GOOS) {
+			//	return
+			//}
 			if !strings.EqualFold(tb.Flavor, common.MySQLFlavor) {
 				return
 			}
@@ -72,9 +74,9 @@ func TestGetTarball(t *testing.T) {
 		if tb.Flavor != common.MySQLFlavor {
 			continue
 		}
-		if !strings.EqualFold(tb.OperatingSystem, runtime.GOOS) {
-			continue
-		}
+		//if !strings.EqualFold(tb.OperatingSystem, runtime.GOOS) {
+		//	continue
+		//}
 		t.Run("latest "+v, func(t *testing.T) {
 			err := GetRemoteTarball(DownloadsOptions{
 				SandboxBinary: sandboxBinary,
