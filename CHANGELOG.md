@@ -1,3 +1,12 @@
+## 1.73.0	09-Jul-2023
+
+## NEW FEATURES
+
+* Add tarballs for MySQL 8.0.33 to downloads list
+
+## ADJUSTMENTS
+* Fix security vulnerabilities in dependency (golang.org/x/text and golang.org/x/term)
+
 ## 1.72.1	24-Feb-2023
 
 ## ADJUSTMENTS
