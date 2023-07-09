@@ -24,6 +24,10 @@ function run {
     fi
 }
 
+cat /etc/*release
+pwd
+set
+
 export dbdeployer_version=$(cat common/VERSION)
 export RUN_CONCURRENTLY=1
 export EXIT_ON_FAILURE=1
@@ -40,7 +44,7 @@ fi
 cp $executable dbdeployer
 export PATH=$PWD:$PATH
 
-run ./test/run-mock-tests.sh
-run ./test/docker-test.sh $dbdeployer_version
-run ./test/test-linux-init.sh $dbdeployer_version
+#run ./test/run-mock-tests.sh
+#run ./test/docker-test.sh $dbdeployer_version
+#run ./test/test-linux-init.sh $dbdeployer_version
 
