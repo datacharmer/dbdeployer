@@ -15,8 +15,8 @@ require (
 	github.com/stretchr/testify v1.8.0
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
-	golang.org/x/term v0.5.0
-	golang.org/x/text v0.7.0
+	golang.org/x/term v0.13.0
+	golang.org/x/text v0.13.0
 	jaytaylor.com/html2text v0.0.0-20200412013138-3577fbdbcff7
 
 )
@@ -32,8 +32,8 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
-	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f // indirect
-	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/net v0.17.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
