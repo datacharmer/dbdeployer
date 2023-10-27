@@ -17,7 +17,7 @@ The test will perform several initializations before running. If the environment
 
 Furthermore, the test will download the necessary database binaries for all the required versions.
 By default, the versions being used are: 4.1, 5.0, 5.1, 5.5, 5.6, 5.7, 8.0
-If any of these versions are not available, the test will skip the download. See [Environmant variables](#environment-variables) for how to change this behavior
+If any of these versions are not available, the test will skip the download. See [Environment variables](#environment-variables) for how to change this behavior
 
 ## Template-based script generation
 
@@ -29,11 +29,11 @@ Some templates refer to specific capabilities that are not available for all ver
 only available for 5.7.17+ and 8.0.x. The test initialization recognizes such capabilities and only creates scripts for
 compatible versions.
 
-## Environmant variables
+## Environment variables
 
 There are a few environment variables that add information to the test runs:
 
-* `DRY_RUN` will not tun the tests, but will create the `testdata` directory and populate it with the database versions needed for the test.
+* `DRY_RUN` will not run the tests, but will create the `testdata` directory and populate it with the database versions needed for the test.
 * `TEST_DEBUG` will add verbosity to the test, showing the initialization part and some details on what the test is doing.
 * `TEST_SHORT_VERSIONS` allows the user to choose which versions to test: e.g. `export TEST_SHORT_VERSIONS=5.6,5.7`
 * `GITHUB_ACTIONS` If this variable is set, the test will only run on 5.7 and 8.0
